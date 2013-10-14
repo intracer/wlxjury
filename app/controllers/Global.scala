@@ -32,9 +32,13 @@ object Global extends GlobalSettings {
 
   def initUrls() {
 
-  val galleryUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/galleryUrls${i}.txt"))
-  val largeUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/largeUrls${i}.txt"))
-  val thumbsUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/thumbUrls${i}.txt"))
+  val galleryUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/galleryUrls$i.txt"))
+  val largeUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/largeUrls$i.txt"))
+  val thumbsUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/thumbUrls$i.txt"))
+
+    Logger.info("galleryUrlsFiles" + galleryUrlsFiles)
+    Logger.info("largeUrlsFiles" + largeUrlsFiles)
+    Logger.info("thumbsUrlsFiles" + thumbsUrlsFiles)
 
     galleryUrls = galleryUrlsFiles.map(loadFileCache).fold(Map[String, String]())( _ ++ _)
     largeUrls = largeUrlsFiles.map(loadFileCache).fold(Map[String, String]())( _ ++ _)
@@ -54,7 +58,12 @@ object Global extends GlobalSettings {
   def loadFileCache(file:File): Map[String, String] = {
       val galleryUrlsProps = new Properties
       galleryUrlsProps.load(new FileReader(file))
-      galleryUrlsProps.asScala.toMap
+
+    Logger.info("loadFileCache file " + file)
+    Logger.info("loadFileCache size " + galleryUrlsProps.size())
+    Logger.info("loadFileCache head " + galleryUrlsProps.asScala.head)
+
+    galleryUrlsProps.asScala.toMap
   }
 
   def login(domain: String, username: String, password: String): Wiki = {
