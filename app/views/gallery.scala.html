@@ -1,0 +1,27 @@
+@(user: org.intracer.wmua.User, files: Seq[String], selected: scala.collection.mutable.SortedSet[Int], page: Int)(implicit flash: Flash, lang: Lang)
+
+    @main(Messages("gallery"), user, page) {
+    <div class="row-fluid" >
+
+        <ul class="gallery mw-gallery-traditional">
+
+            @for((file, index) <- files.view.zipWithIndex) {
+                <li class="gallerybox">
+                    <h1 id="@{(page-1) * Gallery.filesPerPage(user) + index}" style="display: inline; width: 1px; height: 1px"></h1>
+                    @if(selected.contains((page-1) * Gallery.filesPerPage(user) + index)){
+                    <div class="thumb selected">
+                    } else {
+                        <div class="thumb" >
+                    }
+                        <a href="/large/@{(page-1) * Gallery.filesPerPage(user) + index}" width="300" height="200">
+                            <img class="cropped" alt="@file" src="@Global.galleryUrls.getOrElse(file, Gallery.urlInProgress)">
+                        </a>
+                    </div>
+
+                </li>
+            }
+
+        </ul>
+
+    </div>
+    }

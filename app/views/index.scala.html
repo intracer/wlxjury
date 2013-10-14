@@ -1,0 +1,12 @@
+@(loginForm: Form[(String, String)])(implicit flash: Flash, lang: Lang)
+
+@main(Messages("application.name")) {
+    
+    <div class="span8">
+      <div class="well">
+        @login(loginForm)
+      </div>
+
+    </div>
+    
+}

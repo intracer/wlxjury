@@ -1,0 +1,75 @@
+@(juryForm: Form[(String, String)], user: org.intracer.wmua.User, files: Seq[String], selected: scala.collection.mutable.SortedSet[Int], index: Int, start: Int, end: Int, page: Int)(implicit flash: Flash, lang: Lang)
+@import helper._
+    @main_large(Messages("gallery"), user) {
+        <div class="container-fluid" style="margin-left:0px; margin-right:0px">
+            <div class="row-fluid">
+       <div class="span2" style="margin-left:0px; min-width: 185px">
+
+           <div style="margin:5px">
+
+               <a href="/gallery/@{page}#@index">  <div class="btn"> <i class="icon-th"></i> </div>    </a>
+
+               @if(index>0) {
+                   <a href="/large/@{index-1}"> <div class="btn" >  <i class=" icon-chevron-up"></i>  </div>  </a>
+               } else {
+                   <div class="btn disabled" >  <i class=" icon-chevron-up"></i> </div>
+               }
+
+               @if(index< files.size-1) {
+                   <a href="/large/@{index+1}">  <div  class="btn">   <i class=" icon-chevron-down"></i>   </div>  </a>
+               } else {
+                   <div class="btn disabled" >  <i class=" icon-chevron-down"></i>  </div>
+               }
+
+               @if(!selected.contains(index)){
+                   <a href="/large/@{index}/select">    <div class="btn btn-success" > <i class="icon-ok icon-white"></i> </div> </a>
+               } else {
+                   <a href="/large/@{index}/select">    <div class="btn btn-danger" ><i class="icon-ban-circle icon-white"></i></div> </a>
+               }
+
+           </div>
+
+        <ul class="gallery mw-gallery-traditional">
+
+            @for((file, i) <- files.view.zipWithIndex.slice(start, end)) {
+                <li class="gallerybox">
+
+
+                   @if(i == index) {
+
+                       @if(selected.contains(i)){
+                           <div class="thumb_small selected current" >
+                           } else {
+                           <div class="thumb_small current">
+                           }
+                   } else {
+                       @if(selected.contains(i)){
+                       <div class="thumb_small selected">
+                       } else {
+                           <div class="thumb_small" >
+                       }
+                   }
+
+                        <div style="margin:5px auto;"><a href="/large/@i" width="150" height="120">
+                            <img class="cropped" alt="@file" src="@Global.thumbUrls.getOrElse(file, Gallery.urlInProgress)" >
+                        </a>
+                        </div>
+                    </div>
+
+
+
+                </li>
+            }
+
+        </ul>
+
+       </div>
+
+       <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
+
+      <a href="https://commons.wikimedia.org/wiki/@files(index)"> <img alt="@files(index)" src="@Global.largeUrls.getOrElse(files(index), Gallery.urlInProgress)" style="max-width:100%; height:auto;"> </a>
+
+           </div>
+    </div>
+    </div>
+    }
