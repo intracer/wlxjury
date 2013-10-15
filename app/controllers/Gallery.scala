@@ -32,8 +32,10 @@ object Gallery extends Controller with Secured {
   }
 
   def userFiles(user: User):Seq[String] = {
+    val index = User.getUserIndex(user.login)%16 + 1
+
      if (user.files.isEmpty) {
-       user.files ++= util.Arrays.asList[String](Global.w.getCategoryMembers("Category:WLM_2013_in_Ukraine_Round_Zero_-_Category_" + user.id, Wiki.FILE_NAMESPACE): _*).asScala
+       user.files ++= util.Arrays.asList[String](Global.w.getImagesOnPage("Commons:Wiki Loves Monuments 2013 in Ukraine:Jury:" + index): _*).asScala
      }
     user.files
   }

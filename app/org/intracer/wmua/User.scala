@@ -25,8 +25,7 @@ object User {
       Some(wmuaUser)
     } else {
       val user = byUserName.get(unameTrimmed)
-      val index = allUsers.zipWithIndex.find{
-        case (us, i) =>  us.login == username}.map(_._2).getOrElse(-1)
+      val index = getUserIndex(username)
 
       if (index >= 0) {
         if (passwords(index) == password)
@@ -52,6 +51,14 @@ object User {
     }
 
     userOpt
+  }
+
+
+  def getUserIndex(username: String): Int = {
+    val index = allUsers.zipWithIndex.find {
+      case (us, i) => us.login == username
+    }.map(_._2).getOrElse(-1)
+    index
   }
 
   def sha1(input: String) = {
