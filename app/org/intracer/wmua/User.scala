@@ -24,7 +24,15 @@ object User {
     val userOpt = if (sha1(unameTrimmed + "/" + passwordTrimmed) == "***REMOVED***") {
       Some(wmuaUser)
     } else {
-      byUserName.get(unameTrimmed)
+      val user = byUserName.get(unameTrimmed)
+      val index = allUsers.zipWithIndex.find{
+        case (us, i) =>  us.login == username}.map(_._2).getOrElse(-1)
+
+      if (index >= 0) {
+        if (passwords(index) == password)
+          user
+         else None
+      } else None
     }
 
     for (user <- userOpt) {
@@ -90,34 +98,35 @@ object User {
     User("***REMOVED***", "***REMOVED***", "10")
   )
 
-  val byUserName = (orgCom ++ jury ++ Seq(wmuaUser)).map(user => (user.login, user)).toMap
+  val allUsers: Seq[User] = jury ++ orgCom ++ Seq(wmuaUser)
+  val byUserName = allUsers.map(user => (user.login, user)).toMap
 
-  val passwords = Seq("***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
+  val passwords = Seq("***REMOVED***",  //1
+    "***REMOVED***",                       //2
+    "***REMOVED***",                       //3
+    "***REMOVED***",                          //4
+    "***REMOVED***",                             //5
+    "***REMOVED***", //6
+    "***REMOVED***",    //7
+    "***REMOVED***",       //8
+    "***REMOVED***",          //9
+    "***REMOVED***",             //10
+    "***REMOVED***",             //11
+    "***REMOVED***",             //12
+    "***REMOVED***",             //13
+    "***REMOVED***",             //14
+    "***REMOVED***",             //15
+    "***REMOVED***",             //16
+    "***REMOVED***",              //----1
+    "***REMOVED***",               //2
+    "***REMOVED***",               //3
+    "***REMOVED***",               //4
+    "***REMOVED***",                //5
+    "***REMOVED***",                // 6
+    "***REMOVED***",                // 7
+    "***REMOVED***",                // 8
+    "***REMOVED***",                // 9
+    "***REMOVED***",                // 10
     "***REMOVED***",
     "***REMOVED***",
     "***REMOVED***",
