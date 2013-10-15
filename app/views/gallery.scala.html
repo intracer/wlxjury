@@ -7,13 +7,13 @@
 
             @for((file, index) <- files.view.zipWithIndex) {
                 <li class="gallerybox">
-                    <h1 id="@{(page-1) * Gallery.filesPerPage(user) + index}" style="display: inline; width: 1px; height: 1px"></h1>
-                    @if(selected.contains((page-1) * Gallery.filesPerPage(user) + index)){
+                    <h1 id="@{(page-1) * (Gallery.filesPerPage(user)+1) + index}" style="display: inline; width: 1px; height: 1px"></h1>
+                    @if(selected.contains((page-1) * (Gallery.filesPerPage(user) + 1) + index)){
                     <div class="thumb selected">
                     } else {
                         <div class="thumb" >
                     }
-                        <a href="/large/@{(page-1) * Gallery.filesPerPage(user) + index}" width="300" height="200">
+                        <a href="/large/@{(page-1) * (Gallery.filesPerPage(user) + 1) + index}" width="300" height="200">
                             <img class="cropped" alt="@file" src="@Global.galleryUrls.getOrElse(file, Gallery.urlInProgress)">
                         </a>
                     </div>

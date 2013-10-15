@@ -8,7 +8,7 @@ import org.intracer.wmua.User
 
 trait Secured {
 
-  def username(request: RequestHeader) = request.session.get(Security.username)
+  def username(request: RequestHeader) = request.session.get(Security.username).map(_.trim)
 
   def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.index())
 

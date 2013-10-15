@@ -7,7 +7,7 @@
 
            <div style="margin:5px">
 
-               <a href="/gallery/@{page}#@index">  <div class="btn"> <i class="icon-th"></i> </div>    </a>
+               <a href="/gallery/@{1 + index/(Gallery.filesPerPage(user) + 1)}#@index">  <div class="btn"> <i class="icon-th"></i> </div>    </a>
 
                @if(index>0) {
                    <a href="/large/@{index-1}"> <div class="btn" >  <i class=" icon-chevron-up"></i>  </div>  </a>

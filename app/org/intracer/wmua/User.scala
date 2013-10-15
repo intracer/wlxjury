@@ -3,8 +3,12 @@ package org.intracer.wmua
 import java.security.MessageDigest
 import java.math.BigInteger
 import scala.collection.mutable
+import play.Logger
+import controllers.{Gallery, Selection}
+import scalikejdbc.SQLInterpolation._
+import scala.Some
 
-case class User(fullname: String, login: String, hash: String,
+case class User(fullname: String, login: String, id: String,
                 selected:collection.mutable.SortedSet[Int] = collection.mutable.SortedSet[Int](),
                 files: mutable.Buffer[String] = mutable.Buffer.empty) {
 
@@ -13,11 +17,33 @@ case class User(fullname: String, login: String, hash: String,
 
 object User {
   def login(username: String, password: String): Option[User] = {
-    if (sha1(username + "/" + password) == "***REMOVED***") {
+
+    val unameTrimmed = username.trim
+    val passwordTrimmed = password.trim
+
+    val userOpt = if (sha1(unameTrimmed + "/" + passwordTrimmed) == "***REMOVED***") {
       Some(wmuaUser)
     } else {
-      byUserName.get(username)
+      byUserName.get(unameTrimmed)
     }
+
+    for (user <- userOpt) {
+      user.selected.clear()
+
+      val files = Gallery.userFiles(user)
+
+      user.selected ++= Selection.findAllBy(sqls.eq(Selection.c.email, user.login.trim.toLowerCase)).flatMap{
+        selection =>
+          val index = files.indexOf(selection.filename)
+          if (index >= 0) {
+            Seq(index)
+          }
+           else Seq.empty
+      }
+
+    }
+
+    userOpt
   }
 
   def sha1(input: String) = {
@@ -96,5 +122,12 @@ object User {
     "***REMOVED***",
     "***REMOVED***",
     "***REMOVED***")
+
+
+  def main(args: Array[String]) {
+
+    (orgCom ++ jury).foreach(user =>
+    println (s"""insert into "user" (name, login) values ('${user.fullname}', '${user.login}');"""))
+  }
 
 }

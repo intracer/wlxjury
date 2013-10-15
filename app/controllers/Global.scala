@@ -32,9 +32,9 @@ object Global extends GlobalSettings {
 
   def initUrls() {
 
-  val galleryUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/galleryUrls$i.txt"))
-  val largeUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/largeUrls$i.txt"))
-  val thumbsUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/thumbUrls$i.txt"))
+  val galleryUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/urls/galleryUrls${i}.txt"))
+  val largeUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/urls/largeUrls${i}.txt"))
+  val thumbsUrlsFiles = (1 to 10).map(i=> new File(s"${projectRoot.getAbsolutePath}/conf/urls/thumbUrls${i}.txt"))
 
     Logger.info("galleryUrlsFiles" + galleryUrlsFiles)
     Logger.info("largeUrlsFiles" + largeUrlsFiles)

@@ -18,10 +18,16 @@ object ApplicationBuild extends Build {
 //    anorm,
 //    ,
 //   "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT"
-  "com.github.seratch" %% "scalikejdbc"               % "[1.6,)",
-   "com.github.seratch" %% "scalikejdbc-interpolation" % "[1.6,)",
+    "com.github.seratch"   %% "scalikejdbc"                     % scalikejdbcVersion,
+    "com.github.seratch"   %% "scalikejdbc-config"              % scalikejdbcVersion,
+    "com.github.seratch"   %% "scalikejdbc-interpolation"       % scalikejdbcVersion,
+    "com.github.seratch"   %% "scalikejdbc-play-plugin"         % scalikejdbcVersion,
+    "com.github.seratch"   %% "scalikejdbc-play-fixture-plugin" % scalikejdbcVersion,
    "org.postgresql"     %  "postgresql"                % "9.2-1003-jdbc4", // your JDBC driver
-   "org.slf4j"          %  "slf4j-simple"              % "[1.7,)"          // slf4j implementation
+   "org.slf4j"          %  "slf4j-simple"              % "[1.7,)",          // slf4j implementation
+  "com.github.seratch"   %% "scalikejdbc-test"                % scalikejdbcVersion  % "test",
+  "org.specs2"           %% "specs2"                          % "2.1"               % "test"
+
   )
 
 

@@ -17,10 +17,10 @@ object Gallery extends Controller with Secured {
   def list(page: Int = 1) = withAuth {
     username =>
       implicit request =>
-        val user = User.byUserName.get(username).get
+        val user = User.byUserName.get(username.trim).get
 
         val files = userFiles(user)
-        val pageFiles: Seq[String] = files.slice((page - 1) * filesPerPage(user), Math.min(page * filesPerPage(user), files.size))
+        val pageFiles: Seq[String] = files.slice((page - 1) * (filesPerPage(user) + 1), Math.min(page * (filesPerPage(user) + 1), files.size))
         Ok(views.html.gallery(user, pageFiles, user.selected, page))
   }
 
@@ -28,12 +28,12 @@ object Gallery extends Controller with Secured {
     username =>
       implicit request =>
 
-        show(index, username)
+        show(index, username.trim)
   }
 
   def userFiles(user: User):Seq[String] = {
      if (user.files.isEmpty) {
-       user.files ++= util.Arrays.asList[String](Global.w.getCategoryMembers("Category:WLM_2013_in_Ukraine_Round_Zero_-_Category_" + user.hash, Wiki.FILE_NAMESPACE): _*).asScala
+       user.files ++= util.Arrays.asList[String](Global.w.getCategoryMembers("Category:WLM_2013_in_Ukraine_Round_Zero_-_Category_" + user.id, Wiki.FILE_NAMESPACE): _*).asScala
      }
     user.files
   }
@@ -43,34 +43,46 @@ object Gallery extends Controller with Secured {
     username =>
       implicit request =>
 
-        val user = User.byUserName.get(username).get
+        val user = User.byUserName.get(username.trim).get
         val selected = user.selected
 
         if (selected.contains(index)) {
           val file = userFiles(user)(index)
-          var text = Global.w.getPageText(file)
-          if (text.contains("WLM 2013 in Ukraine Round One " + user.fullname)) {
-            val newCat: String = s"\\Q[[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]\\E"
-            text = text.replaceAll(newCat, "")
-            Global.w.edit(file, text, s"Removing [[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]")
-          }
+
+          Selection.destroy(filename = file, email = user.login.trim.toLowerCase)
+
+//          deselectWiki(file, user)
           selected -= index
         }
         else {
           val file = userFiles(user)(index)
-          var text = Global.w.getPageText(file)
-          if (!text.contains("WLM 2013 in Ukraine Round One " + user.fullname)) {
-            val newCat: String = s"[[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]"
-            text += "\n" + newCat
-            Global.w.edit(file, text, s"Adding $newCat")
-          }
+//          selectWiki(file, user)
           selected += index
+          val selection = Selection.create(filename = file, fileid = ""+index, juryid = user.id.toInt, email = user.login.trim.toLowerCase)
         }
 
         show(index, username)
 
   }
 
+
+  def selectWiki(file: String, user: User) {
+    var text = Global.w.getPageText(file)
+    if (!text.contains("WLM 2013 in Ukraine Round One " + user.fullname)) {
+      val newCat: String = s"[[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]"
+      text += "\n" + newCat
+      Global.w.edit(file, text, s"Adding $newCat")
+    }
+  }
+
+  def deselectWiki(file: String, user: User) {
+    var text = Global.w.getPageText(file)
+    if (text.contains("WLM 2013 in Ukraine Round One " + user.fullname)) {
+      val newCat: String = s"\\Q[[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]\\E"
+      text = text.replaceAll(newCat, "")
+      Global.w.edit(file, text, s"Removing [[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]")
+    }
+  }
 
   def show(index: Int, username: String)(implicit request: Request[Any]): SimpleResult[Html] = {
     val user = User.byUserName.get(username).get

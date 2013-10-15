@@ -20,7 +20,7 @@ object Application extends Controller {
       formWithErrors => // binding failure, you retrieve the form containing errors,
         BadRequest(views.html.index(formWithErrors)),
       value => // binding success, you get the actual value
-        Redirect(routes.Gallery.list(1)).withSession(Security.username -> value._1))
+        Redirect(routes.Gallery.list(1)).withSession(Security.username -> value._1.trim))
   }
 
   /**
