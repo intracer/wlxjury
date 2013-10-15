@@ -35,7 +35,7 @@ object Gallery extends Controller with Secured {
     val index = User.getUserIndex(user.login)%16 + 1
 
      if (user.files.isEmpty) {
-       user.files ++= util.Arrays.asList[String](Global.w.getImagesOnPage("Commons:Wiki Loves Monuments 2013 in Ukraine:Jury:" + index): _*).asScala
+       user.files ++= util.Arrays.asList[String](Global.w.getImagesOnPage("commons:Wiki Loves Monuments 2013 in Ukraine Jury/" + index): _*).asScala
      }
     user.files
   }
