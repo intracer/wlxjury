@@ -8,6 +8,8 @@ import play.api.templates.Html
 import java.util
 import org.wikipedia.Wiki
 import scala.collection.JavaConverters._
+import scala.collection.mutable
+import java.io.IOException
 
 object Gallery extends Controller with Secured {
 
@@ -60,7 +62,16 @@ object Gallery extends Controller with Secured {
     val index = User.getUserIndex(user.login) % 16 + 1
 
     if (user.files.isEmpty) {
-      user.files ++= util.Arrays.asList[String](Global.w.getImagesOnPage("commons:Wiki Loves Monuments 2013 in Ukraine Jury/" + index): _*).asScala
+
+      val path: String = "commons:Wiki Loves Monuments 2013 in Ukraine Jury/" + index
+
+      val images: mutable.WrappedArray[String] = try {
+        Global.w.getImagesOnPage(path)
+      } catch {
+        case e: IOException =>
+          Global.w.getImagesOnPage(path)
+      }
+      user.files ++= util.Arrays.asList[String](images: _*).asScala
     }
     user.files
   }
