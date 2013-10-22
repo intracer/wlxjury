@@ -24,7 +24,12 @@
         <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container">
+                @if(user!=null) {
+                    <a class="brand" style="margin-top:5px" href="/gallery/1">@Messages("All")</a>
+                    <a class="brand" style="margin-top:5px; color:#5bc75b" href="/selected">@Messages("Selected")</a>
+                } else {
                     <a class="brand" style="margin-top:5px" href="#">@Messages("application.name")</a>
+                }
                     @logged(user)
                     <div> <!-- class="nav-collapse collapse" -->
 <!--                        <ul class="nav">

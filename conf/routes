@@ -3,20 +3,27 @@
 # ~~~~
 
 # Home page
-GET         /                           controllers.Application.index
+GET         /                            controllers.Application.index
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file               controllers.Assets.at(path="/public", file)
+GET         /assets/*file                controllers.Assets.at(path="/public", file)
 
-GET         /logout                     controllers.Application.logout()
+GET         /logout                      controllers.Application.logout()
 
-POST        /auth                       controllers.Application.auth()
+POST        /auth                        controllers.Application.auth()
 
-GET         /auth                       controllers.Application.index
+GET         /auth                        controllers.Application.index
 
-GET         /gallery/:page             controllers.Gallery.list(page: Int)
+GET         /gallery/:page               controllers.Gallery.list(page: Int)
 
-GET         /large/:index               controllers.Gallery.large(index: Int)
+GET         /selected                    controllers.Gallery.selected()
 
-GET         /large/:index/select        controllers.Gallery.select(index: Int)
+GET         /large/:index                controllers.Gallery.large(index: Int)
+
+GET         /largeSelected/:index        controllers.Gallery.largeSelected(index: Int)
+
+GET         /large/:index/select         controllers.Gallery.select(index: Int)
+
+GET         /largeSelected/:index/unselect       controllers.Gallery.unselect(index: Int)
+
 

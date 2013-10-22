@@ -9,7 +9,7 @@ import scalikejdbc.SQLInterpolation._
 import scala.Some
 
 case class User(fullname: String, login: String, id: String,
-                selected:collection.mutable.SortedSet[Int] = collection.mutable.SortedSet[Int](),
+                selected:collection.mutable.SortedSet[String] = collection.mutable.SortedSet[String](),
                 files: mutable.Buffer[String] = mutable.Buffer.empty) {
 
 }
@@ -38,16 +38,15 @@ object User {
       user.selected.clear()
 
       val files = Gallery.userFiles(user)
+      val filesSet = mutable.SortedSet(files:_*)
 
-      user.selected ++= Selection.findAllBy(sqls.eq(Selection.c.email, user.login.trim.toLowerCase)).flatMap{
-        selection =>
-          val index = files.indexOf(selection.filename)
-          if (index >= 0) {
-            Seq(index)
-          }
-           else Seq.empty
+      val fromDb = Selection.findAllBy(sqls.eq(Selection.c.email, user.login.trim.toLowerCase))
+      user.selected ++= fromDb.map{ selection =>
+        if (!filesSet.contains(selection.filename))
+          files(selection.fileid.toInt)
+         else
+        selection.filename
       }
-
     }
 
     userOpt

@@ -13,7 +13,7 @@ import scala.collection.SortedSet
 object Global extends GlobalSettings {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
-  var w: Wiki = _
+  lazy val w: Wiki = login(COMMONS_WIKIMEDIA_ORG, "***REMOVED***", "***REMOVED***")
 
   val  dir  = "public/wlm"
 
@@ -45,8 +45,6 @@ object Global extends GlobalSettings {
     thumbUrls = thumbsUrlsFiles.map(loadFileCache).fold(Map[String, String]())( _ ++ _)
 
     //files = SortedSet[String](galleryUrls.keySet.toSeq:_*).toSeq.slice(0, 1500)
-
-    w = login(COMMONS_WIKIMEDIA_ORG, "***REMOVED***", "***REMOVED***")
 
 //    for (file <- files) {
 //      thumbUrls.put(file, w.getImageUrl(file, 150, 120))

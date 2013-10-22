@@ -8,21 +8,38 @@ import play.api.templates.Html
 import java.util
 import org.wikipedia.Wiki
 import scala.collection.JavaConverters._
+
 object Gallery extends Controller with Secured {
 
-  val pages = 15
+  def pages = 15
 
-  val urlInProgress = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Icon_tools.svg/120px-Icon_tools.svg.png"
+  val Selected = "selected"
+
+  val Filter = "filter"
+
+  val UrlInProgress = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Icon_tools.svg/120px-Icon_tools.svg.png"
 
   def list(page: Int = 1) = withAuth {
     username =>
       implicit request =>
         val user = User.byUserName.get(username.trim).get
 
-        val files = userFiles(user)
+        var files = userFiles(user)
+
         val pageFiles: Seq[String] = files.slice((page - 1) * (filesPerPage(user) + 1), Math.min(page * (filesPerPage(user) + 1), files.size))
         Ok(views.html.gallery(user, pageFiles, user.selected, page))
   }
+
+  def selected() = withAuth {
+    username =>
+      implicit request =>
+        val user = User.byUserName.get(username.trim).get
+
+        val files = userFiles(user).filter(user.selected.contains)
+
+        Ok(views.html.selected(user, files, user.selected, 0))
+  }
+
 
   def large(index: Int) = withAuth {
     username =>
@@ -31,12 +48,20 @@ object Gallery extends Controller with Secured {
         show(index, username.trim)
   }
 
-  def userFiles(user: User):Seq[String] = {
-    val index = User.getUserIndex(user.login)%16 + 1
+  def largeSelected(index: Int) = withAuth {
+    username =>
+      implicit request =>
 
-     if (user.files.isEmpty) {
-       user.files ++= util.Arrays.asList[String](Global.w.getImagesOnPage("commons:Wiki Loves Monuments 2013 in Ukraine Jury/" + index): _*).asScala
-     }
+        show(index, username.trim, showSelected = true)
+  }
+
+
+  def userFiles(user: User): Seq[String] = {
+    val index = User.getUserIndex(user.login) % 16 + 1
+
+    if (user.files.isEmpty) {
+      user.files ++= util.Arrays.asList[String](Global.w.getImagesOnPage("commons:Wiki Loves Monuments 2013 in Ukraine Jury/" + index): _*).asScala
+    }
     user.files
   }
 
@@ -48,22 +73,46 @@ object Gallery extends Controller with Secured {
         val user = User.byUserName.get(username.trim).get
         val selected = user.selected
 
-        if (selected.contains(index)) {
-          val file = userFiles(user)(index)
+        val file = userFiles(user)(index)
+        if (selected.contains(file)) {
 
           Selection.destroy(filename = file, email = user.login.trim.toLowerCase)
 
-//          deselectWiki(file, user)
-          selected -= index
+          selected -= file
         }
         else {
-          val file = userFiles(user)(index)
-//          selectWiki(file, user)
-          selected += index
-          val selection = Selection.create(filename = file, fileid = ""+index, juryid = user.id.toInt, email = user.login.trim.toLowerCase)
+          selected += file
+          val selection = Selection.create(filename = file, fileid = "" + index, juryid = user.id.toInt, email = user.login.trim.toLowerCase)
         }
 
         show(index, username)
+  }
+
+  def unselect(index: Int) = withAuth {
+    username =>
+      implicit request =>
+
+        val user = User.byUserName.get(username.trim).get
+        val selected = user.selected
+
+        val selectedFiles = userFiles(user).filter(user.selected.contains)
+        val file = selectedFiles(index)
+        if (selected.contains(file)) {
+
+          Selection.destroy(filename = file, email = user.login.trim.toLowerCase)
+
+          selected -= file
+        }
+
+        val newIndex = if (index > selected.size - 1)
+          selected.size - 1
+        else index
+
+      if (newIndex>=0) {
+        show(newIndex, username, showSelected = true)
+      } else {
+        Ok(views.html.selected(user, Seq.empty, user.selected, 0))
+      }
 
   }
 
@@ -86,10 +135,14 @@ object Gallery extends Controller with Secured {
     }
   }
 
-  def show(index: Int, username: String)(implicit request: Request[Any]): SimpleResult[Html] = {
+  def show(index: Int, username: String, showSelected: Boolean = false)(implicit request: Request[Any]): SimpleResult[Html] = {
     val user = User.byUserName.get(username).get
 
-    val files = userFiles(user)
+    var files = userFiles(user)
+
+    if (showSelected) {
+      files = files.filter(user.selected.contains)
+    }
 
     val extraRight = if (index - 2 < 0) 2 - index else 0
     val extraLeft = if (files.size < index + 3) index + 3 - files.size else 0
@@ -103,7 +156,11 @@ object Gallery extends Controller with Secured {
 
     val selected = user.selected
 
-    Ok(views.html.large(loginForm, User.byUserName.get(username).get, files, selected, index, start, end, page))
+    if (showSelected) {
+      Ok(views.html.largeSelected(User.byUserName.get(username).get, files, selected, index, start, end, page))
+    } else {
+      Ok(views.html.large(User.byUserName.get(username).get, files, selected, index, start, end, page))
+    }
   }
 
 

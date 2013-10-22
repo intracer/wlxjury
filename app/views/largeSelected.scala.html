@@ -15,19 +15,19 @@
     }
 
     @buttonGallery() = {
-        <a href="/gallery/@{1 + index/(Gallery.filesPerPage(user) + 1)}#@index">@button("btn", "icon-th")</a>
+        <a href="/selected#@index">@button("btn", "icon-th")</a>
     }
 
     @buttonUp() = {
-        @optionalButton(() => index > 0, s"/large/${index-1}", "icon-chevron-up")
+        @optionalButton(() => index > 0, s"/largeSelected/${index-1}", "icon-chevron-up")
     }
 
     @buttonDown() = {
-        @optionalButton(() => index < files.size-1, s"/large/${index+1}", "icon-chevron-down")
+        @optionalButton(() => index < files.size-1, s"/largeSelected/${index+1}", "icon-chevron-down")
     }
 
     @buttonSelect() = {
-        <a href="/large/@{index}/select">
+        <a href="/largeSelected/@index/unselect">
         @if(!selected.contains(files(index))){
             @button("btn btn-success", "icon-ok icon-white")
         } else {
@@ -57,7 +57,7 @@
 
                        @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
 
-                        <div style="margin:5px auto;"><a href="/large/@i" width="150" height="120">
+                        <div style="margin:5px auto;"><a href="/largeSelected/@i" width="150" height="120">
                             <img class="cropped" alt="@file" src="@Global.thumbUrls.getOrElse(file, Gallery.UrlInProgress)" >
                         </a>
                         </div>
