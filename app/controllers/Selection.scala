@@ -9,6 +9,7 @@ case class Selection(
                      	fileid: String,
                       juryid: Int,
                       email: String,
+                      round: Int,
                       createdAt: DateTime,
                       deletedAt: Option[DateTime] = None)
 {
@@ -28,6 +29,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
     fileid = rs.string(c.fileid),
     juryid = rs.int(c.juryid),
     email = rs.string(c.email),
+    round = rs.int(c.round),
     createdAt = rs.timestamp(c.createdAt).toDateTime,
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toDateTime)
   )
@@ -60,17 +62,18 @@ object Selection extends SQLSyntaxSupport[Selection]{
     select(sqls.count).from(Selection as c).where.append(isNotDeleted).and.append(sqls"${where}")
   }.map(_.long(1)).single.apply().get
 
-  def create(filename: String, fileid: String, juryid: Int, email: String, createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): Selection = {
+  def create(filename: String, fileid: String, juryid: Int, email: String, round: Int, createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): Selection = {
     val id = withSQL {
       insert.into(Selection).namedValues(
         column.filename -> filename,
         column.fileid -> fileid,
         column.juryid -> juryid,
         column.email -> email.trim.toLowerCase,
+        column.round -> round,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey.apply()
 
-    Selection(id = id, filename = filename, fileid = fileid, juryid = juryid, email = email, createdAt = createdAt)
+    Selection(id = id, filename = filename, fileid = fileid, juryid = juryid, email = email, round = round, createdAt = createdAt)
   }
 
   def destroy(filename: String, email: String)(implicit session: DBSession = autoSession): Unit = withSQL {

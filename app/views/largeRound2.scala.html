@@ -1,0 +1,79 @@
+@(user: org.intracer.wmua.User, files: Seq[String], selected: scala.collection.mutable.SortedSet[String],
+        index: Int, start: Int, end: Int, region: String, round: Int)(implicit flash: Flash, lang: Lang)
+@import helper._
+
+
+    @button(btnClass: String, iconClass:String) = {
+        <div class="@btnClass"><i class="@iconClass"></i></div>
+    }
+
+    @optionalButton(condition: () => Boolean, link:String, icon: String) = {
+        @if(condition()) {
+            <a href="@link"> @button("btn", icon)</a>
+        } else {
+            @button("btn disabled", icon)
+        }
+    }
+
+    @buttonGallery() = {
+        <a href="/round/@round/@region#@index">@button("btn", "icon-th")</a>
+    }
+
+    @buttonUp() = {
+        @optionalButton(() => index > 0, s"/largeRound/${round}/${region}/${index-1}", "icon-chevron-up")
+    }
+
+    @buttonDown() = {
+        @optionalButton(() => index < files.size-1, s"/largeRound/${round}/${region}/${index+1}", "icon-chevron-down")
+    }
+
+    @buttonSelect() = {
+        @if(!selected.contains(files(index))){
+            <a href="/selectRound/@round/@region/@{files(index).hashCode}">
+            @button("btn btn-success", "icon-ok icon-white")
+        } else {
+            <a href="/unselectRound/@round/@region/@{files(index).hashCode}">
+            @button("btn btn-danger", "icon-ban-circle icon-white")
+        }
+        </a>
+    }
+
+    @thumbSmall(file:String, style:String) = {
+        <div class="@style @if(selected.contains(file)){selected}">
+    }
+
+    @main_large(Messages("gallery"), user) {
+        <div class="container-fluid" style="margin-left:0px; margin-right:0px">
+            <div class="row-fluid">
+       <div class="span2" style="margin-left:0px; min-width: 185px">
+           <div style="margin:5px">
+               @buttonGallery()
+               @buttonUp()
+               @buttonDown()
+               @buttonSelect()
+           </div>
+
+        <ul class="gallery mw-gallery-traditional">
+            @for((file, i) <- files.view.zipWithIndex.slice(start, end)) {
+                <li class="gallerybox">
+
+                       @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
+
+                        <div style="margin:5px auto;"><a href="/largeRound/@round/@region/@i" width="150" height="120">
+                            <img class="cropped" alt="@file" src="@Global.thumbUrls.getOrElse(file, Gallery.UrlInProgress)" >
+                        </a>
+                        </div>
+                    </div>
+                </li>
+            }
+        </ul>
+       </div>
+
+       <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
+
+      <a href="https://commons.wikimedia.org/wiki/@files(index)"> <img alt="@files(index)" src="@Global.largeUrls.getOrElse(files(index), Gallery.UrlInProgress)" style="max-width:100%; height:auto;"> </a>
+
+           </div>
+    </div>
+    </div>
+    }

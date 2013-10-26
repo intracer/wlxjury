@@ -51,6 +51,8 @@ object Global extends GlobalSettings {
 //      galleryUrls.put(file, w.getImageUrl(file, 300, 200))
 //      largeUrls.put(file, w.getImageUrl(file, 1280, 1024))
 //    }
+
+    KOATUU.load()
   }
 
   def loadFileCache(file:File): Map[String, String] = {
