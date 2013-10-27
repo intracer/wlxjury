@@ -264,12 +264,10 @@ object Gallery extends Controller with Secured {
     val extraRight = if (index - 2 < 0) 2 - index else 0
     val extraLeft = if (files.size < index + 3) index + 3 - files.size else 0
 
-
     val left = Math.max(0, index - 2)
     val right = Math.min(index + 3, files.size)
     val start = Math.max(0, left - extraLeft)
     var end = Math.min(files.size, right + extraRight)
-
 
     if (!region.isDefined) {
       if (showSelected) {

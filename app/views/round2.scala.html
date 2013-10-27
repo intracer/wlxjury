@@ -6,6 +6,7 @@
     <div class="row-fluid" >
     <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">
       <ul>
+          <li><a href="/round/@round/all" @if("all" == region){style="font-weight: bold"}>*</a></li>
           @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1)) {
 
                   <li><a href="/round/@round/@id" @if(id == region){style="font-weight: bold"}>@name</a></li>

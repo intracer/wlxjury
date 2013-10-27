@@ -7,16 +7,16 @@ import scala.collection.JavaConverters._
 
 
 object KOATUU {
-   final val REGION_PROPERTIES: String = "conf/KOATUU.properties"
-   final val regionProperties: Properties = new Properties
-    var regions: Map[String, String] = Map[String, String]()
-  
+  final val REGION_PROPERTIES: String = "conf/KOATUU.properties"
+  final val regionProperties: Properties = new Properties
+  var regions: Map[String, String] = Map[String, String]()
+
   final val FILE_ID_PROPERTIES: String = "conf/fileIds.txt"
-   final val fileIdProperties: Properties = new Properties
-   var fileIds: Map[String, String] = Map[String, String]()
+  final val fileIdProperties: Properties = new Properties
+  var fileIds: Map[String, String] = Map[String, String]()
 
   var fileHashes: Map[String, String] = Map[String, String]()
-  
+
 
   def load() {
     regionProperties.load(new FileReader(REGION_PROPERTIES))
@@ -37,23 +37,28 @@ object KOATUU {
   }
 
   def regionList = regions.map(x => x).toSeq.sortBy(_._1).map(_._2)
-  
-  def regionIdByMonumentId(id:String):Option[String] = {
+
+  def regionIdByMonumentId(id: String): Option[String] = {
     val split = id.split("-")
-    
+
     if (regions.contains(split(0))) {
       Some(split(0))
     } else {
       None
     }
   }
-  
-  def regionIdByFile(file:String) = {
+
+  def regionIdByFile(file: String) = {
     fileIds.get(file).flatMap(regionIdByMonumentId)
   }
 
   def filesInRegion(files: Seq[String], regionId: String) = {
-    files.filter(f => regionIdByFile(f).exists(fileRegion => fileRegion == regionId))
+
+    regionId match {
+      case "all" => files
+      case "no" => files.filter(f => !regionIdByFile(f).isDefined)
+      case _ => files.filter(f => regionIdByFile(f).exists(fileRegion => fileRegion == regionId))
+    }
   }
-  
+
 }
