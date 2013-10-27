@@ -80,5 +80,10 @@ object Selection extends SQLSyntaxSupport[Selection]{
     update(Selection).set(column.deletedAt -> DateTime.now).where.eq(column.filename, filename).and.eq(column.email, email)
   }.update.apply()
 
+  def destroyAll(filename: String)(implicit session: DBSession = autoSession): Unit = withSQL {
+    update(Selection).set(column.deletedAt -> DateTime.now).where.eq(column.filename, filename)
+  }.update.apply()
+
+
 
 }

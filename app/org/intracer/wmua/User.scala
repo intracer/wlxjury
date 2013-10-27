@@ -3,10 +3,11 @@ package org.intracer.wmua
 import java.security.MessageDigest
 import java.math.BigInteger
 import scala.collection.mutable
-import play.Logger
-import controllers.{Gallery, Selection}
+import controllers.{Global, Gallery, Selection}
 import scalikejdbc.SQLInterpolation._
-import scala.Some
+import java.util
+import  scala.collection.JavaConverters._
+import org.wikipedia.Wiki
 
 case class User(fullname: String, login: String, id: String,
                 selected:collection.mutable.SortedSet[String] = collection.mutable.SortedSet[String](),
@@ -48,6 +49,11 @@ object User {
         selection.filename
       }
     }
+
+    var files = util.Arrays.asList[String](Global.w.getCategoryMembers("Category:WLM_2013_in_Ukraine_Round_Two", Wiki.FILE_NAMESPACE): _*).asScala
+
+    for (file <- files)
+      Selection.destroyAll(filename = file)
 
     userOpt
   }
