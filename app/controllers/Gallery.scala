@@ -50,8 +50,8 @@ object Gallery extends Controller with Secured {
       implicit request =>
         val user = User.byUserName.get(username.trim).get
 
-        val files = if (round>1) {
-          Selection.findAllBy(sqls.eq(Selection.c.round, round-1)).map(_.filename).toSet.toSeq
+        val files = if (round > 1) {
+          Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
         } else {
           userFiles(user)
         }
@@ -71,8 +71,8 @@ object Gallery extends Controller with Secured {
 
         val user = User.byUserName.get(username.trim).get
 
-        val files = if (round>1) {
-          Selection.findAllBy(sqls.eq(Selection.c.round, round-1)).map(_.filename).toSet.toSeq
+        val files = if (round > 1) {
+          Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
         } else {
           userFiles(user)
         }
@@ -149,8 +149,8 @@ object Gallery extends Controller with Secured {
       implicit request =>
         val user = User.byUserName.get(username.trim).get
 
-        val files = if (round>1) {
-          Selection.findAllBy(sqls.eq(Selection.c.round, round-1)).map(_.filename).toSet.toSeq
+        val files = if (round > 1) {
+          Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
         } else {
           userFiles(user)
         }
@@ -174,8 +174,8 @@ object Gallery extends Controller with Secured {
       implicit request =>
         val user = User.byUserName.get(username.trim).get
 
-        val files = if (round>1) {
-          Selection.findAllBy(sqls.eq(Selection.c.round, round-1)).map(_.filename).toSet.toSeq
+        val files = if (round > 1) {
+          Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
         } else {
           userFiles(user)
         }
@@ -193,7 +193,6 @@ object Gallery extends Controller with Secured {
 
         Redirect(routes.Gallery.largeRound2(regionId, index, round))
   }
-
 
 
   def unselect(index: Int) = withAuth {
@@ -259,7 +258,7 @@ object Gallery extends Controller with Secured {
 
 
   def show2(index: Int, files: Seq[String], user: User, showSelected: Boolean, username: String, selected: mutable.SortedSet[String],
-    page: Int, region: Option[String] = None, round: Int = 1)
+            page: Int, region: Option[String] = None, round: Int = 1)
            (implicit request: Request[Any]): SimpleResult[Html] = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
     val extraLeft = if (files.size < index + 3) index + 3 - files.size else 0

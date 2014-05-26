@@ -13,7 +13,7 @@ import scala.collection.SortedSet
 object Global extends GlobalSettings {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
-  lazy val w: Wiki = login(COMMONS_WIKIMEDIA_ORG, "***REMOVED***", "***REMOVED***")
+  lazy val w: Wiki = login(COMMONS_WIKIMEDIA_ORG, "***REMOVED***", "***REMOVED***1")
 
   val  dir  = "public/wlm"
 

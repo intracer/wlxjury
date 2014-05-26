@@ -1,0 +1,17 @@
+@(adminUser: org.intracer.wmua.User, users:Seq[org.intracer.wmua.User])(implicit flash: Flash, lang: Lang)
+
+@main(Messages("users"), adminUser, 0) {
+    <div class="row-fluid" >
+
+        <ul>
+
+        @for(user <- users) {
+            <li>
+                @user.fullname - @user.login
+            </li>
+        }
+
+        </ul>
+
+    </div>
+}

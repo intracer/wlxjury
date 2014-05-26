@@ -25,6 +25,7 @@
             <div class="navbar-inner">
                 <div class="container">
                 @if(user!=null) {
+                    <a class="brand" style="margin-top:5px" href="/admin/users">@Messages("Users")</a>
                     @if(round==0) {
                         <a class="brand" style="margin-top:5px" href="/gallery/1">@Messages("All")</a>
                         <a class="brand" style="margin-top:5px; color:#5bc75b" href="/selected">@Messages("Selected")</a>

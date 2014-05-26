@@ -34,4 +34,5 @@ GET         /large/:index/select         controllers.Gallery.select(index: Int)
 
 GET         /largeSelected/:index/unselect       controllers.Gallery.unselect(index: Int)
 
+GET         /admin/users       controllers.Admin.users()
 
