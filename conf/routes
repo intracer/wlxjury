@@ -36,3 +36,6 @@ GET         /largeSelected/:index/unselect       controllers.Gallery.unselect(in
 
 GET         /admin/users       controllers.Admin.users()
 
+GET         /users/edit/:id       controllers.Admin.editUser(id: String)
+
+POST        /users/save       controllers.Admin.saveUser()

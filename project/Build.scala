@@ -10,7 +10,9 @@ object ApplicationBuild extends Build {
   lazy val scalikejdbcVersion = "1.6.5"
   lazy val h2Version = "1.3.172"
 
-  resolvers += Resolver.sonatypeRepo("snapshots")
+  resolvers := Seq("typesafe" at "http://repo.typesafe.com/typesafe/releases/")
+//  resolvers += Resolver.sonatypeRepo("snapshots")
+//  resolvers += Resolver.url("play-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns),
 
   val appDependencies = Seq(
     // Add your project dependencies here,
@@ -25,6 +27,7 @@ object ApplicationBuild extends Build {
     "com.github.seratch"   %% "scalikejdbc-play-fixture-plugin" % scalikejdbcVersion,
    "org.postgresql"     %  "postgresql"                % "9.2-1003-jdbc4", // your JDBC driver
    "org.slf4j"          %  "slf4j-simple"              % "[1.7,)",          // slf4j implementation
+    "org.apache.commons" % "commons-email" % "1.3.2",
   "com.github.seratch"   %% "scalikejdbc-test"                % scalikejdbcVersion  % "test",
   "org.specs2"           %% "specs2"                          % "2.1"               % "test"
 

@@ -13,19 +13,18 @@
         </p>
     }
 
-
     <fieldset>
         @inputText(
             loginForm("login"),
             'placeholder -> Messages("login"),
-            '_label -> null,
-            '_help -> Messages("signin.your.login")
+            '_label -> Messages("signin.your.login")
+ ,           '_help -> ""
         )
         @inputPassword(
             loginForm("password"),
-            '_label -> null,
-            'placeholder -> Messages("password"),
-            '_help -> Messages("signin.your.password")
+            '_label -> Messages("signin.your.password"),
+            'placeholder -> Messages("password")
+  ,          '_help ->""
         )
     </fieldset>
 

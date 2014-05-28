@@ -2,9 +2,8 @@
 logLevel := Level.Warn
 
 // The Typesafe repository 
-resolvers ++= Seq("Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/",
-Resolver.sonatypeRepo("snapshots"))
+resolvers ++= Seq("typesafe" at "http://repo.typesafe.com/typesafe/releases/")
 
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("play" % "sbt-plugin" % "2.1.5")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.3")

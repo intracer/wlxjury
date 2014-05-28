@@ -1,4 +1,4 @@
-@(title: String, user: org.intracer.wmua.User = null, page: Int = 0, round: Int=0)(content: Html)(implicit lang: Lang)
+@(title: String, user: org.intracer.wmua.User = null, page: Int = 0, round: Int=0, gallery: Boolean = true)(content: Html)(implicit lang: Lang)
 
 <!DOCTYPE html>
 
@@ -20,7 +20,7 @@
         </style>
 
     </head>
-    <body class="gallery">
+    <body @if(gallery) { class="gallery" } >
         <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container">

@@ -1,0 +1,65 @@
+@(user: org.intracer.wmua.User, editUserForm: Form[org.intracer.wmua.User])(implicit flash: Flash, lang: Lang)
+
+@import helper._
+    @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render(_, lang)) }
+
+
+@main(Messages("edit user"), user, 0, 0, gallery = false) {
+    <div class="row-fluid" >
+
+        @if(editUserForm("id").value != Some("0")) {
+            <h3>@Messages("Edit user")</h3>
+        } else {
+            <h3>@Messages("Create user")</h3>
+        }
+
+@form(routes.Admin.saveUser, 'class -> "form-vertical") {
+
+    @if(editUserForm.hasGlobalErrors) {
+        <p class="error">
+            <span class="label important">@Messages(editUserForm.errors.head.message)</span>
+        </p>
+    }
+
+    <fieldset>
+        <input type="hidden" id="id" name="id" value='@editUserForm("id").value' />
+        @inputText(
+            editUserForm("fullname"),
+            'placeholder -> Messages("Name"),
+            '_label -> Messages("Name"),
+            '_help -> ""
+        )
+        @inputText(
+            editUserForm("email"),
+            'placeholder -> Messages("Email"),
+            '_label -> Messages("Email"),
+            '_help -> ""
+        )
+
+        @if(user.roles.contains("admin")) {
+            @select(editUserForm("roles"), Seq("no", "jury", "admin").map(x => (x,x)), '_label -> Messages("Role"), '_help -> "")
+        }
+
+        @if(Some(user.id.toString) == editUserForm("id").value) {
+        @inputPassword(
+            editUserForm("password"),
+            '_label -> null,
+            'placeholder -> Messages("password"),
+            '_help -> Messages("signin.your.password")
+        )
+        } else {
+            @if(editUserForm("id").value != Some("0")) {
+                <a href="/admin/users" class="btn">@Messages("Reset password")</a>
+            }
+
+    }
+
+    </fieldset>
+
+    <div class="form-actions">
+        <input type="submit" class="btn btn-primary" value="@Messages("Save")">
+        <a href="/admin/users" class="btn">@Messages("Cancel")</a>
+    </div>
+}
+    </div>
+}

@@ -82,7 +82,7 @@ object Gallery extends Controller with Secured {
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
         val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
 
-        show2(index, filesInRegion, user, false, user.login, selectedInRegion, 0, Some(regionId), round)
+        show2(index, filesInRegion, user, false, user.email, selectedInRegion, 0, Some(regionId), round)
   }
 
 
@@ -102,7 +102,7 @@ object Gallery extends Controller with Secured {
 
 
   def userFiles(user: User): Seq[String] = {
-    val index = User.getUserIndex(user.login) % 16 + 1
+    val index = User.getUserIndex(user.email) % 16 + 1
 
     if (user.files.isEmpty) {
 
@@ -132,13 +132,13 @@ object Gallery extends Controller with Secured {
         val file = userFiles(user)(index)
         if (selected.contains(file)) {
 
-          Selection.destroy(filename = file, email = user.login.trim.toLowerCase)
+          Selection.destroy(filename = file, email = user.email.trim.toLowerCase)
 
           selected -= file
         }
         else {
           selected += file
-          val selection = Selection.create(filename = file, fileid = "" + index, juryid = user.id.toInt, round = round, email = user.login.trim.toLowerCase)
+          val selection = Selection.create(filename = file, fileid = "" + index, juryid = user.id.toInt, round = round, email = user.email.trim.toLowerCase)
         }
 
         show(index, username)
@@ -164,7 +164,7 @@ object Gallery extends Controller with Secured {
 
         val index = filesInRegion.indexOf(file)
 
-        val selection = Selection.create(filename = file, fileid = "" + index, juryid = user.id.toInt, round = round, email = user.login.trim.toLowerCase)
+        val selection = Selection.create(filename = file, fileid = "" + index, juryid = user.id.toInt, round = round, email = user.email.trim.toLowerCase)
 
         Redirect(routes.Gallery.largeRound2(regionId, index, round))
   }
@@ -189,7 +189,7 @@ object Gallery extends Controller with Secured {
 
         val index = filesInRegion.indexOf(file)
 
-        Selection.destroy(filename = file, email = user.login.trim.toLowerCase)
+        Selection.destroy(filename = file, email = user.email.trim.toLowerCase)
 
         Redirect(routes.Gallery.largeRound2(regionId, index, round))
   }
@@ -206,7 +206,7 @@ object Gallery extends Controller with Secured {
         val file = selectedFiles(index)
         if (selected.contains(file)) {
 
-          Selection.destroy(filename = file, email = user.login.trim.toLowerCase)
+          Selection.destroy(filename = file, email = user.email.trim.toLowerCase)
 
           selected -= file
         }
@@ -242,7 +242,7 @@ object Gallery extends Controller with Secured {
     }
   }
 
-  def show(index: Int, username: String, showSelected: Boolean = false)(implicit request: Request[Any]): SimpleResult[Html] = {
+  def show(index: Int, username: String, showSelected: Boolean = false)(implicit request: Request[Any]): SimpleResult = {
     val user = User.byUserName.get(username).get
 
     var files = userFiles(user)
@@ -259,7 +259,7 @@ object Gallery extends Controller with Secured {
 
   def show2(index: Int, files: Seq[String], user: User, showSelected: Boolean, username: String, selected: mutable.SortedSet[String],
             page: Int, region: Option[String] = None, round: Int = 1)
-           (implicit request: Request[Any]): SimpleResult[Html] = {
+           (implicit request: Request[Any]): SimpleResult = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
     val extraLeft = if (files.size < index + 3) index + 3 - files.size else 0
 

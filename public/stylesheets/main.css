@@ -2,6 +2,9 @@ body.gallery{
     background-color: #606060;
 }
 
+.table-striped-dark tbody>tr:nth-child(odd)>td,.table-striped-dark tbody>tr:nth-child(odd)>th{background-color:#696969;}
+.table-striped-dark {color:#CCCCCC;}
+
 ul.gallery {
     margin: 2px;
     padding: 2px;

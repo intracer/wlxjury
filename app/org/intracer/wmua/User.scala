@@ -3,20 +3,56 @@ package org.intracer.wmua
 import java.security.MessageDigest
 import java.math.BigInteger
 import scala.collection.mutable
-import controllers.{Global, Gallery, Selection}
-import scalikejdbc.SQLInterpolation._
+import controllers.{Global, Gallery}
 import java.util
 import  scala.collection.JavaConverters._
 import org.wikipedia.Wiki
 
-case class User(fullname: String, login: String, id: String,
+import scalikejdbc._,
+scalikejdbc.SQLInterpolation._
+import org.joda.time.DateTime
+import controllers.Selection
+import scalikejdbc.WrappedResultSet
+
+case class User(fullname: String, email: String, id: Long,
+                roles: Set[String] = Set.empty, password: Option[String] = None,
                 selected:collection.mutable.SortedSet[String] = collection.mutable.SortedSet[String](),
-                files: mutable.Buffer[String] = mutable.Buffer.empty) {
+                files: mutable.Buffer[String] = mutable.Buffer.empty,
+                createdAt: DateTime = DateTime.now,
+                deletedAt: Option[DateTime] = None) {
+
+  def emailLo = email.trim.toLowerCase
+
+  //def roles = Seq("jury")
+
 
 }
 
 
-object User {
+object User extends SQLSyntaxSupport[User]{
+//  def apply(id: Int, fullname: String, login: String, password: String): User =
+
+  override val tableName = "users"
+
+  def unapplyEdit(user: User): Option[(Long, String, String, Option[String], String)] = {
+    Some((user.id, user.fullname, user.email, user.password, user.roles.toSeq.head))
+  }
+
+
+  def applyEdit(id: Long, fullname: String, email: String, password: Option[String], roles: String):User = {
+         new User(fullname, email.trim.toLowerCase, id, Set(roles), password)
+     }
+
+  def randomString(len: Int): String = {
+    val rand = new scala.util.Random(System.nanoTime)
+    val sb = new StringBuilder(len)
+    val ab = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    for (i <- 0 until len) {
+      sb.append(ab(rand.nextInt(ab.length)))
+    }
+    sb.toString()
+  }
+
   def login(username: String, password: String): Option[User] = {
 
     val unameTrimmed = username.trim
@@ -41,7 +77,7 @@ object User {
       val files = Gallery.userFiles(user)
       val filesSet = mutable.SortedSet(files:_*)
 
-      val fromDb = Selection.findAllBy(sqls.eq(Selection.c.email, user.login.trim.toLowerCase))
+      val fromDb = Selection.findAllBy(sqls.eq(Selection.c.email, user.email.trim.toLowerCase))
       user.selected ++= fromDb.map{ selection =>
         if (!filesSet.contains(selection.filename))
           files(selection.fileid.toInt)
@@ -61,7 +97,7 @@ object User {
 
   def getUserIndex(username: String): Int = {
     val index = allUsers.zipWithIndex.find {
-      case (us, i) => us.login == username
+      case (us, i) => us.email == username
     }.map(_._2).getOrElse(-1)
     index
   }
@@ -75,80 +111,104 @@ object User {
     new BigInteger(1, digest.digest()).toString(16)
   }
 
-  val wmuaUser = User("WMUA", "WMUA", "1")
+  val JURY_ROLE = Set("jury")
+  val ORG_COM_ROLE = Set("organizer")
+  val ADMIN_ROLE = Set("admin")
+
+  val wmuaUser = User("WMUA", "***REMOVED***", 100L, ADMIN_ROLE)
 
   val jury = Seq(
-    User("***REMOVED***", "***REMOVED***", "1"),   //ok
-    User("***REMOVED***" /*"***REMOVED***"*/, "***REMOVED***", "2"),
-    User("***REMOVED***", "***REMOVED***", "3"),//ok
-    User("***REMOVED***" /*"***REMOVED***"*/, "***REMOVED***", "4"),   //ok
-    User("***REMOVED***", "***REMOVED***", "5"),
-    User("***REMOVED***" /*"***REMOVED***"*/, "***REMOVED***", "6"),//ok
-    User("***REMOVED***" , "***REMOVED***", "7"),//ok
-    User("***REMOVED***" /*"***REMOVED***"*/, "***REMOVED***", "8"), //ok
-    User("***REMOVED***" , "***REMOVED***", "9"),   //ok
-    User("***REMOVED***", "***REMOVED***", "10"),//ok
-    User("***REMOVED***" , "***REMOVED***", "11"),
-    User("***REMOVED***", "***REMOVED***", "12"),
-    User("***REMOVED***", "***REMOVED***", "13"),//ok
-    User("***REMOVED***", "***REMOVED***", "14"),//ok
-    User("***REMOVED***"/*"***REMOVED***"*/, "***REMOVED***", "15"),
-    User("***REMOVED***" /*"***REMOVED***"*/, "***REMOVED***", "16")//ok
+    User("***REMOVED***", "***REMOVED***", 1L, JURY_ROLE)   //ok
   )
 
   val orgCom = Seq(
-    User("***REMOVED***", "***REMOVED***", "1"),
-    User("***REMOVED***", "***REMOVED***", "2"),
-    User("***REMOVED***", "***REMOVED***", "3"),
-    User("***REMOVED***", "***REMOVED***", "4"),
-    User("***REMOVED***", "***REMOVED***", "5"),
-    User("***REMOVED***", "***REMOVED***", "6"),
-    User("***REMOVED***", "***REMOVED***", "7"),
-    User("***REMOVED***", "***REMOVED***", "8"),
-    User("***REMOVED***", "***REMOVED***", "9"),
-    User("***REMOVED***", "***REMOVED***", "10"),
-    User("***REMOVED***", "***REMOVED***", "10")
+    User("***REMOVED***", "***REMOVED***", 2L, ORG_COM_ROLE)
   )
 
   val allUsers: Seq[User] = jury ++ orgCom ++ Seq(wmuaUser)
-  val byUserName = allUsers.map(user => (user.login, user)).toMap
+  val byUserName = allUsers.map(user => (user.email, user)).toMap
+
+  def byId(id:Long) =  allUsers.find(_.id == id)
 
   val passwords = Seq("***REMOVED***",  //1
-    "***REMOVED***",                       //2
-    "***REMOVED***",                       //3
-    "***REMOVED***",                          //4
-    "***REMOVED***",                             //5
-    "***REMOVED***", //6
-    "***REMOVED***",    //7
-    "***REMOVED***",       //8
-    "***REMOVED***",          //9
-    "***REMOVED***",             //10
-    "***REMOVED***",             //11
-    "***REMOVED***",             //12
-    "***REMOVED***",             //13
-    "***REMOVED***",             //14
-    "***REMOVED***",             //15
-    "***REMOVED***",             //16
     "***REMOVED***",              //----1
-    "***REMOVED***",               //2
-    "***REMOVED***",               //3
-    "***REMOVED***",               //4
-    "***REMOVED***",                //5
-    "***REMOVED***",                // 6
-    "***REMOVED***",                // 7
-    "***REMOVED***",                // 8
-    "***REMOVED***",                // 9
-    "***REMOVED***",                // 10
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***",
-    "***REMOVED***")
+    "***REMOVED***"
+    )
 
 
   def main(args: Array[String]) {
 
     (orgCom ++ jury).foreach(user =>
-    println (s"""insert into "user" (name, login) values ('${user.fullname}', '${user.login}');"""))
+    println (s"""insert into "user" (name, email) values ('${user.fullname}', '${user.email}');"""))
   }
+
+
+  def apply(c: SyntaxProvider[User])(rs: WrappedResultSet): User = apply(c.resultName)(rs)
+  def apply(c: ResultName[User])(rs: WrappedResultSet): User = new User(
+    id = rs.int(c.id),
+    fullname = rs.string(c.fullname),
+    email = rs.string(c.email),
+    roles = Set(rs.string(c.roles)),
+    createdAt = rs.timestamp(c.createdAt).toDateTime,
+    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toDateTime)
+  )
+
+  val c = User.syntax("c")
+  private val autoSession = AutoSession
+  private val isNotDeleted = sqls.isNull(c.deletedAt)
+
+  def find(id: Long)(implicit session: DBSession = autoSession): Option[User] = withSQL {
+    select.from(User as c).where.eq(c.id, id).and.append(isNotDeleted)
+  }.map(User(c)).single.apply()
+
+  def findAll()(implicit session: DBSession = autoSession): List[User] = withSQL {
+    select.from(User as c)
+      .where.append(isNotDeleted)
+      .orderBy(c.id)
+  }.map(User(c)).list.apply()
+
+  def countByEmail(id: Long, email:String)(implicit session: DBSession = autoSession): Long = withSQL {
+    select(sqls.count).from(User as c).where.eq(column.email, email).and.ne(column.id, id)
+  }.map(rs => rs.long(1)).single.apply().get
+
+
+  def countAll()(implicit session: DBSession = autoSession): Long = withSQL {
+    select(sqls.count).from(User as c).where.append(isNotDeleted)
+  }.map(rs => rs.long(1)).single.apply().get
+
+  def findAllBy(where: SQLSyntax)(implicit session: DBSession = autoSession): List[User] = withSQL {
+    select.from(User as c)
+      .where.append(isNotDeleted).and.append(sqls"${where}")
+      .orderBy(c.id)
+  }.map(User(c)).list.apply()
+
+  def countBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Long = withSQL {
+    select(sqls.count).from(User as c).where.append(isNotDeleted).and.append(sqls"${where}")
+  }.map(_.long(1)).single.apply().get
+
+  def create(fullname: String, email: String, password: String, roles: Set[String], createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): User = {
+    val id = withSQL {
+      insert.into(User).namedValues(
+        column.fullname -> fullname,
+        column.email -> email.trim.toLowerCase,
+        column.password -> password,
+        column.roles -> roles.head,
+        column.createdAt -> createdAt)
+    }.updateAndReturnGeneratedKey.apply()
+
+    User(id = id, fullname = fullname, email = email, password = Some(password), createdAt = createdAt)
+  }
+
+  def updateUser(id: Long, fullname: String, email: String, roles:Set[String])(implicit session: DBSession = autoSession): Unit = withSQL {
+    update(User).set(
+      column.fullname -> fullname,
+      column.email -> email,
+      column.roles -> roles.head
+    ).where.eq(column.id, id)
+  }.update.apply()
+
+  def destroy(filename: String, email: String)(implicit session: DBSession = autoSession): Unit = withSQL {
+    update(User).set(column.deletedAt -> DateTime.now).where.eq(column.email, email)
+  }.update.apply()
 
 }
