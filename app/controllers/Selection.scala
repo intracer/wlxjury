@@ -30,12 +30,12 @@ object Selection extends SQLSyntaxSupport[Selection]{
     juryid = rs.int(c.juryid),
     email = rs.string(c.email),
     round = rs.int(c.round),
-    createdAt = rs.timestamp(c.createdAt).toDateTime,
-    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toDateTime)
+    createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
+    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
   )
 
   val c = Selection.syntax("c")
-  private val autoSession = AutoSession
+  // val autoSession = AutoSession
   private val isNotDeleted = sqls.isNull(c.deletedAt)
 
   def find(id: Long)(implicit session: DBSession = autoSession): Option[Selection] = withSQL {

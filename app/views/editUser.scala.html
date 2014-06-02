@@ -23,6 +23,7 @@
 
     <fieldset>
         <input type="hidden" id="id" name="id" value='@editUserForm("id").value' />
+        <input type="hidden" name="contest" id="contest" value='@editUserForm("contest").value' />
         @inputText(
             editUserForm("fullname"),
             'placeholder -> Messages("Name"),

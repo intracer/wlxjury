@@ -8,13 +8,18 @@ import org.intracer.wmua.User
 
 trait Secured {
 
-  def username(request: RequestHeader) = request.session.get(Security.username).map(_.trim)
+  def username(request: RequestHeader) = request.session.get(Security.username).map(_.trim.toLowerCase)
 
-  def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.index())
+  def onUnAuthenticated(request: RequestHeader) = Results.Redirect(routes.Application.index())
 
-  def withAuth(f: => String => Request[AnyContent] => Result) = {
-    Security.Authenticated(username, onUnauthorized) { user =>
-      Action(request => f(user)(request))
+  def onUnAuthorized() = Results.Redirect(routes.Application.index())
+
+  def withAuth(f: => String => Request[AnyContent] => Result, role: Option[String] = None) = {
+    Security.Authenticated(username, onUnAuthenticated) { user =>
+      if (role.fold(true)(User.byUserName(user).roles.contains))
+        Action(request => f(user)(request))
+      else
+        Action(request => onUnAuthorized())
     }
   }
 
@@ -25,6 +30,6 @@ trait Secured {
   def withUser(f: User => Request[AnyContent] => Result) = withAuth { username => implicit request =>
     User.login(username, "123").map { user =>
       f(user)(request)
-    }.getOrElse(onUnauthorized(request))
+    }.getOrElse(onUnAuthenticated(request))
   }
 }

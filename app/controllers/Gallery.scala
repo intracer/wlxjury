@@ -10,8 +10,9 @@ import org.wikipedia.Wiki
 import scala.collection.JavaConverters._
 import scala.collection.{SortedSet, mutable}
 import java.io.IOException
-import scalikejdbc.SQLInterpolation._
 import play.api.mvc.SimpleResult
+import scalikejdbc._
+
 
 object Gallery extends Controller with Secured {
 
@@ -26,7 +27,7 @@ object Gallery extends Controller with Secured {
   def list(page: Int = 1) = withAuth {
     username =>
       implicit request =>
-        val user = User.byUserName.get(username.trim).get
+        val user = User.byUserName(username)
 
         var files = userFiles(user)
 
@@ -37,7 +38,7 @@ object Gallery extends Controller with Secured {
   def selected() = withAuth {
     username =>
       implicit request =>
-        val user = User.byUserName.get(username.trim).get
+        val user = User.byUserName(username)
 
         val files = userFiles(user).filter(user.selected.contains)
 
@@ -48,7 +49,7 @@ object Gallery extends Controller with Secured {
   def round2(regionId: String, round: Int) = withAuth {
     username =>
       implicit request =>
-        val user = User.byUserName.get(username.trim).get
+        val user = User.byUserName(username)
 
         val files = if (round > 1) {
           Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
@@ -69,7 +70,7 @@ object Gallery extends Controller with Secured {
     username =>
       implicit request =>
 
-        val user = User.byUserName.get(username.trim).get
+        val user = User.byUserName(username)
 
         val files = if (round > 1) {
           Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
@@ -102,7 +103,7 @@ object Gallery extends Controller with Secured {
 
 
   def userFiles(user: User): Seq[String] = {
-    val index = User.getUserIndex(user.email) % 16 + 1
+    val index = 1  // TODO fix
 
     if (user.files.isEmpty) {
 
@@ -126,7 +127,7 @@ object Gallery extends Controller with Secured {
     username =>
       implicit request =>
 
-        val user = User.byUserName.get(username.trim).get
+        val user = User.byUserName(username)
         val selected = user.selected
 
         val file = userFiles(user)(index)
@@ -147,7 +148,7 @@ object Gallery extends Controller with Secured {
   def selectRound2(regionId: String, fileHash: Int, round: Int = 2) = withAuth {
     username =>
       implicit request =>
-        val user = User.byUserName.get(username.trim).get
+        val user = User.byUserName(username)
 
         val files = if (round > 1) {
           Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
@@ -172,7 +173,7 @@ object Gallery extends Controller with Secured {
   def unselectRound2(regionId: String, fileHash: Int, round: Int = 2) = withAuth {
     username =>
       implicit request =>
-        val user = User.byUserName.get(username.trim).get
+        val user = User.byUserName(username)
 
         val files = if (round > 1) {
           Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
@@ -199,7 +200,7 @@ object Gallery extends Controller with Secured {
     username =>
       implicit request =>
 
-        val user = User.byUserName.get(username.trim).get
+        val user = User.byUserName(username)
         val selected = user.selected
 
         val selectedFiles = userFiles(user).filter(user.selected.contains)
@@ -243,7 +244,7 @@ object Gallery extends Controller with Secured {
   }
 
   def show(index: Int, username: String, showSelected: Boolean = false)(implicit request: Request[Any]): SimpleResult = {
-    val user = User.byUserName.get(username).get
+    val user = User.byUserName(username)
 
     var files = userFiles(user)
 
@@ -270,12 +271,12 @@ object Gallery extends Controller with Secured {
 
     if (!region.isDefined) {
       if (showSelected) {
-        Ok(views.html.largeSelected(User.byUserName.get(username).get, files, selected, index, start, end, page))
+        Ok(views.html.largeSelected(User.byUserName(username), files, selected, index, start, end, page))
       } else {
-        Ok(views.html.large(User.byUserName.get(username).get, files, selected, index, start, end, page))
+        Ok(views.html.large(User.byUserName(username), files, selected, index, start, end, page))
       }
     } else {
-      Ok(views.html.largeRound2(User.byUserName.get(username).get, files, selected, index, start, end, region.get, round))
+      Ok(views.html.largeRound2(User.byUserName(username), files, selected, index, start, end, region.get, round))
     }
   }
 

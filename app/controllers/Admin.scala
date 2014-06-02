@@ -1,7 +1,7 @@
 package controllers
 
 import play.api.mvc.{Security, Controller}
-import org.intracer.wmua.User
+import org.intracer.wmua.{Round, Contest, User}
 import play.api.data.Form
 import play.api.data.Forms._
 
@@ -9,31 +9,30 @@ object Admin extends Controller with Secured {
 
   val sendMail = new SendMail
 
-  def users() = withAuth {
+  def users() = withAuth({
     username =>
       implicit request =>
-        val user = User.byUserName.get(username.trim).get
+        val user = User.byUserName(username)
         val users = User.findAll()
 
         Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury"))))
-  }
+  }, Some(User.ADMIN_ROLE))
 
-  def editUser(id: String) = withAuth {
+  def editUser(id: String) = withAuth({
     username =>
       implicit request =>
-        val user = User.byUserName.get(username.trim).get
+        val user = User.byUserName(username)
         val editedUser = User.find(id.toLong).get
 
         val filledForm = editUserForm.fill(editedUser)
 
         Ok(views.html.editUser(user, filledForm))
-  }
+  }, Some(User.ADMIN_ROLE))
 
-  def saveUser() = withAuth {
+  def saveUser() = withAuth({
     username =>
       implicit request =>
-        val user = User.byUserName.get(username.trim).get
-        val users = User.findAll()
+        val user = User.byUserName(username)
 
         editUserForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
@@ -46,8 +45,7 @@ object Admin extends Controller with Secured {
               BadRequest(views.html.editUser(user, editUserForm.fill(formUser).withError("email", "email should be unique")))
             } else {
               if (formUser.id == 0) {
-                User.create(formUser.fullname, formUser.email, User.randomString(8), formUser.roles)
-                sendMail.sendMail(from = (user.fullname, user.email), to = Seq(formUser.email), subject = "Hi", message = "Putin huylo")
+                createNewUser(user, formUser)
               } else {
                 User.updateUser(formUser.id, formUser.fullname, formUser.email, formUser.roles)
               }
@@ -55,8 +53,20 @@ object Admin extends Controller with Secured {
             }
           }
         )
-  }
+  }, Some(User.ADMIN_ROLE))
 
+  def createNewUser(user: User, formUser: User): Boolean = {
+    val password = User.randomString(8)
+    val contest: Contest = Contest.byId(formUser.contest).head
+    val hash = User.hash(formUser, password)
+    val juryhome = "http://localhost:9000"
+    User.create(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest)
+    val subject: String = s"Welcome to ${contest.name} jury"
+    val message: String = s"Organizing committee of ${contest.name} is glad to welcome you as a jury member.\n" +
+      s" Please login to our jury tool $juryhome \nwith login: ${formUser.email} and password: $password.\n" +
+      s"Regards, ${user.fullname}"
+    sendMail.sendMail(from = (user.fullname, user.email), to = Seq(formUser.email), bcc = Seq(user.email), subject = subject, message = message)
+  }
 
   val editUserForm = Form(
     mapping(
@@ -64,9 +74,86 @@ object Admin extends Controller with Secured {
       "fullname" -> nonEmptyText(),
       "email" -> email,
       "password" -> optional(text()),
-      "roles" -> nonEmptyText()
+      "roles" -> nonEmptyText(),
+      "contest" -> number
     )(User.applyEdit)(User.unapplyEdit)
   )
 
+  val imagesForm = Form("images" -> optional(text()))
+
+  val editRoundForm = Form(
+    mapping(
+      "id" -> longNumber(),
+      "number" -> number(),
+      "name" -> optional(text()),
+      "contest" -> number,
+      "roles" -> text(),
+      "rates" -> number,
+    "limitMin" -> number,
+    "limitMax" -> number,
+    "recommended" -> optional(number)
+    )(Round.applyEdit)(Round.unapplyEdit)
+  )
+
+  def rounds() = withAuth({
+    username =>
+      implicit request =>
+        val user = User.byUserName(username)
+        val rounds = Round.findAll()
+        val contest = Contest.byId(user.contest).get
+
+        Ok(views.html.rounds(user, rounds, editRoundForm, imagesForm.fill(Some(contest.getImages))))
+  }, Some(User.ADMIN_ROLE))
+
+  def editRound(id: String) = withAuth({
+    username =>
+      implicit request =>
+        val user = User.byUserName(username)
+        val round = Round.find(id.toLong).get
+
+        val filledRound = editRoundForm.fill(round)
+
+        Ok(views.html.editRound(user, filledRound))
+  }, Some(User.ADMIN_ROLE))
+
+  def saveRound() = withAuth({
+    username =>
+      implicit request =>
+        val user = User.byUserName(username)
+
+        editRoundForm.bindFromRequest.fold(
+          formWithErrors => // binding failure, you retrieve the form containing errors,
+            BadRequest(views.html.editRound(user, formWithErrors)),
+          round => {
+            if (round.id == 0) {
+              createNewRound(user, round)
+            } else {
+              Round.updateRound(round.id, round)
+            }
+            Redirect(routes.Admin.rounds())
+          }
+        )
+  }, Some(User.ADMIN_ROLE))
+
+  def createNewRound(user: User, round: Round): Round = {
+
+    //  val contest: Contest = Contest.byId(round.contest).head
+
+    val count = Round.countByContest(round.contest)
+
+    Round.create(count + 1, round.name, round.contest, round.roles.head, round.rates.id, round.limitMin, round.limitMax, round.recommended)
+
+  }
+
+  def setImages() = withAuth({
+    username =>
+      implicit request =>
+        val user = User.byUserName(username)
+        val images: Option[String] = imagesForm.bindFromRequest.get
+        Contest.updateImages(user.contest, images)
+
+        Redirect(routes.Admin.rounds())
+
+  }, Some(User.ADMIN_ROLE))
 
 }
