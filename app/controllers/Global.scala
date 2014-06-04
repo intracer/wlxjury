@@ -8,12 +8,15 @@ import play.Play
 import java.util.Properties
 import scala.collection.JavaConverters._
 import scala.collection.SortedSet
+import scala.concurrent.Await
+import client.{HttpClientImpl, MwBot}
+import play.api.libs.concurrent.Akka
 
 
 object Global extends GlobalSettings {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
-  lazy val w: Wiki = login(COMMONS_WIKIMEDIA_ORG, "***REMOVED***", "***REMOVED***1")
+//  lazy val w: Wiki = login(COMMONS_WIKIMEDIA_ORG, "***REMOVED***", "***REMOVED***1")
 
   val  dir  = "public/wlm"
 
@@ -23,10 +26,20 @@ object Global extends GlobalSettings {
 
   val projectRoot = Play.application().path()
 
-  initUrls()
+//  initUrls()
 
-   override def onStart(app: Application) {
+  import play.api.Play.current
+
+  val http = new HttpClientImpl(Akka.system)
+
+
+  val commons = new MwBot(http, Akka.system, COMMONS_WIKIMEDIA_ORG)
+
+
+  override def onStart(app: Application) {
     Logger.info("Application has started")
+
+    commons.login("***REMOVED***", "***REMOVED***1")
   }
 
 
@@ -66,12 +79,4 @@ object Global extends GlobalSettings {
     galleryUrlsProps.asScala.toMap
   }
 
-  def login(domain: String, username: String, password: String): Wiki = {
-    val w: Wiki = new Wiki(domain)
-    w.setUserAgent("WPBot 1.0")
-    w.login(username, password)
-    w.setMarkBot(true)
-    w.setMarkMinor(true)
-    w
-  }
 }

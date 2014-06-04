@@ -1,107 +1,110 @@
 @(adminUser: org.intracer.wmua.User, rounds: Seq[org.intracer.wmua.Round], editRoundForm: Form[org.intracer.wmua.Round], editImagesForm: Form[Option[String]])(implicit flash: Flash, lang: Lang)
-@import helper._
-@import org.intracer.wmua.Contest
-@import org.intracer.wmua.Round
+    @import helper._
+    @import org.intracer.wmua.Contest
+    @import org.intracer.wmua.Round
 
     @implicitFieldConstructor = @{
         FieldConstructor(twitterBootstrapInput.render(_, lang))
     }
 
-@main(Messages("rounds"), adminUser, 0, 0, gallery = false) {
-    <div class="row-fluid" >
-        <h3>@Messages("Contest: " + Contest.byId(adminUser.contest).head.name)</h3>
+    @main(Messages("rounds"), adminUser, 0, 0, gallery = false) {
+        <div class="row-fluid" >
+            <h3>@Messages("Contest: " + Contest.byId(adminUser.contest).head.name)</h3>
 
-        @form(routes.Admin.setImages(), 'class -> "form-vertical", 'id -> "set-images") {
-            <table>
-                <tr>
-                    <td>
-                    @inputText(editImagesForm("images"), 'placeholder -> Messages("Commons category or gallery"),
-                        '_label -> "Category or gallery with images on commons", '_help -> "", 'class -> "input-xxlarge")
-                    </td>
-                    <td>
-                        <div class="control-group">
-                            <input type="submit" class="btn btn-primary" value="@Messages("Set images")">
-                        </div>
-                    </td>
-                    }
-
-
-        <table class="table table-striped table-condensed" style="background-color : #CCCCCC ;">
-
-            <thead>
-                <tr>
-                    <td width="10%">@Messages("Number") </td>
-                    <td width="10%">@Messages("Name") </td>
-                    <td width="10%">@Messages("Jury role") </td>
-                    <td width="10%">@Messages("Selection type") </td>
-                    <td width="10%">@Messages("Min selected") </td>
-                    <td width="10%">@Messages("Max selected") </td>
-                    <td width="10%">@Messages("Recommended selected") </td>
-                    <td width="10%">@Messages("Images")</td>
-                    <td width="10%">@Messages("Selected")</td>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                @for(round <- rounds) {
+            @form(routes.Admin.setImages(), 'class -> "form-vertical", 'id -> "set-images") {
+                <table>
                     <tr>
-                        <td> <a href="/admin/rounds/edit/@round.id">@round.number</a> </td>
-                        <td> @round.name </td>
-                        <td>@round.roles.mkString(",") </td>
-                        <td>@round.rates.name </td>
-                        <td>@round.limitMin </td>
-                        <td>@round.limitMax </td>
-                        <td>@round.recommended.fold("")(_.toString) </td>
-                        <td>@round.images.size </td>
-                        <td>@round.selected.size </td>
-                    </tr>
-                }
-
-                @form(routes.Admin.saveRound, 'class -> "form-vertical", 'id -> "add-round") {
-                    <tr>
-                        @if(editRoundForm.hasGlobalErrors) {
-                            <p class="error">
-                                <span class="label important">@Messages(editRoundForm.errors.head.message)</span>
-                            </p>
-                        }
                         <td>
-                            <div class="btn btn-primary" onClick="document.forms[ 'add-round' ].submit ( ) ;">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/0/06/Farm-Fresh_add.png">
+                        @inputText(editImagesForm("images"), 'placeholder -> Messages("Commons category or gallery"),
+                            '_label -> "Category or gallery with images on commons", '_help -> "", 'class -> "input-xxlarge")
+                        </td>
+                        <td>
+                            <div class="control-group">
+                                <input type="submit" class="btn" value="@Messages("Set images")">
                             </div>
                         </td>
-                        <td>
-                            <input type="hidden" name="id" id="id" value="0" />
-                            <input type="hidden" name="number" id="number" value="@{
-                                rounds.size + 1
-                            }" />
-                            <input type="hidden" name="contest" id="contest" value="@adminUser.contest" />
-                            @inputText(editRoundForm("name"), 'placeholder -> Messages("Name"), '_label -> null, '_help -> "", 'class -> "input-small")
-                        </td>
-                        <td>
-                        @select(editRoundForm("roles"), Seq("jury", "organizer").map(x => (x, x)), '_label -> "", '_help -> "", 'class -> "input-small")
-                        </td>
-                        <td>
-                        @select(editRoundForm("rates"), Round.rates.map(x => (x.id.toString, x.name)), '_label -> "", '_help -> "", 'class -> "input-small")
-                        </td>
-                        <td>
-                        @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "", '_help -> "", 'class -> "input-small")
-                        </td>
-                        <td>
-                        @select(editRoundForm("limitMax"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "", '_help -> "", 'class -> "input-small")
-                        </td>
-                        <td>
-                        @select(editRoundForm("recommended"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "", '_help -> "", 'class -> "input-small")
-                        </td>
-                        <td></td>
-                        <td></td>
+
                     </tr>
-                }
-            </tbody>
+                </table>
+            }
 
-        </table>
 
-    </div>
-}
+            <table class="table table-striped table-condensed" style="background-color : #CCCCCC ;">
+
+                <thead>
+                    <tr>
+                        <td width="10%">@Messages("Number") </td>
+                        <td width="10%">@Messages("Name") </td>
+                        <td width="10%">@Messages("Jury role") </td>
+                        <td width="10%">@Messages("Selection type") </td>
+                        <td width="10%">@Messages("Min selected") </td>
+                        <td width="10%">@Messages("Max selected") </td>
+                        <td width="10%">@Messages("Recommended selected") </td>
+                        <td width="10%">@Messages("Images")</td>
+                        <td width="10%">@Messages("Selected")</td>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @for(round <- rounds) {
+                        <tr>
+                            <td> <a href="/admin/rounds/edit/@round.id">@round.number</a> </td>
+                            <td> @round.name </td>
+                            <td>@round.roles.mkString(",") </td>
+                            <td>@round.rates.name </td>
+                            <td>@round.limitMin </td>
+                            <td>@round.limitMax </td>
+                            <td>@round.recommended.fold("")(_.toString) </td>
+                            <td>@round.images.size </td>
+                            <td>@round.selected.size </td>
+                        </tr>
+                    }
+
+                    @form(routes.Admin.saveRound, 'class -> "form-vertical", 'id -> "add-round") {
+                        <tr>
+                            @if(editRoundForm.hasGlobalErrors) {
+                                <p class="error">
+                                    <span class="label important">@Messages(editRoundForm.errors.head.message)</span>
+                                </p>
+                            }
+                            <td>
+                                <div class="btn" onClick="document.forms[ 'add-round' ].submit ( ) ;">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/06/Farm-Fresh_add.png">
+                                </div>
+                            </td>
+                            <td>
+                                <input type="hidden" name="id" id="id" value="0" />
+                                <input type="hidden" name="number" id="number" value="@{
+                                    rounds.size + 1
+                                }" />
+                                <input type="hidden" name="contest" id="contest" value="@adminUser.contest" />
+                                @inputText(editRoundForm("name"), 'placeholder -> Messages("Name"), '_label -> null, '_help -> "", 'class -> "input-small")
+                            </td>
+                            <td>
+                            @select(editRoundForm("roles"), Seq("jury", "organizer").map(x => (x, x)), '_label -> "", '_help -> "", 'class -> "input-small")
+                            </td>
+                            <td>
+                            @select(editRoundForm("rates"), Round.rates.map(x => (x.id.toString, x.name)), '_label -> "", '_help -> "", 'class -> "input-small")
+                            </td>
+                            <td>
+                            @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "", '_help -> "", 'class -> "input-small")
+                            </td>
+                            <td>
+                            @select(editRoundForm("limitMax"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "", '_help -> "", 'class -> "input-small")
+                            </td>
+                            <td>
+                            @select(editRoundForm("recommended"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "", '_help -> "", 'class -> "input-small")
+                            </td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+        </div>
+    }
 
 

@@ -4,6 +4,8 @@ import play.api.mvc.{Security, Controller}
 import org.intracer.wmua.{Round, Contest, User}
 import play.api.data.Form
 import play.api.data.Forms._
+import scala.concurrent.Await
+import client.dto.{Page, PageQuery}
 
 object Admin extends Controller with Secured {
 
@@ -99,7 +101,7 @@ object Admin extends Controller with Secured {
     username =>
       implicit request =>
         val user = User.byUserName(username)
-        val rounds = Round.findAll()
+        val rounds = Round.findByContest(user.contest)
         val contest = Contest.byId(user.contest).get
 
         Ok(views.html.rounds(user, rounds, editRoundForm, imagesForm.fill(Some(contest.getImages))))
@@ -149,8 +151,14 @@ object Admin extends Controller with Secured {
     username =>
       implicit request =>
         val user = User.byUserName(username)
-        val images: Option[String] = imagesForm.bindFromRequest.get
-        Contest.updateImages(user.contest, images)
+        val imagesSource: Option[String] = imagesForm.bindFromRequest.get
+        Contest.updateImages(user.contest, imagesSource)
+
+        import scala.concurrent.duration._
+
+        val images:Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
+
+//        Round.up
 
         Redirect(routes.Admin.rounds())
 

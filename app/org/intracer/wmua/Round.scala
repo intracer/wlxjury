@@ -2,6 +2,7 @@ package org.intracer.wmua
 
 import scalikejdbc._
 import org.joda.time.DateTime
+import client.dto.Page
 
 case class Round(id: Long, number: Int, name: Option[String], contest: Int,
                  roles: Set[String] = Set("jury"),
@@ -17,9 +18,6 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
 
 }
 
-
-case class Page(pageid: Integer, ns: Integer, title: String) {
-}
 
 case class Rates(id: Int, name:String, minRate: Int = 0,maxRate: Int = 1)
 
@@ -70,6 +68,13 @@ object Round extends SQLSyntaxSupport[Round] {
       .where.append(isNotDeleted)
       .orderBy(c.id)
   }.map(Round(c)).list.apply()
+
+  def findByContest(contest: Long)(implicit session: DBSession = autoSession): List[Round] = withSQL {
+    select.from(Round as c)
+      .where.append(isNotDeleted).and.eq(c.contest, contest)
+      .orderBy(c.id)
+  }.map(Round(c)).list.apply()
+
 
   def find(id: Long)(implicit session: DBSession = autoSession): Option[Round] = withSQL {
     select.from(Round as c).where.eq(c.id, id).and.append(isNotDeleted)

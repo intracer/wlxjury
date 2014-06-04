@@ -111,12 +111,8 @@ object Gallery extends Controller with Secured {
         "commons:Wiki Loves Monuments 2013 in Ukraine Jury/" + index
 
 
-      val images: mutable.WrappedArray[String] = try {
-        Global.w.getImagesOnPage(path)
-      } catch {
-        case e: IOException =>
-          Global.w.getImagesOnPage(path)
-      }
+      val images: Seq[String] = Seq.empty
+
       user.files ++= util.Arrays.asList[String](images: _*).asScala
     }
     user.files
@@ -225,23 +221,23 @@ object Gallery extends Controller with Secured {
   }
 
 
-  def selectWiki(file: String, user: User) {
-    var text = Global.w.getPageText(file)
-    if (!text.contains("WLM 2013 in Ukraine Round One " + user.fullname)) {
-      val newCat: String = s"[[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]"
-      text += "\n" + newCat
-      Global.w.edit(file, text, s"Adding $newCat")
-    }
-  }
-
-  def deselectWiki(file: String, user: User) {
-    var text = Global.w.getPageText(file)
-    if (text.contains("WLM 2013 in Ukraine Round One " + user.fullname)) {
-      val newCat: String = s"\\Q[[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]\\E"
-      text = text.replaceAll(newCat, "")
-      Global.w.edit(file, text, s"Removing [[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]")
-    }
-  }
+//  def selectWiki(file: String, user: User) {
+//    var text = Global.w.getPageText(file)
+//    if (!text.contains("WLM 2013 in Ukraine Round One " + user.fullname)) {
+//      val newCat: String = s"[[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]"
+//      text += "\n" + newCat
+//      Global.w.edit(file, text, s"Adding $newCat")
+//    }
+//  }
+//
+//  def deselectWiki(file: String, user: User) {
+//    var text = Global.w.getPageText(file)
+//    if (text.contains("WLM 2013 in Ukraine Round One " + user.fullname)) {
+//      val newCat: String = s"\\Q[[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]\\E"
+//      text = text.replaceAll(newCat, "")
+//      Global.w.edit(file, text, s"Removing [[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]")
+//    }
+//  }
 
   def show(index: Int, username: String, showSelected: Boolean = false)(implicit request: Request[Any]): SimpleResult = {
     val user = User.byUserName(username)
