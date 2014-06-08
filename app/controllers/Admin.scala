@@ -1,6 +1,6 @@
 package controllers
 
-import play.api.mvc.{Security, Controller}
+import play.api.mvc.Controller
 import org.intracer.wmua.{Round, Contest, User}
 import play.api.data.Form
 import play.api.data.Forms._
@@ -83,6 +83,8 @@ object Admin extends Controller with Secured {
 
   val imagesForm = Form("images" -> optional(text()))
 
+  val selectRoundForm = Form("currentRound" -> text())
+
   val editRoundForm = Form(
     mapping(
       "id" -> longNumber(),
@@ -104,7 +106,22 @@ object Admin extends Controller with Secured {
         val rounds = Round.findByContest(user.contest)
         val contest = Contest.byId(user.contest).get
 
-        Ok(views.html.rounds(user, rounds, editRoundForm, imagesForm.fill(Some(contest.getImages))))
+        Ok(views.html.rounds(user, rounds, editRoundForm, imagesForm.fill(Some(contest.getImages)), selectRoundForm.fill(contest.currentRound.toString)))
+  }, Some(User.ADMIN_ROLE))
+
+
+  def setRound() = withAuth({
+    username =>
+      implicit request =>
+        val user = User.byUserName(username)
+        val rounds = Round.findByContest(user.contest)
+        val contest = Contest.byId(user.contest).get
+
+        val newRound = selectRoundForm.bindFromRequest.get
+
+        Contest.setCurrentRound(user.contest, newRound.toInt)
+
+       Redirect(routes.Admin.rounds())
   }, Some(User.ADMIN_ROLE))
 
   def editRound(id: String) = withAuth({

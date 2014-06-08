@@ -1,7 +1,7 @@
 package controllers
 
 import play.api.mvc.{Request, Controller}
-import org.intracer.wmua.{Image, User}
+import org.intracer.wmua.{Contest, Image, User}
 import play.api.data.Form
 import play.api.data.Forms._
 import scala.collection.mutable
@@ -26,7 +26,7 @@ object Gallery extends Controller with Secured {
 
         var files = userFiles(user)
 
-        val pageFiles: Seq[String] = files.slice((page - 1) * (filesPerPage(user) + 1), Math.min(page * (filesPerPage(user) + 1), files.size))
+        val pageFiles: Seq[Image] = files.slice((page - 1) * (filesPerPage(user) + 1), Math.min(page * (filesPerPage(user) + 1), files.size))
         Ok(views.html.gallery(user, pageFiles, user.selected, page))
   }
 
@@ -47,13 +47,11 @@ object Gallery extends Controller with Secured {
         val user = User.byUserName(username)
 
         val files = if (round > 1) {
-          Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
+          Image.bySelection(round - 1)
         } else {
           userFiles(user)
         }
-        val selected = mutable.SortedSet(Selection.findAllBy(sqls.eq(Selection.c.round, round)).map(_.filename): _*)
-
-
+        val selected = mutable.SortedSet(Image.bySelection(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
         val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
@@ -68,12 +66,11 @@ object Gallery extends Controller with Secured {
         val user = User.byUserName(username)
 
         val files = if (round > 1) {
-          Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
+          Image.bySelection(round - 1)
         } else {
           userFiles(user)
         }
-
-        val selected = mutable.SortedSet(Selection.findAllBy(sqls.eq(Selection.c.round, round)).map(_.filename): _*)
+        val selected = mutable.SortedSet(Image.bySelection(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
         val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
@@ -97,84 +94,86 @@ object Gallery extends Controller with Secured {
   }
 
 
-  def userFiles(user: User): Seq[String] = {
+  def userFiles(user: User): Seq[Image] = {
     val index = 1  // TODO fix
 
     if (user.files.isEmpty) {
-      user.files ++= Image.imagesByContest(user.contest).map(_.title)
+      user.files ++= Image.imagesByContest(user.contest)
     }
     user.files
   }
 
 
-  def select(index: Int, round: Int = 1) = withAuth {
+  def select(index: Int) = withAuth {
     username =>
       implicit request =>
 
         val user = User.byUserName(username)
         val selected = user.selected
 
+        val round = Contest.currentRound(user.contest)
+
         val file = userFiles(user)(index)
         if (selected.contains(file)) {
 
-          Selection.destroy(filename = file, email = user.email.trim.toLowerCase)
+          Selection.destroy(pageId = file.pageId, juryid = user.id, round = round)
 
           selected -= file
         }
         else {
           selected += file
-          val selection = Selection.create(filename = file, fileid = "" + index, juryid = user.id.toInt, round = round, email = user.email.trim.toLowerCase)
+          val selection = Selection.create(filename = file.title, pageId = file.pageId, rate = 1, fileid = "" + index,
+            juryid = user.id.toInt, round = round)
         }
 
         show(index, username)
   }
 
-  def selectRound2(regionId: String, fileHash: Int, round: Int = 2) = withAuth {
+  def selectRound2(regionId: String, pageId: Long, round: Int) = withAuth {
     username =>
       implicit request =>
         val user = User.byUserName(username)
 
         val files = if (round > 1) {
-          Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
+          Image.bySelection(round - 1)
         } else {
           userFiles(user)
         }
-
-        val selected = mutable.SortedSet(Selection.findAllBy(sqls.eq(Selection.c.round, round)).map(_.filename): _*)
+        val selected = mutable.SortedSet(Image.bySelection(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
         val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
 
-        val file = KOATUU.fileHashes(fileHash.toString)
+        val file = files.find(_.pageId == pageId).get
 
         val index = filesInRegion.indexOf(file)
 
-        val selection = Selection.create(filename = file, fileid = "" + index, juryid = user.id.toInt, round = round, email = user.email.trim.toLowerCase)
+        val selection = Selection.create(filename = file.title, pageId = file.pageId, rate = 1,
+          fileid = "" + index, juryid = user.id.toInt, round = round)
 
         Redirect(routes.Gallery.largeRound2(regionId, index, round))
   }
 
-  def unselectRound2(regionId: String, fileHash: Int, round: Int = 2) = withAuth {
+  def unselectRound2(regionId: String, pageId: Long, round: Int = 2) = withAuth {
     username =>
       implicit request =>
         val user = User.byUserName(username)
 
         val files = if (round > 1) {
-          Selection.findAllBy(sqls.eq(Selection.c.round, round - 1)).map(_.filename).toSet.toSeq
+          Image.bySelection(round - 1)
         } else {
           userFiles(user)
         }
-
-        val selected = mutable.SortedSet(Selection.findAllBy(sqls.eq(Selection.c.round, round)).map(_.filename): _*)
+        val selected = mutable.SortedSet(Image.bySelection(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
         val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
 
-        val file = KOATUU.fileHashes(fileHash.toString)
+        val file = files.find(_.pageId == pageId).get
 
         val index = filesInRegion.indexOf(file)
 
-        Selection.destroy(filename = file, email = user.email.trim.toLowerCase)
+        Selection.destroy(pageId = file.pageId, juryid = user.id, round = round)
 
         Redirect(routes.Gallery.largeRound2(regionId, index, round))
   }
@@ -185,13 +184,16 @@ object Gallery extends Controller with Secured {
       implicit request =>
 
         val user = User.byUserName(username)
+
+        val round = Contest.currentRound(user.contest)
+
         val selected = user.selected
 
         val selectedFiles = userFiles(user).filter(user.selected.contains)
         val file = selectedFiles(index)
         if (selected.contains(file)) {
 
-          Selection.destroy(filename = file, email = user.email.trim.toLowerCase)
+          Selection.destroy(pageId = file.pageId, juryid = user.id, round = round)
 
           selected -= file
         }
@@ -242,7 +244,7 @@ object Gallery extends Controller with Secured {
   }
 
 
-  def show2(index: Int, files: Seq[String], user: User, showSelected: Boolean, username: String, selected: mutable.SortedSet[String],
+  def show2(index: Int, files: Seq[Image], user: User, showSelected: Boolean, username: String, selected: mutable.SortedSet[Image],
             page: Int, region: Option[String] = None, round: Int = 1)
            (implicit request: Request[Any]): SimpleResult = {
     val extraRight = if (index - 2 < 0) 2 - index else 0

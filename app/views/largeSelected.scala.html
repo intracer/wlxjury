@@ -1,6 +1,9 @@
-@(user: org.intracer.wmua.User, files: Seq[String], selected: scala.collection.mutable.SortedSet[String], index: Int, start: Int, end: Int, page: Int)(implicit flash: Flash, lang: Lang)
-@import helper._
-
+@(
+        user: org.intracer.wmua.User,
+        files: Seq[org.intracer.wmua.Image],
+        selected: scala.collection.mutable.SortedSet[org.intracer.wmua.Image],
+        index: Int, start: Int, end: Int, page: Int)(implicit flash: Flash, lang: Lang)
+@import org.intracer.wmua.Image
 
     @button(btnClass: String, iconClass:String) = {
         <div class="@btnClass"><i class="@iconClass"></i></div>
@@ -36,7 +39,7 @@
         </a>
     }
 
-    @thumbSmall(file:String, style:String) = {
+    @thumbSmall(file:Image, style:String) = {
         <div class="@style @if(selected.contains(file)){selected}">
     }
 
@@ -58,7 +61,7 @@
                        @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
 
                         <div style="margin:5px auto;"><a href="/largeSelected/@i" width="150" height="120">
-                            <img class="cropped" alt="@file" src="@Global.thumbUrls.getOrElse(file, Gallery.UrlInProgress)" >
+                            <img class="cropped" alt="@file" src="@controllers.Global.thumbUrls.getOrElse(file.title, Gallery.UrlInProgress)" >
                         </a>
                         </div>
                     </div>
@@ -69,7 +72,9 @@
 
        <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
 
-      <a href="https://commons.wikimedia.org/wiki/@files(index)"> <img alt="@files(index)" src="@Global.largeUrls.getOrElse(files(index), Gallery.UrlInProgress)" style="max-width:100%; height:auto;"> </a>
+      <a href="https://commons.wikimedia.org/wiki/@files(index)">
+          <img alt="@files(index)" src="@controllers.Global.largeUrls.getOrElse(files(index).title, Gallery.UrlInProgress)" style="max-width:100%; height:auto;">
+      </a>
 
            </div>
     </div>

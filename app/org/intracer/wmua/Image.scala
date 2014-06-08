@@ -2,12 +2,15 @@ package org.intracer.wmua
 
 import scalikejdbc._
 import client.dto.Page
+import controllers.Selection
 
-case class Image(pageid: Long, contest: Long, title: String,
+case class Image(pageId: Long, contest: Long, title: String,
                  url: String, pageUrl: String,
                  lastRound: Int,
                  width: Int,
-                 height: Int) {
+                 height: Int) extends Ordered[Image]{
+
+  def compare(that: Image) =  (this.pageId - that.pageId).signum
 
 }
 
@@ -28,7 +31,7 @@ object Image extends SQLSyntaxSupport[Image] {
   def apply(c: SyntaxProvider[Image])(rs: WrappedResultSet): Image = apply(c.resultName)(rs)
 
   def apply(c: ResultName[Image])(rs: WrappedResultSet): Image = new Image(
-    pageid = rs.long(c.pageid),
+    pageId = rs.long(c.pageId),
     contest = rs.long(c.contest),
     title = rs.string(c.title),
     url = rs.string(c.url),
@@ -42,7 +45,7 @@ object Image extends SQLSyntaxSupport[Image] {
     val column = Image.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] = images.map(i => Seq(
-        i.pageid,
+        i.pageId,
         i.contest,
         i.title,
         i.url,
@@ -52,7 +55,7 @@ object Image extends SQLSyntaxSupport[Image] {
         i.height))
       withSQL {
         insert.into(Image).namedValues(
-          column.pageid -> sqls.?,
+          column.pageId -> sqls.?,
           column.contest -> sqls.?,
           column.title -> sqls.?,
           column.url -> sqls.?,
@@ -68,7 +71,7 @@ object Image extends SQLSyntaxSupport[Image] {
   def findAll()(implicit session: DBSession = autoSession): List[Image] = withSQL {
     select.from(Image as c)
       //      .where.append(isNotDeleted)
-      .orderBy(c.pageid)
+      .orderBy(c.pageId)
   }.map(Image(c)).list.apply()
 
   def findByContest(contest: Long)(implicit session: DBSession = autoSession): List[Image] = withSQL {
@@ -76,11 +79,18 @@ object Image extends SQLSyntaxSupport[Image] {
       .where //.append(isNotDeleted)
       // .and
       .eq(c.contest, contest)
-      .orderBy(c.pageid)
+      .orderBy(c.pageId)
   }.map(Image(c)).list.apply()
 
   def find(id: Long)(implicit session: DBSession = autoSession): Option[Image] = withSQL {
-    select.from(Image as c).where.eq(c.pageid, id) //.and.append(isNotDeleted)
+    select.from(Image as c).where.eq(c.pageId, id) //.and.append(isNotDeleted)
   }.map(Image(c)).single.apply()
+
+  // TODO wholy bullshit
+  def bySelection(round: Int)(implicit session: DBSession = autoSession): List[Image] = withSQL {
+    select.from(Image as c)
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.round, round)
+  }.map(Image(c)).list.apply()
 
 }

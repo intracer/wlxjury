@@ -1,6 +1,6 @@
 # --- !Ups
 create table images (
-  pageid bigint not null,
+  page_id bigint not null,
   contest bigint not null,
   title varchar,
   url varchar,
@@ -14,4 +14,5 @@ alter table images add CONSTRAINT imagest_pkey PRIMARY KEY (pageid);
 
 # --- alter table images add column width int;
 # --- alter table images add height int;
+# --- alter table images rename column pageid to page_id;
 

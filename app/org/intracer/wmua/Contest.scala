@@ -3,13 +3,16 @@ package org.intracer.wmua
 import scalikejdbc._
 import scalikejdbc.WrappedResultSet
 
-case class Contest(id: Long, year: Int, country: String, images: Option[String]) {
+case class Contest(id: Long, year: Int, country: String, images: Option[String], currentRound: Int) {
   def name = s"Wiki Loves Earth $year in $country"
 
   def getImages = images.getOrElse("Category:Images from " + name)
 }
 
 object Contest extends SQLSyntaxSupport[Contest] {
+
+  def currentRound(id: Int) = find(id).get.currentRound
+
 
   def byCountry = findAll().groupBy(_.country)
 
@@ -21,7 +24,8 @@ object Contest extends SQLSyntaxSupport[Contest] {
     id = rs.long(c.id),
     year = rs.int(c.year),
     country = rs.string(c.country),
-    images = rs.stringOpt(c.images)
+    images = rs.stringOpt(c.images),
+    currentRound = rs.int(c.currentRound)
   )
 
   val c = Contest.syntax("c")
@@ -44,5 +48,12 @@ object Contest extends SQLSyntaxSupport[Contest] {
       column.images -> images
     ).where.eq(column.id, id)
   }.update.apply()
+
+  def setCurrentRound(id: Int, round: Int)(implicit session: DBSession = autoSession): Unit = withSQL {
+    update(Contest).set(
+      column.currentRound -> round
+    ).where.eq(column.id, id)
+  }.update.apply()
+
 
 }

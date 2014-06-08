@@ -16,6 +16,7 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
                  createdAt: DateTime = DateTime.now,
                  deletedAt: Option[DateTime] = None) {
 
+  def description = name.fold(number.toString)(s => s"$number. $s")
 }
 
 

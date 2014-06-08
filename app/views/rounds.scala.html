@@ -1,4 +1,9 @@
-@(adminUser: org.intracer.wmua.User, rounds: Seq[org.intracer.wmua.Round], editRoundForm: Form[org.intracer.wmua.Round], editImagesForm: Form[Option[String]])(implicit flash: Flash, lang: Lang)
+@(
+        adminUser: org.intracer.wmua.User,
+        rounds: Seq[org.intracer.wmua.Round],
+        editRoundForm: Form[org.intracer.wmua.Round],
+        editImagesForm: Form[Option[String]],
+        selectRoundForm: Form[String])(implicit flash: Flash, lang: Lang)
     @import helper._
     @import org.intracer.wmua.Contest
     @import org.intracer.wmua.Round
@@ -28,6 +33,22 @@
                 </table>
             }
 
+            @form(routes.Admin.setRound(), 'class -> "form-vertical", 'id -> "set-round") {
+                <table>
+                    <tr>
+                        <td>
+                        @select(selectRoundForm("currentRound"), rounds.map(r => (r.id.toString, r.description)),
+                            '_label -> "Current round", '_help -> "")
+                        </td>
+                        <td>
+                            <div class="control-group">
+                                <input type="submit" class="btn" value="@Messages("Set current round")">
+                            </div>
+                        </td>
+
+                    </tr>
+                </table>
+            }
 
             <table class="table table-striped table-condensed" style="background-color : #CCCCCC ;">
 

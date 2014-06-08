@@ -16,8 +16,8 @@ import scalikejdbc.WrappedResultSet
 
 case class User(fullname: String, email: String, id: Long,
                 roles: Set[String] = Set.empty, password: Option[String] = None, contest: Int,
-                selected: collection.mutable.SortedSet[String] = collection.mutable.SortedSet[String](),
-                files: mutable.Buffer[String] = mutable.Buffer.empty,
+                selected: collection.mutable.SortedSet[Image] = collection.mutable.SortedSet[Image](),
+                files: mutable.Buffer[Image] = mutable.Buffer.empty,
                 createdAt: DateTime = DateTime.now,
                 deletedAt: Option[DateTime] = None) {
 
@@ -74,13 +74,14 @@ object User extends SQLSyntaxSupport[User] {
       val files = Gallery.userFiles(user)
       val filesSet = mutable.SortedSet(files: _*)
 
-      val fromDb = Selection.findAllBy(sqls.eq(Selection.c.email, user.email.trim.toLowerCase))
-      user.selected ++= fromDb.map { selection =>
-        if (!filesSet.contains(selection.filename))
-          files(selection.fileid.toInt)
-        else
-          selection.filename
-      }
+      val filesById = files.groupBy(_.pageId)
+
+      val fromDb = Selection.findAllBy(sqls.eq(Selection.s.juryid, user.id))
+
+      user.selected.clear()
+      user.selected ++= mutable.SortedSet(fromDb.flatMap { selection =>
+        filesById.get(selection.pageId).flatMap(_.headOption)
+      }:_*)
 
       val contest = Contest.find(user.contest).head
       Cache.set(s"contest/${contest.id}", contest)

@@ -20,9 +20,9 @@ GET         /round/:round/:region                      controllers.Gallery.round
 
 GET         /largeRound/:round/:region/:index          controllers.Gallery.largeRound2(region: String, index:Int, round:Int)
 
-GET         /selectRound/:round/:region/:hash          controllers.Gallery.selectRound2(region: String, hash:Int, round:Int)
+GET         /selectRound/:round/:region/:pageId          controllers.Gallery.selectRound2(region: String, pageId:Long, round:Int)
 
-GET         /unselectRound/:round/:region/:hash        controllers.Gallery.unselectRound2(region: String, hash:Int, round:Int)
+GET         /unselectRound/:round/:region/:pageId        controllers.Gallery.unselectRound2(region: String, pageId:Long, round:Int)
 
 GET         /selected                                  controllers.Gallery.selected()
 
@@ -47,3 +47,5 @@ GET         /admin/rounds/edit/:id                     controllers.Admin.editRou
 POST        /admin/rounds/save                         controllers.Admin.saveRound()
 
 POST        /admin/setimages                         controllers.Admin.setImages()
+
+POST        /admin/setround                         controllers.Admin.setRound()

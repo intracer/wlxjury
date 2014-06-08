@@ -1,4 +1,7 @@
-@(user: org.intracer.wmua.User, files: Seq[String], selected: scala.collection.mutable.SortedSet[String],
+@(
+        user: org.intracer.wmua.User,
+        files: Seq[org.intracer.wmua.Image],
+        selected: scala.collection.mutable.SortedSet[org.intracer.wmua.Image],
         region: String, round: Int)(implicit flash: Flash, lang: Lang)
 
     @main(Messages("gallery"), user, 0, round) {
@@ -25,7 +28,7 @@
 
                     <div class="thumb @if(selected.contains(file)){selected}">
                         <a href="/largeRound/@round/@region/@index" width="300" height="200">
-                            <img class="cropped" alt="@file" src="@Global.galleryUrls.getOrElse(file, Gallery.UrlInProgress)">
+                            <img class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.title, Gallery.UrlInProgress)">
                         </a>
                     </div>
 
