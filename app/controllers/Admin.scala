@@ -17,7 +17,7 @@ object Admin extends Controller with Secured {
         val user = User.byUserName(username)
         val users = User.findAll()
 
-        Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury"))))
+        Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), Round.current(user)))
   }, Some(User.ADMIN_ROLE))
 
   def editUser(id: String) = withAuth({
@@ -28,7 +28,7 @@ object Admin extends Controller with Secured {
 
         val filledForm = editUserForm.fill(editedUser)
 
-        Ok(views.html.editUser(user, filledForm))
+        Ok(views.html.editUser(user, filledForm, Round.current(user)))
   }, Some(User.ADMIN_ROLE))
 
   def saveUser() = withAuth({
@@ -38,13 +38,13 @@ object Admin extends Controller with Secured {
 
         editUserForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(views.html.editUser(user, formWithErrors)),
+            BadRequest(views.html.editUser(user, formWithErrors, Round.current(user))),
           value => {
             // binding success, you get the actual value
             val formUser = value
             val count: Long = User.countByEmail(formUser.id, formUser.email)
             if (count > 0) {
-              BadRequest(views.html.editUser(user, editUserForm.fill(formUser).withError("email", "email should be unique")))
+              BadRequest(views.html.editUser(user, editUserForm.fill(formUser).withError("email", "email should be unique"),Round.current(user)))
             } else {
               if (formUser.id == 0) {
                 createNewUser(user, formUser)
@@ -106,7 +106,10 @@ object Admin extends Controller with Secured {
         val rounds = Round.findByContest(user.contest)
         val contest = Contest.byId(user.contest).get
 
-        Ok(views.html.rounds(user, rounds, editRoundForm, imagesForm.fill(Some(contest.getImages)), selectRoundForm.fill(contest.currentRound.toString)))
+        Ok(views.html.rounds(user, rounds, editRoundForm,
+          imagesForm.fill(Some(contest.getImages)),
+          selectRoundForm.fill(contest.currentRound.toString),
+          Round.current(user)))
   }, Some(User.ADMIN_ROLE))
 
 
@@ -132,7 +135,7 @@ object Admin extends Controller with Secured {
 
         val filledRound = editRoundForm.fill(round)
 
-        Ok(views.html.editRound(user, filledRound))
+        Ok(views.html.editRound(user, filledRound, Round.current(user)))
   }, Some(User.ADMIN_ROLE))
 
   def saveRound() = withAuth({
@@ -142,7 +145,7 @@ object Admin extends Controller with Secured {
 
         editRoundForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(views.html.editRound(user, formWithErrors)),
+            BadRequest(views.html.editRound(user, formWithErrors, Round.current(user))),
           round => {
             if (round.id == 0) {
               createNewRound(user, round)
