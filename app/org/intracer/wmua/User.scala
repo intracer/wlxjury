@@ -4,7 +4,7 @@ import _root_.play.cache.Cache
 import java.security.MessageDigest
 import java.math.BigInteger
 import scala.collection.mutable
-import controllers.{Global, Gallery}
+import controllers.Gallery
 import java.util
 import scala.collection.JavaConverters._
 import org.wikipedia.Wiki

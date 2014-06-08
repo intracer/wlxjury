@@ -1,15 +1,10 @@
 package controllers
 
-import play.api.mvc.{Request, SimpleResult, Controller}
+import play.api.mvc.{Request, Controller}
 import org.intracer.wmua.{Image, User}
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.templates.Html
-import java.util
-import org.wikipedia.Wiki
-import scala.collection.JavaConverters._
-import scala.collection.{SortedSet, mutable}
-import java.io.IOException
+import scala.collection.mutable
 import play.api.mvc.SimpleResult
 import scalikejdbc._
 

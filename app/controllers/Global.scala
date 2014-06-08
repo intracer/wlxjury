@@ -1,6 +1,5 @@
 package controllers
 
-
 import play.api._
 import java.io.{FileReader, File}
 import play.Play
@@ -13,7 +12,7 @@ import client.dto.{ImageInfo, Page, Namespace, PageQuery}
 import org.intracer.wmua.{Image, Contest}
 
 
-object Global extends GlobalSettings {
+object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
   //  lazy val w: Wiki = login(COMMONS_WIKIMEDIA_ORG, "***REMOVED***", "***REMOVED***1")
@@ -30,58 +29,59 @@ object Global extends GlobalSettings {
   //  initUrls()
 
   import play.api.Play.current
+  import play.api.libs.concurrent.Execution.Implicits._
 
   val http = new HttpClientImpl(Akka.system)
 
 
   val commons = new MwBot(http, Akka.system, COMMONS_WIKIMEDIA_ORG)
 
+  var contestByCountry: Map[String, Seq[Contest]] = Map.empty
 
-  override def onStart(app: Application) {
+
+  def onStart(app: Application) {
     Logger.info("Application has started")
+
+    contestByCountry = Contest.byCountry
 
     commons.login("***REMOVED***", "***REMOVED***1")
     contestImages()
   }
 
   def contestImages() {
-    val contestByCountry = Contest.byCountry
-
-
     commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
       categories =>
-        val filtered = categories.filter(c => c.title.startsWith("Category:Images from Wiki Loves Earth 2014 in "))
+        val filtered = categories.filter(c => c.title.startsWith("Category:Images from Wiki Loves Earth 2014 in Ukraine")) // TODO all countries
         Future.traverse(filtered)(
-          category => commons.categoryMembers(PageQuery.byId(category.pageid), Set(Namespace.FILE_NAMESPACE)).map {
-            filesInCategory => (category, filesInCategory)
+          category => commons.imageInfoByGenerator("categorymembers", "cm", PageQuery.byId(category.pageid), Set(Namespace.FILE_NAMESPACE)).map {
+            filesInCategory => initContestFiles(category, filesInCategory)
           }
         )
-    } map {
-      case (category: String, filesInCategory: Seq[Page]) =>
+    }
+  }
 
-        val country = category.replace("Category:Images from Wiki Loves Earth 2014 in ", "")
-        val contest = contestByCountry(country).head
-
-        Image.imagesByContest(contest.id) = filesInCategory
-
-        val gallerySize = 300
-        val thumbSize = 150
-        val largeSize = 1280
-        for (file <- filesInCategory) {
-          val imageInfo = file.imageInfo.head
-
-          val galleryUrl = resizeTo(imageInfo, gallerySize)
-          val thumbUrl = resizeTo(imageInfo, thumbSize)
-          val largeUrl = resizeTo(imageInfo, largeSize)
-
-          galleryUrls(file.title) = galleryUrl
-          thumbUrls(file.title) = thumbUrl
-          largeUrls(file.title) = largeUrl
-        }
+  def initContestFiles(category: Page, filesInCategory: Seq[Page]) {
+    val country = category.title.replace("Category:Images from Wiki Loves Earth 2014 in ", "")
+    val contestOpt = contestByCountry.get(country).flatMap(_.headOption)
 
 
-      //        commons.shutdown()
 
+    for (contest <- contestOpt) {
+      Image.imagesByContest(contest.id) = filesInCategory
+
+      val gallerySize = 300
+      val thumbSize = 150
+      val largeSize = 1280
+      for (file <- filesInCategory;
+           imageInfo <- file.imageInfo.headOption) {
+        val galleryUrl = resizeTo(imageInfo, gallerySize)
+        val thumbUrl = resizeTo(imageInfo, thumbSize)
+        val largeUrl = resizeTo(imageInfo, largeSize)
+
+        galleryUrls(file.title) = galleryUrl
+        thumbUrls(file.title) = thumbUrl
+        largeUrls(file.title) = largeUrl
+      }
     }
   }
 
@@ -102,7 +102,7 @@ object Global extends GlobalSettings {
     val url = info.url
     if (px < w) {
       val lastSlash = url.lastIndexOf("/")
-      url + "/" + px + "px-" + url.substring(lastSlash)
+      url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" + px.toInt + "px-" + url.substring(lastSlash+1)
     } else {
       url
     }
@@ -111,17 +111,17 @@ object Global extends GlobalSettings {
 
   def initUrls() {
 
-//    val galleryUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/galleryUrls${i}.txt"))
-//    val largeUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/largeUrls${i}.txt"))
-//    val thumbsUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/thumbUrls${i}.txt"))
-//
-//    Logger.info("galleryUrlsFiles" + galleryUrlsFiles)
-//    Logger.info("largeUrlsFiles" + largeUrlsFiles)
-//    Logger.info("thumbsUrlsFiles" + thumbsUrlsFiles)
-//
-//    galleryUrls = galleryUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
-//    largeUrls = largeUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
-//    thumbUrls = thumbsUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
+    //    val galleryUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/galleryUrls${i}.txt"))
+    //    val largeUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/largeUrls${i}.txt"))
+    //    val thumbsUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/thumbUrls${i}.txt"))
+    //
+    //    Logger.info("galleryUrlsFiles" + galleryUrlsFiles)
+    //    Logger.info("largeUrlsFiles" + largeUrlsFiles)
+    //    Logger.info("thumbsUrlsFiles" + thumbsUrlsFiles)
+    //
+    //    galleryUrls = galleryUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
+    //    largeUrls = largeUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
+    //    thumbUrls = thumbsUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
 
     //files = SortedSet[String](galleryUrls.keySet.toSeq:_*).toSeq.slice(0, 1500)
 
