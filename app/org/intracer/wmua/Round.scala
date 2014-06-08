@@ -75,7 +75,6 @@ object Round extends SQLSyntaxSupport[Round] {
       .orderBy(c.id)
   }.map(Round(c)).list.apply()
 
-
   def find(id: Long)(implicit session: DBSession = autoSession): Option[Round] = withSQL {
     select.from(Round as c).where.eq(c.id, id).and.append(isNotDeleted)
   }.map(Round(c)).single.apply()

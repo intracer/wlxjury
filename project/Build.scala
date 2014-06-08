@@ -29,7 +29,7 @@ object ApplicationBuild extends Build {
    "org.postgresql"     %  "postgresql"                % "9.2-1003-jdbc4", // your JDBC driver
    "org.slf4j"          %  "slf4j-simple"              % "[1.7,)",          // slf4j implementation
     "org.apache.commons" % "commons-email" % "1.3.2",
-    "org.intracer" %% "mwbot" % "0.1",
+    "org.intracer" %% "mwbot" % "0.1.1",
   "org.specs2"           %% "specs2"                          % "2.1"               % "test"
 
   )

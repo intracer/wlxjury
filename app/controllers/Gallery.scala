@@ -1,7 +1,7 @@
 package controllers
 
 import play.api.mvc.{Request, SimpleResult, Controller}
-import org.intracer.wmua.User
+import org.intracer.wmua.{Image, User}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.templates.Html
@@ -106,14 +106,7 @@ object Gallery extends Controller with Secured {
     val index = 1  // TODO fix
 
     if (user.files.isEmpty) {
-
-      val path: String =
-        "commons:Wiki Loves Monuments 2013 in Ukraine Jury/" + index
-
-
-      val images: Seq[String] = Seq.empty
-
-      user.files ++= util.Arrays.asList[String](images: _*).asScala
+      user.files ++= Image.imagesByContest(user.contest).map(_.title)
     }
     user.files
   }

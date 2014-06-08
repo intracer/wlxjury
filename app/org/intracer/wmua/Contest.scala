@@ -11,20 +11,7 @@ case class Contest(id: Long, year: Int, country: String, images: Option[String])
 
 object Contest extends SQLSyntaxSupport[Contest] {
 
-  val countries = Seq("Andorra & Catalan areas",
-    "Armenia & Nagorno-Karabakh",
-    "Austria",
-    "Azerbaijan",
-    "Brazil",
-    "Germany",
-    "Estonia",
-    "Ghana",
-    "India",
-    "Macedonia",
-    "Nepal",
-    "Netherlands",
-    "Serbia",
-    "Ukraine")
+  def byCountry = findAll().groupBy(_.country)
 
   def byId(id: Int) = find(id)
 
