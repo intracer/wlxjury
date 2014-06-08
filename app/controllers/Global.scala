@@ -52,40 +52,51 @@ object Global {
     commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
       categories =>
         val filtered = categories.filter(c => c.title.startsWith("Category:Images from Wiki Loves Earth 2014 in Ukraine")) // TODO all countries
-        Future.traverse(filtered)(
-          category => commons.imageInfoByGenerator("categorymembers", "cm", PageQuery.byId(category.pageid), Set(Namespace.FILE_NAMESPACE)).map {
-            filesInCategory => initContestFiles(category, filesInCategory)
-          }
-        )
+        Future.traverse(filtered) {
+          category =>
+
+            val country = category.title.replace("Category:Images from Wiki Loves Earth 2014 in ", "")
+            val contestOpt = contestByCountry.get(country).flatMap(_.headOption)
+
+            for (contest <- contestOpt) {
+              val images = Image.findByContest(contest.id)
+
+              if (images.isEmpty) {
+                commons.imageInfoByGenerator("categorymembers", "cm", PageQuery.byId(category.pageid), Set(Namespace.FILE_NAMESPACE)).map {
+                  filesInCategory =>
+                    val newImages: Seq[Image] = filesInCategory.flatMap(page => Image.fromPage(page, contest))
+                    Image.batchInsert(newImages)
+                    initContestFiles(contest, newImages)
+                }
+              } else {
+                initContestFiles(contest, images)
+              }
+            }
+
+            Future(1)
+        }
     }
   }
 
-  def initContestFiles(category: Page, filesInCategory: Seq[Page]) {
-    val country = category.title.replace("Category:Images from Wiki Loves Earth 2014 in ", "")
-    val contestOpt = contestByCountry.get(country).flatMap(_.headOption)
+  def initContestFiles(contest: Contest, filesInCategory: Seq[Image]) {
 
+    Image.imagesByContest(contest.id) = filesInCategory
 
+    val gallerySize = 300
+    val thumbSize = 150
+    val largeSize = 1280
+    for (file <- filesInCategory) {
+      val galleryUrl = resizeTo(file, gallerySize)
+      val thumbUrl = resizeTo(file, thumbSize)
+      val largeUrl = resizeTo(file, largeSize)
 
-    for (contest <- contestOpt) {
-      Image.imagesByContest(contest.id) = filesInCategory
-
-      val gallerySize = 300
-      val thumbSize = 150
-      val largeSize = 1280
-      for (file <- filesInCategory;
-           imageInfo <- file.imageInfo.headOption) {
-        val galleryUrl = resizeTo(imageInfo, gallerySize)
-        val thumbUrl = resizeTo(imageInfo, thumbSize)
-        val largeUrl = resizeTo(imageInfo, largeSize)
-
-        galleryUrls(file.title) = galleryUrl
-        thumbUrls(file.title) = thumbUrl
-        largeUrls(file.title) = largeUrl
-      }
+      galleryUrls(file.title) = galleryUrl
+      thumbUrls(file.title) = thumbUrl
+      largeUrls(file.title) = largeUrl
     }
   }
 
-  def resizeTo(info: ImageInfo, resizeTo: Int) = {
+  def resizeTo(info: Image, resizeTo: Int) = {
     val h = info.height
     val w = info.width
 
@@ -102,7 +113,7 @@ object Global {
     val url = info.url
     if (px < w) {
       val lastSlash = url.lastIndexOf("/")
-      url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" + px.toInt + "px-" + url.substring(lastSlash+1)
+      url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" + px.toInt + "px-" + url.substring(lastSlash + 1)
     } else {
       url
     }
