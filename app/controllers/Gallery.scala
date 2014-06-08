@@ -1,12 +1,11 @@
 package controllers
 
 import play.api.mvc.{Request, Controller}
-import org.intracer.wmua.{Contest, Image, User}
+import org.intracer.wmua.{Round, Contest, Image, User}
 import play.api.data.Form
 import play.api.data.Forms._
 import scala.collection.mutable
 import play.api.mvc.SimpleResult
-import scalikejdbc._
 
 
 object Gallery extends Controller with Secured {
@@ -23,11 +22,10 @@ object Gallery extends Controller with Secured {
     username =>
       implicit request =>
         val user = User.byUserName(username)
-
         var files = userFiles(user)
 
         val pageFiles: Seq[Image] = files.slice((page - 1) * (filesPerPage(user) + 1), Math.min(page * (filesPerPage(user) + 1), files.size))
-        Ok(views.html.gallery(user, pageFiles, user.selected, page))
+        Ok(views.html.gallery(user, pageFiles, user.selected, page, Round.current(user)))
   }
 
   def selected() = withAuth {
@@ -56,7 +54,7 @@ object Gallery extends Controller with Secured {
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
         val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
 
-        Ok(views.html.round2(user, filesInRegion, selectedInRegion, regionId, round))
+        Ok(views.html.round2(user, filesInRegion, selectedInRegion, regionId, Round.current(user)))
   }
 
   def largeRound2(regionId: String, index: Int, round: Int) = withAuth {

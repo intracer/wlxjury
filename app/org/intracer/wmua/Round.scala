@@ -35,6 +35,11 @@ object Round extends SQLSyntaxSupport[Round] {
 
   override val tableName = "rounds"
 
+  def current(user: User) = {
+    val contest = Contest.byId(user.contest).get
+    Round.find(contest.currentRound).get
+  }
+
   def applyEdit(id: Long, num: Int, name: Option[String], contest: Int, roles: String,
                 rates: Int,  limitMin: Int, limitMax: Int, recommended: Option[Int]) =
     new Round(id, num, name, contest, Set(roles), ratesById(rates).head, limitMin, limitMax, recommended)

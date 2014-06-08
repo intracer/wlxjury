@@ -1,13 +1,15 @@
-
-
-@(adminUser: org.intracer.wmua.User, users: Seq[org.intracer.wmua.User], editUserForm: Form[org.intracer.wmua.User])(implicit flash: Flash, lang: Lang)
+@(
+        adminUser: org.intracer.wmua.User,
+        users: Seq[org.intracer.wmua.User],
+        editUserForm: Form[org.intracer.wmua.User],
+        round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
 @import helper._
 @import org.intracer.wmua.Contest
     @implicitFieldConstructor = @{
         FieldConstructor(twitterBootstrapInput.render(_, lang))
     }
 
-@main(Messages("users"), adminUser, 0, 0, gallery = false) {
+@main(Messages("users"), adminUser, 0, Some(round), gallery = false) {
     <div class="row-fluid" >
         <h3>@Messages("Contest: " + Contest.byId(adminUser.contest).head.name)</h3>
 

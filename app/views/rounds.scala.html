@@ -3,7 +3,8 @@
         rounds: Seq[org.intracer.wmua.Round],
         editRoundForm: Form[org.intracer.wmua.Round],
         editImagesForm: Form[Option[String]],
-        selectRoundForm: Form[String])(implicit flash: Flash, lang: Lang)
+        selectRoundForm: Form[String],
+        round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
     @import helper._
     @import org.intracer.wmua.Contest
     @import org.intracer.wmua.Round
@@ -12,7 +13,7 @@
         FieldConstructor(twitterBootstrapInput.render(_, lang))
     }
 
-    @main(Messages("rounds"), adminUser, 0, 0, gallery = false) {
+    @main(Messages("rounds"), adminUser, 0, Some(round), gallery = false) {
         <div class="row-fluid" >
             <h3>@Messages("Contest: " + Contest.byId(adminUser.contest).head.name)</h3>
 

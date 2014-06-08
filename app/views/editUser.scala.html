@@ -1,10 +1,10 @@
-@(user: org.intracer.wmua.User, editUserForm: Form[org.intracer.wmua.User])(implicit flash: Flash, lang: Lang)
+@(user: org.intracer.wmua.User, editUserForm: Form[org.intracer.wmua.User],round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
 
 @import helper._
     @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render(_, lang)) }
 
 
-@main(Messages("edit user"), user, 0, 0, gallery = false) {
+@main(Messages("edit user"), user, 0, Some(round), gallery = false) {
     <div class="row-fluid" >
 
         @if(editUserForm("id").value != Some("0")) {

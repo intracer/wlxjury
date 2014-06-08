@@ -2,9 +2,9 @@
         user: org.intracer.wmua.User,
         files: Seq[org.intracer.wmua.Image],
         selected: scala.collection.mutable.SortedSet[org.intracer.wmua.Image],
-        region: String, round: Int)(implicit flash: Flash, lang: Lang)
+        region: String, round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
 
-    @main(Messages("gallery"), user, 0, round) {
+    @main(Messages("gallery"), user, 0, Some(round)) {
 
     <div class="row-fluid" >
     <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">
@@ -12,7 +12,7 @@
           <li><a href="/round/@round/all" @if("all" == region){style="font-weight: bold"}>*</a></li>
           @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1)) {
 
-                  <li><a href="/round/@round/@id" @if(id == region){style="font-weight: bold"}>@name</a></li>
+                  <li><a href="/round/@round.number/@id" @if(id == region){style="font-weight: bold"}>@name</a></li>
           }
       </ul>
     </div>
