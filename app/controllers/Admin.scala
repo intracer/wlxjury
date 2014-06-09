@@ -1,11 +1,12 @@
 package controllers
 
 import play.api.mvc.Controller
-import org.intracer.wmua.{Round, Contest, User}
+import org.intracer.wmua.{Image, Round, Contest, User}
 import play.api.data.Form
 import play.api.data.Forms._
 import scala.concurrent.Await
 import client.dto.{Page, PageQuery}
+import org.joda.time.DateTime
 
 object Admin extends Controller with Secured {
 
@@ -18,7 +19,7 @@ object Admin extends Controller with Secured {
         val users = User.findAll()
 
         Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), Round.current(user)))
-  }, Some(User.ADMIN_ROLE))
+  }, Set(User.ADMIN_ROLE))
 
   def editUser(id: String) = withAuth({
     username =>
@@ -29,7 +30,7 @@ object Admin extends Controller with Secured {
         val filledForm = editUserForm.fill(editedUser)
 
         Ok(views.html.editUser(user, filledForm, Round.current(user)))
-  }, Some(User.ADMIN_ROLE))
+  }, Set(User.ADMIN_ROLE))
 
   def saveUser() = withAuth({
     username =>
@@ -44,18 +45,22 @@ object Admin extends Controller with Secured {
             val formUser = value
             val count: Long = User.countByEmail(formUser.id, formUser.email)
             if (count > 0) {
-              BadRequest(views.html.editUser(user, editUserForm.fill(formUser).withError("email", "email should be unique"),Round.current(user)))
+              BadRequest(views.html.editUser(user, editUserForm.fill(formUser).withError("email", "email should be unique"), Round.current(user)))
             } else {
               if (formUser.id == 0) {
                 createNewUser(user, formUser)
               } else {
                 User.updateUser(formUser.id, formUser.fullname, formUser.email, formUser.roles)
+                for (password <- formUser.password) {
+                  val hash = User.hash(formUser, password)
+                  User.updateHash(formUser.id, hash)
+                }
               }
               Redirect(routes.Admin.users)
             }
           }
         )
-  }, Some(User.ADMIN_ROLE))
+  }, Set(User.ADMIN_ROLE))
 
   def createNewUser(user: User, formUser: User): Boolean = {
     val password = User.randomString(8)
@@ -92,10 +97,11 @@ object Admin extends Controller with Secured {
       "name" -> optional(text()),
       "contest" -> number,
       "roles" -> text(),
+      "distribution" -> number,
       "rates" -> number,
-    "limitMin" -> number,
-    "limitMax" -> number,
-    "recommended" -> optional(number)
+      "limitMin" -> number,
+      "limitMax" -> number,
+      "recommended" -> optional(number)
     )(Round.applyEdit)(Round.unapplyEdit)
   )
 
@@ -110,22 +116,49 @@ object Admin extends Controller with Secured {
           imagesForm.fill(Some(contest.getImages)),
           selectRoundForm.fill(contest.currentRound.toString),
           Round.current(user)))
-  }, Some(User.ADMIN_ROLE))
+  }, Set(User.ADMIN_ROLE))
 
 
   def setRound() = withAuth({
     username =>
       implicit request =>
         val user = User.byUserName(username)
-        val rounds = Round.findByContest(user.contest)
-        val contest = Contest.byId(user.contest).get
 
         val newRound = selectRoundForm.bindFromRequest.get
 
         Contest.setCurrentRound(user.contest, newRound.toInt)
 
-       Redirect(routes.Admin.rounds())
-  }, Some(User.ADMIN_ROLE))
+        Redirect(routes.Admin.rounds())
+  }, Set(User.ADMIN_ROLE))
+
+
+  def distributeImages(contest: Contest) {
+    for (round <- Round.find(contest.currentRound)) {
+
+      val images = round.allImages
+      val jurors = round.jurors
+
+      val selection: Seq[Selection] = round.distribution match {
+        case 0 =>
+          jurors.flatMap { juror =>
+            images.map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+          }
+        case 1 =>
+          val perJuror = images.size / jurors.size
+          jurors.zipWithIndex.flatMap { case (juror, i) =>
+            images.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+          }
+
+        case 2 =>
+          val imagesTwice = images ++ images
+          val perJuror = imagesTwice.size / jurors.size
+          jurors.zipWithIndex.flatMap { case (juror, i) =>
+            imagesTwice.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+          }
+      }
+      Selection.batchInsert(selection)
+    }
+  }
 
   def editRound(id: String) = withAuth({
     username =>
@@ -136,7 +169,7 @@ object Admin extends Controller with Secured {
         val filledRound = editRoundForm.fill(round)
 
         Ok(views.html.editRound(user, filledRound, Round.current(user)))
-  }, Some(User.ADMIN_ROLE))
+  }, Set(User.ADMIN_ROLE))
 
   def saveRound() = withAuth({
     username =>
@@ -155,7 +188,7 @@ object Admin extends Controller with Secured {
             Redirect(routes.Admin.rounds())
           }
         )
-  }, Some(User.ADMIN_ROLE))
+  }, Set(User.ADMIN_ROLE))
 
   def createNewRound(user: User, round: Round): Round = {
 
@@ -163,7 +196,7 @@ object Admin extends Controller with Secured {
 
     val count = Round.countByContest(round.contest)
 
-    Round.create(count + 1, round.name, round.contest, round.roles.head, round.rates.id, round.limitMin, round.limitMax, round.recommended)
+    Round.create(count + 1, round.name, round.contest, round.roles.head, round.distribution, round.rates.id, round.limitMin, round.limitMax, round.recommended)
 
   }
 
@@ -172,16 +205,44 @@ object Admin extends Controller with Secured {
       implicit request =>
         val user = User.byUserName(username)
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
-        Contest.updateImages(user.contest, imagesSource)
+        val contest = Contest.byId(user.contest).get
+        Contest.updateImages(contest.id, imagesSource)
 
         import scala.concurrent.duration._
 
-        val images:Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
+        //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 
-//        Round.up
+        distributeImages(contest)
+
+        //        Round.up
 
         Redirect(routes.Admin.rounds())
 
-  }, Some(User.ADMIN_ROLE))
+  }, Set(User.ADMIN_ROLE))
+
+  def resetPassword(id: String) = withAuth({
+    username =>
+      implicit request =>
+        val user = User.byUserName(username)
+        val editedUser = User.find(id.toLong).get
+
+        val password = User.randomString(8)
+        val contest: Contest = Contest.byId(editedUser.contest).head
+        val hash = User.hash(editedUser, password)
+
+        User.updateHash(editedUser.id, hash)
+
+        val juryhome = "http://localhost:9000"
+//        User.updateUser(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest)
+        val subject: String = s"Password changed for ${contest.name} jury"
+        val message: String = s"Password changed for ${contest.name} jury\n" +
+          s" Please login to our jury tool $juryhome \nwith login: ${editedUser.email} and password: $password.\n" +
+          s"Regards, ${user.fullname}"
+        sendMail.sendMail(from = (user.fullname, user.email), to = Seq(editedUser.email), bcc = Seq(user.email), subject = subject, message = message)
+
+        Redirect(routes.Admin.editUser(id)).flashing("password-reset" -> s"Password reset. New Password sent to ${editedUser.email}")
+
+  }, Set(User.ADMIN_ROLE))
+
 
 }

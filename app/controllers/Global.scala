@@ -80,8 +80,6 @@ object Global {
 
   def initContestFiles(contest: Contest, filesInCategory: Seq[Image]) {
 
-    Image.imagesByContest(contest.id) = filesInCategory
-
     val gallerySize = 300
     val thumbSize = 150
     val largeSize = 1280

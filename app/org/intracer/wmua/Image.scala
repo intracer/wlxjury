@@ -22,7 +22,9 @@ object Image extends SQLSyntaxSupport[Image] {
      yield new Image(page.pageid, contest.id, page.title, imageInfo.url, imageInfo.descriptionUrl, 0, imageInfo.width, imageInfo.height)
   }
 
-  val imagesByContest = collection.mutable.Map[Long, Seq[Image]]()
+  private  val imagesByContest = collection.mutable.Map[Long, Seq[Image]]()
+
+  def byContest(id: Long) = imagesByContest.getOrElseUpdate(id, findByContest(id))
 
   override val tableName = "images"
 
@@ -86,11 +88,18 @@ object Image extends SQLSyntaxSupport[Image] {
     select.from(Image as c).where.eq(c.pageId, id) //.and.append(isNotDeleted)
   }.map(Image(c)).single.apply()
 
-  // TODO wholy bullshit
-  def bySelection(round: Int)(implicit session: DBSession = autoSession): List[Image] = withSQL {
+  def bySelection(round: Long)(implicit session: DBSession = autoSession): List[Image] = withSQL {
     select.from(Image as c)
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
       .where.eq(Selection.s.round, round)
+  }.map(Image(c)).list.apply()
+
+  def byUser(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Image] = withSQL {
+    select.from(Image as c)
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.juryid, user.id).and
+      .eq(Selection.s.round, roundId)
+//      .append(isNotDeleted)
   }.map(Image(c)).list.apply()
 
 }

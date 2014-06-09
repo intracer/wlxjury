@@ -31,6 +31,11 @@
 
         @select(editRoundForm("roles"), Seq("jury", "organizer").map(x => (x,x)), '_label -> "Jury role", '_help -> "")
 
+        @select(editRoundForm("distribution"),
+            (0 to 2).map(x => (x.toString,
+                    Seq("Each image to all jurors", "Each image to 1 juror", "Each image to 2 jurors")(x))),
+            '_label -> "Image distribution", '_help -> "")
+
         @select(editRoundForm("rates"), Round.rates.map(x => (x.id.toString,x.name)), '_label -> "Selection type", '_help -> "")
 
         @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString,x.toString)), '_label -> "Min selected", '_help -> "")
@@ -46,5 +51,44 @@
         <a href="/admin/rounds" class="btn">@Messages("Cancel")</a>
     </div>
 }
+
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        Email
+                    </th>
+                    <th>
+                        Images
+                    </th>
+                    <th>
+                        Selected
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(user <- round.jurors) {
+                    <tr>
+                        <td>
+                        @user.fullname
+                        </td>
+                        <td>
+                        @user.email
+                        </td>
+                        <td>
+                            @Gallery.userFiles(user).size
+                        </td>
+                        <td>
+                            @Selection.byUserSelected(user, round.id).size
+                        </td>
+                    </tr>
+                }
+            </tbody>
+
+        </table>
+
     </div>
 }

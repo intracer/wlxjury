@@ -6,6 +6,7 @@ import client.dto.Page
 
 case class Round(id: Long, number: Int, name: Option[String], contest: Int,
                  roles: Set[String] = Set("jury"),
+                 distribution: Int,
                  rates: Rates = Round.binaryRound,
                  limitMin: Int,
                  limitMax: Int,
@@ -15,6 +16,10 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
                  selected: Seq[Page] = Seq.empty,
                  createdAt: DateTime = DateTime.now,
                  deletedAt: Option[DateTime] = None) {
+
+  def jurors = User.findAllBy(sqls.in(User.c.roles, roles.toSeq).and.eq(User.c.contest, contest))
+
+  def allImages = if (number == 1) Image.findByContest(contest) else Image.bySelection(id)
 
   def description = name.fold(number.toString)(s => s"$number. $s")
 }
@@ -40,12 +45,12 @@ object Round extends SQLSyntaxSupport[Round] {
     Round.find(contest.currentRound).get
   }
 
-  def applyEdit(id: Long, num: Int, name: Option[String], contest: Int, roles: String,
+  def applyEdit(id: Long, num: Int, name: Option[String], contest: Int, roles: String, distribution: Int,
                 rates: Int,  limitMin: Int, limitMax: Int, recommended: Option[Int]) =
-    new Round(id, num, name, contest, Set(roles), ratesById(rates).head, limitMin, limitMax, recommended)
+    new Round(id, num, name, contest, Set(roles), distribution, ratesById(rates).head, limitMin, limitMax, recommended)
 
-  def unapplyEdit(round: Round): Option[(Long, Int, Option[String], Int, String, Int, Int, Int, Option[Int])] = {
-    Some((round.id, round.number, round.name, round.contest, round.roles.head, round.rates.id, round.limitMin, round.limitMax, round.recommended))
+  def unapplyEdit(round: Round): Option[(Long, Int, Option[String], Int, String, Int, Int, Int, Int, Option[Int])] = {
+    Some((round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id, round.limitMin, round.limitMax, round.recommended))
   }
 
   val c = Round.syntax("c")
@@ -56,6 +61,7 @@ object Round extends SQLSyntaxSupport[Round] {
     id = rs.int(c.id),
     name = Option(rs.string(c.name)),
     number = rs.int(c.number),
+    distribution = rs.int(c.distribution),
     contest = rs.int(c.contest),
     rates = ratesById(rs.int(c.rates)).head,
     limitMin = rs.int(c.limitMin),
@@ -85,7 +91,7 @@ object Round extends SQLSyntaxSupport[Round] {
     select.from(Round as c).where.eq(c.id, id).and.append(isNotDeleted)
   }.map(Round(c)).single.apply()
 
-  def create(number: Int, name: Option[String], contest: Int, roles: String,
+  def create(number: Int, name: Option[String], contest: Int, roles: String, distribution: Int,
              rates: Int,  limitMin: Int, limitMax: Int, recommended: Option[Int],
              createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): Round = {
     val id = withSQL {
@@ -94,6 +100,7 @@ object Round extends SQLSyntaxSupport[Round] {
         column.name -> name,
         column.contest -> contest,
         column.roles -> roles,
+        column.distribution -> distribution,
         column.rates -> rates,
         column.limitMin -> limitMin,
         column.limitMax -> limitMax,
@@ -101,7 +108,8 @@ object Round extends SQLSyntaxSupport[Round] {
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey.apply()
 
-    new Round(id = id, name = name, number = number, contest = contest, roles = Set(roles), rates = ratesById(rates).head, limitMin = limitMin,
+    new Round(id = id, name = name, number = number, contest = contest, roles = Set(roles), distribution = distribution,
+      rates = ratesById(rates).head, limitMin = limitMin,
     limitMax = limitMax, recommended = recommended, createdAt = createdAt)
   }
 
@@ -109,6 +117,7 @@ object Round extends SQLSyntaxSupport[Round] {
     update(Round).set(
       column.name -> round.name,
       column.roles -> round.roles,
+      column.distribution -> round.distribution,
       column.rates -> round.rates.id,
       column.limitMin -> round.limitMin,
       column.limitMax -> round.limitMax,

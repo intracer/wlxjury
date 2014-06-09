@@ -50,10 +50,13 @@
         )
         } else {
             @if(editUserForm("id").value != Some("0")) {
-                <a href="/admin/users" class="btn">@Messages("Reset password")</a>
-            }
+                @flash.get("password-reset").map { msg =>
+                    <div class="alert alert-success">@msg</div>
+                }
 
-    }
+                <a href="#" class="btn" onclick="document.forms['reset-password'].submit();">@Messages("Reset password")</a>
+            }
+        }
 
     </fieldset>
 
@@ -62,5 +65,11 @@
         <a href="/admin/users" class="btn">@Messages("Cancel")</a>
     </div>
 }
+
+        <div style="display:none;">
+        @form(routes.Admin.resetPassword(editUserForm("id").value.get), 'class -> "form-vertical", 'id -> "reset-password" ) {
+                <input type="submit" class="btn" value="@Messages("Reset password")">
+        }
+        </div>
     </div>
 }

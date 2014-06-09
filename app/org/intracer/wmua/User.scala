@@ -175,6 +175,12 @@ object User extends SQLSyntaxSupport[User] {
       .orderBy(c.id)
   }.map(User(c)).list.apply()
 
+//  def findByRoles(roles: Set[String])(implicit session: DBSession = autoSession): List[User] = withSQL {
+//    select.from(User as c)
+//      .where.in(column.roles, roles)
+//      .orderBy(c.id)
+//  }.map(User(c)).list.apply()
+
   def countBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Long = withSQL {
     select(sqls.count).from(User as c).where.append(isNotDeleted).and.append(sqls"${where}")
   }.map(_.long(1)).single.apply().get
@@ -200,6 +206,13 @@ object User extends SQLSyntaxSupport[User] {
       column.roles -> roles.head
     ).where.eq(column.id, id)
   }.update.apply()
+
+  def updateHash(id: Long, hash:String)(implicit session: DBSession = autoSession): Unit = withSQL {
+    update(User).set(
+      column.password -> hash
+    ).where.eq(column.id, id)
+  }.update.apply()
+
 
   def destroy(filename: String, email: String)(implicit session: DBSession = autoSession): Unit = withSQL {
     update(User).set(column.deletedAt -> DateTime.now).where.eq(column.email, email)

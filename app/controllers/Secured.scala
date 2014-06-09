@@ -1,9 +1,6 @@
 package controllers
 
-import play.api._
 import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
 import org.intracer.wmua.User
 
 trait Secured {
@@ -14,9 +11,9 @@ trait Secured {
 
   def onUnAuthorized() = Results.Redirect(routes.Application.index())
 
-  def withAuth(f: => String => Request[AnyContent] => Result, role: Option[String] = None) = {
+  def withAuth(f: => String => Request[AnyContent] => Result, roles: Set[String] = Set(User.ADMIN_ROLE, "jury", "organizer")) = {
     Security.Authenticated(username, onUnAuthenticated) { user =>
-      if (role.fold(true)(User.byUserName(user).roles.contains))
+      if (!roles.intersect(User.byUserName(user).roles).isEmpty)
         Action(request => f(user)(request))
       else
         Action(request => onUnAuthorized())

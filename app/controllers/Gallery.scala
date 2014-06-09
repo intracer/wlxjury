@@ -93,10 +93,10 @@ object Gallery extends Controller with Secured {
 
 
   def userFiles(user: User): Seq[Image] = {
-    val index = 1  // TODO fix
+    val round = Round.current(user)
 
     if (user.files.isEmpty) {
-      user.files ++= Image.imagesByContest(user.contest)
+      user.files ++= Image.byUser(user, round.id)
     }
     user.files
   }
@@ -120,7 +120,7 @@ object Gallery extends Controller with Secured {
         }
         else {
           selected += file
-          val selection = Selection.create(filename = file.title, pageId = file.pageId, rate = 1, fileid = "" + index,
+          val selection = Selection.create(pageId = file.pageId, rate = 1, fileid = "" + index,
             juryid = user.id.toInt, round = round)
         }
 
@@ -146,7 +146,7 @@ object Gallery extends Controller with Secured {
 
         val index = filesInRegion.indexOf(file)
 
-        val selection = Selection.create(filename = file.title, pageId = file.pageId, rate = 1,
+        val selection = Selection.create(pageId = file.pageId, rate = 1,
           fileid = "" + index, juryid = user.id.toInt, round = round)
 
         Redirect(routes.Gallery.largeRound2(regionId, index, round))

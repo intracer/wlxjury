@@ -3,49 +3,51 @@
 # ~~~~
 
 # Home page
-GET         /                                          controllers.Application.index
+GET         /                                            controllers.Application.index
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                              controllers.Assets.at(path="/public", file)
+GET         /assets/*file                                controllers.Assets.at(path="/public", file)
 
-GET         /logout                                    controllers.Application.logout()
+GET         /logout                                      controllers.Application.logout()
 
-POST        /auth                                      controllers.Application.auth()
+POST        /auth                                        controllers.Application.auth()
 
-GET         /auth                                      controllers.Application.index
+GET         /auth                                        controllers.Application.index
 
-GET         /gallery/:page                             controllers.Gallery.list(page: Int)
+GET         /gallery/:page                               controllers.Gallery.list(page: Int)
 
-GET         /round/:round/:region                      controllers.Gallery.round2(region: String, round:Int)
+GET         /round/:round/:region                        controllers.Gallery.round2(region: String, round:Int)
 
-GET         /largeRound/:round/:region/:index          controllers.Gallery.largeRound2(region: String, index:Int, round:Int)
+GET         /largeRound/:round/:region/:index            controllers.Gallery.largeRound2(region: String, index:Int, round:Int)
 
 GET         /selectRound/:round/:region/:pageId          controllers.Gallery.selectRound2(region: String, pageId:Long, round:Int)
 
 GET         /unselectRound/:round/:region/:pageId        controllers.Gallery.unselectRound2(region: String, pageId:Long, round:Int)
 
-GET         /selected                                  controllers.Gallery.selected()
+GET         /selected                                    controllers.Gallery.selected()
 
-GET         /large/:index                              controllers.Gallery.large(index: Int)
+GET         /large/:index                                controllers.Gallery.large(index: Int)
 
-GET         /largeSelected/:index                      controllers.Gallery.largeSelected(index: Int)
+GET         /largeSelected/:index                        controllers.Gallery.largeSelected(index: Int)
 
-GET         /large/:index/select                       controllers.Gallery.select(index: Int)
+GET         /large/:index/select                         controllers.Gallery.select(index: Int)
 
-GET         /largeSelected/:index/unselect             controllers.Gallery.unselect(index: Int)
+GET         /largeSelected/:index/unselect               controllers.Gallery.unselect(index: Int)
 
-GET         /admin/users                               controllers.Admin.users()
+GET         /admin/users                                 controllers.Admin.users()
 
-GET         /users/edit/:id                            controllers.Admin.editUser(id: String)
+GET         /users/edit/:id                              controllers.Admin.editUser(id: String)
 
-POST        /users/save                                controllers.Admin.saveUser()
+POST        /users/save                                  controllers.Admin.saveUser()
 
-GET         /admin/rounds                              controllers.Admin.rounds()
+POST        /users/resetpasswd/:id                       controllers.Admin.resetPassword(id: String)
 
-GET         /admin/rounds/edit/:id                     controllers.Admin.editRound(id: String)
+GET         /admin/rounds                                controllers.Admin.rounds()
 
-POST        /admin/rounds/save                         controllers.Admin.saveRound()
+GET         /admin/rounds/edit/:id                       controllers.Admin.editRound(id: String)
 
-POST        /admin/setimages                         controllers.Admin.setImages()
+POST        /admin/rounds/save                           controllers.Admin.saveRound()
 
-POST        /admin/setround                         controllers.Admin.setRound()
+POST        /admin/setimages                             controllers.Admin.setImages()
+
+POST        /admin/setround                              controllers.Admin.setRound()

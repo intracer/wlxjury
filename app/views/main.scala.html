@@ -31,7 +31,7 @@
                     }
                     @if(round.isDefined) {
                         <div class="brand" style="margin-top : 5px">@Messages(s"Round ${round.get.description}")</div>
-                        @if(round.get.number == 0) {
+                        @if(true || round.get.number == 0) {
                             <a class="brand" style="margin-top : 5px" href="/gallery/1">@Messages("All")</a>
                             <a class="brand" style="margin-top : 5px ; color : #5bc75b" href="/selected">@Messages("Selected")</a>
                         } else {

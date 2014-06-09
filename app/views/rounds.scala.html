@@ -55,15 +55,16 @@
 
                 <thead>
                     <tr>
-                        <td width="10%">@Messages("Number") </td>
-                        <td width="10%">@Messages("Name") </td>
-                        <td width="10%">@Messages("Jury role") </td>
-                        <td width="10%">@Messages("Selection type") </td>
-                        <td width="10%">@Messages("Min selected") </td>
-                        <td width="10%">@Messages("Max selected") </td>
-                        <td width="10%">@Messages("Recommended selected") </td>
-                        <td width="10%">@Messages("Images")</td>
-                        <td width="10%">@Messages("Selected")</td>
+                        <th width="10%">@Messages("Number") </th>
+                        <th width="10%">@Messages("Name") </th>
+                        <th width="10%">@Messages("Jury role") </th>
+                        <th width="10%">@Messages("Image distribution") </th>
+                        <th width="10%">@Messages("Selection type") </th>
+                        <th width="10%">@Messages("Min selected") </th>
+                        <th width="10%">@Messages("Max selected") </th>
+                        <th width="10%">@Messages("Recommended selected") </th>
+                        <th width="10%">@Messages("Images")</th>
+                        <th width="10%">@Messages("Selected")</th>
                     </tr>
                 </thead>
 
@@ -74,11 +75,12 @@
                             <td> <a href="/admin/rounds/edit/@round.id">@round.number</a> </td>
                             <td> @round.name </td>
                             <td>@round.roles.mkString(",") </td>
+                            <td>@Seq("Each image to all jurors", "Each image to 1 juror", "Each image to 2 jurors")(round.distribution) </td>
                             <td>@round.rates.name </td>
                             <td>@round.limitMin </td>
                             <td>@round.limitMax </td>
                             <td>@round.recommended.fold("")(_.toString) </td>
-                            <td>@round.images.size </td>
+                            <td>@round.allImages.size </td>
                             <td>@round.selected.size </td>
                         </tr>
                     }
@@ -105,6 +107,12 @@
                             </td>
                             <td>
                             @select(editRoundForm("roles"), Seq("jury", "organizer").map(x => (x, x)), '_label -> "", '_help -> "", 'class -> "input-small")
+                            </td>
+                            <td>
+                            @select(editRoundForm("distribution"),
+                                (0 to 2).map(x => (x.toString,
+                                        Seq("Each image to all jurors", "Each image to 1 juror", "Each image to 2 jurors")(x))),
+                                '_label -> "", '_help -> "")
                             </td>
                             <td>
                             @select(editRoundForm("rates"), Round.rates.map(x => (x.id.toString, x.name)), '_label -> "", '_help -> "", 'class -> "input-small")

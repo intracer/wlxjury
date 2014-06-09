@@ -2,15 +2,15 @@ package controllers
 
 import scalikejdbc._, scalikejdbc.SQLInterpolation._
 import org.joda.time.DateTime
+import org.intracer.wmua.User
 
 case class Selection(
                       id: Long,
                       pageId: Long,
                       rate: Int,
-                      filename: String,
-                     	fileid: String, // TODO remove
-                      juryid: Int,
-                      round: Int,
+                     //	fileid: String, // TODO remove
+                      juryid: Long,
+                      round: Long,
                       createdAt: DateTime,
                       deletedAt: Option[DateTime] = None)
 {
@@ -22,16 +22,38 @@ case class Selection(
 
 object Selection extends SQLSyntaxSupport[Selection]{
 
+  def byUser(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
+    select.from(Selection as s).where
+      .eq(s.juryid, user.id).and
+      .eq(s.round, roundId).and
+      .append(isNotDeleted)
+  }.map(Selection(s)).list.apply()
+
+  def byUserSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
+    select.from(Selection as s).where
+      .eq(s.juryid, user.id).and
+      .eq(s.round, roundId).and
+      .eq(s.rate, 0).and
+      .append(isNotDeleted)
+  }.map(Selection(s)).list.apply()
+
+  def byUserNotSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
+    select.from(Selection as s).where
+      .eq(s.juryid, user.id).and
+      .eq(s.round, roundId).and
+      .ne(s.rate, 0).and
+      .append(isNotDeleted)
+  }.map(Selection(s)).list.apply()
+
 
   def apply(c: SyntaxProvider[Selection])(rs: WrappedResultSet): Selection = apply(c.resultName)(rs)
   def apply(c: ResultName[Selection])(rs: WrappedResultSet): Selection = new Selection(
     id = rs.int(c.id),
     pageId = rs.long(c.pageId),
     rate = rs.int(c.rate),
-    filename = rs.string(c.filename),
-    fileid = rs.string(c.fileid),
-    juryid = rs.int(c.juryid),
-    round = rs.int(c.round),
+//    fileid = rs.string(c.fileid),
+    juryid = rs.long(c.juryid),
+    round = rs.long(c.round),
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
   )
@@ -64,21 +86,41 @@ object Selection extends SQLSyntaxSupport[Selection]{
     select(sqls.count).from(Selection as s).where.append(isNotDeleted).and.append(sqls"${where}")
   }.map(_.long(1)).single.apply().get
 
-  def create(filename: String, pageId: Long, rate: Int,
+  def create(pageId: Long, rate: Int,
              fileid: String, juryid: Int, round: Int, createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): Selection = {
     val id = withSQL {
       insert.into(Selection).namedValues(
         column.pageId -> pageId,
         column.rate -> rate,
-        column.filename -> filename,
-        column.fileid -> fileid,
         column.juryid -> juryid,
-//        column.email -> email.trim.toLowerCase,
         column.round -> round,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey.apply()
 
-    Selection(id = id, pageId = pageId, rate = rate, filename = filename, fileid = fileid, juryid = juryid, round = round, createdAt = createdAt)
+     Selection(id = id, pageId = pageId, rate = rate, juryid = juryid, round = round, createdAt = createdAt)
+  }
+
+  def batchInsert(selections: Seq[Selection]) {
+    val column = Selection.column
+    DB localTx { implicit session =>
+      val batchParams: Seq[Seq[Any]] = selections.map(i => Seq(
+        i.pageId,
+        i.rate,
+//        i.fileid,
+        i.juryid,
+        i.round,
+        i.createdAt))
+      withSQL {
+        insert.into(Selection).namedValues(
+          column.pageId -> sqls.?,
+          column.rate -> sqls.?,
+//          column.fileid -> sqls.?,
+          column.juryid -> sqls.?,
+          column.round -> sqls.?,
+          column.createdAt -> sqls.?
+        )
+      }.batch(batchParams: _*).apply()
+    }
   }
 
   def destroy(pageId: Long, juryid: Long, round: Long)(implicit session: DBSession = autoSession): Unit = withSQL {
@@ -88,10 +130,9 @@ object Selection extends SQLSyntaxSupport[Selection]{
       eq(column.round, round)
   }.update.apply()
 
-  def destroyAll(filename: String)(implicit session: DBSession = autoSession): Unit = withSQL {
-    update(Selection).set(column.deletedAt -> DateTime.now).where.eq(column.filename, filename)
-  }.update.apply()
 
-
+//  def destroyAll(filename: String)(implicit session: DBSession = autoSession): Unit = withSQL {
+//    update(Selection).set(column.deletedAt -> DateTime.now).where.eq(column.filename, filename)
+//  }.update.apply()
 
 }
