@@ -8,7 +8,8 @@ case class Image(pageId: Long, contest: Long, title: String,
                  url: String, pageUrl: String,
                  lastRound: Int,
                  width: Int,
-                 height: Int) extends Ordered[Image]{
+                 height: Int,
+                 monumentId: Option[String]) extends Ordered[Image]{
 
   def compare(that: Image) =  (this.pageId - that.pageId).signum
 
@@ -19,7 +20,7 @@ object Image extends SQLSyntaxSupport[Image] {
 
   def fromPage(page: Page, contest: Contest):Option[Image] = {
     for (imageInfo <- page.imageInfo.headOption)
-     yield new Image(page.pageid, contest.id, page.title, imageInfo.url, imageInfo.descriptionUrl, 0, imageInfo.width, imageInfo.height)
+     yield new Image(page.pageid, contest.id, page.title, imageInfo.url, imageInfo.descriptionUrl, 0, imageInfo.width, imageInfo.height, None)
   }
 
   private  val imagesByContest = collection.mutable.Map[Long, Seq[Image]]()
@@ -40,7 +41,8 @@ object Image extends SQLSyntaxSupport[Image] {
     pageUrl = rs.string(c.pageUrl),
     lastRound = rs.int(c.lastRound),
     width = rs.int(c.width),
-    height = rs.int(c.height)
+    height = rs.int(c.height),
+    monumentId = rs.stringOpt(c.monumentId)
   )
 
   def batchInsert(images: Seq[Image]) {
@@ -54,7 +56,9 @@ object Image extends SQLSyntaxSupport[Image] {
         i.pageUrl,
         i.lastRound,
         i.width,
-        i.height))
+        i.height,
+        i.monumentId
+      ))
       withSQL {
         insert.into(Image).namedValues(
           column.pageId -> sqls.?,
@@ -64,7 +68,8 @@ object Image extends SQLSyntaxSupport[Image] {
           column.pageUrl -> sqls.?,
           column.lastRound -> sqls.?,
           column.width -> sqls.?,
-          column.height -> sqls.?
+          column.height -> sqls.?,
+          column.monumentId -> sqls.?
         )
       }.batch(batchParams: _*).apply()
     }

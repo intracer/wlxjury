@@ -14,35 +14,35 @@
         <div class="@btnClass"><i class="@iconClass"></i></div>
     }
 
-    @optionalButton(condition: () => Boolean, link:String, icon: String) = {
+    @optionalButton(condition: () => Boolean, link:String, icon: String, clazz: String) = {
         @if(condition()) {
-            <a href="@link"> @button("btn", icon)</a>
+            <a href="@link"> @button(s"btn $clazz", icon)</a>
         } else {
-            @button("btn disabled", icon)
+            @button(s"btn disabled $clazz", icon)
         }
     }
 
     @buttonGallery() = {
-        <a href="/gallery/rate/@rate/page/@{1 + index/(Gallery.filesPerPage(user) + 1)}#@index">@button("btn", "icon-th")</a>
+        <a href="/gallery/rate/@rate/page/@{1 + index/(Gallery.filesPerPage(user) + 1)}#@index">@button("btn btn-small", "icon-th")</a>
     }
 
     @buttonUp() = {
-        @optionalButton(() => index > 0, s"/large/rate/$rate/index/${index-1}", "icon-chevron-up")
+        @optionalButton(() => index > 0, s"/large/rate/$rate/index/${index-1}", "icon-chevron-up", "btn-small")
     }
 
     @buttonDown() = {
-        @optionalButton(() => index < files.size-1, s"/large/rate/$rate/index/${index+1}", "icon-chevron-down")
+        @optionalButton(() => index < files.size-1, s"/large/rate/$rate/index/${index+1}", "icon-chevron-down", "btn-small")
     }
 
     @buttonSelect() = {
         @if(files(index).rate <=0 ) {
             <a href="/large/rate/@rate/index/@index/select/1">
-            @button("btn btn-success", "icon-ok icon-white")
+            @button("btn btn-success btn-small", "icon-ok icon-white")
             </a>
         }
         @if(files(index).rate >=0 ) {
             <a href="/large/rate/@rate/index/@index/select/-1">
-                @button("btn btn-danger", "icon-ban-circle icon-white")
+                @button("btn btn-danger btn-small", "icon-ban-circle icon-white")
             </a>
         }
     }
@@ -52,10 +52,10 @@
     }
 
     @main_large(Messages("gallery"), user) {
-        <div class="container-fluid" style="margin-left:0px; margin-right:0px">
+        <div class="container-fluid" style="padding-left:5px; margin-left:0px; margin-right:0px">
             <div class="row-fluid">
        <div class="span2" style="margin-left:0px; min-width: 185px">
-           <div class="btn-group">
+           <div class="btn-group" style="margin-top:5px;">
                @buttonGallery()
                @buttonUp()
                @buttonDown()

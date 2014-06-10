@@ -30,21 +30,23 @@
         <div class="navbar navbar-inverse navbar-fixed-top">
             <div class="navbar-inner">
                 <div class="container">
+                    <div class="nav-collapse collapse">
+                        <ul class="nav">
                 @if(user!=null) {
                     @if(user.roles.contains("admin")) {
-                        <a class="brand" style="margin-top : 5px" href="/admin/users">@Messages("Users")</a>
-                        <a class="brand" style="margin-top : 5px" href="/admin/rounds">@Messages("Rounds")</a>
+                        <li><a class="brand" style="margin-top : 5px" href="/admin/users">@Messages("Users")</a>
+                        <li><a class="brand" style="margin-top : 5px" href="/admin/rounds">@Messages("Rounds")</a>
                     }
                     @for(round <- roundOption
                         if !round.roles.intersect(user.roles).isEmpty) {
                         <div class="brand" style="margin-top : 5px">@Messages(s"Round ${round.description}")</div>
                         @if(true || round.number == 0) {
-                            <a class="brand" style="margin-top : 5px" href="/gallery/rate/0/page/1">@Messages("Unrated")</a>
-                            <a class="brand" style="margin-top : 5px ; color : #5bc75b" href="/gallery/rate/1/page/1">@Messages("Selected")</a>
-                            <a class="brand" style="margin-top : 5px ; color : #c75b5b" href="/gallery/rate/-1/page/1">@Messages("Rejected")</a>
+                            <li class="@if(rate == 0){active}"> <a style="margin-top: 5px" href="/gallery/rate/0/page/1">@Messages("Unrated")</a>
+                            <li class="@if(rate == 1){active}"><a style="margin-top: 5px ; color : #5bc75b" href="/gallery/rate/1/page/1">@Messages("Selected")</a>
+                            <li class="@if(rate == -1){active}"><a style="margin-top: 5px ; color : #c75b5b" href="/gallery/rate/-1/page/1">@Messages("Rejected")</a>
                         } else {
-                            <a class="brand" style="margin-top : 5px ; color : #d8d8d8" href="/round/@round.number/01">@Messages("All")</a>
-                            <a class="brand" style="margin-top : 5px ; color : #d8d8d8" href="/round/@{
+                            <li><a class="brand" style="margin-top : 5px ; color : #d8d8d8" href="/round/@round.number/01">@Messages("All")</a>
+                            <li><a class="brand" style="margin-top : 5px ; color : #d8d8d8" href="/round/@{
                                 round.number + 1
                             }/01">@Messages("Selected")</a>
                         }
@@ -52,12 +54,10 @@
                     } else {
                     <a class="brand" style="margin-top:5px" href="#">@Messages("application.name")</a>
                 }
+                            </ul>
+                        </div>
                     @logged(user)
-                    <div> <!-- class="nav-collapse collapse" -->
-<!--                        <ul class="nav">
-                            <li><a href="/gallery">@Messages("gallery")</a></li>
-                            <li><a href="/statistics">@Messages("statistics")</a></li>
-                        </ul> -->
+                    <div>
 
                         @if(page!=0) {
                         <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">
@@ -83,7 +83,7 @@
                         </div>
                         }
 
-                    </div> <!--/.nav-collapse -->
+                    </div>
                 </div>
             </div>
         </div>

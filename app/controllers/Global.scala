@@ -8,7 +8,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import client.{HttpClientImpl, MwBot}
 import play.api.libs.concurrent.Akka
-import client.dto.{ImageInfo, Page, Namespace, PageQuery}
+import client.dto._
 import org.intracer.wmua.{Image, Contest}
 
 
@@ -49,32 +49,59 @@ object Global {
   }
 
   def contestImages() {
-    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
-      categories =>
-        val filtered = categories.filter(c => c.title.startsWith("Category:Images from Wiki Loves Earth 2014 in Ukraine")) // TODO all countries
-        Future.traverse(filtered) {
-          category =>
+    //    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
+    //      categories =>
+    //        val filtered = categories.filter(c => c.title.startsWith("Category:Images from Wiki Loves Earth 2014 in Ukraine")) // TODO all countries
+    //        Future.traverse(filtered) {
+    //          category =>
 
-            val country = category.title.replace("Category:Images from Wiki Loves Earth 2014 in ", "")
-            val contestOpt = contestByCountry.get(country).flatMap(_.headOption)
+    initUkraine("Category:Images from Wiki Loves Earth 2014 in Ukraine")
 
-            for (contest <- contestOpt) {
-              val images = Image.findByContest(contest.id)
+    //            Future(1)
+    //        }
+    //    }
+  }
 
-              if (images.isEmpty) {
-                commons.imageInfoByGenerator("categorymembers", "cm", PageQuery.byId(category.pageid), Set(Namespace.FILE_NAMESPACE)).map {
-                  filesInCategory =>
-                    val newImages: Seq[Image] = filesInCategory.flatMap(page => Image.fromPage(page, contest))
-                    Image.batchInsert(newImages)
-                    initContestFiles(contest, newImages)
-                }
-              } else {
-                initContestFiles(contest, images)
-              }
+  def initUkraine(category: String) {
+    val country = category.replace("Category:Images from Wiki Loves Earth 2014 in ", "")
+    val contestOpt = contestByCountry.get(country).flatMap(_.headOption)
+
+    for (contest <- contestOpt) {
+      val images = Image.findByContest(contest.id)
+
+      if (images.isEmpty) {
+        val query: SinglePageQuery = PageQuery.byTitle(category)
+        //PageQuery.byId(category.pageid)
+        initImagesFromCategory(contest, query)
+      } else {
+        initContestFiles(contest, images)
+      }
+    }
+  }
+
+  def initImagesFromCategory(contest: Contest, query: SinglePageQuery): Future[Unit] = {
+    commons.imageInfoByGenerator("categorymembers", "cm", query, Set(Namespace.FILE_NAMESPACE)).map {
+      filesInCategory =>
+        val newImages: Seq[Image] = filesInCategory.flatMap(page => Image.fromPage(page, contest)).sortBy(_.pageId)
+
+        commons.revisionsByGenerator("categorymembers", "cm", query,
+          Set.empty, Set("content", "timestamp", "user", "comment")) map {
+          pages =>
+
+            val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
+            val ids: Seq[Option[String]] = pages.sortBy(_.pageid)
+              .flatMap(_.text.map(commons.getTemplateParam(_, "UkrainianNaturalHeritageSite")))
+              .map(id => if (id.matches(idRegex)) Some(id) else None)
+
+            val imagesWithIds = newImages.zip(ids).map {
+              case (image, Some(id)) => image.copy(monumentId = Some(id))
+              case (image, None) => image
             }
 
-            Future(1)
+            Image.batchInsert(imagesWithIds)
+            initContestFiles(contest, imagesWithIds)
         }
+
     }
   }
 
