@@ -131,8 +131,7 @@ object Image extends SQLSyntaxSupport[Image] {
     select.from(Image as c)
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
       .where.eq(Selection.s.juryid, user.id).and
-      .eq(Selection.s.round, roundId).and
-      .ne(Selection.s.rate, 0)
+      .eq(Selection.s.round, roundId)
     //      .append(isNotDeleted)
   }.map(rs => (Image(c)(rs), Selection(Selection.s)(rs))).list.apply().map{case (i,s ) => ImageWithRating(i,s)}
 
