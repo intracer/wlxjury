@@ -45,7 +45,10 @@ object Global {
     contestByCountry = Contest.byCountry
 
     commons.login("***REMOVED***", "***REMOVED***1")
+
+    KOATUU.load()
     contestImages()
+
   }
 
   def contestImages() {

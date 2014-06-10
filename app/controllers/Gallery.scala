@@ -18,21 +18,22 @@ object Gallery extends Controller with Secured {
 
   val UrlInProgress = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Icon_tools.svg/120px-Icon_tools.svg.png"
 
-  def list(rate: Int, page: Int = 1) = withAuth {
+  def list(rate: Int, page: Int = 1, region: String = "all") = withAuth {
     username =>
       implicit request =>
         val user = User.byUserName(username)
-        var files = userFiles(user).filter(_.rate == rate)
+        val ratedFiles = userFiles(user).filter(_.rate == rate)
+        val files = regionFiles(region, ratedFiles)
 
         val pageFiles: Seq[ImageWithRating] = files.slice((page - 1) * (filesPerPage(user) + 1), Math.min(page * (filesPerPage(user) + 1), files.size))
-        Ok(views.html.gallery(user, pageFiles, page, Round.current(user), rate))
+        Ok(views.html.gallery(user, pageFiles, page, Round.current(user), rate, region, byRegion(ratedFiles)))
   }
 
-  def large(rate: Int, index: Int) = withAuth {
+  def large(rate: Int, index: Int, region: String = "all") = withAuth {
     username =>
       implicit request =>
 
-        show(index, username.trim, rate)
+        show(index, username.trim, rate, region)
   }
 
   def userFiles(user: User): Seq[ImageWithRating] = {
@@ -44,7 +45,7 @@ object Gallery extends Controller with Secured {
     user.files
   }
 
-  def select(rate: Int, index: Int, select: Int) = withAuth {
+  def select(rate: Int, index: Int, select: Int, region: String = "all") = withAuth {
     username =>
       implicit request =>
 
@@ -52,45 +53,63 @@ object Gallery extends Controller with Secured {
 
         val round = Contest.currentRound(user.contest)
 
-        val files = userFiles(user).filter(_.rate == rate)
+        val files = filterFiles(rate, region, user)
+
         val file = files(index)
 
         file.rate = select
 
         Selection.rate(pageId = file.pageId, juryid = user.id.toInt, round = round, rate = select)
 
-        checkLargeIndex(rate, index, files)
+        checkLargeIndex(rate, index, files, region)
 
         //show(index, username, rate)
   }
 
-  def checkLargeIndex(rate: Int, index: Int, files: Seq[ImageWithRating]): SimpleResult = {
+  def filterFiles(rate: Int, region: String, user: User): Seq[ImageWithRating] = {
+    regionFiles(region, userFiles(user).filter(_.rate == rate))
+  }
+
+  def regionFiles(region: String, files: Seq[ImageWithRating]): Seq[ImageWithRating] = {
+    region match {
+      case "all" => files
+      case id => files.filter(_.image.monumentId.exists(_.startsWith(id)))
+    }
+  }
+
+  def byRegion(files: Seq[ImageWithRating]) = {
+    files.groupBy(_.image.monumentId.getOrElse("").split("-")(0)).map{
+      case (id, images) => (id, images.size)
+    } + ("all" -> files.size)
+  }
+
+  def checkLargeIndex(rate: Int, index: Int, files: Seq[ImageWithRating], region: String): SimpleResult = {
     val newIndex = if (index > files.size - 2)
       files.size - 2
     else index
 
     if (newIndex >= 0) {
-      Redirect(routes.Gallery.large(rate, newIndex))
+      Redirect(routes.Gallery.large(rate, newIndex, region))
     } else {
-      Redirect(routes.Gallery.list(rate, 1))
+      Redirect(routes.Gallery.list(rate, 1, region))
     }
   }
 
-  def show(index: Int, username: String, rate: Int)(implicit request: Request[Any]): SimpleResult = {
+  def show(index: Int, username: String, rate: Int, region: String)(implicit request: Request[Any]): SimpleResult = {
     val user = User.byUserName(username)
 
     var files = userFiles(user)
 
-    files = files.filter(_.rate == rate)
+    files = regionFiles(region, files.filter(_.rate == rate))
 
     val page = (index / filesPerPage(user)) + 1
 
-    show2(index, files, user, rate, username, page)
+    show2(index, files, user, rate, username, page, 1, region)
   }
 
 
   def show2(index: Int, files: Seq[ImageWithRating], user: User, rate: Int, username: String,
-            page: Int, region: Option[String] = None, round: Int = 1)
+            page: Int, round: Int = 1, region: String)
            (implicit request: Request[Any]): SimpleResult = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
     val extraLeft = if (files.size < index + 3) index + 3 - files.size else 0
@@ -100,11 +119,7 @@ object Gallery extends Controller with Secured {
     val start = Math.max(0, left - extraLeft)
     var end = Math.min(files.size, right + extraRight)
 
-    if (!region.isDefined) {
-       Ok(views.html.large(User.byUserName(username), files, index, start, end, page, rate))
-    } else {
-      Ok(views.html.largeRound2(User.byUserName(username), files, index, start, end, region.get, round))
-    }
+    Ok(views.html.large(User.byUserName(username), files, index, start, end, page, rate, region))
   }
 
   def filesPerPage(user: User): Int = {

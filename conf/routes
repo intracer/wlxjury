@@ -3,40 +3,46 @@
 # ~~~~
 
 # Home page
-GET         /                                                    controllers.Application.index
+GET         /                                                                   controllers.Application.index
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                                        controllers.Assets.at(path="/public", file)
+GET         /assets/*file                                                       controllers.Assets.at(path="/public", file)
 
-GET         /logout                                              controllers.Application.logout()
+GET         /logout                                                             controllers.Application.logout()
 
-POST        /auth                                                controllers.Application.auth()
+POST        /auth                                                               controllers.Application.auth()
 
-GET         /auth                                                controllers.Application.index
+GET         /auth                                                               controllers.Application.index
 
-GET         /gallery/rate/:rate/page/:page                       controllers.Gallery.list(rate: Int, page: Int)
+GET         /gallery/rate/:rate/page/:page                                      controllers.Gallery.list(rate: Int, page: Int, region: String = "all")
 
-GET         /large/rate/:rate/index/:index                       controllers.Gallery.large(rate: Int, index: Int)
+GET         /gallery/rate/:rate/region/:region/page/:page                       controllers.Gallery.list(rate: Int, page: Int, region: String)
 
-GET         /large/rate/:rate/index/:index/select/:select        controllers.Gallery.select(rate:Int, index: Int, select: Int)
+GET         /large/rate/:rate/index/:index                                      controllers.Gallery.large(rate: Int, index: Int, region: String = "all")
 
-GET         /admin/users                                         controllers.Admin.users()
+GET         /large/rate/:rate/region/:region/index/:index                       controllers.Gallery.large(rate: Int, index: Int, region: String)
 
-GET         /users/edit/:id                                      controllers.Admin.editUser(id: String)
+GET         /large/rate/:rate/index/:index/select/:select                       controllers.Gallery.select(rate:Int, index: Int, select: Int, region: String = "all")
 
-POST        /users/save                                          controllers.Admin.saveUser()
+GET         /large/rate/:rate/region/:region/index/:index/select/:select        controllers.Gallery.select(rate:Int, index: Int, select: Int, region: String)
 
-POST        /users/resetpasswd/:id                               controllers.Admin.resetPassword(id: String)
+GET         /admin/users                                                        controllers.Admin.users()
 
-GET         /admin/rounds                                        controllers.Admin.rounds()
+GET         /users/edit/:id                                                     controllers.Admin.editUser(id: String)
 
-GET         /admin/rounds/edit/:id                               controllers.Admin.editRound(id: String)
+POST        /users/save                                                         controllers.Admin.saveUser()
 
-POST        /admin/rounds/save                                   controllers.Admin.saveRound()
+POST        /users/resetpasswd/:id                                              controllers.Admin.resetPassword(id: String)
 
-POST        /admin/setimages                                     controllers.Admin.setImages()
+GET         /admin/rounds                                                       controllers.Admin.rounds()
 
-POST        /admin/setround                                      controllers.Admin.setRound()
+GET         /admin/rounds/edit/:id                                              controllers.Admin.editRound(id: String)
+
+POST        /admin/rounds/save                                                  controllers.Admin.saveRound()
+
+POST        /admin/setimages                                                    controllers.Admin.setImages()
+
+POST        /admin/setround                                                     controllers.Admin.setRound()
 
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)

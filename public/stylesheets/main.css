@@ -1,9 +1,23 @@
 body.gallery{
-    background-color: #606060;
+    background-color: #303030;
 }
 
 .table-striped-dark tbody>tr:nth-child(odd)>td,.table-striped-dark tbody>tr:nth-child(odd)>th{background-color:#696969;}
 .table-striped-dark {color:#CCCCCC;}
+
+.navbar-inverse .nav .active .active-selected> a {
+    color : #5bf75b;
+}
+.navbar-inverse .nav .selected> a {
+    color : #5bc75b;
+}
+.navbar-inverse .nav .active .active-rejected> a {
+    color : #f75b5b;
+}
+.navbar-inverse .nav .rejected> a {
+    color : #c75b5b;
+}
+
 
 ul.gallery {
     margin: 2px;
@@ -44,14 +58,14 @@ li.gallerybox div.thumb_small {
   }
 
 .current {
-     background-color: #cccccc
+     background-color: #111
  }
 
-.selected {
-    border-style:solid;
-    border-color:#5bc75b;
-    border-width:5px;
-}
+/*.selected {*/
+    /*border-style:solid;*/
+    /*border-color:#5bc75b;*/
+    /*border-width:5px;*/
+/*}*/
 
 div.img-container {
     width: 390px;

@@ -5,7 +5,8 @@
         start: Int,
         end: Int,
         page: Int,
-        rate: Int)(
+        rate: Int,
+        region: String = "all")(
         implicit flash: Flash, lang: Lang)
 @import org.intracer.wmua.ImageWithRating
 
@@ -23,25 +24,25 @@
     }
 
     @buttonGallery() = {
-        <a href="/gallery/rate/@rate/page/@{1 + index/(Gallery.filesPerPage(user) + 1)}#@index">@button("btn btn-small", "icon-th")</a>
+        <a href="/gallery/rate/@rate/region/@region/page/@{1 + index/(Gallery.filesPerPage(user) + 1)}#@index">@button("btn btn-small", "icon-th")</a>
     }
 
     @buttonUp() = {
-        @optionalButton(() => index > 0, s"/large/rate/$rate/index/${index-1}", "icon-chevron-up", "btn-small")
+        @optionalButton(() => index > 0, s"/large/rate/$rate/region/$region/index/${index-1}", "icon-chevron-up", "btn-small")
     }
 
     @buttonDown() = {
-        @optionalButton(() => index < files.size-1, s"/large/rate/$rate/index/${index+1}", "icon-chevron-down", "btn-small")
+        @optionalButton(() => index < files.size-1, s"/large/rate/$rate/region/$region/index/${index+1}", "icon-chevron-down", "btn-small")
     }
 
     @buttonSelect() = {
         @if(files(index).rate <=0 ) {
-            <a href="/large/rate/@rate/index/@index/select/1">
+            <a href="/large/rate/@rate/region/@region/index/@index/select/1">
             @button("btn btn-success btn-small", "icon-ok icon-white")
             </a>
         }
         @if(files(index).rate >=0 ) {
-            <a href="/large/rate/@rate/index/@index/select/-1">
+            <a href="/large/rate/@rate/region/@region/index/@index/select/-1">
                 @button("btn btn-danger btn-small", "icon-ban-circle icon-white")
             </a>
         }
@@ -68,7 +69,7 @@
 
                        @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
 
-                        <div style="margin:5px auto;"><a href="/large/rate/@rate/index/@i">
+                        <div style="margin:5px auto;"><a href="/large/rate/@rate/region/@region/index/@i">
                             <img width="150" height="120" class="cropped" alt="@file.title" src="@controllers.Global.thumbUrls.getOrElse(file.title, Gallery.UrlInProgress)" >
                         </a>
                         </div>

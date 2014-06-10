@@ -144,17 +144,21 @@ object Admin extends Controller with Secured {
             images.map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
           }
         case 1 =>
-          val perJuror = images.size / jurors.size
-          jurors.zipWithIndex.flatMap { case (juror, i) =>
-            images.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+          images.zipWithIndex.map {
+            case (img, i) => new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now)
           }
+        //          jurors.zipWithIndex.flatMap { case (juror, i) =>
+        //            images.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+        //          }
 
         case 2 =>
-          val imagesTwice = images ++ images
-          val perJuror = imagesTwice.size / jurors.size
-          jurors.zipWithIndex.flatMap { case (juror, i) =>
-            imagesTwice.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+          val imagesTwice = images.flatMap(img => Seq(img, img))
+          images.zipWithIndex.map {
+            case (img, i) => new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now)
           }
+        //          jurors.zipWithIndex.flatMap { case (juror, i) =>
+        //            imagesTwice.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+        //          }
       }
       Selection.batchInsert(selection)
     }
@@ -233,7 +237,7 @@ object Admin extends Controller with Secured {
         User.updateHash(editedUser.id, hash)
 
         val juryhome = "http://localhost:9000"
-//        User.updateUser(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest)
+        //        User.updateUser(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest)
         val subject: String = s"Password changed for ${contest.name} jury"
         val message: String = s"Password changed for ${contest.name} jury\n" +
           s" Please login to our jury tool $juryhome \nwith login: ${editedUser.email} and password: $password\n" +
