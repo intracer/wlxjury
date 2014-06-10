@@ -1,4 +1,5 @@
 @(user: org.intracer.wmua.User, editRoundForm: Form[org.intracer.wmua.Round], round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
+@import org.intracer.wmua.Selection
 
 @import helper._
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render(_, lang)) }

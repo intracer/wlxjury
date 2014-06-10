@@ -11,13 +11,13 @@ import org.wikipedia.Wiki
 
 import scalikejdbc._
 import org.joda.time.DateTime
-import controllers.Selection
 import scalikejdbc.WrappedResultSet
+import org.intracer.wmua.Selection
 
 case class User(fullname: String, email: String, id: Long,
                 roles: Set[String] = Set.empty, password: Option[String] = None, contest: Int,
-                selected: collection.mutable.SortedSet[Image] = collection.mutable.SortedSet[Image](),
-                files: mutable.Buffer[Image] = mutable.Buffer.empty,
+               // selected: collection.mutable.SortedSet[ImageWithRating] = collection.mutable.SortedSet[ImageWithRating](),
+                files: mutable.Buffer[ImageWithRating] = mutable.Buffer.empty,
                 createdAt: DateTime = DateTime.now,
                 deletedAt: Option[DateTime] = None) {
 
@@ -69,15 +69,11 @@ object User extends SQLSyntaxSupport[User] {
     }
 
     for (user <- userOpt) {
-      user.selected.clear()
 
       val files = Gallery.userFiles(user)
-      val filesSet = mutable.SortedSet(files: _*)
+//      val filesSet = mutable.SortedSet(files: _*)
 
       val filesById = files.groupBy(_.pageId)
-
-      user.selected.clear()
-      user.selected ++= Image.byUserSelected(user, Round.current(user).id)
 
       val contest = Contest.find(user.contest).head
       Cache.set(s"contest/${contest.id}", contest)

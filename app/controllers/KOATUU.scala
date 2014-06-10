@@ -4,7 +4,7 @@ import java.util.Properties
 import java.io.FileReader
 
 import scala.collection.JavaConverters._
-import org.intracer.wmua.Image
+import org.intracer.wmua.{ImageWithRating, Image}
 
 
 object KOATUU {
@@ -49,11 +49,11 @@ object KOATUU {
     }
   }
 
-  def regionIdByFile(file: Image) = {
+  def regionIdByFile(file: ImageWithRating) = {
     fileIds.get(file.title).flatMap(regionIdByMonumentId)
   }
 
-  def filesInRegion(files: Seq[Image], regionId: String) = {
+  def filesInRegion(files: Seq[ImageWithRating], regionId: String) = {
 
     regionId match {
       case "all" => files

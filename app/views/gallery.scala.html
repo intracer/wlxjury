@@ -1,7 +1,6 @@
 @(
         user: org.intracer.wmua.User,
-        files: Seq[org.intracer.wmua.Image],
-        selected: scala.collection.mutable.SortedSet[org.intracer.wmua.Image],
+        files: Seq[org.intracer.wmua.ImageWithRating],
         page: Int,
         round: org.intracer.wmua.Round)(
         implicit flash: Flash, lang: Lang)
@@ -15,9 +14,9 @@
                 <li class="gallerybox">
                     <h1 id="@{(page-1) * (Gallery.filesPerPage(user)+1) + index}" style="display: inline; width: 1px; height: 1px"></h1>
 
-                    <div class="thumb @if(selected.contains(file)){selected}">
-                        <a href="/large/@{(page-1) * (Gallery.filesPerPage(user) + 1) + index}" width="300" height="200">
-                            <img class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.title, Gallery.UrlInProgress)">
+                    <div class="thumb @if(file.isSelected){selected}">
+                        <a href="/large/@{(page-1) * (Gallery.filesPerPage(user) + 1) + index}" >
+                            <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.title, Gallery.UrlInProgress)">
                         </a>
                     </div>
 

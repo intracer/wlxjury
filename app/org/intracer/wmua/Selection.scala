@@ -1,13 +1,12 @@
-package controllers
+package org.intracer.wmua
 
-import scalikejdbc._, scalikejdbc.SQLInterpolation._
+import scalikejdbc._
 import org.joda.time.DateTime
-import org.intracer.wmua.User
 
 case class Selection(
                       id: Long,
                       pageId: Long,
-                      rate: Int,
+                      var rate: Int,
                      //	fileid: String, // TODO remove
                       juryid: Long,
                       round: Long,

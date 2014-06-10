@@ -2,7 +2,7 @@ package org.intracer.wmua
 
 import scalikejdbc._
 import client.dto.Page
-import controllers.Selection
+import org.intracer.wmua.Selection
 
 case class Image(pageId: Long, contest: Long, title: String,
                  url: String, pageUrl: String,
@@ -127,14 +127,14 @@ object Image extends SQLSyntaxSupport[Image] {
     //      .append(isNotDeleted)
   }.map(Image(c)).list.apply()
 
-  def byUserSelectedPair(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[(Image, Selection)] = withSQL {
+  def byUserImageWithRating(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
     select.from(Image as c)
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
       .where.eq(Selection.s.juryid, user.id).and
       .eq(Selection.s.round, roundId).and
       .ne(Selection.s.rate, 0)
     //      .append(isNotDeleted)
-  }.map(rs => (Image(c)(rs), Selection(Selection.s)(rs))).list.apply()
+  }.map(rs => (Image(c)(rs), Selection(Selection.s)(rs))).list.apply().map{case (i,s ) => ImageWithRating(i,s)}
 
 
 }

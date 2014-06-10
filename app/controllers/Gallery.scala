@@ -1,10 +1,12 @@
 package controllers
 
 import play.api.mvc.{Request, Controller}
-import org.intracer.wmua.{Round, Contest, Image, User}
+import org.intracer.wmua._
 import play.api.data.Form
 import play.api.data.Forms._
 import scala.collection.mutable
+import play.api.mvc.SimpleResult
+import scala.Some
 import play.api.mvc.SimpleResult
 
 
@@ -24,8 +26,8 @@ object Gallery extends Controller with Secured {
         val user = User.byUserName(username)
         var files = userFiles(user)
 
-        val pageFiles: Seq[Image] = files.slice((page - 1) * (filesPerPage(user) + 1), Math.min(page * (filesPerPage(user) + 1), files.size))
-        Ok(views.html.gallery(user, pageFiles, user.selected, page, Round.current(user)))
+        val pageFiles: Seq[ImageWithRating] = files.slice((page - 1) * (filesPerPage(user) + 1), Math.min(page * (filesPerPage(user) + 1), files.size))
+        Ok(views.html.gallery(user, pageFiles, page, Round.current(user)))
   }
 
   def selected() = withAuth {
@@ -33,9 +35,9 @@ object Gallery extends Controller with Secured {
       implicit request =>
         val user = User.byUserName(username)
 
-        val files = userFiles(user).filter(user.selected.contains)
+        val files = userFiles(user).filter(_.isSelected)
 
-        Ok(views.html.selected(user, files, user.selected, 0, Round.current(user)))
+        Ok(views.html.selected(user, files, 0, Round.current(user)))
   }
 
 
@@ -45,16 +47,15 @@ object Gallery extends Controller with Secured {
         val user = User.byUserName(username)
 
         val files = if (round > 1) {
-          Image.bySelection(round - 1)
+          Image.byUserImageWithRating(user, round - 1)  // TODO round math
         } else {
           userFiles(user)
         }
         val selected = mutable.SortedSet(Image.bySelectionSelected(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
-        val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
 
-        Ok(views.html.round2(user, filesInRegion, selectedInRegion, regionId, Round.current(user)))
+        Ok(views.html.round2(user, filesInRegion, regionId, Round.current(user)))
   }
 
   def largeRound2(regionId: String, index: Int, round: Int) = withAuth {
@@ -64,16 +65,15 @@ object Gallery extends Controller with Secured {
         val user = User.byUserName(username)
 
         val files = if (round > 1) {
-          Image.bySelection(round - 1)
+          Image.byUserImageWithRating(user, round - 1)  // TODO round math
         } else {
           userFiles(user)
         }
         val selected = mutable.SortedSet(Image.bySelectionSelected(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
-        val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
 
-        show2(index, filesInRegion, user, false, user.email, selectedInRegion, 0, Some(regionId), round)
+        show2(index, filesInRegion, user, false, user.email, 0, Some(regionId), round)
   }
 
 
@@ -92,45 +92,33 @@ object Gallery extends Controller with Secured {
   }
 
 
-  def userFiles(user: User): Seq[Image] = {
+  def userFiles(user: User): Seq[ImageWithRating] = {
     val round = Round.current(user)
 
     if (user.files.isEmpty) {
-      user.files ++= Image.byUser(user, round.id)
+      user.files ++= Image.byUserImageWithRating(user, round.id)
     }
     user.files
   }
-
-  def userFilesPair(user: User): Seq[(Image, Selection)] = {
-    val round = Round.current(user)
-
-    if (user.files.isEmpty) {
-      user.files ++= Image.byUser(user, round.id)
-    }
-    user.files
-  }
-
-
 
   def select(index: Int) = withAuth {
     username =>
       implicit request =>
 
         val user = User.byUserName(username)
-        val selected = user.selected
 
         val round = Contest.currentRound(user.contest)
 
         val file = userFiles(user)(index)
-        if (selected.contains(file)) {
+        if (file.isSelected) {
 
           Selection.destroy(pageId = file.pageId, juryid = user.id, round = round)
 
-          selected -= file
+          file.unSelect()
         }
         else {
-          selected += file
-          val selection = Selection.rate(pageId = file.pageId, juryid = user.id.toInt, round = round)
+          file.select()
+          Selection.rate(pageId = file.pageId, juryid = user.id.toInt, round = round)
         }
 
         show(index, username)
@@ -142,14 +130,12 @@ object Gallery extends Controller with Secured {
         val user = User.byUserName(username)
 
         val files = if (round > 1) {
-          Image.bySelection(round - 1)
+          Image.byUserImageWithRating(user, round - 1)
         } else {
           userFiles(user)
         }
-        val selected = mutable.SortedSet(Image.bySelectionSelected(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
-        val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
 
         val file = files.find(_.pageId == pageId).get
 
@@ -166,14 +152,12 @@ object Gallery extends Controller with Secured {
         val user = User.byUserName(username)
 
         val files = if (round > 1) {
-          Image.bySelection(round - 1)
+          Image.byUserImageWithRating(user, round - 1)
         } else {
           userFiles(user)
         }
-        val selected = mutable.SortedSet(Image.bySelectionSelected(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
-        val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
 
         val file = files.find(_.pageId == pageId).get
 
@@ -193,25 +177,24 @@ object Gallery extends Controller with Secured {
 
         val round = Contest.currentRound(user.contest)
 
-        val selected = user.selected
 
-        val selectedFiles = userFiles(user).filter(user.selected.contains)
+        val selectedFiles = userFiles(user).filter(_.isSelected)
         val file = selectedFiles(index)
-        if (selected.contains(file)) {
+        if (file.isSelected) {
 
           Selection.destroy(pageId = file.pageId, juryid = user.id, round = round)
 
-          selected -= file
+          file.unSelect()
         }
 
-        val newIndex = if (index > selected.size - 1)
-          selected.size - 1
+        val newIndex = if (index > selectedFiles.size - 1)
+          selectedFiles.size - 1
         else index
 
         if (newIndex >= 0) {
           show(newIndex, username, showSelected = true)
         } else {
-          Ok(views.html.selected(user, Seq.empty, user.selected, 0, Round.current(user)))
+          Ok(views.html.selected(user, Seq.empty, 0, Round.current(user)))
         }
 
   }
@@ -241,16 +224,15 @@ object Gallery extends Controller with Secured {
     var files = userFiles(user)
 
     if (showSelected) {
-      files = files.filter(user.selected.contains)
+      files = files.filter(_.isSelected)
     }
-    val selected = user.selected
     val page = (index / filesPerPage(user)) + 1
 
-    show2(index, files, user, showSelected, username, selected, page)
+    show2(index, files, user, showSelected, username, page)
   }
 
 
-  def show2(index: Int, files: Seq[Image], user: User, showSelected: Boolean, username: String, selected: mutable.SortedSet[Image],
+  def show2(index: Int, files: Seq[ImageWithRating], user: User, showSelected: Boolean, username: String,
             page: Int, region: Option[String] = None, round: Int = 1)
            (implicit request: Request[Any]): SimpleResult = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
@@ -263,12 +245,12 @@ object Gallery extends Controller with Secured {
 
     if (!region.isDefined) {
       if (showSelected) {
-        Ok(views.html.largeSelected(User.byUserName(username), files, selected, index, start, end, page))
+        Ok(views.html.largeSelected(User.byUserName(username), files, index, start, end, page))
       } else {
-        Ok(views.html.large(User.byUserName(username), files, selected, index, start, end, page))
+        Ok(views.html.large(User.byUserName(username), files, index, start, end, page))
       }
     } else {
-      Ok(views.html.largeRound2(User.byUserName(username), files, selected, index, start, end, region.get, round))
+      Ok(views.html.largeRound2(User.byUserName(username), files, index, start, end, region.get, round))
     }
   }
 

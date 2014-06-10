@@ -1,12 +1,12 @@
 package controllers
 
 import play.api.mvc.Controller
-import org.intracer.wmua.{Image, Round, Contest, User}
+import org.intracer.wmua._
 import play.api.data.Form
 import play.api.data.Forms._
-import scala.concurrent.Await
-import client.dto.{Page, PageQuery}
+import client.dto.PageQuery
 import org.joda.time.DateTime
+import scala.Some
 
 object Admin extends Controller with Secured {
 

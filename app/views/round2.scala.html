@@ -1,7 +1,6 @@
 @(
         user: org.intracer.wmua.User,
-        files: Seq[org.intracer.wmua.Image],
-        selected: scala.collection.mutable.SortedSet[org.intracer.wmua.Image],
+        files: Seq[org.intracer.wmua.ImageWithRating],
         region: String, round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
 
     @main(Messages("gallery"), user, 0, Some(round)) {
@@ -26,9 +25,9 @@
                 <li class="gallerybox">
                     <h1 id="@index" style="display: inline; width: 1px; height: 1px"></h1>
 
-                    <div class="thumb @if(selected.contains(file)){selected}">
-                        <a href="/largeRound/@round/@region/@index" width="300" height="200">
-                            <img class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.title, Gallery.UrlInProgress)">
+                    <div class="thumb @if(file.isSelected){selected}">
+                        <a href="/largeRound/@round/@region/@index">
+                            <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.title, Gallery.UrlInProgress)">
                         </a>
                     </div>
 
