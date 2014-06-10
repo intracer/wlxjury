@@ -94,6 +94,22 @@ object Image extends SQLSyntaxSupport[Image] {
       .where.eq(Selection.s.round, round)
   }.map(Image(c)).list.apply()
 
+  def bySelectionNotSelected(round: Long)(implicit session: DBSession = autoSession): List[Image] = withSQL {
+    select.from(Image as c)
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.round, round)
+      .and
+      .eq(Selection.s.rate, 0)
+  }.map(Image(c)).list.apply()
+
+  def bySelectionSelected(round: Long)(implicit session: DBSession = autoSession): List[Image] = withSQL {
+    select.from(Image as c)
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.round, round).and
+      .ne(Selection.s.rate, 0)
+  }.map(Image(c)).list.apply()
+
+
   def byUser(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Image] = withSQL {
     select.from(Image as c)
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
@@ -101,5 +117,24 @@ object Image extends SQLSyntaxSupport[Image] {
       .eq(Selection.s.round, roundId)
 //      .append(isNotDeleted)
   }.map(Image(c)).list.apply()
+
+  def byUserSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Image] = withSQL {
+    select.from(Image as c)
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.juryid, user.id).and
+      .eq(Selection.s.round, roundId).and
+      .ne(Selection.s.rate, 0)
+    //      .append(isNotDeleted)
+  }.map(Image(c)).list.apply()
+
+  def byUserSelectedPair(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[(Image, Selection)] = withSQL {
+    select.from(Image as c)
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.juryid, user.id).and
+      .eq(Selection.s.round, roundId).and
+      .ne(Selection.s.rate, 0)
+    //      .append(isNotDeleted)
+  }.map(rs => (Image(c)(rs), Selection(Selection.s)(rs))).list.apply()
+
 
 }

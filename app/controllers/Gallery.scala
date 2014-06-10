@@ -35,7 +35,7 @@ object Gallery extends Controller with Secured {
 
         val files = userFiles(user).filter(user.selected.contains)
 
-        Ok(views.html.selected(user, files, user.selected, 0))
+        Ok(views.html.selected(user, files, user.selected, 0, Round.current(user)))
   }
 
 
@@ -49,7 +49,7 @@ object Gallery extends Controller with Secured {
         } else {
           userFiles(user)
         }
-        val selected = mutable.SortedSet(Image.bySelection(round): _*)
+        val selected = mutable.SortedSet(Image.bySelectionSelected(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
         val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
@@ -68,7 +68,7 @@ object Gallery extends Controller with Secured {
         } else {
           userFiles(user)
         }
-        val selected = mutable.SortedSet(Image.bySelection(round): _*)
+        val selected = mutable.SortedSet(Image.bySelectionSelected(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
         val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
@@ -101,6 +101,16 @@ object Gallery extends Controller with Secured {
     user.files
   }
 
+  def userFilesPair(user: User): Seq[(Image, Selection)] = {
+    val round = Round.current(user)
+
+    if (user.files.isEmpty) {
+      user.files ++= Image.byUser(user, round.id)
+    }
+    user.files
+  }
+
+
 
   def select(index: Int) = withAuth {
     username =>
@@ -120,8 +130,7 @@ object Gallery extends Controller with Secured {
         }
         else {
           selected += file
-          val selection = Selection.create(pageId = file.pageId, rate = 1, fileid = "" + index,
-            juryid = user.id.toInt, round = round)
+          val selection = Selection.rate(pageId = file.pageId, juryid = user.id.toInt, round = round)
         }
 
         show(index, username)
@@ -137,7 +146,7 @@ object Gallery extends Controller with Secured {
         } else {
           userFiles(user)
         }
-        val selected = mutable.SortedSet(Image.bySelection(round): _*)
+        val selected = mutable.SortedSet(Image.bySelectionSelected(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
         val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
@@ -146,8 +155,7 @@ object Gallery extends Controller with Secured {
 
         val index = filesInRegion.indexOf(file)
 
-        val selection = Selection.create(pageId = file.pageId, rate = 1,
-          fileid = "" + index, juryid = user.id.toInt, round = round)
+        val selection = Selection.rate(pageId = file.pageId, juryid = user.id.toInt, round = round)
 
         Redirect(routes.Gallery.largeRound2(regionId, index, round))
   }
@@ -162,7 +170,7 @@ object Gallery extends Controller with Secured {
         } else {
           userFiles(user)
         }
-        val selected = mutable.SortedSet(Image.bySelection(round): _*)
+        val selected = mutable.SortedSet(Image.bySelectionSelected(round): _*)
 
         val filesInRegion = KOATUU.filesInRegion(files, regionId)
         val selectedInRegion = mutable.SortedSet(KOATUU.filesInRegion(selected.toSeq, regionId): _*)
@@ -203,7 +211,7 @@ object Gallery extends Controller with Secured {
         if (newIndex >= 0) {
           show(newIndex, username, showSelected = true)
         } else {
-          Ok(views.html.selected(user, Seq.empty, user.selected, 0))
+          Ok(views.html.selected(user, Seq.empty, user.selected, 0, Round.current(user)))
         }
 
   }

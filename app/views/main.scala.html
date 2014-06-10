@@ -1,4 +1,9 @@
-@(title: String, user: org.intracer.wmua.User = null, page: Int = 0, round: Option[org.intracer.wmua.Round] = None, gallery: Boolean = true)(content: Html)(implicit lang: Lang)
+@(
+        title: String,
+        user: org.intracer.wmua.User = null,
+        page: Int = 0,
+        roundOption: Option[org.intracer.wmua.Round] = None,
+        gallery: Boolean = true)(content: Html)(implicit lang: Lang)
 
 <!DOCTYPE html>
 
@@ -29,19 +34,19 @@
                         <a class="brand" style="margin-top : 5px" href="/admin/users">@Messages("Users")</a>
                         <a class="brand" style="margin-top : 5px" href="/admin/rounds">@Messages("Rounds")</a>
                     }
-                    @if(round.isDefined) {
-                        <div class="brand" style="margin-top : 5px">@Messages(s"Round ${round.get.description}")</div>
-                        @if(true || round.get.number == 0) {
+                    @for(round <- roundOption
+                        if !round.roles.intersect(user.roles).isEmpty) {
+                        <div class="brand" style="margin-top : 5px">@Messages(s"Round ${round.description}")</div>
+                        @if(true || round.number == 0) {
                             <a class="brand" style="margin-top : 5px" href="/gallery/1">@Messages("All")</a>
                             <a class="brand" style="margin-top : 5px ; color : #5bc75b" href="/selected">@Messages("Selected")</a>
+                            <a class="brand" style="margin-top : 5px ; color : #5bc75b" href="/rejected">@Messages("Rejected")</a>
                         } else {
-                            <a class="brand" style="margin-top : 5px ; color : #d8d8d8" href="/round/@round.get.number/01">@Messages("All")</a>
+                            <a class="brand" style="margin-top : 5px ; color : #d8d8d8" href="/round/@round.number/01">@Messages("All")</a>
                             <a class="brand" style="margin-top : 5px ; color : #d8d8d8" href="/round/@{
-                                round.get.number + 1
+                                round.number + 1
                             }/01">@Messages("Selected")</a>
                         }
-                    } else {
-
                     }
                     } else {
                     <a class="brand" style="margin-top:5px" href="#">@Messages("application.name")</a>

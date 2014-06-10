@@ -76,12 +76,8 @@ object User extends SQLSyntaxSupport[User] {
 
       val filesById = files.groupBy(_.pageId)
 
-      val fromDb = Selection.findAllBy(sqls.eq(Selection.s.juryid, user.id))
-
       user.selected.clear()
-      user.selected ++= mutable.SortedSet(fromDb.flatMap { selection =>
-        filesById.get(selection.pageId).flatMap(_.headOption)
-      }:_*)
+      user.selected ++= Image.byUserSelected(user, Round.current(user).id)
 
       val contest = Contest.find(user.contest).head
       Cache.set(s"contest/${contest.id}", contest)

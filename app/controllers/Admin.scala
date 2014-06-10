@@ -70,7 +70,7 @@ object Admin extends Controller with Secured {
     User.create(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest)
     val subject: String = s"Welcome to ${contest.name} jury"
     val message: String = s"Organizing committee of ${contest.name} is glad to welcome you as a jury member.\n" +
-      s" Please login to our jury tool $juryhome \nwith login: ${formUser.email} and password: $password.\n" +
+      s" Please login to our jury tool $juryhome \nwith login: ${formUser.email} and password: $password\n" +
       s"Regards, ${user.fullname}"
     sendMail.sendMail(from = (user.fullname, user.email), to = Seq(formUser.email), bcc = Seq(user.email), subject = subject, message = message)
   }
@@ -236,7 +236,7 @@ object Admin extends Controller with Secured {
 //        User.updateUser(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest)
         val subject: String = s"Password changed for ${contest.name} jury"
         val message: String = s"Password changed for ${contest.name} jury\n" +
-          s" Please login to our jury tool $juryhome \nwith login: ${editedUser.email} and password: $password.\n" +
+          s" Please login to our jury tool $juryhome \nwith login: ${editedUser.email} and password: $password\n" +
           s"Regards, ${user.fullname}"
         sendMail.sendMail(from = (user.fullname, user.email), to = Seq(editedUser.email), bcc = Seq(user.email), subject = subject, message = message)
 

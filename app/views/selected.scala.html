@@ -2,10 +2,11 @@
         user: org.intracer.wmua.User,
         files: Seq[org.intracer.wmua.Image],
         selected: scala.collection.mutable.SortedSet[org.intracer.wmua.Image],
-        page: Int)(
+        page: Int,
+        round: org.intracer.wmua.Round)(
         implicit flash: Flash, lang: Lang)
 
-    @main(Messages("gallery"), user, 0) {
+    @main(Messages("gallery"), user, 0, Some(round)) {
     <div class="row-fluid" >
 
         <ul class="gallery mw-gallery-traditional">

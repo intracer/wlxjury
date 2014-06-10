@@ -33,7 +33,14 @@ object Selection extends SQLSyntaxSupport[Selection]{
     select.from(Selection as s).where
       .eq(s.juryid, user.id).and
       .eq(s.round, roundId).and
-      .eq(s.rate, 0).and
+      .ne(s.rate, 0).and
+      .append(isNotDeleted)
+  }.map(Selection(s)).list.apply()
+
+  def byRoundSelected(roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
+    select.from(Selection as s).where
+      .eq(s.round, roundId).and
+      .ne(s.rate, 0).and
       .append(isNotDeleted)
   }.map(Selection(s)).list.apply()
 
@@ -41,7 +48,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
     select.from(Selection as s).where
       .eq(s.juryid, user.id).and
       .eq(s.round, roundId).and
-      .ne(s.rate, 0).and
+      .eq(s.rate, 0).and
       .append(isNotDeleted)
   }.map(Selection(s)).list.apply()
 
@@ -124,11 +131,19 @@ object Selection extends SQLSyntaxSupport[Selection]{
   }
 
   def destroy(pageId: Long, juryid: Long, round: Long)(implicit session: DBSession = autoSession): Unit = withSQL {
-    update(Selection).set(column.deletedAt -> DateTime.now).where.
+    update(Selection).set(column.rate -> -1).where.
       eq(column.pageId, pageId).and.
       eq(column.juryid, juryid).and.
       eq(column.round, round)
   }.update.apply()
+
+  def rate(pageId: Long, juryid: Long, round: Long, rate: Int = 1)(implicit session: DBSession = autoSession): Unit = withSQL {
+    update(Selection).set(column.rate -> 1).where.
+      eq(column.pageId, pageId).and.
+      eq(column.juryid, juryid).and.
+      eq(column.round, round)
+  }.update.apply()
+
 
 
 //  def destroyAll(filename: String)(implicit session: DBSession = autoSession): Unit = withSQL {
