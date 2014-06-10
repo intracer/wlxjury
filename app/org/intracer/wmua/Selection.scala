@@ -137,7 +137,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
   }.update.apply()
 
   def rate(pageId: Long, juryid: Long, round: Long, rate: Int = 1)(implicit session: DBSession = autoSession): Unit = withSQL {
-    update(Selection).set(column.rate -> 1).where.
+    update(Selection).set(column.rate -> rate).where.
       eq(column.pageId, pageId).and.
       eq(column.juryid, juryid).and.
       eq(column.round, round)

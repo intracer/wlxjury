@@ -4,7 +4,8 @@
         index: Int,
         start: Int,
         end: Int,
-        page: Int)(
+        page: Int,
+        rate: Int)(
         implicit flash: Flash, lang: Lang)
 @import org.intracer.wmua.ImageWithRating
 
@@ -22,36 +23,39 @@
     }
 
     @buttonGallery() = {
-        <a href="/gallery/@{1 + index/(Gallery.filesPerPage(user) + 1)}#@index">@button("btn", "icon-th")</a>
+        <a href="/gallery/rate/@rate/page/@{1 + index/(Gallery.filesPerPage(user) + 1)}#@index">@button("btn", "icon-th")</a>
     }
 
     @buttonUp() = {
-        @optionalButton(() => index > 0, s"/large/${index-1}", "icon-chevron-up")
+        @optionalButton(() => index > 0, s"/large/rate/$rate/index/${index-1}", "icon-chevron-up")
     }
 
     @buttonDown() = {
-        @optionalButton(() => index < files.size-1, s"/large/${index+1}", "icon-chevron-down")
+        @optionalButton(() => index < files.size-1, s"/large/rate/$rate/index/${index+1}", "icon-chevron-down")
     }
 
     @buttonSelect() = {
-        <a href="/large/@index/select">
-        @if(files(index).isSelected){
+        @if(files(index).rate <=0 ) {
+            <a href="/large/rate/@rate/index/@index/select/1">
             @button("btn btn-success", "icon-ok icon-white")
-        } else {
-            @button("btn btn-danger", "icon-ban-circle icon-white")
+            </a>
         }
-        </a>
+        @if(files(index).rate >=0 ) {
+            <a href="/large/rate/@rate/index/@index/select/-1">
+                @button("btn btn-danger", "icon-ban-circle icon-white")
+            </a>
+        }
     }
 
     @thumbSmall(file:ImageWithRating, style:String) = {
-        <div class="@style @if(file.isSelected){selected}">
+        <div class="@style">
     }
 
     @main_large(Messages("gallery"), user) {
         <div class="container-fluid" style="margin-left:0px; margin-right:0px">
             <div class="row-fluid">
        <div class="span2" style="margin-left:0px; min-width: 185px">
-           <div style="margin:5px">
+           <div style="margin-left:0px; margin-right:0px; margin-top:5px; margin-bottom:5px;">
                @buttonGallery()
                @buttonUp()
                @buttonDown()
@@ -64,7 +68,7 @@
 
                        @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
 
-                        <div style="margin:5px auto;"><a href="/large/@i">
+                        <div style="margin:5px auto;"><a href="/large/rate/@rate/index/@i">
                             <img width="150" height="120" class="cropped" alt="@file.title" src="@controllers.Global.thumbUrls.getOrElse(file.title, Gallery.UrlInProgress)" >
                         </a>
                         </div>

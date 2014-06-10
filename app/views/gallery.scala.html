@@ -2,10 +2,11 @@
         user: org.intracer.wmua.User,
         files: Seq[org.intracer.wmua.ImageWithRating],
         page: Int,
-        round: org.intracer.wmua.Round)(
+        round: org.intracer.wmua.Round,
+        rate: Int)(
         implicit flash: Flash, lang: Lang)
 
-    @main(Messages("gallery"), user, page, Some(round)) {
+    @main(Messages("gallery"), user, page, Some(round), true, rate) {
     <div class="row-fluid" >
 
         <ul class="gallery mw-gallery-traditional">
@@ -14,8 +15,8 @@
                 <li class="gallerybox">
                     <h1 id="@{(page-1) * (Gallery.filesPerPage(user)+1) + index}" style="display: inline; width: 1px; height: 1px"></h1>
 
-                    <div class="thumb @if(file.isSelected){selected}">
-                        <a href="/large/@{(page-1) * (Gallery.filesPerPage(user) + 1) + index}" >
+                    <div class="thumb">
+                        <a href="/large/rate/@rate/index/@{(page-1) * (Gallery.filesPerPage(user) + 1) + index}" >
                             <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.title, Gallery.UrlInProgress)">
                         </a>
                     </div>
