@@ -138,10 +138,13 @@ object Global {
       }
     }
 
+    val isPdf = info.title.toLowerCase.endsWith(".pdf")
+
     val url = info.url
-    if (px < w) {
+    if (px < w || isPdf) {
       val lastSlash = url.lastIndexOf("/")
-      url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" + px.toInt + "px-" + url.substring(lastSlash + 1)
+      url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" + (if (isPdf) "page1-" else "") +
+       px.toInt + "px-" + url.substring(lastSlash + 1) + (if (isPdf) ".jpg" else "")
     } else {
       url
     }
