@@ -17,6 +17,8 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     description = rs.stringOpt(c.description),
     article = None,
     place = rs.string(c.place),
+    typ = rs.string(c.typ),
+    subType = rs.string(c.subType),
     photo = rs.stringOpt(c.photo),
     gallery = rs.stringOpt(c.gallery),
     page =  rs.string(c.page)
@@ -25,15 +27,17 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
   def batchInsert(monuments: Seq[Monument]) {
     val column = MonumentJdbc.column
     DB localTx { implicit session =>
-      val batchParams: Seq[Seq[Any]] = monuments.map(i => Seq(
-        i.id,
-        i.name,
-        i.description,
+      val batchParams: Seq[Seq[Any]] = monuments.map(m => Seq(
+        m.id,
+        m.name,
+        m.description,
 //        i.article,
-        i.place,
-        i.photo,
-        i.gallery,
-        i.page
+        m.place,
+      m.typ,
+      m.subType,
+        m.photo,
+        m.gallery,
+        m.page
       ))
       withSQL {
         insert.into(MonumentJdbc).namedValues(
@@ -41,6 +45,8 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
           column.name -> sqls.?,
           column.description -> sqls.?,
           column.place -> sqls.?,
+          column.typ -> sqls.?,
+          column.subType -> sqls.?,
           column.photo -> sqls.?,
           column.gallery -> sqls.?,
           column.page -> sqls.?

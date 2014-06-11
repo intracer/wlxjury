@@ -77,10 +77,11 @@
                 </li>
             }
         </ul>
-
                 @for(m <- monument) {
                     <div class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">
-                        @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br> @Html(Monument.wikiLinkToUrl(m.place, "uk.wikipedia.org"))
+                        @Html(m.typ + " " + m.subType) <br>
+                        @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br>
+                    @Html(Monument.wikiLinkToUrl(m.place, "uk.wikipedia.org"))
                     </div>
                 }
 

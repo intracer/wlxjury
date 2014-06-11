@@ -60,7 +60,7 @@ object Global {
     //          category =>
 
     initUkraine("Category:Images from Wiki Loves Earth 2014 in Ukraine")
-//    initLists()
+    initLists()
 
     //            Future(1)
     //        }
