@@ -114,8 +114,9 @@ object Gallery extends Controller with Secured {
     val right = Math.min(index + 3, files.size)
     val start = Math.max(0, left - extraLeft)
     var end = Math.min(files.size, right + extraRight)
+    val monument = files(index).image.monumentId.flatMap(MonumentJdbc.find(_))
 
-    Ok(views.html.large(user, files, index, start, end, page, rate, region))
+    Ok(views.html.large(user, files, index, start, end, page, rate, region, monument))
   }
 
   def filesPerPage(user: User): Int = {

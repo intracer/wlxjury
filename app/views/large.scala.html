@@ -6,11 +6,11 @@
         end: Int,
         page: Int,
         rate: Int,
-        region: String = "all")(
+        region: String = "all",
+        monument: Option[client.wlx.Monument])(
         implicit flash: Flash, lang: Lang)
 @import org.intracer.wmua.ImageWithRating
-
-
+@import client.wlx.Monument
     @button(btnClass: String, iconClass:String) = {
         <div class="@btnClass"><i class="@iconClass"></i></div>
     }
@@ -77,13 +77,20 @@
                 </li>
             }
         </ul>
+
+                @for(m <- monument) {
+                    <div class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">
+                        @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br> @Html(Monument.wikiLinkToUrl(m.place, "uk.wikipedia.org"))
+                    </div>
+                }
+
        </div>
 
        <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
 
       <a href="https://commons.wikimedia.org/wiki/@files(index).title"> <img alt="@files(index).title" src="@controllers.Global.largeUrls.getOrElse(files(index).title, Gallery.UrlInProgress)" style="max-width:100%; height:auto;"> </a>
 
-           </div>
+       </div>
     </div>
     </div>
     }

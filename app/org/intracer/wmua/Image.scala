@@ -16,7 +16,6 @@ case class Image(pageId: Long, contest: Long, title: String,
 
 object Image extends SQLSyntaxSupport[Image] {
 
-
   def fromPage(page: Page, contest: Contest):Option[Image] = {
     for (imageInfo <- page.imageInfo.headOption)
      yield new Image(page.pageid, contest.id, page.title, imageInfo.url, imageInfo.descriptionUrl, 0, imageInfo.width, imageInfo.height, None)

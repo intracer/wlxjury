@@ -5,11 +5,12 @@ import java.io.{FileReader, File}
 import play.Play
 import java.util.Properties
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import client.{HttpClientImpl, MwBot}
 import play.api.libs.concurrent.Akka
 import client.dto._
-import org.intracer.wmua.{Image, Contest}
+import org.intracer.wmua.{MonumentJdbc, Image, Contest}
+import client.wlx.Monument
 
 
 object Global {
@@ -59,6 +60,7 @@ object Global {
     //          category =>
 
     initUkraine("Category:Images from Wiki Loves Earth 2014 in Ukraine")
+//    initLists()
 
     //            Future(1)
     //        }
@@ -82,6 +84,20 @@ object Global {
     }
   }
 
+  def initLists() = {
+    val ukWiki = new MwBot(http, Akka.system, "uk.wikipedia.org")
+
+    Await.result(ukWiki.login("***REMOVED***", "***REMOVED***1"), http.timeout)
+    //    listsNew(system, http, ukWiki)
+    Monument.lists(ukWiki, "ВЛЗ-рядок") .foreach {
+      monuments =>
+
+        MonumentJdbc.batchInsert(monuments)
+
+    }
+
+  }
+
   def initImagesFromCategory(contest: Contest, query: SinglePageQuery): Future[Unit] = {
     commons.imageInfoByGenerator("categorymembers", "cm", query, Set(Namespace.FILE_NAMESPACE)).map {
       filesInCategory =>
@@ -93,7 +109,7 @@ object Global {
 
             val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
             val ids: Seq[Option[String]] = pages.sortBy(_.pageid)
-              .flatMap(_.text.map(commons.getTemplateParam(_, "UkrainianNaturalHeritageSite")))
+              .flatMap(_.text.map(Template.getDefaultParam(_, "UkrainianNaturalHeritageSite")))
               .map(id => if (id.matches(idRegex)) Some(id) else None)
 
             val imagesWithIds = newImages.zip(ids).map {
