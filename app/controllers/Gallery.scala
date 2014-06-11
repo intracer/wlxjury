@@ -10,7 +10,7 @@ import play.api.mvc.SimpleResult
 
 object Gallery extends Controller with Secured {
 
-  def pages = 15
+  def pages = 10
 
   val Selected = "selected"
 
@@ -19,9 +19,8 @@ object Gallery extends Controller with Secured {
   val UrlInProgress = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Icon_tools.svg/120px-Icon_tools.svg.png"
 
   def list(rate: Int, page: Int = 1, region: String = "all") = withAuth {
-    username =>
+    user =>
       implicit request =>
-        val user = User.byUserName(username)
         val ratedFiles = userFiles(user).filter(_.rate == rate)
         val files = regionFiles(region, ratedFiles)
 
@@ -30,10 +29,10 @@ object Gallery extends Controller with Secured {
   }
 
   def large(rate: Int, index: Int, region: String = "all") = withAuth {
-    username =>
+    user =>
       implicit request =>
 
-        show(index, username.trim, rate, region)
+        show(index, user, rate, region)
   }
 
   def userFiles(user: User): Seq[ImageWithRating] = {
@@ -46,10 +45,8 @@ object Gallery extends Controller with Secured {
   }
 
   def select(rate: Int, index: Int, select: Int, region: String = "all") = withAuth {
-    username =>
+    user =>
       implicit request =>
-
-        val user = User.byUserName(username)
 
         val round = Contest.currentRound(user.contest)
 
@@ -95,8 +92,7 @@ object Gallery extends Controller with Secured {
     }
   }
 
-  def show(index: Int, username: String, rate: Int, region: String)(implicit request: Request[Any]): SimpleResult = {
-    val user = User.byUserName(username)
+  def show(index: Int, user: User, rate: Int, region: String)(implicit request: Request[Any]): SimpleResult = {
 
     var files = userFiles(user)
 
@@ -104,11 +100,11 @@ object Gallery extends Controller with Secured {
 
     val page = (index / filesPerPage(user)) + 1
 
-    show2(index, files, user, rate, username, page, 1, region)
+    show2(index, files, user, rate, page, 1, region)
   }
 
 
-  def show2(index: Int, files: Seq[ImageWithRating], user: User, rate: Int, username: String,
+  def show2(index: Int, files: Seq[ImageWithRating], user: User, rate: Int,
             page: Int, round: Int = 1, region: String)
            (implicit request: Request[Any]): SimpleResult = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
@@ -119,7 +115,7 @@ object Gallery extends Controller with Secured {
     val start = Math.max(0, left - extraLeft)
     var end = Math.min(files.size, right + extraRight)
 
-    Ok(views.html.large(User.byUserName(username), files, index, start, end, page, rate, region))
+    Ok(views.html.large(user, files, index, start, end, page, rate, region))
   }
 
   def filesPerPage(user: User): Int = {

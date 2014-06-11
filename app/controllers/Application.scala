@@ -5,11 +5,17 @@ import play.api.data._
 import play.api.data.Forms._
 import org.intracer.wmua.User
 
-object Application extends Controller {
+object Application extends Controller with Secured {
 
-  def index = Action {
+  def index = withAuth {
+    user =>
+      implicit request =>
+
+      Redirect(routes.Gallery.list(0, 1, "all"))
+  }
+
+  def login = Action {
     implicit request =>
-
       Ok(views.html.index(Application.loginForm))
   }
 
@@ -30,7 +36,7 @@ object Application extends Controller {
    */
   def logout = Action {
     //      session.data = Map()
-    Redirect(routes.Application.index()).withNewSession
+    Redirect(routes.Application.login()).withNewSession
   }
 
   val loginForm = Form(

@@ -37,16 +37,15 @@
             '_help -> ""
         )
 
-        @if(user.roles.contains("admin")) {
-            @select(editUserForm("roles"), Seq("no", "jury", "admin").map(x => (x,x)), '_label -> Messages("Role"), '_help -> "")
-        }
+         @select(editUserForm("roles"), Seq("no", "jury", "admin").map(x => (x,x)),
+             '_label -> Messages("Role"), '_help -> "", 'disabled -> !user.roles.contains("admin"))
 
         @if(Some(user.id.toString) == editUserForm("id").value) {
         @inputPassword(
             editUserForm("password"),
-            '_label -> null,
-            'placeholder -> Messages("password"),
-            '_help -> Messages("signin.your.password")
+            '_label -> "Password",
+            'placeholder -> "",
+            '_help -> ""
         )
         } else {
             @if(editUserForm("id").value != Some("0")) {

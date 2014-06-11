@@ -2,7 +2,6 @@ package org.intracer.wmua
 
 import scalikejdbc._
 import client.dto.Page
-import org.intracer.wmua.Selection
 
 case class Image(pageId: Long, contest: Long, title: String,
                  url: String, pageUrl: String,

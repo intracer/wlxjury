@@ -5,14 +5,10 @@ import java.security.MessageDigest
 import java.math.BigInteger
 import scala.collection.mutable
 import controllers.Gallery
-import java.util
-import scala.collection.JavaConverters._
-import org.wikipedia.Wiki
 
 import scalikejdbc._
 import org.joda.time.DateTime
 import scalikejdbc.WrappedResultSet
-import org.intracer.wmua.Selection
 
 case class User(fullname: String, email: String, id: Long,
                 roles: Set[String] = Set.empty, password: Option[String] = None, contest: Int,
@@ -34,12 +30,12 @@ object User extends SQLSyntaxSupport[User] {
 
   override val tableName = "users"
 
-  def unapplyEdit(user: User): Option[(Long, String, String, Option[String], String, Int)] = {
-    Some((user.id, user.fullname, user.email, user.password, user.roles.toSeq.head, user.contest))
+  def unapplyEdit(user: User): Option[(Long, String, String, Option[String], Option[String], Int)] = {
+    Some((user.id, user.fullname, user.email, None, Some(user.roles.toSeq.head), user.contest))
   }
 
-  def applyEdit(id: Long, fullname: String, email: String, password: Option[String], roles: String, contest: Int): User = {
-    new User(fullname, email.trim.toLowerCase, id, Set(roles), password, contest)
+  def applyEdit(id: Long, fullname: String, email: String, password: Option[String], roles: Option[String], contest: Int): User = {
+    new User(fullname, email.trim.toLowerCase, id, roles.fold(Set.empty[String])(Set(_)), password, contest)
   }
 
   def randomString(len: Int): String = {
@@ -71,7 +67,6 @@ object User extends SQLSyntaxSupport[User] {
     for (user <- userOpt) {
 
       val files = Gallery.userFiles(user)
-//      val filesSet = mutable.SortedSet(files: _*)
 
       val filesById = files.groupBy(_.pageId)
 
@@ -79,10 +74,6 @@ object User extends SQLSyntaxSupport[User] {
       Cache.set(s"contest/${contest.id}", contest)
       Cache.set(s"user/${user.email}", user)
     }
-//    var files = util.Arrays.asList[String](Global.w.getCategoryMembers("Category:WLM_2013_in_Ukraine_Round_Two", Wiki.FILE_NAMESPACE): _*).asScala
-
-//    for (file <- files)
-//      Selection.destroyAll(filename = file)
 
     userOpt
   }
@@ -113,8 +104,8 @@ object User extends SQLSyntaxSupport[User] {
 
   val allUsers: Seq[User] = Seq(wmuaUser)
 
-  def byUserName(email: String) = Option(Cache.get(s"user/${email.trim.toLowerCase}").asInstanceOf[User]).getOrElse {
-    findByEmail(email.trim.toLowerCase).head
+  def byUserName(email: String) = Option(Cache.get(s"user/${email.trim.toLowerCase}").asInstanceOf[User]).orElse {
+    findByEmail(email.trim.toLowerCase).headOption
   }
 
   val passwords = Seq("***REMOVED***")
@@ -127,7 +118,7 @@ object User extends SQLSyntaxSupport[User] {
     id = rs.int(c.id),
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
-    roles = Set(rs.string(c.roles)),
+    roles = Set(rs.string(c.roles), "USER_ID_"+ rs.int(c.id)),
     contest = rs.int(c.contest),
     password = Some(rs.string(c.password)),
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,

@@ -12,7 +12,7 @@ GET         /logout                                                             
 
 POST        /auth                                                               controllers.Application.auth()
 
-GET         /auth                                                               controllers.Application.index
+GET         /auth                                                               controllers.Application.login()
 
 GET         /gallery/rate/:rate/page/:page                                      controllers.Gallery.list(rate: Int, page: Int, region: String = "all")
 

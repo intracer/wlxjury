@@ -2,7 +2,7 @@
 
 @if(user != null) {
     <div class="btn-group pull-right" style="margin-top:10px">
-        <a class="btn" href="#"><i class="icon-user"></i> @user.fullname</a>
+        <a class="btn" href="#"><i class="icon-user"></i></a>
         <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
         <ul class="dropdown-menu">
             <li><a href="@routes.Admin.editUser(user.id.toString)"><i class="icon-user"></i> @Messages("Profile")</a></li>

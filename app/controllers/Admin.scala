@@ -7,42 +7,43 @@ import play.api.data.Forms._
 import client.dto.PageQuery
 import org.joda.time.DateTime
 import scala.Some
+import play.cache.Cache
 
 object Admin extends Controller with Secured {
 
   val sendMail = new SendMail
 
   def users() = withAuth({
-    username =>
+    user =>
       implicit request =>
-        val user = User.byUserName(username)
         val users = User.findAll()
 
         Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), Round.current(user)))
   }, Set(User.ADMIN_ROLE))
 
   def editUser(id: String) = withAuth({
-    username =>
+    user =>
       implicit request =>
-        val user = User.byUserName(username)
         val editedUser = User.find(id.toLong).get
 
         val filledForm = editUserForm.fill(editedUser)
 
         Ok(views.html.editUser(user, filledForm, Round.current(user)))
-  }, Set(User.ADMIN_ROLE))
+  }, Set(User.ADMIN_ROLE, s"USER_ID_$id"))
 
   def saveUser() = withAuth({
-    username =>
+    user =>
       implicit request =>
-        val user = User.byUserName(username)
 
         editUserForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
             BadRequest(views.html.editUser(user, formWithErrors, Round.current(user))),
-          value => {
-            // binding success, you get the actual value
-            val formUser = value
+             formUser => {
+
+            if (!(user.roles.contains(User.ADMIN_ROLE) || user.id == formUser.id)) {
+              Redirect(routes.Application.index())
+            }
+
             val count: Long = User.countByEmail(formUser.id, formUser.email)
             if (count > 0) {
               BadRequest(views.html.editUser(user, editUserForm.fill(formUser).withError("email", "email should be unique"), Round.current(user)))
@@ -50,17 +51,23 @@ object Admin extends Controller with Secured {
               if (formUser.id == 0) {
                 createNewUser(user, formUser)
               } else {
-                User.updateUser(formUser.id, formUser.fullname, formUser.email, formUser.roles)
+                if (!user.roles.contains(User.ADMIN_ROLE)) {
+                  val origUser = User.find(formUser.id).get
+                  User.updateUser(formUser.id, formUser.fullname, formUser.email, origUser.roles)
+                } else {
+                  User.updateUser(formUser.id, formUser.fullname, formUser.email, formUser.roles)
+                }
                 for (password <- formUser.password) {
                   val hash = User.hash(formUser, password)
                   User.updateHash(formUser.id, hash)
                 }
               }
+              Cache.remove(s"user/${user.email}")
               Redirect(routes.Admin.users)
             }
           }
         )
-  }, Set(User.ADMIN_ROLE))
+  })
 
   def createNewUser(user: User, formUser: User): Boolean = {
     val password = User.randomString(8)
@@ -81,7 +88,7 @@ object Admin extends Controller with Secured {
       "fullname" -> nonEmptyText(),
       "email" -> email,
       "password" -> optional(text()),
-      "roles" -> nonEmptyText(),
+      "roles" -> optional(text()),
       "contest" -> number
     )(User.applyEdit)(User.unapplyEdit)
   )
@@ -106,9 +113,8 @@ object Admin extends Controller with Secured {
   )
 
   def rounds() = withAuth({
-    username =>
+    user =>
       implicit request =>
-        val user = User.byUserName(username)
         val rounds = Round.findByContest(user.contest)
         val contest = Contest.byId(user.contest).get
 
@@ -120,10 +126,8 @@ object Admin extends Controller with Secured {
 
 
   def setRound() = withAuth({
-    username =>
+    user =>
       implicit request =>
-        val user = User.byUserName(username)
-
         val newRound = selectRoundForm.bindFromRequest.get
 
         Contest.setCurrentRound(user.contest, newRound.toInt)
@@ -165,9 +169,8 @@ object Admin extends Controller with Secured {
   }
 
   def editRound(id: String) = withAuth({
-    username =>
+    user =>
       implicit request =>
-        val user = User.byUserName(username)
         val round = Round.find(id.toLong).get
 
         val filledRound = editRoundForm.fill(round)
@@ -176,9 +179,8 @@ object Admin extends Controller with Secured {
   }, Set(User.ADMIN_ROLE))
 
   def saveRound() = withAuth({
-    username =>
+    user =>
       implicit request =>
-        val user = User.byUserName(username)
 
         editRoundForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
@@ -205,9 +207,8 @@ object Admin extends Controller with Secured {
   }
 
   def setImages() = withAuth({
-    username =>
+    user =>
       implicit request =>
-        val user = User.byUserName(username)
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
         val contest = Contest.byId(user.contest).get
         Contest.updateImages(contest.id, imagesSource)
@@ -225,9 +226,8 @@ object Admin extends Controller with Secured {
   }, Set(User.ADMIN_ROLE))
 
   def resetPassword(id: String) = withAuth({
-    username =>
+    user =>
       implicit request =>
-        val user = User.byUserName(username)
         val editedUser = User.find(id.toLong).get
 
         val password = User.randomString(8)
