@@ -1,11 +1,11 @@
 # --- !Ups
 
-CREATE TABLE "monument" (
-  id varchar,
-  name varchar not null,
-  description varchar,
-  place varchar,
-  photo varchar,
-  gallery varchar,
-  page varchar
+CREATE TABLE wlxjury.monument (
+  id varchar(255),
+  name varchar(400) not null,
+  description varchar(4000),
+  place varchar(4000),
+  photo varchar(400),
+  gallery varchar(400),
+  page varchar(400)
 );

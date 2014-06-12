@@ -1,11 +1,7 @@
 # --- !Ups
 
-alter table selection drop column email;
-alter table selection drop column filename;
+alter table wlxjury.selection drop column round;
+alter table wlxjury.selection drop column jury_id;
 
-alter table selection drop column round;
-alter table selection drop column juryid;
-
-alter table selection add column page_id bigint;
-alter table selection add column round bigint;
-alter table selection add column juryid bigint;
+alter table wlxjury.selection add column round int;
+alter table wlxjury.selection add column jury_id int;

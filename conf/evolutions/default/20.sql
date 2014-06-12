@@ -1,5 +1,5 @@
 # --- !Ups
 
-ALTER TABLE "monument" add column typ varchar;
-ALTER TABLE "monument" add column sub_type varchar;
+ALTER TABLE wlxjury.monument add column typ varchar(255);
+ALTER TABLE wlxjury.monument add column sub_type varchar(255);
 

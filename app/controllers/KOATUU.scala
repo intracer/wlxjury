@@ -12,28 +12,11 @@ object KOATUU {
   final val regionProperties: Properties = new Properties
   var regions: Map[String, String] = Map[String, String]()
 
-  final val FILE_ID_PROPERTIES: String = "conf/fileIds.txt"
-  final val fileIdProperties: Properties = new Properties
-  var fileIds: Map[String, String] = Map[String, String]()
-
-  var fileHashes: Map[String, String] = Map[String, String]()
-
 
   def load() {
     regionProperties.load(new FileReader(REGION_PROPERTIES))
 
     regions = regionProperties.asInstanceOf[java.util.Map[String, String]].asScala.toMap
-
-    fileIdProperties.load(new FileReader(FILE_ID_PROPERTIES))
-    fileIds = fileIdProperties.asInstanceOf[java.util.Map[String, String]].asScala.toMap
-
-    fileHashes = fileIds.keys.map(f => f.hashCode.toString -> f).toMap
-
-    if (fileIds.keys.size != fileHashes.keys.size) {
-      val msg: String = s"${fileIds.keys.size} != ${fileHashes.keys.size}"
-      throw new RuntimeException(msg)
-    }
-
 
   }
 
@@ -49,17 +32,17 @@ object KOATUU {
     }
   }
 
-  def regionIdByFile(file: ImageWithRating) = {
-    fileIds.get(file.title).flatMap(regionIdByMonumentId)
-  }
-
-  def filesInRegion(files: Seq[ImageWithRating], regionId: String) = {
-
-    regionId match {
-      case "all" => files
-      case "no" => files.filter(f => !regionIdByFile(f).isDefined)
-      case _ => files.filter(f => regionIdByFile(f).exists(fileRegion => fileRegion == regionId))
-    }
-  }
+//  def regionIdByFile(file: ImageWithRating) = {
+//    fileIds.get(file.title).flatMap(regionIdByMonumentId)
+//  }
+//
+//  def filesInRegion(files: Seq[ImageWithRating], regionId: String) = {
+//
+//    regionId match {
+//      case "all" => files
+//      case "no" => files.filter(f => !regionIdByFile(f).isDefined)
+//      case _ => files.filter(f => regionIdByFile(f).exists(fileRegion => fileRegion == regionId))
+//    }
+//  }
 
 }

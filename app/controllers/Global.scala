@@ -16,16 +16,11 @@ import client.wlx.Monument
 object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
-  //  lazy val w: Wiki = login(COMMONS_WIKIMEDIA_ORG, "***REMOVED***", "***REMOVED***1")
-
-  val dir = "public/wlm"
-
   var galleryUrls = collection.mutable.Map[String, String]()
   var largeUrls = collection.mutable.Map[String, String]()
   var thumbUrls = collection.mutable.Map[String, String]()
 
   val projectRoot = Play.application().path()
-
 
   //  initUrls()
 
@@ -33,7 +28,6 @@ object Global {
   import play.api.libs.concurrent.Execution.Implicits._
 
   val http = new HttpClientImpl(Akka.system)
-
 
   val commons = new MwBot(http, Akka.system, COMMONS_WIKIMEDIA_ORG)
 
@@ -44,8 +38,6 @@ object Global {
     Logger.info("Application has started")
 
     contestByCountry = Contest.byCountry
-
-    commons.login("***REMOVED***", "***REMOVED***1")
 
     KOATUU.load()
     contestImages()
@@ -75,6 +67,7 @@ object Global {
       val images = Image.findByContest(contest.id)
 
       if (images.isEmpty) {
+        commons.login("***REMOVED***", "***REMOVED***")
         val query: SinglePageQuery = PageQuery.byTitle(category)
         //PageQuery.byId(category.pageid)
         initImagesFromCategory(contest, query)
@@ -89,7 +82,7 @@ object Global {
     if (MonumentJdbc.findAll().isEmpty) {
       val ukWiki = new MwBot(http, Akka.system, "uk.wikipedia.org")
 
-      Await.result(ukWiki.login("***REMOVED***", "***REMOVED***1"), http.timeout)
+      Await.result(ukWiki.login("***REMOVED***", "***REMOVED***"), http.timeout)
       //    listsNew(system, http, ukWiki)
       Monument.lists(ukWiki, "ВЛЗ-рядок").foreach {
         monuments =>

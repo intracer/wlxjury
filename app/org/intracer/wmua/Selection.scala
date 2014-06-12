@@ -8,13 +8,13 @@ case class Selection(
                       pageId: Long,
                       var rate: Int,
                      //	fileid: String, // TODO remove
-                      juryid: Long,
+                      juryId: Long,
                       round: Long,
                       createdAt: DateTime,
                       deletedAt: Option[DateTime] = None)
 {
 
-  def destroy()(implicit session: DBSession = Selection.autoSession): Unit = Selection.destroy(pageId, juryid, round)(session)
+  def destroy()(implicit session: DBSession = Selection.autoSession): Unit = Selection.destroy(pageId, juryId, round)(session)
 
 }
 
@@ -23,14 +23,14 @@ object Selection extends SQLSyntaxSupport[Selection]{
 
   def byUser(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
     select.from(Selection as s).where
-      .eq(s.juryid, user.id).and
+      .eq(s.juryId, user.id).and
       .eq(s.round, roundId).and
       .append(isNotDeleted)
   }.map(Selection(s)).list.apply()
 
   def byUserSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
     select.from(Selection as s).where
-      .eq(s.juryid, user.id).and
+      .eq(s.juryId, user.id).and
       .eq(s.round, roundId).and
       .ne(s.rate, 0).and
       .append(isNotDeleted)
@@ -45,7 +45,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
 
   def byUserNotSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
     select.from(Selection as s).where
-      .eq(s.juryid, user.id).and
+      .eq(s.juryId, user.id).and
       .eq(s.round, roundId).and
       .eq(s.rate, 0).and
       .append(isNotDeleted)
@@ -58,7 +58,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
     pageId = rs.long(c.pageId),
     rate = rs.int(c.rate),
 //    fileid = rs.string(c.fileid),
-    juryid = rs.long(c.juryid),
+    juryId = rs.long(c.juryId),
     round = rs.long(c.round),
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
@@ -93,17 +93,17 @@ object Selection extends SQLSyntaxSupport[Selection]{
   }.map(_.long(1)).single.apply().get
 
   def create(pageId: Long, rate: Int,
-             fileid: String, juryid: Int, round: Int, createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): Selection = {
+             fileid: String, juryId: Int, round: Int, createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): Selection = {
     val id = withSQL {
       insert.into(Selection).namedValues(
         column.pageId -> pageId,
         column.rate -> rate,
-        column.juryid -> juryid,
+        column.juryId -> juryId,
         column.round -> round,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey.apply()
 
-     Selection(id = id, pageId = pageId, rate = rate, juryid = juryid, round = round, createdAt = createdAt)
+     Selection(id = id, pageId = pageId, rate = rate, juryId = juryId, round = round, createdAt = createdAt)
   }
 
   def batchInsert(selections: Seq[Selection]) {
@@ -113,7 +113,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
         i.pageId,
         i.rate,
 //        i.fileid,
-        i.juryid,
+        i.juryId,
         i.round,
         i.createdAt))
       withSQL {
@@ -121,7 +121,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
           column.pageId -> sqls.?,
           column.rate -> sqls.?,
 //          column.fileid -> sqls.?,
-          column.juryid -> sqls.?,
+          column.juryId -> sqls.?,
           column.round -> sqls.?,
           column.createdAt -> sqls.?
         )
@@ -129,17 +129,17 @@ object Selection extends SQLSyntaxSupport[Selection]{
     }
   }
 
-  def destroy(pageId: Long, juryid: Long, round: Long)(implicit session: DBSession = autoSession): Unit = withSQL {
+  def destroy(pageId: Long, juryId: Long, round: Long)(implicit session: DBSession = autoSession): Unit = withSQL {
     update(Selection).set(column.rate -> -1).where.
       eq(column.pageId, pageId).and.
-      eq(column.juryid, juryid).and.
+      eq(column.juryId, juryId).and.
       eq(column.round, round)
   }.update.apply()
 
-  def rate(pageId: Long, juryid: Long, round: Long, rate: Int = 1)(implicit session: DBSession = autoSession): Unit = withSQL {
+  def rate(pageId: Long, juryId: Long, round: Long, rate: Int = 1)(implicit session: DBSession = autoSession): Unit = withSQL {
     update(Selection).set(column.rate -> rate).where.
       eq(column.pageId, pageId).and.
-      eq(column.juryid, juryid).and.
+      eq(column.juryId, juryId).and.
       eq(column.round, round)
   }.update.apply()
 

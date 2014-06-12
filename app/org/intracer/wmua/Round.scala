@@ -25,14 +25,14 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
 }
 
 
-case class Rates(id: Int, name:String, minRate: Int = 0,maxRate: Int = 1)
+case class Rates(id: Int, name: String, minRate: Int = 0, maxRate: Int = 1)
 
 //case class Limits(min:Int, max:Int, recommended: Option[Int])
 
 object Round extends SQLSyntaxSupport[Round] {
 
   val binaryRound = new Rates(1, "+/-", -1, 1)
-  val rateRounds = (3 to 10).map(i=>new Rates(i, s"1-$i rating", 1, i))
+  val rateRounds = (3 to 10).map(i => new Rates(i, s"1-$i rating", 1, i))
 
   val rates = Seq(binaryRound) ++ rateRounds
 
@@ -42,11 +42,11 @@ object Round extends SQLSyntaxSupport[Round] {
 
   def current(user: User) = {
     val contest = Contest.byId(user.contest).get
-    Round.find(contest.currentRound).get
+    Round.find(contest.currentRound).getOrElse(new Round(0, 0, None, 14, Set("jury"), 1, binaryRound, 1, 1, None))
   }
 
   def applyEdit(id: Long, num: Int, name: Option[String], contest: Int, roles: String, distribution: Int,
-                rates: Int,  limitMin: Int, limitMax: Int, recommended: Option[Int]) =
+                rates: Int, limitMin: Int, limitMax: Int, recommended: Option[Int]) =
     new Round(id, num, name, contest, Set(roles), distribution, ratesById(rates).head, limitMin, limitMax, recommended)
 
   def unapplyEdit(round: Round): Option[(Long, Int, Option[String], Int, String, Int, Int, Int, Int, Option[Int])] = {
@@ -92,7 +92,7 @@ object Round extends SQLSyntaxSupport[Round] {
   }.map(Round(c)).single.apply()
 
   def create(number: Int, name: Option[String], contest: Int, roles: String, distribution: Int,
-             rates: Int,  limitMin: Int, limitMax: Int, recommended: Option[Int],
+             rates: Int, limitMin: Int, limitMax: Int, recommended: Option[Int],
              createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): Round = {
     val id = withSQL {
       insert.into(Round).namedValues(
@@ -110,7 +110,7 @@ object Round extends SQLSyntaxSupport[Round] {
 
     new Round(id = id, name = name, number = number, contest = contest, roles = Set(roles), distribution = distribution,
       rates = ratesById(rates).head, limitMin = limitMin,
-    limitMax = limitMax, recommended = recommended, createdAt = createdAt)
+      limitMax = limitMax, recommended = recommended, createdAt = createdAt)
   }
 
   def updateRound(id: Long, round: Round)(implicit session: DBSession = autoSession): Unit = withSQL {

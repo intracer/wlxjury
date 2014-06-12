@@ -1,16 +1,16 @@
 # --- !Ups
-create table images (
+create table wlxjury.images (
   page_id bigint not null,
   contest bigint not null,
-  title varchar,
-  url varchar,
-  page_url varchar,
+  title varchar(4000),
+  url varchar(4000),
+  page_url varchar(4000),
   last_round int,
   width int,
   height int
 );
 
-alter table images add CONSTRAINT imagest_pkey PRIMARY KEY (pageid);
+alter table wlxjury.images add CONSTRAINT imagest_pkey PRIMARY KEY (page_id);
 
 # --- alter table images add column width int;
 # --- alter table images add height int;

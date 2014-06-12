@@ -56,7 +56,7 @@ object Gallery extends Controller with Secured {
 
         file.rate = select
 
-        Selection.rate(pageId = file.pageId, juryid = user.id.toInt, round = round, rate = select)
+        Selection.rate(pageId = file.pageId, juryId = user.id.toInt, round = round, rate = select)
 
         checkLargeIndex(rate, index, files, region)
 
@@ -98,6 +98,18 @@ object Gallery extends Controller with Secured {
 
     files = regionFiles(region, files.filter(_.rate == rate))
 
+    val newIndex = if (index > files.size - 2)
+      files.size - 2
+    else index
+
+    if (newIndex != index) {
+      if (newIndex >= 0) {
+        Redirect(routes.Gallery.large(rate, newIndex, region))
+      } else {
+        Redirect(routes.Gallery.list(rate, 1, region))
+      }
+    }
+
     val page = (index / filesPerPage(user)) + 1
 
     show2(index, files, user, rate, page, 1, region)
@@ -114,7 +126,7 @@ object Gallery extends Controller with Secured {
     val right = Math.min(index + 3, files.size)
     val start = Math.max(0, left - extraLeft)
     var end = Math.min(files.size, right + extraRight)
-    val monument = files(index).image.monumentId.flatMap(MonumentJdbc.find(_))
+    val monument = files(index).image.monumentId.flatMap(MonumentJdbc.find)
 
     Ok(views.html.large(user, files, index, start, end, page, rate, region, monument))
   }

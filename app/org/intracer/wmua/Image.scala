@@ -116,7 +116,7 @@ object Image extends SQLSyntaxSupport[Image] {
   def byUser(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Image] = withSQL {
     select.from(Image as c)
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
-      .where.eq(Selection.s.juryid, user.id).and
+      .where.eq(Selection.s.juryId, user.id).and
       .eq(Selection.s.round, roundId)
 //      .append(isNotDeleted)
   }.map(Image(c)).list.apply()
@@ -124,7 +124,7 @@ object Image extends SQLSyntaxSupport[Image] {
   def byUserSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Image] = withSQL {
     select.from(Image as c)
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
-      .where.eq(Selection.s.juryid, user.id).and
+      .where.eq(Selection.s.juryId, user.id).and
       .eq(Selection.s.round, roundId).and
       .ne(Selection.s.rate, 0)
     //      .append(isNotDeleted)
@@ -133,7 +133,7 @@ object Image extends SQLSyntaxSupport[Image] {
   def byUserImageWithRating(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
     select.from(Image as c)
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
-      .where.eq(Selection.s.juryid, user.id).and
+      .where.eq(Selection.s.juryId, user.id).and
       .eq(Selection.s.round, roundId)
     //      .append(isNotDeleted)
   }.map(rs => (Image(c)(rs), Selection(Selection.s)(rs))).list.apply().map{case (i,s ) => ImageWithRating(i,s)}

@@ -1,4 +1,4 @@
 # --- !Ups
 
-alter table rounds add column distribution int default 0;
+alter table wlxjury.rounds add column distribution int default 0;
 

@@ -1,15 +1,15 @@
 # --- !Ups
-CREATE TABLE "contest"
+CREATE TABLE wlxjury.contest
 (
-    "id" BIGSERIAL NOT NULL,
-    "country" VARCHAR NOT NULL,
-    "year" integer NOT NULL,
-    "images" VARCHAR
+    id SERIAL NOT NULL,
+    country VARCHAR(255) NOT NULL,
+    year integer NOT NULL,
+    images VARCHAR(4000)
 );
 
-alter table contest add column "name" varchar not null default 'Wiki Loves Earth';
+alter table wlxjury.contest add column name varchar not null default 'Wiki Loves Earth';
 
-alter table contest add CONSTRAINT contest_pkey PRIMARY KEY (id);
+alter table wlxjury.contest add CONSTRAINT contest_pkey PRIMARY KEY (id);
 
 INSERT INTO contest(country, year, name) values ('Andorra & Catalan areas', 2014, 'Wiki Loves Earth');
 INSERT INTO contest(country, year, name) values ('Armenia & Nagorno-Karabakh', 2014, 'Wiki Loves Earth');

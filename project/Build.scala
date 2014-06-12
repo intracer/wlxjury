@@ -27,6 +27,7 @@ object ApplicationBuild extends Build {
     "org.scalikejdbc" %% "scalikejdbc-play-plugin"           % "2.2.0",
     "org.scalikejdbc" %% "scalikejdbc-play-fixture-plugin"   % "2.2.0", // optional
    "org.postgresql"     %  "postgresql"                % "9.2-1003-jdbc4", // your JDBC driver
+    "mysql" % "mysql-connector-java" % "5.1.31",
    "org.slf4j"          %  "slf4j-simple"              % "[1.7,)",          // slf4j implementation
     "org.apache.commons" % "commons-email" % "1.3.2",
     "org.intracer" %% "mwbot" % "0.1.1",

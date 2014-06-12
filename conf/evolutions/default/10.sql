@@ -1,10 +1,10 @@
 # --- !Ups
-CREATE TABLE "rounds"
+CREATE TABLE wlxjury.rounds
 (
-    "id" BIGSERIAL NOT NULL,
-    "name" VARCHAR,
-    "number" integer NOT NULL,
-    "created_at" TIMESTAMP NOT NULL,
-    "deleted_at" TIMESTAMP,
-    "contest" INT DEFAULT 14
+    id SERIAL NOT NULL,
+    name VARCHAR(255),
+    number integer NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    deleted_at TIMESTAMP,
+    contest INT DEFAULT 14
 );

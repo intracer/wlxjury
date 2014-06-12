@@ -1,2 +1,2 @@
 # --- !Ups
--- ALTER TABLE users add column contest integer default 14;
+ALTER TABLE wlxjury.users add column contest integer default 14;
