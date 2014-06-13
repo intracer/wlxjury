@@ -5,7 +5,7 @@ CREATE TABLE users (
 	fullname varchar(255) not null,
 	email varchar(255) not null,
   created_at timestamp not null,
-  deleted_at timestamp
+  deleted_at timestamp null
 );
 
 

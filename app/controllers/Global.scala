@@ -4,6 +4,8 @@ import play.api._
 import java.io.{FileReader, File}
 import play.Play
 import java.util.Properties
+import scalikejdbc.{LoggingSQLAndTimeSettings, GlobalSettings}
+
 import scala.collection.JavaConverters._
 import scala.concurrent.{Await, Future}
 import client.{HttpClientImpl, MwBot}
@@ -37,12 +39,27 @@ object Global {
   def onStart(app: Application) {
     Logger.info("Application has started")
 
+    GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
+      enabled = true,
+      singleLineMode = false,
+      printUnprocessedStackTrace = false,
+      stackTraceDepth= 15,
+      logLevel = 'info,
+      warningEnabled = false,
+      warningThresholdMillis = 3000L,
+      warningLogLevel = 'warn
+    )
+
+
     contestByCountry = Contest.byCountry
 
     KOATUU.load()
     contestImages()
 
   }
+
+  import scalikejdbc._
+
 
   def contestImages() {
     //    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
@@ -52,7 +69,7 @@ object Global {
     //          category =>
 
     initUkraine("Category:Images from Wiki Loves Earth 2014 in Ukraine")
-   // initLists()
+    initLists()
 
     //            Future(1)
     //        }

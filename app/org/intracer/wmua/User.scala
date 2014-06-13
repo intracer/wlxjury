@@ -142,11 +142,14 @@ object User extends SQLSyntaxSupport[User] {
     select(sqls.count).from(User as c).where.eq(column.email, email).and.ne(column.id, id)
   }.map(rs => rs.long(1)).single.apply().get
 
-  def findByEmail(email: String)(implicit session: DBSession = autoSession): List[User] = withSQL {
-    select.from(User as c)
-      .where.append(isNotDeleted).and.eq(column.email, email)
-      .orderBy(c.id)
-  }.map(User(c)).list.apply()
+  def findByEmail(email: String)(implicit session: DBSession = autoSession): List[User] = {
+    val users = withSQL {
+      select.from(User as c)
+        .where.append(isNotDeleted).and.eq(column.email, email)
+        .orderBy(c.id)
+    }.map(User(c)).list.apply()
+   users
+  }
 
   def countAll()(implicit session: DBSession = autoSession): Long = withSQL {
     select(sqls.count).from(User as c).where.append(isNotDeleted)
