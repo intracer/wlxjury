@@ -157,7 +157,7 @@ object Admin extends Controller with Secured {
 
         case 2 =>
           val imagesTwice = images.flatMap(img => Seq(img, img))
-          images.zipWithIndex.map {
+          imagesTwice.zipWithIndex.map {
             case (img, i) => new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now)
           }
         //          jurors.zipWithIndex.flatMap { case (juror, i) =>
