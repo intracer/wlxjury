@@ -29,7 +29,7 @@ class SendMail {
 
     mail.setHostName("smtp.googlemail.com");
     mail.setSmtpPort(465);
-    mail.setAuthenticator(new DefaultAuthenticator("intracer", "***REMOVED***"));
+    mail.setAuthenticator(new DefaultAuthenticator("intracer", ""));
     mail.setSSLOnConnect(true);
 
   //mail.setHostName(emailHost)
