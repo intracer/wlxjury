@@ -13,6 +13,7 @@ import scalikejdbc.WrappedResultSet
 case class User(fullname: String, email: String, id: Long,
                 roles: Set[String] = Set.empty, password: Option[String] = None, contest: Int,
                // selected: collection.mutable.SortedSet[ImageWithRating] = collection.mutable.SortedSet[ImageWithRating](),
+                 lang: Option[String] = None,
                 files: mutable.Buffer[ImageWithRating] = mutable.Buffer.empty,
                 createdAt: DateTime = DateTime.now,
                 deletedAt: Option[DateTime] = None) {
@@ -28,14 +29,16 @@ case class User(fullname: String, email: String, id: Long,
 object User extends SQLSyntaxSupport[User] {
   //  def apply(id: Int, fullname: String, login: String, password: String): User =
 
+  val LANGS = Map("en" -> "English", "ru" -> "Русский", "uk"-> "Українська")
+
   override val tableName = "users"
 
-  def unapplyEdit(user: User): Option[(Long, String, String, Option[String], Option[String], Int)] = {
-    Some((user.id, user.fullname, user.email, None, Some(user.roles.toSeq.head), user.contest))
+  def unapplyEdit(user: User): Option[(Long, String, String, Option[String], Option[String], Int, Option[String])] = {
+    Some((user.id, user.fullname, user.email, None, Some(user.roles.toSeq.head), user.contest, user.lang))
   }
 
-  def applyEdit(id: Long, fullname: String, email: String, password: Option[String], roles: Option[String], contest: Int): User = {
-    new User(fullname, email.trim.toLowerCase, id, roles.fold(Set.empty[String])(Set(_)), password, contest)
+  def applyEdit(id: Long, fullname: String, email: String, password: Option[String], roles: Option[String], contest: Int, lang: Option[String]): User = {
+    new User(fullname, email.trim.toLowerCase, id, roles.fold(Set.empty[String])(Set(_)), password, contest, lang)
   }
 
   def randomString(len: Int): String = {
@@ -121,6 +124,7 @@ object User extends SQLSyntaxSupport[User] {
     roles = Set(rs.string(c.roles), "USER_ID_"+ rs.int(c.id)),
     contest = rs.int(c.contest),
     password = Some(rs.string(c.password)),
+    lang = rs.stringOpt(c.lang),
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
   )
@@ -171,7 +175,7 @@ object User extends SQLSyntaxSupport[User] {
     select(sqls.count).from(User as c).where.append(isNotDeleted).and.append(sqls"${where}")
   }.map(_.long(1)).single.apply().get
 
-  def create(fullname: String, email: String, password: String, roles: Set[String], contest: Int, createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): User = {
+  def create(fullname: String, email: String, password: String, roles: Set[String], contest: Int, lang: Option[String] = None, createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): User = {
     val id = withSQL {
       insert.into(User).namedValues(
         column.fullname -> fullname,
@@ -179,17 +183,19 @@ object User extends SQLSyntaxSupport[User] {
         column.password -> password,
         column.roles -> roles.head,
         column.contest -> contest,
+        column.lang -> lang,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey.apply()
 
     User(id = id, fullname = fullname, email = email, password = Some(password), contest = contest, createdAt = createdAt)
   }
 
-  def updateUser(id: Long, fullname: String, email: String, roles: Set[String])(implicit session: DBSession = autoSession): Unit = withSQL {
+  def updateUser(id: Long, fullname: String, email: String, roles: Set[String], lang: Option[String])(implicit session: DBSession = autoSession): Unit = withSQL {
     update(User).set(
       column.fullname -> fullname,
       column.email -> email,
-      column.roles -> roles.head
+      column.roles -> roles.head,
+      column.lang -> lang
     ).where.eq(column.id, id)
   }.update.apply()
 

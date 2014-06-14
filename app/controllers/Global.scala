@@ -1,26 +1,27 @@
 package controllers
 
-import play.api._
-import java.io.{FileReader, File}
-import play.Play
+import java.io.{File, FileReader}
 import java.util.Properties
-import scalikejdbc.{LoggingSQLAndTimeSettings, GlobalSettings}
+
+import client.dto._
+import client.wlx.Monument
+import client.{HttpClientImpl, MwBot}
+import org.intracer.wmua.{Contest, Image, MonumentJdbc}
+import play.Play
+import play.api._
+import play.api.libs.concurrent.Akka
+import scalikejdbc.{GlobalSettings, LoggingSQLAndTimeSettings}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{Await, Future}
-import client.{HttpClientImpl, MwBot}
-import play.api.libs.concurrent.Akka
-import client.dto._
-import org.intracer.wmua.{MonumentJdbc, Image, Contest}
-import client.wlx.Monument
 
 
 object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
-  var galleryUrls = collection.mutable.Map[String, String]()
-  var largeUrls = collection.mutable.Map[String, String]()
-  var thumbUrls = collection.mutable.Map[String, String]()
+  var galleryUrls = collection.mutable.Map[Long, String]()
+  var largeUrls = collection.mutable.Map[Long, String]()
+  var thumbUrls = collection.mutable.Map[Long, String]()
 
   val projectRoot = Play.application().path()
 
@@ -43,7 +44,7 @@ object Global {
       enabled = true,
       singleLineMode = false,
       printUnprocessedStackTrace = false,
-      stackTraceDepth= 15,
+      stackTraceDepth = 15,
       logLevel = 'info,
       warningEnabled = false,
       warningThresholdMillis = 3000L,
@@ -58,26 +59,26 @@ object Global {
 
   }
 
-  import scalikejdbc._
-
 
   def contestImages() {
-    //    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
-    //      categories =>
-    //        val filtered = categories.filter(c => c.title.startsWith("Category:Images from Wiki Loves Earth 2014 in Ukraine")) // TODO all countries
-    //        Future.traverse(filtered) {
-    //          category =>
+    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
+      categories =>
+        val filtered = categories.filter(c => c.title.startsWith("Category:Images from Wiki Loves Earth 2014 in "))
+        Future.traverse(filtered) {
+          category =>
 
-    initUkraine("Category:Images from Wiki Loves Earth 2014 in Ukraine")
-    initLists()
+            initUkraine(category.title)
+            //    initLists()
 
-    //            Future(1)
-    //        }
-    //    }
+            Future(1)
+        }
+    }
   }
 
-  def initUkraine(category: String) {
+  def initUkraine(category: String) = {
     val country = category.replace("Category:Images from Wiki Loves Earth 2014 in ", "")
+
+    //"Ukraine"
     val contestOpt = contestByCountry.get(country).flatMap(_.headOption)
 
     for (contest <- contestOpt) {
@@ -116,25 +117,30 @@ object Global {
       filesInCategory =>
         val newImages: Seq[Image] = filesInCategory.flatMap(page => Image.fromPage(page, contest)).sortBy(_.pageId)
 
-        commons.revisionsByGenerator("categorymembers", "cm", query,
-          Set.empty, Set("content", "timestamp", "user", "comment")) map {
-          pages =>
+        contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
+          commons.revisionsByGenerator("categorymembers", "cm", query,
+            Set.empty, Set("content", "timestamp", "user", "comment")) map {
+            pages =>
 
-            val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-            val ids: Seq[Option[String]] = pages.sortBy(_.pageid)
-              .flatMap(_.text.map(Template.getDefaultParam(_, "UkrainianNaturalHeritageSite")))
-              .map(id => if (id.matches(idRegex)) Some(id) else None)
+              val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
+              val ids: Seq[Option[String]] = pages.sortBy(_.pageid)
+                .flatMap(_.text.map(Template.getDefaultParam(_, monumentIdTemplate)))
+//                .map(id => if (id.matches(idRegex)) Some(id) else Some(id))
+              .map(id => if (id.size < 100) Some(id) else None)
 
-            val imagesWithIds = newImages.zip(ids).map {
-              case (image, Some(id)) => image.copy(monumentId = Some(id))
-              case (image, None) => image
-            }
-
-            Image.batchInsert(imagesWithIds)
-            initContestFiles(contest, imagesWithIds)
+              val imagesWithIds = newImages.zip(ids).map {
+                case (image, Some(id)) => image.copy(monumentId = Some(id))
+                case (image, None) => image
+              }
+              saveNewImages(contest, imagesWithIds)
+          }
         }
-
     }
+  }
+
+  def saveNewImages(contest: Contest, imagesWithIds: Seq[Image]) = {
+    Image.batchInsert(imagesWithIds)
+    initContestFiles(contest, imagesWithIds)
   }
 
   def initContestFiles(contest: Contest, filesInCategory: Seq[Image]) {
@@ -147,9 +153,9 @@ object Global {
       val thumbUrl = resizeTo(file, thumbSize)
       val largeUrl = resizeTo(file, largeSize)
 
-      galleryUrls(file.title) = galleryUrl
-      thumbUrls(file.title) = thumbUrl
-      largeUrls(file.title) = largeUrl
+      galleryUrls(file.pageId) = galleryUrl
+      thumbUrls(file.pageId) = thumbUrl
+      largeUrls(file.pageId) = largeUrl
     }
   }
 
@@ -173,7 +179,7 @@ object Global {
     if (px < w || isPdf) {
       val lastSlash = url.lastIndexOf("/")
       url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" + (if (isPdf) "page1-" else "") +
-       px.toInt + "px-" + url.substring(lastSlash + 1) + (if (isPdf) ".jpg" else "")
+        px.toInt + "px-" + url.substring(lastSlash + 1) + (if (isPdf) ".jpg" else "")
     } else {
       url
     }

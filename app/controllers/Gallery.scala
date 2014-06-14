@@ -36,9 +36,8 @@ object Gallery extends Controller with Secured {
   }
 
   def userFiles(user: User): Seq[ImageWithRating] = {
-    val round = Round.current(user)
-
     if (user.files.isEmpty) {
+      val round = Round.current(user)
       user.files ++= Image.byUserImageWithRating(user, round.id)
     }
     user.files

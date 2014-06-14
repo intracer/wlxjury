@@ -1,10 +1,11 @@
 package org.intracer.wmua
 
+import _root_.play.api.i18n.Messages
 import scalikejdbc._
 import scalikejdbc.WrappedResultSet
 
-case class Contest(id: Long, year: Int, country: String, images: Option[String], currentRound: Int) {
-  def name = s"Wiki Loves Earth $year in $country"
+case class Contest(id: Long, year: Int, country: String, images: Option[String], currentRound: Int, monumentIdTemplate:Option[String]) {
+  def name = Messages("wiki.loves.earth." + country, year)
 
   def getImages = images.getOrElse("Category:Images from " + name)
 }
@@ -25,7 +26,8 @@ object Contest extends SQLSyntaxSupport[Contest] {
     year = rs.int(c.year),
     country = rs.string(c.country),
     images = rs.stringOpt(c.images),
-    currentRound = rs.int(c.currentRound)
+    currentRound = rs.int(c.currentRound),
+    monumentIdTemplate = rs.stringOpt(c.monumentIdTemplate)
   )
 
   val c = Contest.syntax("c")

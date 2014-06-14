@@ -1,7 +1,8 @@
 @(user: org.intracer.wmua.User, editUserForm: Form[org.intracer.wmua.User],round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
 
 @import helper._
-    @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render(_, lang)) }
+@import org.intracer.wmua.User
+@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render(_, lang)) }
 
 
 @main(Messages("edit user"), user, 0, Some(round), gallery = false) {
@@ -38,7 +39,11 @@
         )
 
          @select(editUserForm("roles"), Seq("no", "jury", "admin").map(x => (x,x)),
-             '_label -> Messages("Role"), '_help -> "", 'disabled -> !user.roles.contains("admin"))
+             Seq('_label -> Messages("Role"), '_help -> "") ++
+                     (if(!user.roles.contains("admin")) Seq('disabled -> "true") else Seq.empty):_* )
+
+        @select(editUserForm("lang"), Seq("en", "ru", "uk" ).map(x => (x, User.LANGS(x))),
+            '_label -> Messages("Language"), '_help -> "" )
 
         @if(Some(user.id.toString) == editUserForm("id").value) {
         @inputPassword(

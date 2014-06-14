@@ -1,7 +1,9 @@
 package controllers
 
+import controllers.Application._
 import play.api.mvc._
 import org.intracer.wmua.User
+import play.mvc.Http
 
 trait Secured {
 
@@ -15,7 +17,7 @@ trait Secured {
 
   def withAuth(f: => User => Request[AnyContent] => Result, roles: Set[String] = Set(User.ADMIN_ROLE, "jury", "organizer")) = {
     Security.Authenticated(user, onUnAuthenticated) { user =>
-      if (!roles.intersect(user.roles).isEmpty)
+      if (roles.intersect(user.roles).nonEmpty)
         Action(request => f(user)(request))
       else
         Action(request => onUnAuthorized())
@@ -26,9 +28,9 @@ trait Secured {
    * This method shows how you could wrap the withAuth method to also fetch your user
    * You will need to implement UserDAO.findOneByUsername
    */
-//  def withUser(f: User => Request[AnyContent] => Result) = withAuth { username => implicit request =>
-//    User.login(username, "123").map { user =>
-//      f(user)(request)
-//    }.getOrElse(onUnAuthenticated(request))
-//  }
+  //  def withUser(f: User => Request[AnyContent] => Result) = withAuth { username => implicit request =>
+  //    User.login(username, "123").map { user =>
+  //      f(user)(request)
+  //    }.getOrElse(onUnAuthenticated(request))
+  //  }
 }

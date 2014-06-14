@@ -32,7 +32,7 @@
 
                     <div class="thumb">
                         <a href="/large/rate/@rate/region/@region/index/@{(page-1) * (Gallery.filesPerPage(user) + 1) + index}" >
-                            <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.title, Gallery.UrlInProgress)">
+                            <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.pageId, Gallery.UrlInProgress)">
                         </a>
                     </div>
 

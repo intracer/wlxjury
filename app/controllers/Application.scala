@@ -1,9 +1,10 @@
 package controllers
 
-import play.api.mvc._
-import play.api.data._
-import play.api.data.Forms._
 import org.intracer.wmua.User
+import play.api.data.Forms._
+import play.api.data._
+import play.api.i18n.Lang
+import play.api.mvc._
 
 object Application extends Controller with Secured {
 
@@ -25,8 +26,14 @@ object Application extends Controller with Secured {
     loginForm.bindFromRequest.fold(
       formWithErrors => // binding failure, you retrieve the form containing errors,
         BadRequest(views.html.index(formWithErrors)),
-      value => // binding success, you get the actual value
-        Redirect(routes.Gallery.list(0, 1, "all")).withSession(Security.username -> value._1.trim))
+      value => {
+        // binding success, you get the actual value
+        val user = User.login(value._1, value._2).get
+        val result = Redirect(routes.Gallery.list(0, 1, "all")).withSession(Security.username -> value._1.trim)
+        import play.api.Play.current
+        user.lang.fold(result)(l => result.withLang(Lang(l)))
+      }
+    )
   }
 
   /**

@@ -70,7 +70,7 @@
                        @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
 
                         <div style="margin:5px auto;"><a href="/large/rate/@rate/region/@region/index/@i">
-                            <img width="150" height="120" class="cropped" alt="@file.title" src="@controllers.Global.thumbUrls.getOrElse(file.title, Gallery.UrlInProgress)" >
+                            <img width="150" height="120" class="cropped" alt="@file.title" src="@controllers.Global.thumbUrls.getOrElse(file.pageId, Gallery.UrlInProgress)" >
                         </a>
                         </div>
                     </div>
@@ -89,7 +89,7 @@
 
        <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
 
-      <a href="https://commons.wikimedia.org/wiki/@files(index).title"> <img alt="@files(index).title" src="@controllers.Global.largeUrls.getOrElse(files(index).title, Gallery.UrlInProgress)" style="max-width:100%; height:auto;"> </a>
+      <a href="https://commons.wikimedia.org/wiki/@files(index).title"> <img alt="@files(index).title" src="@controllers.Global.largeUrls.getOrElse(files(index).pageId, Gallery.UrlInProgress)" style="max-width:100%; height:auto;"> </a>
 
        </div>
     </div>

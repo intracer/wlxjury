@@ -1,12 +1,11 @@
 package controllers
 
-import play.api.mvc.Controller
 import org.intracer.wmua._
+import org.joda.time.DateTime
 import play.api.data.Form
 import play.api.data.Forms._
-import client.dto.PageQuery
-import org.joda.time.DateTime
-import scala.Some
+import play.api.i18n.{Lang, Messages}
+import play.api.mvc.Controller
 import play.cache.Cache
 
 object Admin extends Controller with Secured {
@@ -38,7 +37,7 @@ object Admin extends Controller with Secured {
         editUserForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
             BadRequest(views.html.editUser(user, formWithErrors, Round.current(user))),
-             formUser => {
+          formUser => {
 
             if (!(user.roles.contains(User.ADMIN_ROLE) || user.id == formUser.id)) {
               Redirect(routes.Application.index())
@@ -53,33 +52,42 @@ object Admin extends Controller with Secured {
               } else {
                 if (!user.roles.contains(User.ADMIN_ROLE)) {
                   val origUser = User.find(formUser.id).get
-                  User.updateUser(formUser.id, formUser.fullname, formUser.email, origUser.roles)
+                  User.updateUser(formUser.id, formUser.fullname, formUser.email, origUser.roles, formUser.lang)
                 } else {
-                  User.updateUser(formUser.id, formUser.fullname, formUser.email, formUser.roles)
+                  User.updateUser(formUser.id, formUser.fullname, formUser.email, formUser.roles, formUser.lang)
                 }
                 for (password <- formUser.password) {
                   val hash = User.hash(formUser, password)
                   User.updateHash(formUser.id, hash)
                 }
+
+
               }
               Cache.remove(s"user/${user.email}")
-              Redirect(routes.Admin.users)
+              val result = Redirect(routes.Admin.users)
+              val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
+
+              import play.api.Play.current
+              lang.fold(result)(l => result.withLang(Lang(l)))
             }
           }
         )
   })
 
-  def createNewUser(user: User, formUser: User): Boolean = {
-    val password = User.randomString(8)
+  def createNewUser(user: User, formUser: User): Unit = {
     val contest: Contest = Contest.byId(formUser.contest).head
+    createUser(user, formUser, contest)
+  }
+
+  def createUser(user: User, formUser: User, contest: Contest) {
+    val password = User.randomString(8)
     val hash = User.hash(formUser, password)
-    val juryhome = "http://localhost:9000"
-    User.create(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest)
-    val subject: String = s"Welcome to ${contest.name} jury"
-    val message: String = s"Organizing committee of ${contest.name} is glad to welcome you as a jury member.\n" +
-      s" Please login to our jury tool $juryhome \nwith login: ${formUser.email} and password: $password\n" +
-      s"Regards, ${user.fullname}"
-//    sendMail.sendMail(from = (user.fullname, user.email), to = Seq(formUser.email), bcc = Seq(user.email), subject = subject, message = message)
+    val juryhome = "http://wlxjury.wikimedia.in.ua"
+    User.create(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest, formUser.lang)
+    implicit val lang = formUser.lang.fold(Lang("en"))(Lang.apply)
+    val subject: String = Messages("welcome.subject", Messages(contest.name))
+    val message: String = Messages("welcome.messsage", Messages(contest.name), juryhome, formUser.email, password, user.fullname)
+    sendMail.sendMail(from = (user.fullname, user.email), to = Seq(user.email), bcc = Seq(user.email), subject = subject, message = message)
   }
 
   val editUserForm = Form(
@@ -89,7 +97,8 @@ object Admin extends Controller with Secured {
       "email" -> email,
       "password" -> optional(text()),
       "roles" -> optional(text()),
-      "contest" -> number
+      "contest" -> number,
+      "lang" -> optional(text())
     )(User.applyEdit)(User.unapplyEdit)
   )
 
@@ -156,9 +165,11 @@ object Admin extends Controller with Secured {
         //          }
 
         case 2 =>
-          val imagesTwice = images.flatMap(img => Seq(img, img))
-          imagesTwice.zipWithIndex.map {
-            case (img, i) => new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now)
+          images.zipWithIndex.flatMap {
+            case (img, i) => Seq(
+              new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now),
+              new Selection(0, img.pageId, 0, jurors((i+1) % jurors.size).id, round.id, DateTime.now)
+            )
           }
         //          jurors.zipWithIndex.flatMap { case (juror, i) =>
         //            imagesTwice.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
@@ -213,8 +224,6 @@ object Admin extends Controller with Secured {
         val contest = Contest.byId(user.contest).get
         Contest.updateImages(contest.id, imagesSource)
 
-        import scala.concurrent.duration._
-
         //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 
         distributeImages(contest)
@@ -242,7 +251,7 @@ object Admin extends Controller with Secured {
         val message: String = s"Password changed for ${contest.name} jury\n" +
           s" Please login to our jury tool $juryhome \nwith login: ${editedUser.email} and password: $password\n" +
           s"Regards, ${user.fullname}"
-//        sendMail.sendMail(from = (user.fullname, user.email), to = Seq(editedUser.email), bcc = Seq(user.email), subject = subject, message = message)
+        //        sendMail.sendMail(from = (user.fullname, user.email), to = Seq(editedUser.email), bcc = Seq(user.email), subject = subject, message = message)
 
         Redirect(routes.Admin.editUser(id)).flashing("password-reset" -> s"Password reset. New Password sent to ${editedUser.email}")
 
