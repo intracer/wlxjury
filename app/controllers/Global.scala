@@ -6,7 +6,7 @@ import java.util.Properties
 import client.dto._
 import client.wlx.Monument
 import client.{HttpClientImpl, MwBot}
-import org.intracer.wmua.{Contest, Image, MonumentJdbc}
+import org.intracer.wmua._
 import play.Play
 import play.api._
 import play.api.libs.concurrent.Akka
@@ -61,22 +61,31 @@ object Global {
 
 
   def contestImages() {
-    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
-      categories =>
-        val filtered = categories.filter(c => c.title.startsWith("Category:Images from Wiki Loves Earth 2014 in "))
-        Future.traverse(filtered) {
-          category =>
+    import scala.concurrent.duration._
+    Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
 
-            initUkraine(category.title)
-            //    initLists()
+    initContestFiles(Image.findAll())
 
-            Future(1)
-        }
-    }
+//    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
+//      categories =>
+//        val filtered = categories.filter(c => c.title.startsWith("Category:Images from Wiki Loves Earth 2014 in "))
+//        Future.traverse(filtered) {
+//          category =>
+//
+//            if (category.title.contains("Ukraine"))
+//              initUkraine("Category:WLE 2014 in Ukraine Round One", Some("Ukraine"))
+//            else
+//              initUkraine(category.title)
+//
+//            //    initLists()
+//
+//            Future(1)
+//        }
+//    }
   }
 
-  def initUkraine(category: String) = {
-    val country = category.replace("Category:Images from Wiki Loves Earth 2014 in ", "")
+  def initUkraine(category: String, countryOpt: Option[String]) = {
+    val country = countryOpt.fold(category.replace("Category:Images from Wiki Loves Earth 2014 in ", ""))(identity)
 
     //"Ukraine"
     val contestOpt = contestByCountry.get(country).flatMap(_.headOption)
@@ -85,13 +94,27 @@ object Global {
       val images = Image.findByContest(contest.id)
 
       if (images.isEmpty) {
-        commons.login("***REMOVED***", "***REMOVED***")
         val query: SinglePageQuery = PageQuery.byTitle(category)
         //PageQuery.byId(category.pageid)
         initImagesFromCategory(contest, query)
       } else {
-        initContestFiles(contest, images)
+//        initContestFiles(contest, images)
+        createJury()
       }
+    }
+  }
+
+  def createJury() {
+//    val matt = User.findByEmail("***REMOVED***")
+//
+//    if (matt.isEmpty) {
+//      for (user <- UkrainianJury.users) {
+//        Admin.createNewUser(User.wmuaUser, user)
+//      }
+//    }
+    val selection = Selection.findAll()
+    if (selection.isEmpty) {
+      Admin.distributeImages(Contest.byId(14).get)
     }
   }
 
@@ -140,10 +163,11 @@ object Global {
 
   def saveNewImages(contest: Contest, imagesWithIds: Seq[Image]) = {
     Image.batchInsert(imagesWithIds)
-    initContestFiles(contest, imagesWithIds)
+    createJury()
+//    initContestFiles(contest, imagesWithIds)
   }
 
-  def initContestFiles(contest: Contest, filesInCategory: Seq[Image]) {
+  def initContestFiles(filesInCategory: Seq[Image]) {
 
     val gallerySize = 300
     val thumbSize = 150

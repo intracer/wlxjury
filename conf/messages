@@ -19,7 +19,100 @@ selected = Selected
 rejected = Rejected
 
 wiki.loves.earth = Wiki Loves Earth {0}
-wiki.loves.earth.ukraine = Wiki Loves Earth {0} in Ukraine
+wiki.loves.earth.Ukraine = Wiki Loves Earth {0} in Ukraine
 
 welcome.subject = Welcome to {0} jury
 welcome.messsage = Organizing committee of {0} is glad to welcome you as a jury member.\nPlease login to our jury tool {1} \nwith login: {2} and password: {3}\nRegards, {4}
+
+error.technical=Technical Error, please Retry
+validate=Validate
+reset=Reset
+
+account.not.validated.check.mail=Account not validated. Check your emails.
+account.successfully.validated=Account successfully validated
+account.settings.email.successful=Email successfully validated ({0})
+invalid.user.or.password=Invalid user or password
+youve.been.logged.out=You've been logged out
+error.sending.email=Error sending email
+error.sending.confirm.email=Error while sending confirmation mail
+error.email.already.exist=Email already exist
+error.account.already.validated=Account already validated
+error.unknown.email=Unknown email
+error.confirm=Confirmation failed
+error.expiredresetlink=This password reset has expired.
+error.expiredmaillink=This mail change has expired.
+
+signin.signin=Sign In
+signin.your.email=Your email address
+signin.your.login=Your login
+signin.your.password=Your password
+
+forgot.password=Forgot password ?
+
+signup.signup=Sign Up
+signup.successfull=Sign Up - Successful !
+signup.new=New ?
+signup.reset.password=Reset your password
+signup.generate.password=Generate a password
+signup.msg.created=You will receive a confirmation email soon. Check your email to activate your account.
+signup.valid.email=Invalid Email
+
+resetpassword=Reset Password
+resetpassword.mailsent=A mail has been sent, please check your mail.
+resetpassword.success=Your password has been reset.
+resetpassword.new.password=New password :
+
+changemail.mailsent=A mail has been sent, please check your mail.
+
+mail.confirm.subject=Welcome to Play20StartApp - Ask for confirmation
+mail.confirm.message=Welcome to Play20StartApp. <br> Click on this link : {0} to confirm your email.
+
+mail.welcome.subject=Welcome to Play20StartApp
+mail.welcome.message=Welcome to Play20StartApp. <br> Your account is validated. Enjoy !
+
+mail.reset.ask.subject=Play20StartApp - New password
+# Cannot use You've unescaped here, as the single quote stops the {0}
+mail.reset.ask.message=You asked for your password to be reset.  <br> Click on this link : {0} to change your password.
+
+mail.change.ask.subject=Play20StartApp - Validate email
+mail.change.ask.message=You asked for your email to be changed.  <br> Click on this link : {0} to validate your email.
+
+mail.reset.fail.subject=Account Access Attempted
+mail.reset.fail.message=You (or someone else) entered this email address when trying to change the password.  However, this email address is not on our list of registered users, and so the attempted password reset has failed.
+
+mail.reset.confirm.subject=Play20StartApp - New password
+mail.reset.confirm.message=Hello, <br><br> Your password has been reset.
+
+
+# Default messages
+
+# --- Constraints
+constraint.required=Required
+constraint.min=Minimum value: {0}
+constraint.max=Maximum value: {0}
+constraint.minLength=Minimum length: {0}
+constraint.maxLength=Maximum length: {0}
+constraint.email=Email
+
+# --- Formats
+format.date=Date (''{0}'')
+format.numeric=Numeric
+format.real=Real
+
+# --- Errors
+error.invalid=Invalid value
+error.required=This field is required
+error.number=Numeric value expected
+error.real=Real number value expected
+error.real.precision=Real number value with no more than {0} digit(s) including {1} decimal(s) expected
+error.min=Must be greater or equal to {0}
+error.min.strict=Must be strictly greater than {0}
+error.max=Must be less or equal to {0}
+error.max.strict=Must be strictly less than {0}
+error.minLength=Minimum length is {0}
+error.maxLength=Maximum length is {0}
+error.email=Valid email required
+error.pattern=Must satisfy {0}
+
+dates = Dates
+total = Total

@@ -1,15 +1,13 @@
 package controllers
 
-import play.api.Play
-import play.api.Play.current
-
 
 class SendMail {
 
   import org.apache.commons.mail._
-  import scala.util.Try
 
-  private val emailHost = Play.configuration.getString("email.host").get
+import scala.util.Try
+
+  //private val emailHost = Play.configuration.getString("email.host").get
 
   /**
    *  Sends an email
@@ -27,10 +25,10 @@ class SendMail {
     val mail: Email =
       new SimpleEmail().setMsg(message)
 
-    mail.setHostName("smtp.googlemail.com");
-    mail.setSmtpPort(465);
-    mail.setAuthenticator(new DefaultAuthenticator("intracer", ""));
-    mail.setSSLOnConnect(true);
+    mail.setHostName("smtp.googlemail.com")
+    mail.setSmtpPort(465)
+    mail.setAuthenticator(new DefaultAuthenticator("intracer", ""))
+    mail.setSSLOnConnect(true)
 
   //mail.setHostName(emailHost)
 
