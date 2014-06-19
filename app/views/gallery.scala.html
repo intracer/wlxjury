@@ -1,5 +1,6 @@
 @(
         user: org.intracer.wmua.User,
+        asUser: org.intracer.wmua.User,
         files: Seq[org.intracer.wmua.ImageWithRating],
         page: Int,
         round: org.intracer.wmua.Round,
@@ -8,15 +9,15 @@
         byRegion: Map[String, Int])(
         implicit flash: Flash, lang: Lang)
 
-    @main(Messages("gallery"), user, page, Some(round), true, rate, region, byRegion) {
+    @main(Messages("gallery"), user, asUser, page, Some(round), true, rate, region, byRegion) {
 
     <div class="row-fluid" >
         <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">
             <ul>
-                <li><a href="/gallery/rate/@rate/page/1" @if("all" == region){style="font-weight: bold"}>*</a></li>
+                <li><a href="/gallery/user/@asUser.id/rate/@rate/page/1" @if("all" == region){style="font-weight: bold"}>*</a></li>
                 @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id,0) > 0) {
 
-                    <li><a href="/gallery/rate/@rate/region/@id/page/1" @if(id == region){style="font-weight: bold"}>@name (@byRegion(id))</a></li>
+                    <li><a href="/gallery/user/@asUser.id/rate/@rate/region/@id/page/1" @if(id == region){style="font-weight: bold"}>@name (@byRegion(id))</a></li>
                 }
             </ul>
         </div>
@@ -28,10 +29,10 @@
 
             @for((file, index) <- files.view.zipWithIndex) {
                 <li class="gallerybox">
-                    <h1 id="@{(page-1) * (Gallery.filesPerPage(user)+1) + index}" style="display: inline; width: 1px; height: 1px"></h1>
+                    <h1 id="@{(page-1) * (Gallery.filesPerPage(asUser)+1) + index}" style="display: inline; width: 1px; height: 1px"></h1>
 
                     <div class="thumb">
-                        <a href="/large/rate/@rate/region/@region/index/@{(page-1) * (Gallery.filesPerPage(user) + 1) + index}" >
+                        <a href="/large/user/@asUser.id/rate/@rate/region/@region/index/@{(page-1) * (Gallery.filesPerPage(asUser) + 1) + index}" >
                             <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.pageId, Gallery.UrlInProgress)">
                         </a>
                     </div>

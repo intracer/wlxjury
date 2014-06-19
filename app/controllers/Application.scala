@@ -12,7 +12,7 @@ object Application extends Controller with Secured {
     user =>
       implicit request =>
 
-      Redirect(routes.Gallery.list(0, 1, "all"))
+      Redirect(routes.Gallery.list(user.id.toInt, 0, 1, "all"))
   }
 
   def login = Action {
@@ -29,7 +29,7 @@ object Application extends Controller with Secured {
       value => {
         // binding success, you get the actual value
         val user = User.login(value._1, value._2).get
-        val result = Redirect(routes.Gallery.list(0, 1, "all")).withSession(Security.username -> value._1.trim)
+        val result = Redirect(routes.Gallery.list(user.id.toInt, 0, 1, "all")).withSession(Security.username -> value._1.trim)
         import play.api.Play.current
         user.lang.fold(result)(l => result.withLang(Lang(l)))
       }

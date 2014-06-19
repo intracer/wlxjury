@@ -18,21 +18,23 @@ object Gallery extends Controller with Secured {
 
   val UrlInProgress = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Icon_tools.svg/120px-Icon_tools.svg.png"
 
-  def list(rate: Int, page: Int = 1, region: String = "all") = withAuth {
+  def list(asUserId: Int, rate: Int, page: Int = 1, region: String = "all") = withAuth {
     user =>
       implicit request =>
-        val ratedFiles = userFiles(user).filter(_.rate == rate)
+        val asUser = if (asUserId != user.id.toInt) User.find(asUserId).get else user
+        val ratedFiles = userFiles(asUser).filter(_.rate == rate)
         val files = regionFiles(region, ratedFiles)
 
-        val pageFiles: Seq[ImageWithRating] = files.slice((page - 1) * (filesPerPage(user) + 1), Math.min(page * (filesPerPage(user) + 1), files.size))
-        Ok(views.html.gallery(user, pageFiles, page, Round.current(user), rate, region, byRegion(ratedFiles)))
+        val pageFiles: Seq[ImageWithRating] = files.slice((page - 1) * (filesPerPage(asUser) + 1), Math.min(page * (filesPerPage(asUser) + 1), files.size))
+        Ok(views.html.gallery(user, asUser, pageFiles, page, Round.current(user), rate, region, byRegion(ratedFiles)))
   }
 
-  def large(rate: Int, index: Int, region: String = "all") = withAuth {
+  def large(asUserId: Int, rate: Int, index: Int, region: String = "all") = withAuth {
     user =>
       implicit request =>
+        val asUser = if (asUserId != user.id.toInt) User.find(asUserId).get else user
 
-        show(index, user, rate, region)
+        show(index, user, asUser, rate, region)
   }
 
   def userFiles(user: User): Seq[ImageWithRating] = {
@@ -57,7 +59,7 @@ object Gallery extends Controller with Secured {
 
         Selection.rate(pageId = file.pageId, juryId = user.id.toInt, round = round, rate = select)
 
-        checkLargeIndex(rate, index, files, region)
+        checkLargeIndex(user, rate, index, files, region)
 
         //show(index, username, rate)
   }
@@ -79,21 +81,21 @@ object Gallery extends Controller with Secured {
     } + ("all" -> files.size)
   }
 
-  def checkLargeIndex(rate: Int, index: Int, files: Seq[ImageWithRating], region: String): SimpleResult = {
+  def checkLargeIndex(asUser: User, rate: Int, index: Int, files: Seq[ImageWithRating], region: String): SimpleResult = {
     val newIndex = if (index > files.size - 2)
       files.size - 2
     else index
 
     if (newIndex >= 0) {
-      Redirect(routes.Gallery.large(rate, newIndex, region))
+      Redirect(routes.Gallery.large(asUser.id.toInt, rate, newIndex, region))
     } else {
-      Redirect(routes.Gallery.list(rate, 1, region))
+      Redirect(routes.Gallery.list(asUser.id.toInt, rate, 1, region))
     }
   }
 
-  def show(index: Int, user: User, rate: Int, region: String)(implicit request: Request[Any]): SimpleResult = {
+  def show(index: Int, user: User, asUser: User, rate: Int, region: String)(implicit request: Request[Any]): SimpleResult = {
 
-    var files = userFiles(user)
+    var files = userFiles(asUser)
 
     files = regionFiles(region, files.filter(_.rate == rate))
 
@@ -103,19 +105,19 @@ object Gallery extends Controller with Secured {
 
     if (newIndex != index) {
       if (newIndex >= 0) {
-        Redirect(routes.Gallery.large(rate, newIndex, region))
+        Redirect(routes.Gallery.large(asUser.id.toInt, rate, newIndex, region))
       } else {
-        Redirect(routes.Gallery.list(rate, 1, region))
+        Redirect(routes.Gallery.list(asUser.id.toInt, rate, 1, region))
       }
     }
 
-    val page = (index / filesPerPage(user)) + 1
+    val page = (index / filesPerPage(asUser)) + 1
 
-    show2(index, files, user, rate, page, 1, region)
+    show2(index, files, user, asUser, rate, page, 1, region)
   }
 
 
-  def show2(index: Int, files: Seq[ImageWithRating], user: User, rate: Int,
+  def show2(index: Int, files: Seq[ImageWithRating], user: User, asUser: User, rate: Int,
             page: Int, round: Int = 1, region: String)
            (implicit request: Request[Any]): SimpleResult = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
@@ -127,7 +129,7 @@ object Gallery extends Controller with Secured {
     var end = Math.min(files.size, right + extraRight)
     val monument = files(index).image.monumentId.flatMap(MonumentJdbc.find)
 
-    Ok(views.html.large(user, files, index, start, end, page, rate, region, monument))
+    Ok(views.html.large(user, asUser, files, index, start, end, page, rate, region, monument))
   }
 
   def filesPerPage(user: User): Int = {

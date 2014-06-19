@@ -6,7 +6,7 @@
 @import org.intracer.wmua.Round
 
 
-@main(Messages("edit user"), user, 0, Some(round), gallery = false) {
+@main(Messages("edit user"), user, user, 0, Some(round), gallery = false) {
     <div class="row-fluid" >
 
         @if(editRoundForm("id").value != Some("0")) {
@@ -51,45 +51,7 @@
         <input type="submit" class="btn btn-primary" value="@Messages("Save")">
         <a href="/admin/rounds" class="btn">@Messages("Cancel")</a>
     </div>
-}
-
-        <table>
-            <thead>
-                <tr>
-                    <th>
-                        Name
-                    </th>
-                    <th>
-                        Email
-                    </th>
-                    <th>
-                        Images
-                    </th>
-                    <th>
-                        Selected
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @for(user <- round.jurors) {
-                    <tr>
-                        <td>
-                        @user.fullname
-                        </td>
-                        <td>
-                        @user.email
-                        </td>
-                        <td>
-                            @Gallery.userFiles(user).size
-                        </td>
-                        <td>
-                            @Selection.byUserSelected(user, round.id).size
-                        </td>
-                    </tr>
-                }
-            </tbody>
-
-        </table>
 
     </div>
+}
 }

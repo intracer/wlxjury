@@ -20,6 +20,8 @@ case class User(fullname: String, email: String, id: Long,
 
   def emailLo = email.trim.toLowerCase
 
+//    def withFiles(files: Seq[ImageWithRating]) = this.copy(files = files)
+
   //def roles = Seq("jury")
 
 

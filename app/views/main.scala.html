@@ -1,6 +1,7 @@
 @(
         title: String,
         user: org.intracer.wmua.User = null,
+        asUser: org.intracer.wmua.User = null,
         page: Int = 0,
         roundOption: Option[org.intracer.wmua.Round] = None,
         gallery: Boolean = true,
@@ -39,13 +40,17 @@
                         <li><a class="brand" style="margin-top : 5px" href="/admin/users">@Messages("users")</a>
                         <li><a class="brand" style="margin-top : 5px" href="/admin/rounds">@Messages("rounds")</a>
                     }
+                    @if(user.roles.intersect(Set("organizer", "admin")).nonEmpty ) {
+                        <li><a class="brand" style="margin-top : 5px" href="/roundstat">@Messages("Statistic")</a>
+                      }
+
                     @for(round <- roundOption
-                        if !round.roles.intersect(user.roles).isEmpty) {
-                        <div class="brand" style="margin-top : 5px">@Messages(s"Round ${round.description}")</div>
+                        if round.roles.intersect(asUser.roles).nonEmpty) {
+                        <li class="brand" style="margin-top : 5px">@Messages(s"Round ${round.description}")</li>
                         @if(true || round.number == 0) {
-                            <li class="@if(rate == 0){active}"> <a style="margin-top: 5px" href="/gallery/rate/0/page/1">@Messages("unrated") (@user.files.count(_.rate == 0))</a>
-                            <li class="@if(rate == 1){active active-}selected"><a style="margin-top: 5px;" href="/gallery/rate/1/page/1">@Messages("selected") (@user.files.count(_.rate == 1))</a>
-                            <li class="@if(rate == -1){active active-}rejected"><a style="margin-top: 5px;" href="/gallery/rate/-1/page/1">@Messages("rejected") (@user.files.count(_.rate == -1))</a>
+                            <li class="@if(rate == 0){active}"> <a style="margin-top: 5px" href="/gallery/user/@asUser.id/rate/0/page/1">@Messages("unrated") (@asUser.files.count(_.rate == 0))</a>
+                            <li class="@if(rate == 1){active active-}selected"><a style="margin-top: 5px;" href="/gallery/user/@asUser.id/rate/1/page/1">@Messages("selected") (@asUser.files.count(_.rate == 1))</a>
+                            <li class="@if(rate == -1){active active-}rejected"><a style="margin-top: 5px;" href="/gallery/user/@asUser.id/rate/-1/page/1">@Messages("rejected") (@asUser.files.count(_.rate == -1))</a>
                         } else {
                             <li><a class="brand" style="margin-top : 5px ; color : #d8d8d8" href="/round/@round.number/01">@Messages("All")</a>
                             <li><a class="brand" style="margin-top : 5px ; color : #d8d8d8" href="/round/@{
@@ -61,23 +66,23 @@
                     @logged(user)
                     <div>
 
-                        @if(page!=0 && byRegion.getOrElse(region, 0) > user.files.size/Gallery.pages) {
+                        @if(page!=0 && byRegion.getOrElse(region, 0) > asUser.files.size/Gallery.pages) {
                         <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">
                           <ul>
                               @if(page > 1){
-                                <li><a href="/gallery/@{page-1}">&laquo;</a></li>
+                                <li><a href="/gallery/user/@asUser.id/@{page-1}">&laquo;</a></li>
                               } else {
                                   <li class="disabled"><a href="#" style="color: #999999; background-color: #f5f5f5;">&laquo;</a></li>
                               }
-                              @for(i <- 1 to byRegion.getOrElse(region, 0)*Gallery.pages/user.files.size + 1) {
+                              @for(i <- 1 to byRegion.getOrElse(region, 0)*Gallery.pages/asUser.files.size + 1) {
                                   @if(i == page) {
-                                      <li class="active"><a href="/gallery/rate/@rate/region/@region/page/@i">@i</a></li>
+                                      <li class="active"><a href="/gallery/user/@asUser.id/rate/@rate/region/@region/page/@i">@i</a></li>
                                   } else {
-                                      <li><a href="/gallery/rate/@rate/region/@region/page/@i">@i</a></li>
+                                      <li><a href="/gallery/user/@asUser.id/rate/@rate/region/@region/page/@i">@i</a></li>
                                   }
                               }
-                              @if(page < byRegion.getOrElse(region, 0)*Gallery.pages/user.files.size){
-                                <li><a href="/gallery/rate/@rate/page/@{page+1}">&raquo;</a></li>
+                              @if(page < byRegion.getOrElse(region, 0)*Gallery.pages/asUser.files.size){
+                                <li><a href="/gallery/user/@asUser.id/rate/@rate/page/@{page+1}">&raquo;</a></li>
                               } else {
                                   <li class="disabled"><a href="#" style="color: #999999; background-color: #f5f5f5;">&raquo;</a></li>
                               }
