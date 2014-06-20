@@ -1,4 +1,11 @@
-@(user: org.intracer.wmua.User, round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
+@(
+        user: org.intracer.wmua.User,
+        round: org.intracer.wmua.Round,
+        byUserCount: Map[Long, Int],
+        byUserSelectedCount: Map[Long, Int],
+        selectionSize: Int,
+        selectedSize: Int
+        )(implicit flash: Flash, lang: Lang)
     @import org.intracer.wmua.Selection
     @import views.html.helper._
     @implicitFieldConstructor = @{
@@ -37,14 +44,28 @@
                         @user.email
                         </td>
                         <td>
-                            <a href="/gallery/user/@user.id/rate/0/page/1">@Gallery.userFiles(user).size</a>
+                            <a href="/gallery/user/@user.id/rate/0/page/1">@byUserCount.getOrElse(user.id, 0)</a>
                         </td>
                         <td>
-                            <a href="/gallery/user/@user.id/rate/1/page/1">@Selection.byUserSelected(user, round.id).size</a>
+                            <a href="/gallery/user/@user.id/rate/1/page/1">@byUserSelectedCount.getOrElse(user.id, 0)</a>
                         </td>
                     </tr>
                 }
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="2">
+                            @Messages("Total")
+                        </th>
+                        <th>
+                            <a href="/gallery/rate/0/page/1">@selectionSize</a>
+                        </th>
+                        <th>
+                            <a href="/gallery/rate/1/page/1">@selectedSize</a>
+                        </th>
+                    </tr>
+                </tfoot>
+
             </table>
         </div>
     }

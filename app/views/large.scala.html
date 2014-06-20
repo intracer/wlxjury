@@ -61,7 +61,9 @@
                @buttonGallery()
                @buttonUp()
                @buttonDown()
-               @buttonSelect()
+               @if(user.id == asUser.id) {
+                   @buttonSelect()
+               }
            </div>
 
         <ul class="gallery mw-gallery-traditional">

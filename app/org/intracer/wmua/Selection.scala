@@ -43,6 +43,12 @@ object Selection extends SQLSyntaxSupport[Selection]{
       .append(isNotDeleted)
   }.map(Selection(s)).list.apply()
 
+  def byRound(roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
+    select.from(Selection as s).where
+      .eq(s.round, roundId).and
+      .append(isNotDeleted)
+  }.map(Selection(s)).list.apply()
+
   def byUserNotSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
     select.from(Selection as s).where
       .eq(s.juryId, user.id).and
