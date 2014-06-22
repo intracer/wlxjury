@@ -138,5 +138,11 @@ object Image extends SQLSyntaxSupport[Image] {
     //      .append(isNotDeleted)
   }.map(rs => (Image(c)(rs), Selection(Selection.s)(rs))).list.apply().map{case (i,s ) => ImageWithRating(i,s)}
 
-
+  def byRating(roundId: Long, rate: Int)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
+    select.from(Image as c)
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.rate, rate).and
+      .eq(Selection.s.round, roundId)
+    //      .append(isNotDeleted)
+  }.map(rs => (Image(c)(rs), Selection(Selection.s)(rs))).list.apply().map{case (i,s ) => ImageWithRating(i,s)}
 }

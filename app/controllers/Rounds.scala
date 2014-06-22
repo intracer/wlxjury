@@ -28,11 +28,12 @@ object Rounds extends Controller with Secured {
         val selection = Selection.byRound(round.id);
 
         val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
-        val selected = selection.filter(_.rate > 0)
-        val byUserSelectedCount = selected.groupBy(_.juryId).mapValues(_.size)
+        val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
 
+        val totalCount = selection.map(_.pageId).toSet.size
+        val totalByRateCount = selection.groupBy(_.rate).mapValues(_.map(_.pageId).toSet.size)
 
-        Ok(views.html.roundStat(user, round, byUserCount, byUserSelectedCount, selection.map(_.pageId).toSet.size, selected.map(_.pageId).toSet.size))
+        Ok(views.html.roundStat(user, round, byUserCount, byUserRateCount, totalCount, totalByRateCount))
   }, Set(User.ADMIN_ROLE) ++ User.ORG_COM_ROLES)
 
 }

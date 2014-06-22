@@ -2,18 +2,17 @@
         user: org.intracer.wmua.User,
         round: org.intracer.wmua.Round,
         byUserCount: Map[Long, Int],
-        byUserSelectedCount: Map[Long, Int],
-        selectionSize: Int,
-        selectedSize: Int
+        byUserRateCount: Map[Long, Map[Int, Int]],
+        total: Int,
+        totalByRate: Map[Int, Int]
         )(implicit flash: Flash, lang: Lang)
-    @import org.intracer.wmua.Selection
     @import views.html.helper._
     @implicitFieldConstructor = @{
         FieldConstructor(twitterBootstrapInput.render(_, lang))
     }
 
 
-    @main(Messages("statistics"), user, user, 0, Some(round), gallery = false) {
+    @main(Messages("statistics"), user, user.id.toInt, Seq.empty, Seq.empty, 0, Some(round), gallery = false) {
         <div class="row-fluid" >
 
             <table class="table table-striped table-condensed">
@@ -32,6 +31,12 @@
                         <th>
                             Selected
                         </th>
+                        <th>
+                            Unrated
+                        </th>
+                        <th>
+                            Rejected
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,10 +49,16 @@
                         @user.email
                         </td>
                         <td>
-                            <a href="/gallery/user/@user.id/rate/0/page/1">@byUserCount.getOrElse(user.id, 0)</a>
+                            <a href="/gallery/user/@user.id/page/1">@byUserCount.getOrElse(user.id, 0)</a>
                         </td>
                         <td>
-                            <a href="/gallery/user/@user.id/rate/1/page/1">@byUserSelectedCount.getOrElse(user.id, 0)</a>
+                            <a href="/gallery/user/@user.id/rate/1/page/1">@byUserRateCount.getOrElse(user.id, Map.empty).getOrElse(1, 0)</a>
+                        </td>
+                        <td>
+                            <a href="/gallery/user/@user.id/rate/0/page/1">@byUserRateCount.getOrElse(user.id, Map.empty).getOrElse(0, 0)</a>
+                        </td>
+                        <td>
+                            <a href="/gallery/user/@user.id/rate/-1/page/1">@byUserRateCount.getOrElse(user.id, Map.empty).getOrElse(-1, 0)</a>
                         </td>
                     </tr>
                 }
@@ -58,10 +69,13 @@
                             @Messages("Total")
                         </th>
                         <th>
-                            <a href="/gallery/rate/0/page/1">@selectionSize</a>
+                            <a href="/gallery/user/0/page/1">@total</a>
                         </th>
                         <th>
-                            <a href="/gallery/rate/1/page/1">@selectedSize</a>
+                            <a href="/gallery/user/0/rate/1/page/1">@totalByRate.getOrElse(1, 0)</a>
+                        </th>
+                        <th colspan="2" style="text-align: center">
+                            <a href="/gallery/user/0/rate/0/page/1">@{total - totalByRate.getOrElse(1, 0)}</a>
                         </th>
                     </tr>
                 </tfoot>

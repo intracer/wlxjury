@@ -6,7 +6,7 @@
 @import org.intracer.wmua.Round
 
 
-@main(Messages("edit user"), user, user, 0, Some(round), gallery = false) {
+@main(Messages("edit user"), user, user.id.toInt, Seq.empty, Seq.empty, 0, Some(round), gallery = false) {
     <div class="row-fluid" >
 
         @if(editRoundForm("id").value != Some("0")) {

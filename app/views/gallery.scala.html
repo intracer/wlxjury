@@ -1,7 +1,9 @@
 @(
         user: org.intracer.wmua.User,
-        asUser: org.intracer.wmua.User,
-        files: Seq[org.intracer.wmua.ImageWithRating],
+        asUserId: Int,
+        pageFiles: Seq[org.intracer.wmua.ImageWithRating],
+        regionFiles: Seq[org.intracer.wmua.ImageWithRating],
+        allFiles: Seq[org.intracer.wmua.ImageWithRating],
         page: Int,
         round: org.intracer.wmua.Round,
         rate: Int,
@@ -9,15 +11,15 @@
         byRegion: Map[String, Int])(
         implicit flash: Flash, lang: Lang)
 
-    @main(Messages("gallery"), user, asUser, page, Some(round), true, rate, region, byRegion) {
+    @main(Messages("gallery"), user, asUserId, regionFiles, allFiles, page, Some(round), true, rate, region, byRegion) {
 
     <div class="row-fluid" >
         <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">
             <ul>
-                <li><a href="/gallery/user/@asUser.id/rate/@rate/page/1" @if("all" == region){style="font-weight: bold"}>*</a></li>
+                <li><a href="/gallery/user/@asUserId/rate/@rate/page/1" @if("all" == region){style="font-weight: bold"}>*</a></li>
                 @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id,0) > 0) {
 
-                    <li><a href="/gallery/user/@asUser.id/rate/@rate/region/@id/page/1" @if(id == region){style="font-weight: bold"}>@name (@byRegion(id))</a></li>
+                    <li><a href="/gallery/user/@asUserId/rate/@rate/region/@id/page/1" @if(id == region){style="font-weight: bold"}>@name (@byRegion(id))</a></li>
                 }
             </ul>
         </div>
@@ -27,12 +29,12 @@
 
         <ul class="gallery mw-gallery-traditional">
 
-            @for((file, index) <- files.view.zipWithIndex) {
+            @for((file, index) <- pageFiles.view.zipWithIndex) {
                 <li class="gallerybox">
-                    <h1 id="@{(page-1) * (Gallery.filesPerPage(asUser)+1) + index}" style="display: inline; width: 1px; height: 1px"></h1>
+                    <h1 id="@{(page-1) * (Pager.filesPerPage(regionFiles)+1) + index}" style="display: inline; width: 1px; height: 1px"></h1>
 
                     <div class="thumb">
-                        <a href="/large/user/@asUser.id/rate/@rate/region/@region/index/@{(page-1) * (Gallery.filesPerPage(asUser) + 1) + index}" >
+                        <a href="/large/user/@asUserId/rate/@rate/region/@region/index/@{(page-1) * (Pager.filesPerPage(regionFiles) + 1) + index}" >
                             <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.pageId, Gallery.UrlInProgress)">
                         </a>
                     </div>

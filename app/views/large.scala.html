@@ -1,6 +1,6 @@
 @(
         user: org.intracer.wmua.User,
-        asUser: org.intracer.wmua.User,
+        asUserId: Int,
         files: Seq[org.intracer.wmua.ImageWithRating],
         index: Int,
         start: Int,
@@ -25,15 +25,15 @@
     }
 
     @buttonGallery() = {
-        <a href="/gallery/user/@asUser.id/rate/@rate/region/@region/page/@{1 + index/(Gallery.filesPerPage(asUser) + 1)}#@index">@button("btn btn-small", "icon-th")</a>
+        <a href="/gallery/user/@asUserId/rate/@rate/region/@region/page/@{1 + index/(Pager.filesPerPage(files) + 1)}#@index">@button("btn btn-small", "icon-th")</a>
     }
 
     @buttonUp() = {
-        @optionalButton(() => index > 0, s"/large/user/${asUser.id}/rate/$rate/region/$region/index/${index-1}", "icon-chevron-up", "btn-small")
+        @optionalButton(() => index > 0, s"/large/user/${asUserId}/rate/$rate/region/$region/index/${index-1}", "icon-chevron-up", "btn-small")
     }
 
     @buttonDown() = {
-        @optionalButton(() => index < files.size-1, s"/large/user/${asUser.id}/rate/$rate/region/$region/index/${index+1}", "icon-chevron-down", "btn-small")
+        @optionalButton(() => index < files.size-1, s"/large/user/${asUserId}/rate/$rate/region/$region/index/${index+1}", "icon-chevron-down", "btn-small")
     }
 
     @buttonSelect() = {
@@ -61,7 +61,7 @@
                @buttonGallery()
                @buttonUp()
                @buttonDown()
-               @if(user.id == asUser.id) {
+               @if(user.id == asUserId) {
                    @buttonSelect()
                }
            </div>
@@ -72,7 +72,7 @@
 
                        @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
 
-                        <div style="margin:5px auto;"><a href="/large/user/@asUser.id/rate/@rate/region/@region/index/@i">
+                        <div style="margin:5px auto;"><a href="/large/user/@asUserId/rate/@rate/region/@region/index/@i">
                             <img width="150" height="120" class="cropped" alt="@file.title" src="@controllers.Global.thumbUrls.getOrElse(file.pageId, Gallery.UrlInProgress)" >
                         </a>
                         </div>

@@ -9,7 +9,7 @@
         FieldConstructor(twitterBootstrapInput.render(_, lang))
     }
 
-@main(Messages("users"), adminUser, adminUser,0, Some(round), gallery = false) {
+@main(Messages("users"), adminUser, adminUser.id.toInt, Seq.empty, Seq.empty, 0, Some(round), gallery = false) {
     <div class="row-fluid" >
         <h3>@Messages("Contest: " + Contest.byId(adminUser.contest).head.name)</h3>
 

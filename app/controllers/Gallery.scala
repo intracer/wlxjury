@@ -10,7 +10,7 @@ import play.api.mvc.SimpleResult
 
 object Gallery extends Controller with Secured {
 
-  def pages = 10
+  //def pages = 10
 
   val Selected = "selected"
 
@@ -21,20 +21,40 @@ object Gallery extends Controller with Secured {
   def list(asUserId: Int, rate: Int, page: Int = 1, region: String = "all") = withAuth {
     user =>
       implicit request =>
-        val asUser = if (asUserId != user.id.toInt) User.find(asUserId).get else user
-        val ratedFiles = userFiles(asUser).filter(_.rate == rate)
+        val uFiles = filesByUserId(asUserId, rate, user)
+
+        val ratedFiles = uFiles.filter(_.rate == rate)
         val files = regionFiles(region, ratedFiles)
 
-        val pageFiles: Seq[ImageWithRating] = files.slice((page - 1) * (filesPerPage(asUser) + 1), Math.min(page * (filesPerPage(asUser) + 1), files.size))
-        Ok(views.html.gallery(user, asUser, pageFiles, page, Round.current(user), rate, region, byRegion(ratedFiles)))
+        val pager = new Pager(files)
+        val pageFiles = pager.pageFiles(page)
+        val byReg: Map[String, Int] = byRegion(ratedFiles)
+        Ok(views.html.gallery(user, asUserId, pageFiles, files, uFiles, page, Round.current(user), rate, region, byReg))
   }
+
+  def filesByUserId(asUserId: Int, rate: Int, user: User): Seq[ImageWithRating] = {
+    if (asUserId == 0) Image.byRating(Round.current(user).id, rate)
+    else
+    if (asUserId != user.id.toInt) userFiles(User.find(asUserId).get) else userFiles(user)
+  }
+
+  def listCurrent(rate: Int, page: Int = 1, region: String = "all") = withAuth {
+    user =>
+      implicit request =>
+        Redirect(routes.Gallery.list(user.id.toInt, rate, page, region))
+  }
+
 
   def large(asUserId: Int, rate: Int, index: Int, region: String = "all") = withAuth {
     user =>
       implicit request =>
-        val asUser = if (asUserId != user.id.toInt) User.find(asUserId).get else user
+        show(index, user, asUserId, rate, region)
+  }
 
-        show(index, user, asUser, rate, region)
+  def largeCurrent(rate: Int, index: Int, region: String = "all") = withAuth {
+    user =>
+      implicit request =>
+        show(index, user, user.id.toInt, rate, region)
   }
 
   def userFiles(user: User): Seq[ImageWithRating] = {
@@ -93,11 +113,10 @@ object Gallery extends Controller with Secured {
     }
   }
 
-  def show(index: Int, user: User, asUser: User, rate: Int, region: String)(implicit request: Request[Any]): SimpleResult = {
+  def show(index: Int, user: User, asUserId: Int, rate: Int, region: String)(implicit request: Request[Any]): SimpleResult = {
+    val allFiles = filesByUserId(asUserId, rate, user)
 
-    var files = userFiles(asUser)
-
-    files = regionFiles(region, files.filter(_.rate == rate))
+    val files = regionFiles(region, allFiles.filter(_.rate == rate))
 
     val newIndex = if (index > files.size - 2)
       files.size - 2
@@ -105,19 +124,19 @@ object Gallery extends Controller with Secured {
 
     if (newIndex != index) {
       if (newIndex >= 0) {
-        Redirect(routes.Gallery.large(asUser.id.toInt, rate, newIndex, region))
+        Redirect(routes.Gallery.large(asUserId, rate, newIndex, region))
       } else {
-        Redirect(routes.Gallery.list(asUser.id.toInt, rate, 1, region))
+        Redirect(routes.Gallery.list(asUserId, rate, 1, region))
       }
     }
 
-    val page = (index / filesPerPage(asUser)) + 1
+    val page = (index / Pager.filesPerPage(files)) + 1
 
-    show2(index, files, user, asUser, rate, page, 1, region)
+    show2(index, files, user, asUserId, rate, page, 1, region)
   }
 
 
-  def show2(index: Int, files: Seq[ImageWithRating], user: User, asUser: User, rate: Int,
+  def show2(index: Int, files: Seq[ImageWithRating], user: User, asUserId: Int, rate: Int,
             page: Int, round: Int = 1, region: String)
            (implicit request: Request[Any]): SimpleResult = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
@@ -129,11 +148,7 @@ object Gallery extends Controller with Secured {
     var end = Math.min(files.size, right + extraRight)
     val monument = files(index).image.monumentId.flatMap(MonumentJdbc.find)
 
-    Ok(views.html.large(user, asUser, files, index, start, end, page, rate, region, monument))
-  }
-
-  def filesPerPage(user: User): Int = {
-    userFiles(user).size / pages
+    Ok(views.html.large(user, asUserId, files, index, start, end, page, rate, region, monument))
   }
 
   val loginForm = Form(
@@ -146,101 +161,3 @@ object Gallery extends Controller with Secured {
   )
 
 }
-
-
-//  def selectRound2(regionId: String, pageId: Long, round: Int) = withAuth {
-//    username =>
-//      implicit request =>
-//        val user = User.byUserName(username)
-//
-//        val files = if (round > 1) {
-//          Image.byUserImageWithRating(user, round - 1)
-//        } else {
-//          userFiles(user)
-//        }
-//
-//        val filesInRegion = KOATUU.filesInRegion(files, regionId)
-//
-//        val file = files.find(_.pageId == pageId).get
-//
-//        val index = filesInRegion.indexOf(file)
-//
-//        val selection = Selection.rate(pageId = file.pageId, juryid = user.id.toInt, round = round)
-//
-//        Redirect(routes.Gallery.largeRound2(regionId, index, round))
-//  }
-//
-//  def unselectRound2(regionId: String, pageId: Long, round: Int = 2) = withAuth {
-//    username =>
-//      implicit request =>
-//        val user = User.byUserName(username)
-//
-//        val files = if (round > 1) {
-//          Image.byUserImageWithRating(user, round - 1)
-//        } else {
-//          userFiles(user)
-//        }
-//
-//        val filesInRegion = KOATUU.filesInRegion(files, regionId)
-//
-//        val file = files.find(_.pageId == pageId).get
-//
-//        val index = filesInRegion.indexOf(file)
-//
-//        Selection.destroy(pageId = file.pageId, juryid = user.id, round = round)
-//
-//        Redirect(routes.Gallery.largeRound2(regionId, index, round))
-//  }
-
-
-//  def selectWiki(file: String, user: User) {
-//    var text = Global.w.getPageText(file)
-//    if (!text.contains("WLM 2013 in Ukraine Round One " + user.fullname)) {
-//      val newCat: String = s"[[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]"
-//      text += "\n" + newCat
-//      Global.w.edit(file, text, s"Adding $newCat")
-//    }
-//  }
-//
-//  def deselectWiki(file: String, user: User) {
-//    var text = Global.w.getPageText(file)
-//    if (text.contains("WLM 2013 in Ukraine Round One " + user.fullname)) {
-//      val newCat: String = s"\\Q[[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]\\E"
-//      text = text.replaceAll(newCat, "")
-//      Global.w.edit(file, text, s"Removing [[Category:WLM 2013 in Ukraine Round One ${user.fullname}]]")
-//    }
-//  }
-
-//  def round2(regionId: String, round: Int) = withAuth {
-//    username =>
-//      implicit request =>
-//        val user = User.byUserName(username)
-//
-//        val files = if (round > 1) {
-//          Image.byUserImageWithRating(user, round - 1)  // TODO round math
-//        } else {
-//          userFiles(user)
-//        }
-//
-//        val filesInRegion = KOATUU.filesInRegion(files, regionId)
-//
-//        Ok(views.html.round2(user, filesInRegion, regionId, Round.current(user)))
-//  }
-//
-//  def largeRound2(regionId: String, index: Int, round: Int, rate: Int) = withAuth {
-//    username =>
-//      implicit request =>
-//
-//        val user = User.byUserName(username)
-//
-//        val files = if (round > 1) {
-//          Image.byUserImageWithRating(user, round - 1)  // TODO round math
-//        } else {
-//          userFiles(user)
-//        }
-//        val selected = mutable.SortedSet(Image.bySelectionSelected(round): _*)
-//
-//        val filesInRegion = KOATUU.filesInRegion(files, regionId)
-//
-//        show2(index, filesInRegion, user, rate, user.email, 0, Some(regionId), round)
-//  }
