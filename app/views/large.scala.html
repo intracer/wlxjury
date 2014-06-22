@@ -29,21 +29,21 @@
     }
 
     @buttonUp() = {
-        @optionalButton(() => index > 0, s"/large/user/${asUserId}/rate/$rate/region/$region/index/${index-1}", "icon-chevron-up", "btn-small")
+        @optionalButton(() => index > 0, s"/large/user/$asUserId/rate/$rate/region/$region/index/${index-1}", "icon-chevron-up", "btn-small")
     }
 
     @buttonDown() = {
-        @optionalButton(() => index < files.size-1, s"/large/user/${asUserId}/rate/$rate/region/$region/index/${index+1}", "icon-chevron-down", "btn-small")
+        @optionalButton(() => index < files.size-1, s"/large/user/$asUserId/rate/$rate/region/$region/index/${index+1}", "icon-chevron-down", "btn-small")
     }
 
     @buttonSelect() = {
         @if(files(index).rate <=0 ) {
-            <a href="/large/rate/@rate/region/@region/index/@index/select/1">
+            <a href="/large/rate/@rate/region/@region/pageid/@files(index).pageId/select/1">
             @button("btn btn-success btn-small", "icon-ok icon-white")
             </a>
         }
         @if(files(index).rate >=0 ) {
-            <a href="/large/rate/@rate/region/@region/index/@index/select/-1">
+            <a href="/large/rate/@rate/region/@region/pageid/@files(index).pageId/select/-1">
                 @button("btn btn-danger btn-small", "icon-ban-circle icon-white")
             </a>
         }

@@ -87,6 +87,28 @@ object Gallery extends Controller with Secured {
         //show(index, username, rate)
   }
 
+  def selectByPageId(rate: Int, pageId: Long, select: Int, region: String = "all") = withAuth {
+    user =>
+      implicit request =>
+
+        val round = Contest.currentRound(user.contest)
+
+        val files = filterFiles(rate, region, user)
+
+        val file = files.find(_.pageId == pageId).get
+
+        val index = files.indexOf(file)
+
+        file.rate = select
+
+        Selection.rate(pageId = file.pageId, juryId = user.id.toInt, round = round, rate = select)
+
+        checkLargeIndex(user, rate, index, files, region)
+
+    //show(index, username, rate)
+  }
+
+
   def filterFiles(rate: Int, region: String, user: User): Seq[ImageWithRating] = {
     regionFiles(region, userFiles(user).filter(_.rate == rate))
   }

@@ -26,6 +26,10 @@ GET         /large/rate/:rate/index/:index/select/:select                       
 
 GET         /large/rate/:rate/region/:region/index/:index/select/:select        controllers.Gallery.select(rate:Int, index: Int, select: Int, region: String)
 
+GET         /large/rate/:rate/pageid/:pageId/select/:select                       controllers.Gallery.selectByPageId(rate:Int, pageId: Long, select: Int, region: String = "all")
+
+GET         /large/rate/:rate/region/:region/pageid/:pageId/select/:select        controllers.Gallery.selectByPageId(rate:Int, pageId: Long, select: Int, region: String)
+
 GET         /gallery/rate/:rate/page/:page                                      controllers.Gallery.listCurrent(rate: Int, page: Int, region: String = "all")
 
 GET         /gallery/rate/:rate/region/:region/page/:page                       controllers.Gallery.listCurrent(rate: Int, page: Int, region: String)
