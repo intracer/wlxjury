@@ -49,7 +49,9 @@
                         @user.email
                         </td>
                         <td>
-                            <a href="/gallery/user/@user.id/page/1">@byUserCount.getOrElse(user.id, 0)</a>
+                                <!-- <a href="/gallery/user/@user.id/page/1"> -->
+                            @byUserCount.getOrElse(user.id, 0)
+                            <!-- </a> -->
                         </td>
                         <td>
                             <a href="/gallery/user/@user.id/rate/1/page/1">@byUserRateCount.getOrElse(user.id, Map.empty).getOrElse(1, 0)</a>
@@ -69,13 +71,17 @@
                             @Messages("Total")
                         </th>
                         <th>
-                            <a href="/gallery/user/0/page/1">@total</a>
+                            <!--<a href="/gallery/user/0/page/1"> -->
+                            @total
+                            <!-- </a> -->
                         </th>
                         <th>
                             <a href="/gallery/user/0/rate/1/page/1">@totalByRate.getOrElse(1, 0)</a>
                         </th>
                         <th colspan="2" style="text-align: center">
-                            <a href="/gallery/user/0/rate/0/page/1">@{total - totalByRate.getOrElse(1, 0)}</a>
+                            <!-- <a href="/gallery/user/0/rate/0/page/1"> -->
+                            @{total - totalByRate.getOrElse(1, 0)}
+                            <!-- </a> -->
                         </th>
                     </tr>
                 </tfoot>
