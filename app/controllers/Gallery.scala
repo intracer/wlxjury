@@ -33,8 +33,11 @@ object Gallery extends Controller with Secured {
   }
 
   def filesByUserId(asUserId: Int, rate: Int, user: User): Seq[ImageWithRating] = {
-    if (asUserId == 0) Image.byRating(Round.current(user).id, rate)
-    else
+    if (asUserId == 0) {
+      val raw = Image.byRating(Round.current(user).id, rate)
+      val merged = raw.groupBy(_.pageId).mapValues(iws => new ImageWithRating(iws.head.image, iws.map(_.selection.head)))
+      merged.values.toSeq
+    } else
     if (asUserId != user.id.toInt) userFiles(User.find(asUserId).get) else userFiles(user)
   }
 

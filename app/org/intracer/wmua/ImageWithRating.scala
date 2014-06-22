@@ -1,24 +1,24 @@
 package org.intracer.wmua
 
-case class ImageWithRating(image: Image, selection: Selection) extends Ordered[ImageWithRating]{
+case class ImageWithRating(image: Image, selection: Seq[Selection]) extends Ordered[ImageWithRating]{
   def unSelect() {
-    selection.rate = -1
+    selection.head.rate = -1
   }
 
   def select() {
-    selection.rate = 1
+    selection.head.rate = 1
   }
 
-  def isSelected: Boolean = selection.rate > 0
+  def isSelected: Boolean = selection.head.rate > 0
 
-  def isRejected: Boolean = selection.rate < 0
+  def isRejected: Boolean = selection.head.rate < 0
 
-  def isUnrated: Boolean = selection.rate == 0
+  def isUnrated: Boolean = selection.head.rate == 0
 
-  def rate = selection.rate
+  def rate = selection.head.rate
 
   def rate_=(rate:Int) {
-    selection.rate = rate
+    selection.head.rate = rate
   }
 
 
