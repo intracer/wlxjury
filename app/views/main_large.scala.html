@@ -1,4 +1,11 @@
-@(title: String, user: org.intracer.wmua.User = null)(content: Html)(implicit lang: Lang)
+@(
+        title: String,
+        user: org.intracer.wmua.User = null,
+        score: Double,
+        url: String,
+        readOnly: Boolean = false,
+        rate: Option[Int],
+        module: String = "byrate")(content: Html)(implicit lang: Lang)
 
 <!DOCTYPE html>
 
@@ -6,14 +13,18 @@
     <head>
         <title>@title</title>
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-
+        <link rel="stylesheet" href="@routes.Assets.at("stylesheets/jquery.raty.css")">
         <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
-        <link rel="stylesheet" type="text/css" media="screen" href="@routes.Assets.at("stylesheets/bootstrap-select.css")">
+
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
         <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.js"></script>
+        <script src="@routes.Assets.at("javascripts/jquery.raty.js")"></script>
 
         <script>
+
+        $.fn.raty.defaults.path = '@routes.Assets.at("images")';
+
         $(document).ready(function() {
         var $window = $(window);
 
@@ -33,6 +44,24 @@
 
         // Bind event listener
         $(window).resize(checkWidth);
+
+        $('#rate-image').raty(
+        {
+            score: @score,
+            half : true,
+            cancel  : true,
+            starHalf : 'star-half-big.png',
+            starOff : 'star-off-big.png',
+            starOn  : 'star-on-big.png',
+            cancelOff : 'cancel-off-big.png',
+            cancelOn  : 'cancel-on-big.png',
+            @if(readOnly) {readOnly : 'true'} else {
+            click: function(score, evt) {
+            document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&")';
+            return false;
+        }}
+        });
+
         });
 
         </script>

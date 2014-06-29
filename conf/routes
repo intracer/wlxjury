@@ -3,65 +3,94 @@
 # ~~~~
 
 # Home page
-GET         /                                                                   controllers.Application.index
+GET         /                                                                       controllers.Application.index
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                                                       controllers.Assets.at(path="/public", file)
+GET         /assets/*file                                                           controllers.Assets.at(path="/public", file)
 
-GET         /logout                                                             controllers.Application.logout()
+GET         /logout                                                                 controllers.Application.logout()
 
-POST        /auth                                                               controllers.Application.auth()
+POST        /auth                                                                   controllers.Application.auth()
 
-GET         /auth                                                               controllers.Application.login()
+GET         /auth                                                                   controllers.Application.login()
 
-GET         /gallery/user/:user/rate/:rate/page/:page                           controllers.Gallery.list(user: Int, rate: Int, page: Int, region: String = "all")
+GET         /byrate/user/:user/page/:page                                           controllers.Gallery.byRate(user: Int, page: Int, region: String = "all", round: Int = 0)
 
-GET         /gallery/user/:user/rate/:rate/region/:region/page/:page            controllers.Gallery.list(user: Int, rate: Int, page: Int, region: String)
+GET         /byrate/user/:user/region/:region/page/:page                            controllers.Gallery.byRate(user: Int, page: Int, region: String, round: Int = 0)
 
-GET         /large/user/:user/rate/:rate/index/:index                           controllers.Gallery.large(user: Int, rate: Int, index: Int, region: String = "all")
+GET         /byrate/round/:round/user/:user/page/:page                              controllers.Gallery.byRate(user: Int, page: Int, region: String = "all", round: Int)
 
-GET         /large/user/:user/rate/:rate/region/:region/index/:index            controllers.Gallery.large(user: Int, rate: Int, index: Int, region: String)
+GET         /byrate/round/:round/user/:user/region/:region/page/:page               controllers.Gallery.byRate(user: Int, page: Int, region: String, round: Int)
 
-GET         /large/rate/:rate/index/:index/select/:select                       controllers.Gallery.select(rate:Int, index: Int, select: Int, region: String = "all")
+GET         /byrate/round/:round/user/:user/region/:region/pageid/:pageid           controllers.Gallery.byRateAt(user: Int, pageid: Long, region: String, round: Int)
 
-GET         /large/rate/:rate/region/:region/index/:index/select/:select        controllers.Gallery.select(rate:Int, index: Int, select: Int, region: String)
+GET         /gallery/user/:user/page/:page                                          controllers.Gallery.list(user: Int, page: Int, region: String = "all", round: Int = 0, rate: Option[Int] ?= None)
 
-GET         /large/rate/:rate/pageid/:pageId/select/:select                       controllers.Gallery.selectByPageId(rate:Int, pageId: Long, select: Int, region: String = "all")
+GET         /gallery/user/:user/region/:region/page/:page                           controllers.Gallery.list(user: Int, page: Int, region: String, round: Int = 0, rate: Option[Int] ?= None)
 
-GET         /large/rate/:rate/region/:region/pageid/:pageId/select/:select        controllers.Gallery.selectByPageId(rate:Int, pageId: Long, select: Int, region: String)
+GET         /gallery/round/:round/user/:user/page/:page                             controllers.Gallery.list(user: Int, page: Int, region: String = "all", round: Int, rate: Option[Int] ?= None)
 
-GET         /gallery/rate/:rate/page/:page                                      controllers.Gallery.listCurrent(rate: Int, page: Int, region: String = "all")
+GET         /gallery/round/:round/user/:user/region/:region/page/:page              controllers.Gallery.list(user: Int, page: Int, region: String, round: Int, rate: Option[Int] ?= None)
 
-GET         /gallery/rate/:rate/region/:region/page/:page                       controllers.Gallery.listCurrent(rate: Int, page: Int, region: String)
+GET         /gallery/round/:round/user/:user/region/:region/pageid/:pageid          controllers.Gallery.listAtId(user: Int, pageid: Long, region: String, round: Int, rate: Option[Int] ?= None)
 
-GET         /large/rate/:rate/index/:index                                      controllers.Gallery.largeCurrent(rate: Int, index: Int, region: String = "all")
+GET         /gallery/round/:round/users/:users/page/:page                           controllers.Gallery.listByNumber(users: Int, page: Int, region: String = "all", round: Int, rate: Option[Int] ?= None)
 
-GET         /large/rate/:rate/region/:region/index/:index                       controllers.Gallery.largeCurrent(rate: Int, index: Int, region: String)
+GET         /gallery/round/:round/users/:users/region/:region/page/:page            controllers.Gallery.listByNumber(users: Int, page: Int, region: String, round: Int, rate: Option[Int] ?= None)
 
-GET         /admin/users                                                        controllers.Admin.users()
+GET         /filelist/user/:user/page/:page                                         controllers.Gallery.fileList(user: Int, page: Int, region: String = "all", round: Int = 0, format:String ?= "wiki", rate: Option[Int] ?= None)
 
-GET         /users/edit/:id                                                     controllers.Admin.editUser(id: String)
+GET         /filelist/user/:user/region/:region/page/:page                          controllers.Gallery.fileList(user: Int, page: Int, region: String, round: Int = 0, format:String ?= "wiki", rate: Option[Int] ?= None)
 
-POST        /users/save                                                         controllers.Admin.saveUser()
+GET         /filelist/round/:round/user/:user/page/:page                            controllers.Gallery.fileList(user: Int, page: Int, region: String = "all", round: Int, format:String ?= "wiki", rate: Option[Int] ?= None)
 
-POST        /users/resetpasswd/:id                                              controllers.Admin.resetPassword(id: String)
+GET         /filelist/round/:round/user/:user/region/:region/page/:page             controllers.Gallery.fileList(user: Int, page: Int, region: String, round: Int, format:String ?= "wiki", rate: Option[Int] ?= None)
 
-GET         /admin/rounds                                                       controllers.Admin.rounds()
+GET         /large/user/:user/pageid/:pageid                                        controllers.Gallery.large(user: Int, pageid: Long, region: String = "all", round:Int = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
 
-GET         /admin/rounds/edit/:id                                              controllers.Admin.editRound(id: String)
+GET         /large/user/:user/region/:region/pageid/:pageid                         controllers.Gallery.large(user: Int, pageid: Long, region: String, round:Int = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
 
-POST        /admin/rounds/save                                                  controllers.Admin.saveRound()
+GET         /large/round/:round/user/:user/pageid/:pageid                           controllers.Gallery.large(user: Int, pageid: Long, region: String = "all", round:Int, rate: Option[Int] ?= None, module: String ?= "gallery")
 
-POST        /admin/setimages                                                    controllers.Admin.setImages()
+GET         /large/round/:round/user/:user/region/:region/pageid/:pageid            controllers.Gallery.large(user: Int, pageid: Long, region: String,round:Int, rate: Option[Int] ?= None, module: String ?= "gallery")
 
-POST        /admin/setround                                                     controllers.Admin.setRound()
+GET         /large/round/:round/pageid/:pageId/select/:select                       controllers.Gallery.selectByPageId(round: Int, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery")
 
-GET         /roundstat                                                          controllers.Rounds.roundStat()
+GET         /large/round/:round/region/:region/pageid/:pageId/select/:select        controllers.Gallery.selectByPageId(round: Int,pageId: Long, select: Int, region: String, rate: Option[Int] ?= None, module: String ?= "gallery")
 
+GET         /gallery/page/:page                                                     controllers.Gallery.listCurrent(page: Int, region: String = "all", rate: Option[Int] ?= None)
+
+GET         /gallery/region/:region/page/:page                                      controllers.Gallery.listCurrent(page: Int, region: String, rate: Option[Int] ?= None)
+
+GET         /large/pageid/:pageid                                                   controllers.Gallery.largeCurrent(pageid: Long, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery")
+
+GET         /large/region/:region/pageid/:pageid                                    controllers.Gallery.largeCurrent(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery")
+
+GET         /admin/users                                                            controllers.Admin.users()
+
+GET         /users/edit/:id                                                         controllers.Admin.editUser(id: String)
+
+POST        /users/save                                                             controllers.Admin.saveUser()
+
+POST        /users/resetpasswd/:id                                                  controllers.Admin.resetPassword(id: String)
+
+GET         /admin/rounds                                                           controllers.Admin.rounds()
+
+GET         /admin/rounds/edit/:id                                                  controllers.Admin.editRound(id: String)
+
+POST        /admin/rounds/save                                                      controllers.Admin.saveRound()
+
+POST        /admin/setimages                                                        controllers.Admin.setImages()
+
+POST        /admin/setround                                                         controllers.Admin.setRound()
+
+GET         /roundstat                                                              controllers.Rounds.currentRoundStat()
+
+GET         /roundstat/:round                                                       controllers.Rounds.roundStat(round: Int)
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)
 
-#GET         /largeRound/:round/:region/:index                    controllers.Gallery.largeRound2(region: String, index:Int, round:Int)
+#GET         /largeRound/:round/:region/:pageid                    controllers.Gallery.largeRound2(region: String, pageid:Int, round:Int)
 
 #GET         /selectRound/:round/:region/:pageId                  controllers.Gallery.selectRound2(region: String, pageId:Long, round:Int)
 

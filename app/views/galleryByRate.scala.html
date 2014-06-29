@@ -1,0 +1,68 @@
+@(
+        user: org.intracer.wmua.User,
+        asUserId: Int,
+        asUser: org.intracer.wmua.User,
+        pageFiles: Seq[org.intracer.wmua.ImageWithRating],
+        regionFiles: Seq[org.intracer.wmua.ImageWithRating],
+        allFiles: Seq[org.intracer.wmua.ImageWithRating],
+        page: Int,
+        round: org.intracer.wmua.Round,
+        region: String = "all",
+        byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang)
+
+    @showStar(star: Int, rate: Int) = {
+    @if((rate/2) >= star){/assets/images/star-on-big.png}
+    @if(rate < star*2 && rate>(star-1)*2){/assets/images/star-half-big.png}
+    @if(rate <= (star-1)*2){/assets/images/star-off-big.png}
+    }
+
+    @showRate(file: org.intracer.wmua.ImageWithRating, index: Int) = {
+       <div style="margin-bottom: 10px; color: #ffffff;"> <b>@index. </b>
+       <span style="margin-left: 5px; margin-right: 10px;">
+        @for(i <- 1 to 5) {
+            <img alt="@i" src="@showStar(i, file.totalRate.toInt)">
+            }
+            @file.rateString
+        </span>
+        </div>
+    }
+
+@main("byrate", user, asUserId, asUser, allFiles, org.intracer.wmua.Round.activeRounds, true, None, region, pager(asUserId, regionFiles, page, None, round.id.toInt, region, "byrate"))  {
+
+
+    <div class="row-fluid" >
+        <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">
+            <ul>
+                <li><a href="/byrate/round/@round.id/user/@asUserId/page/1" @if("all" == region){style="font-weight: bold"}>*</a></li>
+                @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id,0) > 0) {
+
+                    <li><a href="/byrate/round/@round.id/user/@asUserId/region/@id/page/1" @if(id == region){style="font-weight: bold"}>@name (@byRegion(id))</a></li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="row-fluid" >
+
+        <ul class="gallery mw-gallery-traditional">
+           @defining(pageFiles.headOption.map(head => regionFiles.indexWhere(_.pageId == head.pageId)).getOrElse(0)) {start =>
+            @for((file, index) <- pageFiles.view.zipWithIndex) {
+                <li class="gallerybox">
+                    <h1 id="@file.pageId" style="display: inline; width: 1px; height: 1px"></h1>
+
+                    <div class="thumb">
+                        <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.toInt, None, "byrate")" >
+                            <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.pageId, Gallery.UrlInProgress)">
+                        </a>
+                    </div>
+
+                    @showRate(file, index+start+1)
+
+                </li>
+            }
+           }
+
+        </ul>
+
+    </div>
+    }

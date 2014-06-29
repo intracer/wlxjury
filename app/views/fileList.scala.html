@@ -1,0 +1,48 @@
+@(
+        user: org.intracer.wmua.User,
+        asUserId: Int,
+        asUser: org.intracer.wmua.User,
+        pageFiles: Seq[org.intracer.wmua.ImageWithRating],
+        regionFiles: Seq[org.intracer.wmua.ImageWithRating],
+        allFiles: Seq[org.intracer.wmua.ImageWithRating],
+        page: Int,
+        round: org.intracer.wmua.Round,
+        rate: Option[Int],
+        region: String = "all",
+        byRegion: Map[String, Int],
+        format1:String = "wiki")(implicit flash: Flash, lang: Lang)
+
+@main("filelist", user, asUserId, asUser, allFiles, Seq(round), false, rate, region) {
+
+    <div class="row-fluid" >
+        <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">
+            <ul>
+                <li><a href="/filelist/round/@round.id/user/@asUserId/page/1@rateParam(rate)" @if("all" == region){style="font-weight: bold"}>*</a></li>
+                @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id,0) > 0) {
+
+                    <li><a href="/filelist/round/@round.id/user/@asUserId/region/@id/page/1@rateParam(rate)" @if(id == region){style="font-weight: bold"}>@name (@byRegion(id))</a></li>
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="row-fluid" >
+
+        <div contenteditable="true">
+            @defining(s"<!-- Wiki Loves Eath 2014, " +
+                    s"Round ${round.description}, " +
+                    s"Juror: ${Option(asUser).fold("All")(u =>  u.fullname)} " +
+                    s"${KOATUU.regions.get(region).fold("")(name => s", Region: $name")}. --> ") {t => @t <br/>}
+        @for((file, index) <- pageFiles.view.zipWithIndex) {
+            @format1 match {
+                case "wiki" => {
+                    <a href="https://commons.wikimedia.org/wiki/@file.title">@file.title</a> <br/>
+                }
+                case "html" => {
+                    @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}"><img src="${controllers.Global.galleryUrls(file.pageId)}"></a>""") { str => @str <br/> }
+                }
+            }
+        }
+        </div>
+    </div>
+}

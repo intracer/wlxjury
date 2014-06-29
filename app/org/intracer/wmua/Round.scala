@@ -40,6 +40,8 @@ object Round extends SQLSyntaxSupport[Round] {
 
   override val tableName = "rounds"
 
+  def activeRounds = findByContest(14).takeRight(2)
+
   def current(user: User) = {
     val contest = Contest.byId(user.contest).get
     Round.find(contest.currentRound).getOrElse(new Round(0, 0, None, 14, Set("jury"), 1, binaryRound, 1, 1, None))

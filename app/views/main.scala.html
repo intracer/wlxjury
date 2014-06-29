@@ -2,15 +2,15 @@
         title: String,
         user: org.intracer.wmua.User = null,
         asUserId: Int = 0,
-        currentFiles: Seq[org.intracer.wmua.ImageWithRating] = Seq.empty,
+        asUser: org.intracer.wmua.User = null,
         allFiles: Seq[org.intracer.wmua.ImageWithRating] = Seq.empty,
-        page: Int = 0,
-        roundOption: Option[org.intracer.wmua.Round] = None,
-        gallery: Boolean = true,
-        rate: Int = 0,
+        currentRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
+        gallery: Boolean = false,
+        rate: Option[Int] = None,
         region: String = "all",
-        byRegion: Map[String, Int] = Map.empty)(content: Html)(implicit lang: Lang)
-
+//        menu: Html = Html.empty,
+        pager: Html = Html.empty)(content: Html)()(implicit lang: Lang)
+@import org.intracer.wmua.Round
 <!DOCTYPE html>
 
 <html>
@@ -25,82 +25,101 @@
         <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.js"></script>
 
         <style>
-            body {
-            padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-            }
+        body {
+        padding-top : 60px ; /* 60px to make the container go all the way to the bottom of the topbar */
+        }
         </style>
 
-    </head>
-    <body @if(gallery) { class="gallery" } >
-        <div class="navbar navbar-inverse navbar-fixed-top">
-            <div class="navbar-inner">
-                <div class="container-fluid" style="margin-left:5px; margin-right:5px">
-                    <div class="nav-collapse collapse">
-                        <ul class="nav">
-                @if(user!=null) {
-                    @if(user.roles.contains("admin")) {
-                        <li><a class="brand" style="margin-top : 5px" href="/admin/users">@Messages("users")</a>
-                        <li><a class="brand" style="margin-top : 5px" href="/admin/rounds">@Messages("rounds")</a>
-                    }
-                    @if(user.roles.intersect(Set("organizer", "admin")).nonEmpty ) {
-                        <li><a class="brand" style="margin-top : 5px" href="/roundstat">@Messages("Statistic")</a>
-                      }
 
-                    @for(round <- roundOption
-                        if asUserId == user.id && round.roles.intersect(user.roles).nonEmpty) {
-                        <li class="brand" style="margin-top : 5px">@Messages(s"Round ${round.description}")</li>
-                        @if(true || round.number == 0) {
-                            <li class="@if(rate == 0){active}"> <a style="margin-top: 5px" href="/gallery/user/@asUserId/rate/0/page/1">@Messages("unrated") (@allFiles.count(_.rate == 0))</a>
-                            <li class="@if(rate == 1){active active-}selected"><a style="margin-top: 5px;" href="/gallery/user/@asUserId/rate/1/page/1">@Messages("selected") (@allFiles.count(_.rate == 1))</a>
-                            <li class="@if(rate == -1){active active-}rejected"><a style="margin-top: 5px;" href="/gallery/user/@asUserId/rate/-1/page/1">@Messages("rejected") (@allFiles.count(_.rate == -1))</a>
-                        } else {
-                            <li><a class="brand" style="margin-top : 5px ; color : #d8d8d8" href="/round/@round.number/01">@Messages("All")</a>
-                            <li><a class="brand" style="margin-top : 5px ; color : #d8d8d8" href="/round/@{
-                                round.number + 1
-                            }/01">@Messages("Selected")</a>
+    </head>
+
+    <body @if(gallery) {class="gallery"} >
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container-fluid" style="margin-left : 5px ; margin-right : 5px">
+                <div class="nav-collapse collapse">
+                    <ul class="nav">
+                    @if(user != null) {
+                        @if(user.roles.contains("admin")) {
+                            <li><a class="brand" style="margin-top : 5px" href="/admin/users">@Messages("users")</a>
+                            <li><a class="brand" style="margin-top : 5px" href="/admin/rounds">@Messages("rounds")</a>
+                                }
+                        @if(user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
+                            <li><a class="brand" style="margin-top : 5px" href="/roundstat">@Messages("Statistics")</a>
+                                }
+
+                        @for(round <- currentRounds
+                            if (asUserId == 0 || asUserId == user.id) && round.roles.intersect(user.roles).nonEmpty) {
+                            <li class="brand" style="margin-top : 5px">@Messages(s"Round ${round.description}")</li>
+                            @if(round.rates == Round.binaryRound) {
+                                <li class="@if(rate == Some(0)){active}">
+                                    <a style="margin-top: 5px" href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(0))">@Messages("unrated") (@user.roundFiles(round.id).count(_.rate == 0))</a>
+                                <li class="@if(rate == Some(1)){active active-}selected">
+                                    <a style="margin-top: 5px;" href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(1))">@Messages("selected") (@user.roundFiles(round.id).count(_.rate == 1))</a>
+                                <li class="@if(rate == Some(-1)){active active-}rejected">
+                                    <a style="margin-top: 5px;" href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(-1))">@Messages("rejected") (@user.roundFiles(round.id).count(_.rate == -1))</a>
+                                    } else {
+                                <li class="@if(rate == Some(0)) {active}">
+                                    <a style="margin-top : 5px" href="/@title/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
+                                    (@allFiles.count(_.rate == 0))</a>
+                                <li class="@if(rate != Some(0) && asUserId == user.id.toInt) {active}">
+                                    <a style="margin-top : 5px ;" href="/byrate/round/@round.id/user/@user.id/page/1">@Messages("Rated")
+                                    (@allFiles.count(_.rate > 0))</a>
+                                <li class="@if(rate != Some(0) && asUserId == 0) {active}">
+                                    <a style="margin-top : 5px ;" href="/byrate/round/@round.id/user/0/page/1">@Messages("Total (all jury) rating")
+                                    (@allFiles.count(_.rate > 0))</a>
+                                    }
                         }
-                    }
-                    } else {
-                    <a class="brand" style="margin-top:5px" href="#">@Messages("application.name")</a>
-                }
+
+                        @if(user.id != asUserId && user.roles.contains("organizer")) {
+                            <li class="brand" style="margin-top : 5px">
+                                Round @currentRounds.map(_.description).mkString(", ")
+                            </li>
+                        <li>
+                        <div class="btn-group" style="margin-top:10px">
+                            <a class="btn" href="#">@if(asUserId != 0){ @asUser.fullname } else {@Messages("All")}</a>
+                            <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                @for(round <- currentRounds) {
+                                    @for(juror <- round.jurors) {
+                                        <li><a href="/@title/round/@round.id/user/@juror.id/region/@region/page/1@rateParam(rate)">@juror.fullname</a></li>
+                                    }
+                                    <li><a href="/@title/round/@round.id/user/0/region/@region/page/1@rateParam(rate)">@Messages("All")</a></li>
+                                }
                             </ul>
                         </div>
-                    @logged(user)
-                    <div>
-
-                        @if(page!=0 && Pager.pages(currentFiles) > 1) {
-                        <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">
-                          <ul>
-                              @if(page > 1){
-                                <li><a href="/gallery/user/@asUserId/@{page-1}">&laquo;</a></li>
-                              } else {
-                                  <li class="disabled"><a href="#" style="color: #999999; background-color: #f5f5f5;">&laquo;</a></li>
-                              }
-                              @for(i <- 1 to Pager.pages(currentFiles)) {
-                                  @if(i == page) {
-                                      <li class="active"><a href="/gallery/user/@asUserId/rate/@rate/region/@region/page/@i">@i</a></li>
-                                  } else {
-                                      <li><a href="/gallery/user/@asUserId/rate/@rate/region/@region/page/@i">@i</a></li>
-                                  }
-                              }
-                              @if(page < Pager.pages(currentFiles)){
-                                <li><a href="/gallery/user/@asUserId/rate/@rate/page/@{page+1}">&raquo;</a></li>
-                              } else {
-                                  <li class="disabled"><a href="#" style="color: #999999; background-color: #f5f5f5;">&raquo;</a></li>
-                              }
-                          </ul>
-                        </div>
+                            <div class="btn-group" style="margin-top:10px">
+                                <a class="btn" href="#">@Map(1 -> "Selected", 0 -> "Unrated",-1 -> "Rejected")(rate.getOrElse(0))</a>
+                                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                @for((rateName, rate) <- Seq(("Selected", Some(1)),("Unrated", Some(0)),("Rejected", Some(-1)))) {
+                                        <li><a href="/@title/round/@currentRounds.head.id/user/@asUserId/region/@region/page/1@rateParam(rate)">@rateName</a></li>
+                                }
+                                </ul>
+                            </div>
+                                <div class="btn-group" style="margin-top:12px">
+                                    <a href="/gallery/round/@currentRounds.head.id/user/@asUserId/region/@region/page/1@rateParam(rate)"><div class="btn btn-small"><i class="icon-th"></i></div></a>
+                                    <a href="/filelist/round/@currentRounds.head.id/user/@asUserId/region/@region/page/1@rateParam(rate)"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
+                                </div>
+                            </li>
                         }
 
-                    </div>
+                    } else {
+                        <a class="brand" style="margin-top : 5px" href="#">@Messages("application.name")</a>
+                    }
+                    </ul>
                 </div>
+                @logged(user)
+                @pager
+
             </div>
         </div>
+     </div>
 
-        <div class="container-fluid" style="margin-left:0px; margin-right:0px">
+     <div class="container-fluid" style="margin-left : 0px ; margin-right : 0px">
 
         @content
 
-        </div>
-    </body>
+     </div>
+  </body>
 </html>

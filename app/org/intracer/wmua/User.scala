@@ -1,14 +1,14 @@
 package org.intracer.wmua
 
-import _root_.play.cache.Cache
-import java.security.MessageDigest
 import java.math.BigInteger
-import scala.collection.mutable
-import controllers.Gallery
+import java.security.MessageDigest
 
-import scalikejdbc._
+import _root_.play.cache.Cache
+import controllers.Gallery
 import org.joda.time.DateTime
-import scalikejdbc.WrappedResultSet
+import scalikejdbc._
+
+import scala.collection.mutable
 
 case class User(fullname: String, email: String, id: Long,
                 roles: Set[String] = Set.empty, password: Option[String] = None, contest: Int,
@@ -19,6 +19,8 @@ case class User(fullname: String, email: String, id: Long,
                 deletedAt: Option[DateTime] = None) {
 
   def emailLo = email.trim.toLowerCase
+
+  def roundFiles(roundId: Long) = Gallery.userFiles(this, roundId)
 
 //    def withFiles(files: Seq[ImageWithRating]) = this.copy(files = files)
 
@@ -70,11 +72,6 @@ object User extends SQLSyntaxSupport[User] {
     }
 
     for (user <- userOpt) {
-
-      val files = Gallery.userFiles(user)
-
-      val filesById = files.groupBy(_.pageId)
-
       val contest = Contest.find(user.contest).head
       Cache.set(s"contest/${contest.id}", contest)
       Cache.set(s"user/${user.email}", user)

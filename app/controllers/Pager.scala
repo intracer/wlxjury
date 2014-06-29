@@ -1,8 +1,10 @@
 package controllers
 
-import org.intracer.wmua.{ImageWithRating, User}
+import org.intracer.wmua.{Round, ImageWithRating, User}
 
 class Pager(files: Seq[ImageWithRating]) {
+
+  def at(pageId: Long) = files.indexWhere(_.pageId == pageId) / (filesPerPage + 1) + 1
 
   def filesPerPage = files.size / pages
 
@@ -16,8 +18,8 @@ object Pager {
 
   def pages[T](files: Seq[T]) = Math.max(Math.min(10, files.size / 20), 1)
 
-  def filesPerPage(user: User): Int = {
-    val files: Seq[ImageWithRating] = Gallery.userFiles(user)
+  def filesPerPage(user: User, round: Round): Int = {
+    val files: Seq[ImageWithRating] = Gallery.userFiles(user, round.id)
     files.size / pages(files)
   }
 

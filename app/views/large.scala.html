@@ -6,44 +6,49 @@
         start: Int,
         end: Int,
         page: Int,
-        rate: Int,
+        rate: Option[Int],
         region: String = "all",
-        monument: Option[client.wlx.Monument])(
-        implicit flash: Flash, lang: Lang)
+        round: org.intracer.wmua.Round,
+        monument: Option[client.wlx.Monument],
+        module : String = "gallery")(
+        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
 @import org.intracer.wmua.ImageWithRating
 @import client.wlx.Monument
+@import  org.intracer.wmua.Round
     @button(btnClass: String, iconClass:String) = {
         <div class="@btnClass"><i class="@iconClass"></i></div>
     }
 
-    @optionalButton(condition: () => Boolean, link:String, icon: String, clazz: String) = {
+    @optionalButton(condition: () => Boolean, link: ()=> String, icon: String, clazz: String) = {
         @if(condition()) {
-            <a href="@link"> @button(s"btn $clazz", icon)</a>
+            <a href="@link.apply()"> @button(s"btn $clazz", icon)</a>
         } else {
             @button(s"btn disabled $clazz", icon)
         }
     }
 
     @buttonGallery() = {
-        <a href="/gallery/user/@asUserId/rate/@rate/region/@region/page/@{1 + index/(Pager.filesPerPage(files) + 1)}#@index">@button("btn btn-small", "icon-th")</a>
+        <a href="/@module/round/@round.id/user/@asUserId/region/@region/pageid/@files(index).pageId@rateParam(rate)#@files(index).pageId">@button("btn btn-small", "icon-th")</a>
     }
 
     @buttonUp() = {
-        @optionalButton(() => index > 0, s"/large/user/$asUserId/rate/$rate/region/$region/index/${index-1}", "icon-chevron-up", "btn-small")
+        @optionalButton(() => index > 0,
+            () => routes.Gallery.large(asUserId, files(index-1).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request),
+        "icon-chevron-up", "btn-small")
     }
 
     @buttonDown() = {
-        @optionalButton(() => index < files.size-1, s"/large/user/$asUserId/rate/$rate/region/$region/index/${index+1}", "icon-chevron-down", "btn-small")
+        @optionalButton(() => index < files.size-1, () => routes.Gallery.large(asUserId, files(index+1).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request), "icon-chevron-down", "btn-small")
     }
 
     @buttonSelect() = {
         @if(files(index).rate <=0 ) {
-            <a href="/large/rate/@rate/region/@region/pageid/@files(index).pageId/select/1">
+            <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/1@{rateParam(rate)}">
             @button("btn btn-success btn-small", "icon-ok icon-white")
             </a>
         }
         @if(files(index).rate >=0 ) {
-            <a href="/large/rate/@rate/region/@region/pageid/@files(index).pageId/select/-1">
+            <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/-1@{rateParam(rate)}">
                 @button("btn btn-danger btn-small", "icon-ban-circle icon-white")
             </a>
         }
@@ -53,17 +58,26 @@
         <div class="@style">
     }
 
-    @main_large(Messages("gallery"), user) {
+    @main_large(module,
+    user,
+    files(index).totalRate / 2.0,
+    s"/large/round/${round.id.toInt}/region/$region/pageid/${files(index).pageId}/select/", user.id.toInt != asUserId, rate) {
         <div class="container-fluid" style="padding-left:5px; margin-left:0px; margin-right:0px">
             <div class="row-fluid">
        <div class="span2" style="margin-left:0px; min-width: 185px">
-           <div class="btn-group" style="margin-top:5px;">
+           <div class="btn-group" style="margin:10px;">
                @buttonGallery()
                @buttonUp()
                @buttonDown()
-               @if(user.id == asUserId) {
-                   @buttonSelect()
-               }
+
+                   @if(round.rates == Round.binaryRound) {
+                       @if(user.id.toInt == asUserId) {
+                           @buttonSelect()
+                       }
+                   } else {
+                       <div id="rate-image" style="margin-top:10px;"></div>
+                      <!-- <input type="text" id="scoretarget"/> -->
+                   }
            </div>
 
         <ul class="gallery mw-gallery-traditional">
@@ -71,8 +85,7 @@
                 <li class="gallerybox">
 
                        @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
-
-                        <div style="margin:5px auto;"><a href="/large/user/@asUserId/rate/@rate/region/@region/index/@i">
+                        <div style="margin:5px auto;"><a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.toInt, rate, module)">
                             <img width="150" height="120" class="cropped" alt="@file.title" src="@controllers.Global.thumbUrls.getOrElse(file.pageId, Gallery.UrlInProgress)" >
                         </a>
                         </div>
@@ -92,7 +105,7 @@
 
        <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
 
-      <a href="https://commons.wikimedia.org/wiki/@files(index).title"> <img alt="@files(index).title" src="@controllers.Global.largeUrls.getOrElse(files(index).pageId, Gallery.UrlInProgress)" style="max-width:100%; height:auto;"> </a>
+      <a href="https://commons.wikimedia.org/wiki/@files(index).title" target="_blank"> <img alt="@files(index).title" src="@controllers.Global.largeUrls.getOrElse(files(index).pageId, Gallery.UrlInProgress)" style="max-width:100%; height:auto;"> </a>
 
        </div>
     </div>

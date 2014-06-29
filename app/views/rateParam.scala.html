@@ -1,0 +1,1 @@
+@(rate: Option[Int], default: String = "", prefix: String = "?")@rate.fold(default)(prefix + "rate=" + _)

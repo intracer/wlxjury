@@ -5,7 +5,7 @@
 @implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render(_, lang)) }
 
 
-@main(Messages("edit user"), user, user.id.toInt, Seq.empty, Seq.empty, 0, Some(round), gallery = false) {
+@main(Messages("edit user"), user, user.id.toInt) {
     <div class="row-fluid" >
 
         @if(editUserForm("id").value != Some("0")) {

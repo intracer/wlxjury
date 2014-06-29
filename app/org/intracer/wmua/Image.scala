@@ -12,6 +12,8 @@ case class Image(pageId: Long, contest: Long, title: String,
 
   def compare(that: Image) =  (this.pageId - that.pageId).signum
 
+  def region: Option[String] = monumentId.map(_.split("-")(0))
+
 }
 
 object Image extends SQLSyntaxSupport[Image] {
@@ -145,4 +147,25 @@ object Image extends SQLSyntaxSupport[Image] {
       .eq(Selection.s.round, roundId)
     //      .append(isNotDeleted)
   }.map(rs => (Image(c)(rs), Selection(Selection.s)(rs))).list.apply().map{case (i,s ) => ImageWithRating(i,Seq(s))}
+
+  def byRound(roundId: Long)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
+    select.from(Image as c)
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.round, roundId)
+    //      .append(isNotDeleted)
+  }.map(rs => (Image(c)(rs), Selection(Selection.s)(rs))).list.apply().map{case (i,s ) => ImageWithRating(i,Seq(s))}
+
+  def byRatingMerged(rate: Int, round: Int): Seq[ImageWithRating] = {
+    val raw = Image.byRating(round, rate)
+    val merged = raw.groupBy(_.pageId).mapValues(iws => new ImageWithRating(iws.head.image, iws.map(_.selection.head)))
+    merged.values.toSeq
+  }
+
+  def byRoundMerged(round: Int): Seq[ImageWithRating] = {
+    val raw = Image.byRound(round)
+    val merged = raw.groupBy(_.pageId).mapValues(iws => new ImageWithRating(iws.head.image, iws.map(_.selection.head)))
+    merged.values.toSeq
+  }
+
+
 }
