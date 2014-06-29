@@ -36,7 +36,7 @@
                 <li><a href="/byrate/round/@round.id/user/@asUserId/page/1" @if("all" == region){style="font-weight: bold"}>*</a></li>
                 @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id,0) > 0) {
 
-                    <li><a href="/byrate/round/@round.id/user/@asUserId/region/@id/page/1" @if(id == region){style="font-weight: bold"}>@name (@byRegion(id))</a></li>
+                    <li><a href="/byrate/round/@round.id/user/@asUserId/region/@id/page/1" @if(id == region){style="font-weight: bold"}>@Messages(id) (@byRegion(id))</a></li>
                 }
             </ul>
         </div>

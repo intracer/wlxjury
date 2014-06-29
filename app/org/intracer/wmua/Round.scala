@@ -21,7 +21,7 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
 
   def allImages = if (number == 1) Image.findByContest(contest) else Image.bySelection(id)
 
-  def description = name.fold(number.toString)(s => s"$number. $s")
+  def description:String = name.fold(number.toString)(s => s)
 }
 
 

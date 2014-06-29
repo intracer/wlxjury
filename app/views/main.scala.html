@@ -16,6 +16,7 @@
 <html>
     <head>
         <title>@title</title>
+        <meta charset="UTF-8">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
 
         <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
@@ -50,7 +51,7 @@
 
                         @for(round <- currentRounds
                             if (asUserId == 0 || asUserId == user.id) && round.roles.intersect(user.roles).nonEmpty) {
-                            <li class="brand" style="margin-top : 5px">@Messages(s"Round ${round.description}")</li>
+                            <li class="brand" style="margin-top : 5px; margin-left: 10px">@Messages(round.description)</li>
                             @if(round.rates == Round.binaryRound) {
                                 <li class="@if(rate == Some(0)){active}">
                                     <a style="margin-top: 5px" href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(0))">@Messages("unrated") (@user.roundFiles(round.id).count(_.rate == 0))</a>
@@ -59,21 +60,23 @@
                                 <li class="@if(rate == Some(-1)){active active-}rejected">
                                     <a style="margin-top: 5px;" href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(-1))">@Messages("rejected") (@user.roundFiles(round.id).count(_.rate == -1))</a>
                                     } else {
-                                <li class="@if(rate == Some(0)) {active}">
-                                    <a style="margin-top : 5px" href="/@title/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
-                                    (@allFiles.count(_.rate == 0))</a>
+                                @if(user.roundFiles(round.id).count(_.rate == 0) > 0) {
+                                    <li class="@if(rate == Some(0)) {active}">
+                                        <a style="margin-top : 5px" href="/@title/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
+                                            (@user.roundFiles(round.id).count(_.rate == 0))</a>
+                                    }
                                 <li class="@if(rate != Some(0) && asUserId == user.id.toInt) {active}">
-                                    <a style="margin-top : 5px ;" href="/byrate/round/@round.id/user/@user.id/page/1">@Messages("Rated")
-                                    (@allFiles.count(_.rate > 0))</a>
+                                    <a style="margin-top : 5px ;" href="/byrate/round/@round.id/user/@user.id/page/1">@Messages("rated")
+                                    (@user.roundFiles(round.id).count(_.rate > 0))</a>
                                 <li class="@if(rate != Some(0) && asUserId == 0) {active}">
-                                    <a style="margin-top : 5px ;" href="/byrate/round/@round.id/user/0/page/1">@Messages("Total (all jury) rating")
-                                    (@allFiles.count(_.rate > 0))</a>
+                                    <a style="margin-top : 5px ;" href="/byrate/round/@round.id/user/0/page/1">@Messages("all.jury.rating")
+                                    (@user.roundFiles(round.id).count(_.rate > 0))</a>
                                     }
                         }
 
                         @if(user.id != asUserId && user.roles.contains("organizer")) {
                             <li class="brand" style="margin-top : 5px">
-                                Round @currentRounds.map(_.description).mkString(", ")
+                                @currentRounds.map(_.description).mkString(", ")
                             </li>
                         <li>
                         <div class="btn-group" style="margin-top:10px">

@@ -1,34 +1,31 @@
-application.name=Jury Tool
+application.name=Жюри
 
-date=Date
-filter=Filter
+date=Дата
+filter=Фільтрувати
 
 title=Play20StartApp
 
-email=Email
-login=Login
+email=Почта
+login=Логин
 fullname=Full Name
-logout=Logout
-password=Password
-profile = Profile
+logout=Выйти
+password=Пароль
 
-users = Users
-rounds = Rounds
+users = Пользователи
+rounds = Раунды
 
-unrated = Unrated
-selected = Selected
-rejected = Rejected
-rated = Rated
-all.jury.rating = All jury rating
+unrated = Без оценки
+selected = Выбранные
+rejected = Отброшенные
+rated = С оценкой
+all.jury.rating = Суммарный выбор жюри
 
-top-x = Top 21
-regions = Regions
+top-x = Топ 21
 
-wiki.loves.earth = Wiki Loves Earth {0}
-wiki.loves.earth.Ukraine = Wiki Loves Earth {0} in Ukraine
-
-welcome.subject = Welcome to {0} jury
-welcome.messsage = Organizing committee of {0} is glad to welcome you as a jury member.\nPlease login to our jury tool {1} \nwith login: {2} and password: {3}\nRegards, {4}
+welcome.subject = Ласкаво просимо до журі {0}
+wiki.loves.earth = Вики любит Землю
+wiki.loves.earth.Ukraine = Вики любит Землю 2014 в Украине
+welcome.messsage = Організаційний комітет конкурсу {0} радий запросити Вас до журі.\nЗайдіть, будь ласка, за посиланням {1} \nіз логіном: {2} і паролем: {3}\nЗ повагою, {4}
 
 error.technical=Technical Error, please Retry
 validate=Validate
@@ -37,7 +34,7 @@ reset=Reset
 account.not.validated.check.mail=Account not validated. Check your emails.
 account.successfully.validated=Account successfully validated
 account.settings.email.successful=Email successfully validated ({0})
-invalid.user.or.password=Invalid user or password
+invalid.user.or.password=Невірний користувач або пароль
 youve.been.logged.out=You've been logged out
 error.sending.email=Error sending email
 error.sending.confirm.email=Error while sending confirmation mail
@@ -48,10 +45,10 @@ error.confirm=Confirmation failed
 error.expiredresetlink=This password reset has expired.
 error.expiredmaillink=This mail change has expired.
 
-signin.signin=Sign In
-signin.your.email=Your email address
-signin.your.login=Your login
-signin.your.password=Your password
+signin.signin=Войти
+signin.your.email=Ваша пошта
+signin.your.login=Ваш логин
+signin.your.password=Ваш пароль
 
 forgot.password=Forgot password ?
 
@@ -89,64 +86,38 @@ mail.reset.fail.message=You (or someone else) entered this email address when tr
 mail.reset.confirm.subject=Play20StartApp - New password
 mail.reset.confirm.message=Hello, <br><br> Your password has been reset.
 
+error.required=Обов'язкове поле
+error.email=Потрібна адреса пошти
 
-# Default messages
+dates = Дати
+total = Разом
 
-# --- Constraints
-constraint.required=Required
-constraint.min=Minimum value: {0}
-constraint.max=Maximum value: {0}
-constraint.minLength=Minimum length: {0}
-constraint.maxLength=Maximum length: {0}
-constraint.email=Email
-
-# --- Formats
-format.date=Date (''{0}'')
-format.numeric=Numeric
-format.real=Real
-
-# --- Errors
-error.invalid=Invalid value
-error.required=This field is required
-error.number=Numeric value expected
-error.real=Real number value expected
-error.real.precision=Real number value with no more than {0} digit(s) including {1} decimal(s) expected
-error.min=Must be greater or equal to {0}
-error.min.strict=Must be strictly greater than {0}
-error.max=Must be less or equal to {0}
-error.max.strict=Must be strictly less than {0}
-error.minLength=Minimum length is {0}
-error.maxLength=Maximum length is {0}
-error.email=Valid email required
-error.pattern=Must satisfy {0}
-
-dates = Dates
-total = Total
-
-80=Kyiv
-07=Volyn
-68=Khmelnytska
-05=Vinnytska
-35=Kirovohradska
-65=Khersonska
-63=Kharkivska
-01=Crimea
-32=Kyivska
-61=Ternopilska
-18=Zhytomyrksa
-48=Mykolayivska
-46=Lvivska
-14=Donetska
-44=Luhanska
-74=Chernihivska
-12=Dnipropetrovska
-73=Chernivetska
-71=Cherkaska
-59=Sumska
-26=Ivano-Frankivska
-56=Rivnenska
-85=Sevastopol
-23=Zaporizka
-53=Poltavska
-21=Zakarpatska
-51=Odeska
+80=Киев
+07=Волынская
+68=Хмельницкая
+05=Винницкая
+35=Кировоградская
+65=Херсонская
+63=Харковская
+01=АР Крым
+32=Киевская
+61=Тернопольская
+18=Житомирская
+48=Николаевская
+46=Львовская
+14=Донецкая
+44=Луганская
+74=Черниговская
+12=Днепропетровская
+73=Черновицкая
+71=Черкасская
+59=Сумская
+26=Ивано-Франковская
+56=Ровненская
+85=Севастополь
+23=Запорожськая
+53=Полтавская
+21=Закарпатская
+51=Одесская
+profile=Профиль
+regions=Регионы

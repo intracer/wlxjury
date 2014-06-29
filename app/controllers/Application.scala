@@ -1,6 +1,6 @@
 package controllers
 
-import org.intracer.wmua.User
+import org.intracer.wmua.{Round, User}
 import play.api.data.Forms._
 import play.api.data._
 import play.api.i18n.Lang
@@ -29,7 +29,8 @@ object Application extends Controller with Secured {
       value => {
         // binding success, you get the actual value
         val user = User.login(value._1, value._2).get
-        val result = Redirect(routes.Gallery.byRate(user.id.toInt, 1, "all", 0)).withSession(Security.username -> value._1.trim)
+        val round = Round.activeRounds.head
+        val result = Redirect(routes.Gallery.byRate(user.id.toInt, 1, "all", round.id.toInt)).withSession(Security.username -> value._1.trim)
         import play.api.Play.current
         user.lang.fold(result)(l => result.withLang(Lang(l)))
       }

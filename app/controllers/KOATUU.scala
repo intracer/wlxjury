@@ -1,10 +1,9 @@
 package controllers
 
-import java.util.Properties
 import java.io.FileReader
+import java.util.Properties
 
 import scala.collection.JavaConverters._
-import org.intracer.wmua.{ImageWithRating, Image}
 
 
 object KOATUU {
@@ -12,12 +11,12 @@ object KOATUU {
   final val regionProperties: Properties = new Properties
   var regions: Map[String, String] = Map[String, String]()
 
+//  val regionPropertiesLocal = Map[String, Properties]
 
   def load() {
     regionProperties.load(new FileReader(REGION_PROPERTIES))
 
     regions = regionProperties.asInstanceOf[java.util.Map[String, String]].asScala.toMap
-
   }
 
   def regionList = regions.map(x => x).toSeq.sortBy(_._1).map(_._2)
