@@ -62,7 +62,7 @@
                                     } else {
                                 @if(user.roundFiles(round.id).count(_.rate == 0) > 0) {
                                     <li class="@if(rate == Some(0)) {active}">
-                                        <a style="margin-top : 5px" href="/@title/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
+                                        <a style="margin-top : 5px" href="/gallery/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
                                             (@user.roundFiles(round.id).count(_.rate == 0))</a>
                                     }
                                 <li class="@if(rate != Some(0) && asUserId == user.id.toInt) {active}">

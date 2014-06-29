@@ -75,6 +75,13 @@ object Image extends SQLSyntaxSupport[Image] {
     }
   }
 
+  def updateResolution(pageId: Long, width: Int, height: Int)(implicit session: DBSession = autoSession): Unit = withSQL {
+    update(Image).set(
+      column.width -> width,
+      column.height -> height
+    ).where.eq(column.pageId, pageId)
+  }.update.apply()
+
   def findAll()(implicit session: DBSession = autoSession): List[Image] = withSQL {
     select.from(Image as c)
       //      .where.append(isNotDeleted)
