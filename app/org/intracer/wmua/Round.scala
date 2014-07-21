@@ -8,8 +8,8 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
                  roles: Set[String] = Set("jury"),
                  distribution: Int,
                  rates: Rates = Round.binaryRound,
-                 limitMin: Int,
-                 limitMax: Int,
+                 limitMin: Option[Int],
+                 limitMax: Option[Int],
                  recommended: Option[Int],
                  jury: Seq[User] = Seq.empty,
                  images: Seq[Page] = Seq.empty,
@@ -44,14 +44,14 @@ object Round extends SQLSyntaxSupport[Round] {
 
   def current(user: User) = {
     val contest = Contest.byId(user.contest).get
-    Round.find(contest.currentRound).getOrElse(new Round(0, 0, None, 14, Set("jury"), 1, binaryRound, 1, 1, None))
+    Round.find(contest.currentRound).getOrElse(new Round(0, 0, None, 14, Set("jury"), 1, binaryRound, Some(1), Some(1), None))
   }
 
   def applyEdit(id: Long, num: Int, name: Option[String], contest: Int, roles: String, distribution: Int,
-                rates: Int, limitMin: Int, limitMax: Int, recommended: Option[Int]) =
+                rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int]) =
     new Round(id, num, name, contest, Set(roles), distribution, ratesById(rates).head, limitMin, limitMax, recommended)
 
-  def unapplyEdit(round: Round): Option[(Long, Int, Option[String], Int, String, Int, Int, Int, Int, Option[Int])] = {
+  def unapplyEdit(round: Round): Option[(Long, Int, Option[String], Int, String, Int, Int, Option[Int], Option[Int], Option[Int])] = {
     Some((round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id, round.limitMin, round.limitMax, round.recommended))
   }
 
@@ -66,8 +66,8 @@ object Round extends SQLSyntaxSupport[Round] {
     distribution = rs.int(c.distribution),
     contest = rs.int(c.contest),
     rates = ratesById(rs.int(c.rates)).head,
-    limitMin = rs.int(c.limitMin),
-    limitMax = rs.int(c.limitMax),
+    limitMin = rs.intOpt(c.limitMin),
+    limitMax = rs.intOpt(c.limitMax),
     recommended = rs.intOpt(c.recommended),
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
@@ -94,7 +94,7 @@ object Round extends SQLSyntaxSupport[Round] {
   }.map(Round(c)).single.apply()
 
   def create(number: Int, name: Option[String], contest: Int, roles: String, distribution: Int,
-             rates: Int, limitMin: Int, limitMax: Int, recommended: Option[Int],
+             rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int],
              createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): Round = {
     val id = withSQL {
       insert.into(Round).namedValues(

@@ -39,7 +39,7 @@ object Tools {
     val rounds = Round.findByContest(contest.id)
     val newRoundNum = 5
     val round = if (rounds.size < newRoundNum) {
-      val r = Round.create(newRoundNum, Some(""), contest.id.toInt, "jury", 0, 1, 1, 1, None)
+      val r = Round.create(newRoundNum, Some(""), contest.id.toInt, "jury", 0, 1, Some(1), Some(1), None)
       Contest.setCurrentRound(contest.id.toInt, r.id.toInt)
       r
     } else {

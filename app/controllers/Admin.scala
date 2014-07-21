@@ -115,8 +115,8 @@ object Admin extends Controller with Secured {
       "roles" -> text(),
       "distribution" -> number,
       "rates" -> number,
-      "limitMin" -> number,
-      "limitMax" -> number,
+      "limitMin" -> optional(number),
+      "limitMax" -> optional(number),
       "recommended" -> optional(number)
     )(Round.applyEdit)(Round.unapplyEdit)
   )

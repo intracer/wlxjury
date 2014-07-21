@@ -6,7 +6,7 @@
 @import org.intracer.wmua.Round
 
 
-@main(Messages("edit user"), user, user.id.toInt) {
+@main(Messages("edit round"), user, user.id.toInt) {
     <div class="row-fluid" >
 
         @if(editRoundForm("id").value != Some("0")) {
@@ -39,11 +39,12 @@
 
         @select(editRoundForm("rates"), Round.rates.map(x => (x.id.toString,x.name)), '_label -> "Selection type", '_help -> "")
 
+<!--
         @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString,x.toString)), '_label -> "Min selected", '_help -> "")
 
         @select(editRoundForm("limitMax"), (1 to 50).map(x => (x.toString,x.toString)), '_label -> "Max selected", '_help -> "")
 
-        @select(editRoundForm("recommended"), (1 to 50).map(x => (x.toString,x.toString)), '_label -> "Recommended selected", '_help -> "")
+        @select(editRoundForm("recommended"), (1 to 50).map(x => (x.toString,x.toString)), '_label -> "Recommended selected", '_help -> "")  -->
 
     </fieldset>
 

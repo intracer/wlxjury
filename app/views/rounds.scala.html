@@ -61,9 +61,9 @@
                         <th width="10%">@Messages("Jury role") </th>
                         <th width="10%">@Messages("Image distribution") </th>
                         <th width="10%">@Messages("Selection type") </th>
-                        <th width="10%">@Messages("Min selected") </th>
+                            <!--                        <th width="10%">@Messages("Min selected") </th>
                         <th width="10%">@Messages("Max selected") </th>
-                        <th width="10%">@Messages("Recommended selected") </th>
+                        <th width="10%">@Messages("Recommended selected") </th> -->
                         <th width="10%">@Messages("Images")</th>
                         <th width="10%">@Messages("Selected")</th>
                     </tr>
@@ -78,9 +78,9 @@
                             <td>@round.roles.mkString(",") </td>
                             <td>@Seq("Each image to all jurors", "Each image to 1 juror", "Each image to 2 jurors")(round.distribution) </td>
                             <td>@round.rates.name </td>
-                            <td>@round.limitMin </td>
+<!--                            <td>@round.limitMin </td>
                             <td>@round.limitMax </td>
-                            <td>@round.recommended.fold("")(_.toString) </td>
+                            <td>@round.recommended.fold("")(_.toString) </td> -->
                             <td>@round.allImages.size </td>
                             <td>@Selection.byRoundSelected(round.id).filter(_.rate > 0).groupBy(_.pageId).size </td>
                         </tr>
@@ -118,7 +118,7 @@
                             <td>
                             @select(editRoundForm("rates"), Round.rates.map(x => (x.id.toString, x.name)), '_label -> "", '_help -> "", 'class -> "input-small")
                             </td>
-                            <td>
+<!--                            <td>
                             @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "", '_help -> "", 'class -> "input-small")
                             </td>
                             <td>
@@ -126,7 +126,7 @@
                             </td>
                             <td>
                             @select(editRoundForm("recommended"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "", '_help -> "", 'class -> "input-small")
-                            </td>
+                            </td>  -->
                             <td></td>
                             <td></td>
                         </tr>
