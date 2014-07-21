@@ -15,7 +15,7 @@ object Admin extends Controller with Secured {
   def users() = withAuth({
     user =>
       implicit request =>
-        val users = User.findAll()
+        val users = User.findByContest(user.contest)
 
         Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), Round.current(user)))
   }, Set(User.ADMIN_ROLE))

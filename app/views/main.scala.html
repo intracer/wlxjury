@@ -91,19 +91,28 @@
                                 }
                             </ul>
                         </div>
-                            <div class="btn-group" style="margin-top:10px">
-                                <a class="btn" href="#">@Map(1 -> "Selected", 0 -> "Unrated",-1 -> "Rejected")(rate.getOrElse(0))</a>
-                                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
-                                <ul class="dropdown-menu">
-                                @for((rateName, rate) <- Seq(("Selected", Some(1)),("Unrated", Some(0)),("Rejected", Some(-1)))) {
-                                        <li><a href="/@title/round/@currentRounds.head.id/user/@asUserId/region/@region/page/1@rateParam(rate)">@rateName</a></li>
+                            @for(round <- currentRounds) {
+                                @if(round.rates.id == 1) {
+                                    <div class="btn-group" style="margin-top : 10px">
+                                        <a class="btn" href="#">@Map(1 -> "Selected", 0 -> "Unrated", -1 -> "Rejected")(rate.getOrElse(0))</a>
+                                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+                                        <ul class="dropdown-menu">
+                                        @for((rateName, rate) <- Seq(("Selected", Some(1)), ("Unrated", Some(0)), ("Rejected", Some(-1)))) {
+                                            <li><a href="/@title/round/@currentRounds.head.id/user/@asUserId/region/@region/page/1@rateParam(rate)">@rateName</a></li>
+                                        }
+                                        </ul>
+                                    </div>
                                 }
-                                </ul>
-                            </div>
-                                <div class="btn-group" style="margin-top:12px">
-                                    <a href="/gallery/round/@currentRounds.head.id/user/@asUserId/region/@region/page/1@rateParam(rate)"><div class="btn btn-small"><i class="icon-th"></i></div></a>
-                                    <a href="/filelist/round/@currentRounds.head.id/user/@asUserId/region/@region/page/1@rateParam(rate)"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
+                                <div class="btn-group" style="margin-top : 12px">
+                                @if(round.rates.id == 1) {
+                                    <a href="/gallery/round/@round.id/user/@asUserId/region/@region/page/1@rateParam(rate)"><div class="btn btn-small"><i class="icon-th"></i></div></a>
+                                    <a href="/filelist/round/@round.id/user/@asUserId/region/@region/page/1@rateParam(rate)"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
+                                } else{
+                                    <a href="/byrate/round/@round.id/user/@asUserId/region/@region/page/1"><div class="btn btn-small"><i class="icon-signal"></i></div></a>
+                                    <a href="/filelist/round/@round.id/user/@asUserId/region/@region/page/1"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
+                                }
                                 </div>
+                            }
                             </li>
                         }
 

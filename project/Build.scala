@@ -19,6 +19,7 @@ object ApplicationBuild extends Build {
     // Add your project dependencies here,
     jdbc,
     cache,
+    filters,
 //    anorm,
 //    ,
 //   "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT"
@@ -31,6 +32,7 @@ object ApplicationBuild extends Build {
    "org.slf4j"          %  "slf4j-simple"              % "[1.7,)",          // slf4j implementation
     "org.apache.commons" % "commons-email" % "1.3.2",
     "org.intracer" %% "mwbot" % "0.1.1",
+    "com.typesafe.play" %% "play-slick" % "0.6.0.1",
   "org.specs2"           %% "specs2"                          % "2.1"               % "test"
 
   )

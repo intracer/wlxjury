@@ -17,10 +17,10 @@
 
             <thead>
                 <tr>
-                    <td>@Messages("Name")</td>
-                    <td>@Messages("Email")</td>
-                    <td>@Messages("Role")</td>
-                    <td>@Messages("Edit")</td>
+                    <th>@Messages("Name")</th>
+                    <th>@Messages("Email")</th>
+                    <th>@Messages("Role")</th>
+                    <th>@Messages("Edit")</th>
                 </tr>
             </thead>
 
@@ -30,7 +30,7 @@
                     <tr>
                         <td>@user.fullname </td>
                         <td>@user.email </td>
-                        <td>@user.roles </td>
+                        <td>@user.roles.filterNot(_.startsWith("USER_ID")) </td>
                         <td>
                             <a href="/users/edit/@user.id"><div class="btn"><i class="icon-edit"></i></div></a>
                         </td>

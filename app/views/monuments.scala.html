@@ -1,0 +1,49 @@
+@(monuments: Seq[client.wlx.Monument])
+@import client.wlx.Monument
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>title</title>
+        <meta charset="UTF-8">
+        <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+        <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/bootstrap-sortable.css")">
+        <script src="@routes.Assets.at("javascripts/moment.min.js")"></script>
+        <script src="@routes.Assets.at("javascripts/bootstrap-sortable.js")"></script>
+    </head>
+    <body>
+        <table class="table table-bordered table-striped sortable">
+            <thead>
+                <tr>
+                    <th>@Messages("id")</th>
+                    <th>@Messages("name")</th>
+                    <th>@Messages("place")</th>
+                    <th>@Messages("user")</th>
+                    <th>@Messages("coordinates")</th>
+                    <th>@Messages("type")</th>
+                    <th>@Messages("commons")</th>
+                    <th>@Messages("resolution")</th>
+                </tr>
+            <thead>
+        <tbody>
+            @for(monument <- monuments) {
+                <tr>
+                    <td>@monument.id</td>
+                    <td>@Html(Monument.wikiLinkToUrl(monument.name, "uk.wikipedia.org")) </td>
+                    <td>@Html(Monument.wikiLinkToUrl(monument.place, "uk.wikipedia.org"))</td>
+                    <td>@monument.user</td>
+                    <td>@monument.lat, @monument.lon</td>
+                    <td>@monument.typ <br/> @monument.subType</td>
+                    <td>@monument.gallery</td>
+                    <td>@monument.resolution</td>
+                </tr>
+
+            }
+        </tbody>
+        </table>
+    </body>
+</html>

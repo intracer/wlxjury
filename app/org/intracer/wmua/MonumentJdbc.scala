@@ -1,7 +1,7 @@
 package org.intracer.wmua
 
-import scalikejdbc._
 import client.wlx.Monument
+import scalikejdbc._
 
 object MonumentJdbc extends SQLSyntaxSupport[Monument]{
 
@@ -17,10 +17,15 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     description = rs.stringOpt(c.description),
     article = None,
     place = rs.string(c.place),
+    user = rs.string(c.user),
+    area = rs.stringOpt(c.area),
+    lat = rs.stringOpt(c.lat),
+    lon = rs.stringOpt(c.lon),
     typ = rs.string(c.typ),
     subType = rs.string(c.subType),
     photo = rs.stringOpt(c.photo),
     gallery = rs.stringOpt(c.gallery),
+    resolution = rs.stringOpt(c.resolution),
     page =  rs.string(c.page)
   )
 

@@ -102,7 +102,7 @@ object Gallery extends Controller with Secured {
         val imagesWithSelection = images.flatMap {
           image =>
             if (byPageId.contains(image.pageId)) {
-              Some(new ImageWithRating(image, byPageId(image.pageId)))
+              Some(new ImageWithRating(image.image, byPageId(image.pageId)))
             } else {
               None
             }
@@ -174,7 +174,7 @@ object Gallery extends Controller with Secured {
     user =>
       implicit request =>
 
-        val rounds = Round.activeRounds
+        val rounds = Round.activeRounds(user.contest)
 
         val roundOption = rounds.find(_.id.toInt == roundId)
 

@@ -28,21 +28,57 @@
 
     <div class="row-fluid" >
 
-        <div contenteditable="true">
-            @defining(s"<!-- Wiki Loves Eath 2014, " +
+        @if(round.rates.id==1) {
+            <div contenteditable="true">
+                @defining(s"<!-- Wiki Loves Eath 2014, " +
+                        s"Round ${round.description}, " +
+                        s"Juror: ${Option(asUser).fold("All")(u => u.fullname)} " +
+                        s"${KOATUU.regions.get(region).fold("")(name => s", Region: $name")}. --> ") { t => @t <br/>}
+                @for(file <- pageFiles) {
+                    @format1 match {
+                        case "wiki" => {
+                            <a href="https://commons.wikimedia.org/wiki/@file.title">@file.title</a> <br/>
+                        }
+                        case "html" => {
+                            @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}"><img src="${controllers.Global.galleryUrls(file.pageId)}"></a>""" ) { str => @str <br/>}
+                        }
+                    }
+                    }
+            </div>
+        } else {
+            @defining(s"Wiki Loves Eath 2014, " +
                     s"Round ${round.description}, " +
-                    s"Juror: ${Option(asUser).fold("All")(u =>  u.fullname)} " +
-                    s"${KOATUU.regions.get(region).fold("")(name => s", Region: $name")}. --> ") {t => @t <br/>}
-        @for((file, index) <- pageFiles.view.zipWithIndex) {
-            @format1 match {
-                case "wiki" => {
-                    <a href="https://commons.wikimedia.org/wiki/@file.title">@file.title</a> <br/>
+                    s"Juror: ${Option(asUser).fold("All")(u => u.fullname)} " +
+                    s"${KOATUU.regions.get(region).fold("")(name => s", Region: $name")}.") { t => @t <br/>}
+
+            <table>
+                <thead>
+                    <th>
+                        File
+                    </th>
+                    <th>
+                        Rating
+                    </th>
+                </thead>
+                <tbody>
+            @for(file <- pageFiles.sortBy(-_.totalRate)) {
+                <tr>
+                    <td>
+                @format1 match {
+                    case "wiki" => {
+                        <a href="https://commons.wikimedia.org/wiki/@file.title">@file.title</a> <br/>
+                    }
+                    case "html" => {
+                        @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}"><img src="${controllers.Global.galleryUrls(file.pageId)}"></a>""") { str => @str <br/>}
+                    }
                 }
-                case "html" => {
-                    @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}"><img src="${controllers.Global.galleryUrls(file.pageId)}"></a>""") { str => @str <br/> }
-                }
+                    </td>
+                    <td>@file.rateString</td>
+                </tr>
             }
+                </tbody>
+            </table>
+
         }
-        </div>
     </div>
 }

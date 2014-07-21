@@ -82,7 +82,7 @@
                             <td>@round.limitMax </td>
                             <td>@round.recommended.fold("")(_.toString) </td>
                             <td>@round.allImages.size </td>
-                            <td>@Selection.byRoundSelected(round.id).size </td>
+                            <td>@Selection.byRoundSelected(round.id).filter(_.rate > 0).groupBy(_.pageId).size </td>
                         </tr>
                     }
 

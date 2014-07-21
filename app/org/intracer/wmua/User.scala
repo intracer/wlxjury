@@ -141,6 +141,13 @@ object User extends SQLSyntaxSupport[User] {
       .orderBy(c.id)
   }.map(User(c)).list.apply()
 
+  def findByContest(contest: Int)(implicit session: DBSession = autoSession): List[User] = withSQL {
+    select.from(User as c)
+      .where.append(isNotDeleted).and.
+      eq(column.contest, contest)
+      .orderBy(c.id)
+  }.map(User(c)).list.apply()
+
   def countByEmail(id: Long, email: String)(implicit session: DBSession = autoSession): Long = withSQL {
     select(sqls.count).from(User as c).where.eq(column.email, email).and.ne(column.id, id)
   }.map(rs => rs.long(1)).single.apply().get

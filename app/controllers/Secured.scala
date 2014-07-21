@@ -1,9 +1,8 @@
 package controllers
 
-import controllers.Application._
-import play.api.mvc._
 import org.intracer.wmua.User
-import play.mvc.Http
+import play.api.i18n.Messages
+import play.api.mvc._
 
 trait Secured {
 
@@ -13,14 +12,14 @@ trait Secured {
 
   def onUnAuthenticated(request: RequestHeader) = Results.Redirect(routes.Application.login())
 
-  def onUnAuthorized() = Results.Redirect(routes.Application.index())
+  def onUnAuthorized(user: User) = Results.Redirect(routes.Application.error("You don't have permission to access this page"))
 
   def withAuth(f: => User => Request[AnyContent] => Result, roles: Set[String] = Set(User.ADMIN_ROLE, "jury", "organizer")) = {
     Security.Authenticated(user, onUnAuthenticated) { user =>
       if (roles.intersect(user.roles).nonEmpty)
         Action(request => f(user)(request))
       else
-        Action(request => onUnAuthorized())
+        Action(request => onUnAuthorized(user))
     }
   }
 

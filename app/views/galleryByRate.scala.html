@@ -27,7 +27,7 @@
         </div>
     }
 
-@main("byrate", user, asUserId, asUser, allFiles, org.intracer.wmua.Round.activeRounds, true, None, region, pager(asUserId, regionFiles, page, None, round.id.toInt, region, "byrate"))  {
+@main("byrate", user, asUserId, asUser, allFiles, Seq(round), true, None, region, pager(asUserId, regionFiles, page, None, round.id.toInt, region, "byrate"))  {
 
 
     <div class="row-fluid" >

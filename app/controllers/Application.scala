@@ -11,8 +11,24 @@ object Application extends Controller with Secured {
   def index = withAuth {
     user =>
       implicit request =>
+        indexRedirect(user)
+  }
 
-      Redirect(routes.Gallery.byRate(user.id.toInt, 0, "all", 0))
+  def indexRedirect(user: User): SimpleResult = {
+    if (user.roles.contains(User.ORG_COM_ROLES.head)) {
+      Redirect(routes.Rounds.currentRoundStat())
+    } else if (user.roles.contains(User.JURY_ROLES.head)) {
+      val round = Round.current(user)
+      if (round.rates == Round.binaryRound) {
+        Redirect(routes.Gallery.list(user.id.toInt, 0, "all", round.id.toInt))
+      } else {
+        Redirect(routes.Gallery.byRate(user.id.toInt, 0, "all", 0))
+      }
+    } else if (user.roles.contains(User.ADMIN_ROLE)){
+      Redirect(routes.Admin.users())
+    } else {
+      Redirect(routes.Application.error("You don't have permission to access this page"))
+    }
   }
 
   def login = Action {
@@ -23,18 +39,18 @@ object Application extends Controller with Secured {
   def auth() = Action {
     implicit request =>
 
-    loginForm.bindFromRequest.fold(
-      formWithErrors => // binding failure, you retrieve the form containing errors,
-        BadRequest(views.html.index(formWithErrors)),
-      value => {
-        // binding success, you get the actual value
-        val user = User.login(value._1, value._2).get
-        val round = Round.activeRounds.head
-        val result = Redirect(routes.Gallery.byRate(user.id.toInt, 1, "all", round.id.toInt)).withSession(Security.username -> value._1.trim)
-        import play.api.Play.current
-        user.lang.fold(result)(l => result.withLang(Lang(l)))
-      }
-    )
+      loginForm.bindFromRequest.fold(
+        formWithErrors => // binding failure, you retrieve the form containing errors,
+          BadRequest(views.html.index(formWithErrors)),
+        value => {
+          // binding success, you get the actual value
+          val user = User.login(value._1, value._2).get
+          val round = Round.activeRounds(user.contest).head
+          val result = indexRedirect(user).withSession(Security.username -> value._1.trim)
+          import play.api.Play.current
+          user.lang.fold(result)(l => result.withLang(Lang(l)))
+        }
+      )
   }
 
   /**
@@ -47,13 +63,19 @@ object Application extends Controller with Secured {
     Redirect(routes.Application.login()).withNewSession
   }
 
+  def error(message: String) = withAuth {
+    user =>
+      implicit request =>
+        Ok(views.html.error(message, user, user.id.toInt, user))
+  }
+
   val loginForm = Form(
     tuple(
       "login" -> nonEmptyText(),
       "password" -> nonEmptyText()
     ) verifying("invalid.user.or.password", fields => fields match {
-          case (l, p) => User.login(l,p).isDefined
-      })
+      case (l, p) => User.login(l, p).isDefined
+    })
   )
 }
 

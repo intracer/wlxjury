@@ -19,9 +19,9 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
 
   def jurors = User.findAllBy(sqls.in(User.c.roles, roles.toSeq).and.eq(User.c.contest, contest))
 
-  def allImages = if (number == 1) Image.findByContest(contest) else Image.bySelection(id)
+  def allImages = Image.byRoundMerged(id.toInt)
 
-  def description:String = name.fold(number.toString)(s => s)
+  def description:String = name.flatMap(s => if (s.trim.isEmpty) None else Some(s)).fold(number.toString)(s => s)
 }
 
 
@@ -40,7 +40,7 @@ object Round extends SQLSyntaxSupport[Round] {
 
   override val tableName = "rounds"
 
-  def activeRounds = findByContest(14).takeRight(2)
+  def activeRounds(contestId: Int) = Seq(find(Contest.currentRound(contestId)).get)
 
   def current(user: User) = {
     val contest = Contest.byId(user.contest).get

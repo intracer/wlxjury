@@ -12,7 +12,7 @@
         byRegion: Map[String, Int])(
         implicit flash: Flash, lang: Lang)
 
-    @main("gallery", user, asUserId, asUser, allFiles, org.intracer.wmua.Round.activeRounds, true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.toInt, region))  {
+    @main("gallery", user, asUserId, asUser, allFiles, Seq(round), true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.toInt, region))  {
 
     <div class="row-fluid" >
         <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">

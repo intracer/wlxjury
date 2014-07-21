@@ -61,7 +61,7 @@
     @main_large(module,
     user,
     files(index).totalRate / 2.0,
-    s"/large/round/${round.id.toInt}/region/$region/pageid/${files(index).pageId}/select/", user.id.toInt != asUserId, rate) {
+    s"/large/round/${round.id.toInt}/region/$region/pageid/${files(index).pageId}/select/", true, rate) {
         <div class="container-fluid" style="padding-left:5px; margin-left:0px; margin-right:0px">
             <div class="row-fluid">
        <div class="span2" style="margin-left:0px; min-width: 185px">

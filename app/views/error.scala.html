@@ -1,0 +1,12 @@
+@(
+        message: String,
+        user: org.intracer.wmua.User = null,
+        asUserId: Int = 0,
+        asUser: org.intracer.wmua.User = null
+)(implicit flash: Flash, lang: Lang)
+
+@main("error", user, asUserId, asUser) {
+    <p class="error">
+        <span class="label important">@Messages(message)</span>
+    </p>
+}
