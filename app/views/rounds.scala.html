@@ -23,13 +23,13 @@
                     <tr>
                         <td>
                         @inputText(editImagesForm("images"), 'placeholder -> Messages("Commons category or gallery"),
-                            '_label -> "Category or gallery with images on commons", '_help -> "", 'class -> "input-xxlarge")
+                            '_label -> "Category or gallery with images on commons", '_help -> "", 'class -> "input-xxlarge", 'readonly -> "")
                         </td>
-                        <td>
+<!--                        <td>
                             <div class="control-group">
                                 <input type="submit" class="btn" value="@Messages("Set images")">
                             </div>
-                        </td>
+                        </td> -->
 
                     </tr>
                 </table>
@@ -52,7 +52,13 @@
                 </table>
             }
 
-            <table class="table table-striped table-condensed" style="background-color : #CCCCCC ;">
+        @form(routes.Admin.startRound(), 'class -> "form-vertical", 'id -> "start-round") {
+                        <div class="control-group">
+                            <input type="submit" class="btn" value="@Messages("Start round")">
+                        </div>
+        }
+
+         <table class="table table-striped table-condensed" style="background-color : #CCCCCC ;">
 
                 <thead>
                     <tr>

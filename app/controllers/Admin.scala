@@ -144,39 +144,23 @@ object Admin extends Controller with Secured {
         Redirect(routes.Admin.rounds())
   }, Set(User.ADMIN_ROLE))
 
+  def startRound() = withAuth({
+    user =>
+      implicit request =>
 
-  def distributeImages(contest: Contest) {
-    for (round <- Round.find(contest.currentRound)) {
+        val rounds = Round.findByContest(user.contest)
+        val contest = Contest.byId(user.contest).get
+        val currentRound = rounds.find(_.id.toInt == contest.currentRound).get
+        val nextRound = rounds.find(_.number == currentRound.number + 1).get
 
-      val images = round.allImages
-      val jurors = round.jurors
+        Contest.setCurrentRound(user.contest, nextRound.id.toInt)
 
-      val selection: Seq[Selection] = round.distribution match {
-        case 0 =>
-          jurors.flatMap { juror =>
-            images.map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
-          }
-        case 1 =>
-          images.zipWithIndex.map {
-            case (img, i) => new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now)
-          }
-        //          jurors.zipWithIndex.flatMap { case (juror, i) =>
-        //            images.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
-        //          }
+        Redirect(routes.Admin.rounds())
+  }, Set(User.ADMIN_ROLE))
 
-        case 2 =>
-          images.zipWithIndex.flatMap {
-            case (img, i) => Seq(
-              new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now),
-              new Selection(0, img.pageId, 0, jurors((i+1) % jurors.size).id, round.id, DateTime.now)
-            )
-          }
-        //          jurors.zipWithIndex.flatMap { case (juror, i) =>
-        //            imagesTwice.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
-        //          }
-      }
-      Selection.batchInsert(selection)
-    }
+
+  def distributeImages(contest: Contest, round: Round) {
+    ImageDistributor.distributeImages(contest, round)
   }
 
   def editRound(id: String) = withAuth({
@@ -226,7 +210,8 @@ object Admin extends Controller with Secured {
 
         //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 
-        distributeImages(contest)
+        val round: Round = Round.find(Contest.currentRound(contest.id.toInt).toLong).get
+        distributeImages(contest, round)
 
         //        Round.up
 

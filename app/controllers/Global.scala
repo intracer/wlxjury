@@ -114,7 +114,7 @@ object Global {
 //    }
     val selection = Selection.findAll()
     if (selection.isEmpty) {
-      Admin.distributeImages(Contest.byId(14).get)
+      //Admin.distributeImages(Contest.byId(14).get)
     }
   }
 
