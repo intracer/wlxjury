@@ -236,7 +236,7 @@ object Admin extends Controller with Secured {
         val message: String = s"Password changed for ${contest.name} jury\n" +
           s" Please login to our jury tool $juryhome \nwith login: ${editedUser.email} and password: $password\n" +
           s"Regards, ${user.fullname}"
-        //        sendMail.sendMail(from = (user.fullname, user.email), to = Seq(editedUser.email), bcc = Seq(user.email), subject = subject, message = message)
+         sendMail.sendMail(from = (user.fullname, user.email), to = Seq(user.email), bcc = Seq(user.email), subject = subject, message = message)
 
         Redirect(routes.Admin.editUser(id)).flashing("password-reset" -> s"Password reset. New Password sent to ${editedUser.email}")
 

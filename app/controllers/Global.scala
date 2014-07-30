@@ -61,8 +61,7 @@ object Global {
 
 
   def contestImages() {
-    import scala.concurrent.duration._
-    Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
+    //Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
 
     initContestFiles(Image.findAll())
 

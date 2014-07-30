@@ -84,6 +84,8 @@ POST        /admin/setimages                                                    
 
 POST        /admin/setround                                                         controllers.Admin.setRound()
 
+POST        /admin/startround                                                         controllers.Admin.startRound()
+
 GET         /roundstat                                                              controllers.Rounds.currentRoundStat()
 
 GET         /roundstat/:round                                                       controllers.Rounds.roundStat(round: Int)

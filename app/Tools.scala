@@ -1,6 +1,7 @@
 import akka.actor.ActorSystem
 import client.dto.{Namespace, PageQuery}
 import client.{HttpClientImpl, MwBot}
+import controllers.Admin
 import org.intracer.wmua._
 import org.joda.time.DateTime
 import scalikejdbc.ConnectionPool
@@ -22,14 +23,14 @@ object Tools {
 
     for (contest <- Contest.findAll()) {
 
-      if (contest.country == "Ukraine") {
+      if (contest.country == "Nepal") {
         println(contest)
 
         //roundAndUsers(contest)
 
         updateResolution(contest)
 
-        //Admin.distributeImages(contest)
+        Admin.distributeImages(contest, Round.findByContest(contest.id).head)
         //createNextRound()
       }
     }
@@ -95,7 +96,7 @@ object Tools {
     import scala.concurrent.duration._
     Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
 
-    val category = "Category:Images from Wiki Loves Earth 2014 in Ukraine"
+    val category = "Category:Images from Wiki Loves Earth 2014 in Nepal"
     val query = PageQuery.byTitle(category)
 
     commons.imageInfoByGenerator("categorymembers", "cm", query, Set(Namespace.FILE_NAMESPACE)).map {
