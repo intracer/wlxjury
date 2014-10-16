@@ -1,6 +1,6 @@
 package org.intracer.wmua
 
-import client.wlx.Monument
+import client.wlx.dto.Monument
 import scalikejdbc._
 
 object MonumentJdbc extends SQLSyntaxSupport[Monument]{
@@ -16,17 +16,17 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     name = rs.string(c.name),
     description = rs.stringOpt(c.description),
     article = None,
-    place = rs.string(c.place),
-    user = rs.string(c.user),
+    place = rs.stringOpt(c.place),
+    user = rs.stringOpt(c.user),
     area = rs.stringOpt(c.area),
     lat = rs.stringOpt(c.lat),
     lon = rs.stringOpt(c.lon),
-    typ = rs.string(c.typ),
-    subType = rs.string(c.subType),
+    typ = rs.stringOpt(c.typ),
+    subType = rs.stringOpt(c.subType),
     photo = rs.stringOpt(c.photo),
     gallery = rs.stringOpt(c.gallery),
     resolution = rs.stringOpt(c.resolution),
-    page =  rs.string(c.page)
+    pageParam =  rs.string(c.pageParam)
   )
 
   def batchInsert(monuments: Seq[Monument]) {
@@ -42,7 +42,7 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
       m.subType,
         m.photo,
         m.gallery,
-        m.page
+        m.pageParam
       ))
       withSQL {
         insert.into(MonumentJdbc).namedValues(
@@ -54,7 +54,7 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
           column.subType -> sqls.?,
           column.photo -> sqls.?,
           column.gallery -> sqls.?,
-          column.page -> sqls.?
+          column.pageParam -> sqls.?
         )
       }.batch(batchParams: _*).apply()
     }

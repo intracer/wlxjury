@@ -6,7 +6,7 @@
         selectRoundForm: Form[String],
         round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
     @import helper._
-    @import org.intracer.wmua.Contest
+    @import org.intracer.wmua.ContestJury
     @import org.intracer.wmua.Round
     @import org.intracer.wmua.Selection
 
@@ -16,7 +16,7 @@
 
     @main(Messages("rounds"), adminUser, adminUser.id.toInt) {
         <div class="row-fluid" >
-            <h3>@Messages("Contest: " + Contest.byId(adminUser.contest).head.name)</h3>
+            <h3>@Messages("Contest: " + ContestJury.byId(adminUser.contest).head.name)</h3>
 
             @form(routes.Admin.setImages(), 'class -> "form-vertical", 'id -> "set-images") {
                 <table>

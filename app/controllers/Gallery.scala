@@ -133,7 +133,7 @@ object Gallery extends Controller with Secured {
 
   def filesByUserId(asUserId: Int, rate: Option[Int], user: User, round: Round): (Seq[ImageWithRating], User) = {
     if (asUserId == 0) {
-      (rate.fold(Image.byRoundMerged(round.id.toInt))(r => Image.byRatingMerged(r, round.id.toInt)), null)
+      (rate.fold(ImageJdbc.byRoundMerged(round.id.toInt))(r => ImageJdbc.byRatingMerged(r, round.id.toInt)), null)
     } else
     if (asUserId != user.id.toInt) {
       val asUser: User = User.find(asUserId).get
@@ -162,7 +162,7 @@ object Gallery extends Controller with Secured {
 
   def userFiles(user: User, roundId: Long): Seq[ImageWithRating] = {
     val files = Cache.getOrElse(s"user/${user.id}/round/${roundId}", 900){
-      Image.byUserImageWithRating(user, roundId)
+      ImageJdbc.byUserImageWithRating(user, roundId)
     }
     user.files.clear()
     user.files ++= files

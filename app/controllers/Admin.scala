@@ -75,11 +75,11 @@ object Admin extends Controller with Secured {
   })
 
   def createNewUser(user: User, formUser: User): Unit = {
-    val contest: Contest = Contest.byId(formUser.contest).head
+    val contest: ContestJury = ContestJury.byId(formUser.contest).head
     createUser(user, formUser, contest)
   }
 
-  def createUser(user: User, formUser: User, contest: Contest) {
+  def createUser(user: User, formUser: User, contest: ContestJury) {
     val password = User.randomString(8)
     val hash = User.hash(formUser, password)
     val juryhome = "http://wlxjury.wikimedia.in.ua"
@@ -125,7 +125,7 @@ object Admin extends Controller with Secured {
     user =>
       implicit request =>
         val rounds = Round.findByContest(user.contest)
-        val contest = Contest.byId(user.contest).get
+        val contest = ContestJury.byId(user.contest).get
 
         Ok(views.html.rounds(user, rounds, editRoundForm,
           imagesForm.fill(Some(contest.getImages)),
@@ -139,7 +139,7 @@ object Admin extends Controller with Secured {
       implicit request =>
         val newRound = selectRoundForm.bindFromRequest.get
 
-        Contest.setCurrentRound(user.contest, newRound.toInt)
+        ContestJury.setCurrentRound(user.contest, newRound.toInt)
 
         Redirect(routes.Admin.rounds())
   }, Set(User.ADMIN_ROLE))
@@ -149,17 +149,17 @@ object Admin extends Controller with Secured {
       implicit request =>
 
         val rounds = Round.findByContest(user.contest)
-        val contest = Contest.byId(user.contest).get
+        val contest = ContestJury.byId(user.contest).get
         val currentRound = rounds.find(_.id.toInt == contest.currentRound).get
         val nextRound = rounds.find(_.number == currentRound.number + 1).get
 
-        Contest.setCurrentRound(user.contest, nextRound.id.toInt)
+        ContestJury.setCurrentRound(user.contest, nextRound.id.toInt)
 
         Redirect(routes.Admin.rounds())
   }, Set(User.ADMIN_ROLE))
 
 
-  def distributeImages(contest: Contest, round: Round) {
+  def distributeImages(contest: ContestJury, round: Round) {
     ImageDistributor.distributeImages(contest, round)
   }
 
@@ -205,12 +205,12 @@ object Admin extends Controller with Secured {
     user =>
       implicit request =>
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
-        val contest = Contest.byId(user.contest).get
-        Contest.updateImages(contest.id, imagesSource)
+        val contest = ContestJury.byId(user.contest).get
+        ContestJury.updateImages(contest.id, imagesSource)
 
         //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 
-        val round: Round = Round.find(Contest.currentRound(contest.id.toInt).toLong).get
+        val round: Round = Round.find(ContestJury.currentRound(contest.id.toInt).toLong).get
         distributeImages(contest, round)
 
         //        Round.up
@@ -225,7 +225,7 @@ object Admin extends Controller with Secured {
         val editedUser = User.find(id.toLong).get
 
         val password = User.randomString(8)
-        val contest: Contest = Contest.byId(editedUser.contest).head
+        val contest: ContestJury = ContestJury.byId(editedUser.contest).head
         val hash = User.hash(editedUser, password)
 
         User.updateHash(editedUser.id, hash)

@@ -56,7 +56,7 @@ object User extends SQLSyntaxSupport[User] {
   }
 
   def hash(user: User, password: String): String = {
-    val contest: Contest = Contest.byId(user.contest).head
+    val contest: ContestJury = ContestJury.byId(user.contest).head
     User.sha1(contest.country + "/" + password)
   }
 
@@ -72,7 +72,7 @@ object User extends SQLSyntaxSupport[User] {
     }
 
     for (user <- userOpt) {
-      val contest = Contest.find(user.contest).head
+      val contest = ContestJury.find(user.contest).head
       Cache.set(s"contest/${contest.id}", contest)
       Cache.set(s"user/${user.email}", user)
     }

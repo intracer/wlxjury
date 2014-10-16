@@ -9,11 +9,11 @@
         rate: Option[Int],
         region: String = "all",
         round: org.intracer.wmua.Round,
-        monument: Option[client.wlx.Monument],
+        monument: Option[client.wlx.dto.Monument],
         module : String = "gallery")(
         implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
 @import org.intracer.wmua.ImageWithRating
-@import client.wlx.Monument
+@import client.wlx.dto.Monument
 @import  org.intracer.wmua.Round
     @button(btnClass: String, iconClass:String) = {
         <div class="@btnClass"><i class="@iconClass"></i></div>
@@ -97,7 +97,7 @@
                     <div class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">
                         @Html(m.typ + " " + m.subType) <br>
                         @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br>
-                    @Html(Monument.wikiLinkToUrl(m.place, "uk.wikipedia.org"))
+                    @Html(Monument.wikiLinkToUrl(m.place.getOrElse(""), "uk.wikipedia.org"))
                     </div>
                 }
 

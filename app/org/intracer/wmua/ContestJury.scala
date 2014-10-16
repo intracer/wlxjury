@@ -4,13 +4,13 @@ import _root_.play.api.i18n.Messages
 import scalikejdbc._
 import scalikejdbc.WrappedResultSet
 
-case class Contest(id: Long, year: Int, country: String, images: Option[String], currentRound: Int, monumentIdTemplate:Option[String]) {
+case class ContestJury(id: Long, year: Int, country: String, images: Option[String], currentRound: Int, monumentIdTemplate:Option[String]) {
   def name = Messages("wiki.loves.earth." + country, year)
 
   def getImages = images.getOrElse("Category:Images from " + name)
 }
 
-object Contest extends SQLSyntaxSupport[Contest] {
+object ContestJury extends SQLSyntaxSupport[ContestJury] {
 
   def currentRound(id: Int) = find(id).get.currentRound
 
@@ -19,9 +19,9 @@ object Contest extends SQLSyntaxSupport[Contest] {
 
   def byId(id: Int) = find(id)
 
-  def apply(c: SyntaxProvider[Contest])(rs: WrappedResultSet): Contest = apply(c.resultName)(rs)
+  def apply(c: SyntaxProvider[ContestJury])(rs: WrappedResultSet): ContestJury = apply(c.resultName)(rs)
 
-  def apply(c: ResultName[Contest])(rs: WrappedResultSet): Contest = new Contest(
+  def apply(c: ResultName[ContestJury])(rs: WrappedResultSet): ContestJury = new ContestJury(
     id = rs.long(c.id),
     year = rs.int(c.year),
     country = rs.string(c.country),
@@ -30,32 +30,30 @@ object Contest extends SQLSyntaxSupport[Contest] {
     monumentIdTemplate = rs.stringOpt(c.monumentIdTemplate)
   )
 
-  val c = Contest.syntax("c")
+  val c = ContestJury.syntax("c")
 
-  def find(id: Long)(implicit session: DBSession = autoSession): Option[Contest] = withSQL {
-    select.from(Contest as c).where.eq(c.id, id)
-  }.map(Contest(c)).single.apply()
+  def find(id: Long)(implicit session: DBSession = autoSession): Option[ContestJury] = withSQL {
+    select.from(ContestJury as c).where.eq(c.id, id)
+  }.map(ContestJury(c)).single.apply()
 
-  def findAll()(implicit session: DBSession = autoSession): List[Contest] = withSQL {
-    select.from(Contest as c)
+  def findAll()(implicit session: DBSession = autoSession): List[ContestJury] = withSQL {
+    select.from(ContestJury as c)
       .orderBy(c.country)
-  }.map(Contest(c)).list.apply()
+  }.map(ContestJury(c)).list.apply()
 
   def countAll()(implicit session: DBSession = autoSession): Long = withSQL {
-    select(sqls.count).from(Contest as c)
+    select(sqls.count).from(ContestJury as c)
   }.map(rs => rs.long(1)).single.apply().get
 
   def updateImages(id: Long, images: Option[String])(implicit session: DBSession = autoSession): Unit = withSQL {
-    update(Contest).set(
+    update(ContestJury).set(
       column.images -> images
     ).where.eq(column.id, id)
   }.update.apply()
 
   def setCurrentRound(id: Int, round: Int)(implicit session: DBSession = autoSession): Unit = withSQL {
-    update(Contest).set(
+    update(ContestJury).set(
       column.currentRound -> round
     ).where.eq(column.id, id)
   }.update.apply()
-
-
 }

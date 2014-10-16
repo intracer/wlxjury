@@ -10,7 +10,7 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         val rounds = Round.findByContest(user.contest)
-        val contest = Contest.byId(user.contest).get
+        val contest = ContestJury.byId(user.contest).get
 
         Ok(views.html.rounds(user, rounds, editRoundForm,
           imagesForm.fill(Some(contest.getImages)),
@@ -23,7 +23,7 @@ object Rounds extends Controller with Secured {
       implicit request =>
         //        val rounds = Round.findByContest(user.contest)
         val round: Round = Round.current(user)
-        val contest = Contest.byId(user.contest).get
+        val contest = ContestJury.byId(user.contest).get
         val rounds = Round.findByContest(user.contest)
 
         val selection = Selection.byRound(round.id)

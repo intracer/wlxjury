@@ -1,6 +1,6 @@
 package controllers
 
-import org.intracer.wmua.{Contest, User}
+import org.intracer.wmua.{ContestJury, User}
 
 class GenUsers {
 
@@ -9,7 +9,7 @@ class GenUsers {
 
 object UkrainianJury {
 
-  private lazy val ukraine: Contest = Contest.byId(14).head
+  private lazy val ukraine: ContestJury = ContestJury.byId(14).head
 
   val users = Seq(
     new User("***REMOVED*** ***REMOVED***", "***REMOVED***", 0, User.JURY_ROLES, genPassword(), ukraine.id.toInt, Some("uk")),
