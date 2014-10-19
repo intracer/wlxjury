@@ -1,4 +1,4 @@
 # --- !Ups
 
-alter table wlxjury.selection add column page_id bigint;
-alter table wlxjury.selection add column rate int;
+alter table selection add column page_id bigint;
+alter table selection add column rate int;

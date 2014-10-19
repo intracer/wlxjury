@@ -11,4 +11,4 @@ CREATE TABLE users (
 
 # --- !Downs
 
-
+DROP TABLE users;

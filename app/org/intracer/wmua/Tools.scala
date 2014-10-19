@@ -3,9 +3,8 @@ package org.intracer.wmua
 import akka.actor.ActorSystem
 import client.dto.Namespace
 import client.{HttpClientImpl, MwBot}
-import controllers.Admin
 import org.joda.time.DateTime
-import scalikejdbc.ConnectionPool
+import scalikejdbc.{LoggingSQLAndTimeSettings, GlobalSettings, ConnectionPool}
 
 import scala.concurrent.Await
 
@@ -20,6 +19,19 @@ object Tools {
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
         ConnectionPool.singleton("jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury", "***REMOVED***", "***REMOVED***")
+
+    GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
+      enabled = true,
+      singleLineMode = false,
+      printUnprocessedStackTrace = false,
+      stackTraceDepth = 15,
+      logLevel = 'info,
+      warningEnabled = false,
+      warningThresholdMillis = 3000L,
+      warningLogLevel = 'warn
+    )
+
+
 //    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
     for (contest <- ContestJury.findAll()) {
@@ -29,11 +41,11 @@ object Tools {
 
 //        controllers.GlobalRefactor.initContest("Category:Images from Wiki Loves Earth 2014 in " + contest.country,  contest)
 
-        //roundAndUsers(contest)
+        roundAndUsers(contest)
 
-        updateResolution(contest)
+        //updateResolution(contest)
 
-        Admin.distributeImages(contest, Round.findByContest(contest.id).head)
+        //Admin.distributeImages(contest, Round.findByContest(contest.id).head)
   //      createNextRound()
       }
     }
@@ -43,7 +55,7 @@ object Tools {
     val rounds = Round.findByContest(contest.id)
     val newRoundNum = 2
     val round = if (rounds.size < newRoundNum) {
-      val r = Round.create(newRoundNum, Some(""), contest.id.toInt, "jury", 0, 1, Some(1), Some(1), None)
+      val r = Round.create(newRoundNum, Some(""), contest.id.toInt, "jury", 0, 10, Some(1), Some(1), None)
       ContestJury.setCurrentRound(contest.id.toInt, r.id.toInt)
       r
     } else {
@@ -59,18 +71,18 @@ object Tools {
 
     val jurors = round.jurors
 
-    //    Contest.setCurrentRound(contest.id.toInt, round.id.toInt)
+    ContestJury.setCurrentRound(contest.id.toInt, round.id.toInt)
 
     createNextRound(round, jurors, rounds.find(_.number == newRoundNum - 1).get)
   }
 
   def createNextRound(round: Round, jurors: Seq[User], prevRound: Round) = {
     val newImages = ImageJdbc.byRatingMerged(0, round.id.toInt)
-    if (true || newImages.isEmpty) {
+    if (newImages.isEmpty) {
 
 //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
 //
-      val images = ImageJdbc.byRatingMerged(0, prevRound.id.toInt)
+      val images = ImageJdbc.byRatingMerged(1, prevRound.id.toInt)
 //      ImageJdbc.findAll().filter(_.region == Some("44"))
 //
       val selection = jurors.flatMap { juror =>

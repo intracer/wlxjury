@@ -7,11 +7,13 @@ object ApplicationBuild extends Build {
   val appName         = "jury"
   val appVersion      = "1.0-SNAPSHOT"
 
-  lazy val scalikejdbcVersion =  "2.0.0"
+  lazy val scalikejdbcVersion =  "2.1.2"
   lazy val h2Version = "1.3.172"
 
-  resolvers := Seq("typesafe" at "http://repo.typesafe.com/typesafe/releases/",
-    Resolver.file("file",  new File(Path.userHome.absolutePath+"/.ivy2/local")))
+  resolvers ++= Seq("typesafe" at "http://repo.typesafe.com/typesafe/releases/",
+    Resolver.file("file",  new File(Path.userHome.absolutePath+"/.ivy2/local/")),
+    "Scalaz Bintray Repo"  at "http://dl.bintray.com/scalaz/releases"
+  )
 //  resolvers += Resolver.sonatypeRepo("snapshots")
 //  resolvers += Resolver.url("play-plugin-releases", new URL("http://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns),
 
@@ -33,7 +35,7 @@ object ApplicationBuild extends Build {
     "org.apache.commons" % "commons-email" % "1.3.2",
     "org.intracer" %% "mwbot" % "0.2.0",
 //    "com.typesafe.play" %% "play-slick" % "0.6.0.1",
-  "org.specs2"           %% "specs2"                          % "2.1"               % "test"
+  "org.specs2"           %% "specs2"                          % "2.4.2"               % "test"
 
   )
 

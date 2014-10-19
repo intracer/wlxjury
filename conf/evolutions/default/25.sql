@@ -1,2 +1,2 @@
 # --- !Ups
-ALTER TABLE wlxjury.contest RENAME TO wlxjury.contest_jury;
+ALTER TABLE contest RENAME TO contest_jury;

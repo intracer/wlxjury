@@ -1,2 +1,5 @@
 # --- !Ups
-ALTER TABLE wlxjury.users add column contest integer default 14;
+ALTER TABLE users add column contest integer default 14;
+
+# --- !Downs
+ALTER TABLE users drop column contest;

@@ -1,6 +1,6 @@
 # --- !Ups
 
-CREATE TABLE wlxjury.monument (
+CREATE TABLE monument (
   id varchar(255),
   name varchar(400) not null,
   description varchar(4000),

@@ -1,6 +1,6 @@
 # --- !Ups
 
-CREATE TABLE wlxjury.selection (
+CREATE TABLE selection (
 	id SERIAL not null,
   jury_id integer not null,
   created_at timestamp not null,
@@ -9,4 +9,4 @@ CREATE TABLE wlxjury.selection (
 
 # --- !Downs
 
-DROP TABLE wlxjury.selection;
+DROP TABLE selection;

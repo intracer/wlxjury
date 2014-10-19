@@ -30,7 +30,7 @@ object Global {
 
   val commons = new MwBot(http, Akka.system, COMMONS_WIKIMEDIA_ORG)
 
-  var contestByCountry: Map[String, Seq[ContestJury]] = Map.empty
+//  var contestByCountry: Map[String, Seq[ContestJury]] = Map.empty
 
 
   def onStart(app: Application) {
@@ -48,7 +48,7 @@ object Global {
     )
 
 
-    contestByCountry = ContestJury.byCountry
+//    contestByCountry =
 
     KOATUU.load()
     contestImages()
@@ -59,7 +59,7 @@ object Global {
   def contestImages() {
     //Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
 
-    Global.initContestFiles(ImageJdbc.findAll())
+//    Global.initContestFiles(ImageJdbc.findAll())
 
 //    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
 //      categories =>
@@ -83,7 +83,7 @@ object Global {
     val country = countryOpt.fold(category.replace("Category:Images from Wiki Loves Earth 2014 in ", ""))(identity)
 
     //"Ukraine"
-    val contestOpt = contestByCountry.get(country).flatMap(_.headOption)
+    val contestOpt = ContestJury.byCountry.get(country).flatMap(_.headOption)
 
     for (contest <- contestOpt) {
       GlobalRefactor.initContest(category, contest)

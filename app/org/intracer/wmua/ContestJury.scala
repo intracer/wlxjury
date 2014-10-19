@@ -34,26 +34,26 @@ object ContestJury extends SQLSyntaxSupport[ContestJury] {
 
   def find(id: Long)(implicit session: DBSession = autoSession): Option[ContestJury] = withSQL {
     select.from(ContestJury as c).where.eq(c.id, id)
-  }.map(ContestJury(c)).single.apply()
+  }.map(ContestJury(c)).single().apply()
 
   def findAll()(implicit session: DBSession = autoSession): List[ContestJury] = withSQL {
     select.from(ContestJury as c)
       .orderBy(c.country)
-  }.map(ContestJury(c)).list.apply()
+  }.map(ContestJury(c)).list().apply()
 
   def countAll()(implicit session: DBSession = autoSession): Long = withSQL {
     select(sqls.count).from(ContestJury as c)
-  }.map(rs => rs.long(1)).single.apply().get
+  }.map(rs => rs.long(1)).single().apply().get
 
   def updateImages(id: Long, images: Option[String])(implicit session: DBSession = autoSession): Unit = withSQL {
     update(ContestJury).set(
       column.images -> images
     ).where.eq(column.id, id)
-  }.update.apply()
+  }.update().apply()
 
   def setCurrentRound(id: Int, round: Int)(implicit session: DBSession = autoSession): Unit = withSQL {
     update(ContestJury).set(
       column.currentRound -> round
     ).where.eq(column.id, id)
-  }.update.apply()
+  }.update().apply()
 }

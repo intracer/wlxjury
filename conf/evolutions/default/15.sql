@@ -1,3 +1,3 @@
 # --- !Ups
 
-alter table wlxjury.contest add column current_round int default 0;
+alter table contest add column current_round int default 0;

@@ -1,5 +1,5 @@
 # --- !Ups
-CREATE TABLE wlxjury.rounds
+CREATE TABLE rounds
 (
     id SERIAL NOT NULL,
     name VARCHAR(255),
