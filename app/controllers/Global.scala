@@ -16,6 +16,10 @@ import scala.collection.JavaConverters._
 object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
+  val gallerySize = 300
+  val thumbSize = 150
+  val largeSize = 1280
+
   var galleryUrls = collection.mutable.Map[Long, String]()
   var largeUrls = collection.mutable.Map[Long, String]()
   var thumbUrls = collection.mutable.Map[Long, String]()
@@ -59,7 +63,7 @@ object Global {
   def contestImages() {
     //Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
 
-//    Global.initContestFiles(ImageJdbc.findAll())
+    Global.initContestFiles(ImageJdbc.findAll())
 
 //    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
 //      categories =>
@@ -93,9 +97,6 @@ object Global {
 
   def initContestFiles(filesInCategory: Seq[Image]) {
 
-    val gallerySize = 300
-    val thumbSize = 150
-    val largeSize = 1280
     for (file <- filesInCategory) {
       val galleryUrl = resizeTo(file, gallerySize)
       val thumbUrl = resizeTo(file, thumbSize)

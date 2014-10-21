@@ -76,7 +76,7 @@
                        }
                    } else {
                        <div id="rate-image" style="margin-top:10px;"></div>
-                      <!-- <input type="text" id="scoretarget"/> -->
+                      <input type="text" id="scoretarget"/>
                    }
            </div>
 
@@ -86,7 +86,7 @@
 
                        @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
                         <div style="margin:5px auto;"><a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.toInt, rate, module)">
-                            <img width="150" height="120" class="cropped" alt="@file.title" src="@controllers.Global.thumbUrls.getOrElse(file.pageId, Gallery.UrlInProgress)" >
+                            <img width="150" height="120" class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.thumbSize)" >
                         </a>
                         </div>
                     </div>
@@ -105,7 +105,7 @@
 
        <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
 
-      <a href="https://commons.wikimedia.org/wiki/@files(index).title" target="_blank"> <img alt="@files(index).title" src="@controllers.Global.largeUrls.getOrElse(files(index).pageId, Gallery.UrlInProgress)" style="max-width:100%; height:auto;"> </a>
+      <a href="https://commons.wikimedia.org/wiki/@files(index).title" target="_blank"> <img alt="@files(index).title" src="@controllers.Global.resizeTo(files(index).image, controllers.Global.largeSize)" style="max-width:100%; height:auto;"> </a>
 
        </div>
     </div>

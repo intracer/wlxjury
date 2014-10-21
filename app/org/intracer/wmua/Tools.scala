@@ -18,7 +18,7 @@ object Tools {
 
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
-        ConnectionPool.singleton("jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury", "***REMOVED***", "***REMOVED***")
+    ConnectionPool.singleton("jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury", "***REMOVED***", "***REMOVED***")
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
@@ -32,21 +32,21 @@ object Tools {
     )
 
 
-//    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
+    //    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
     for (contest <- ContestJury.findAll()) {
 
       if (contest.country == "Ghana") {
         println(contest)
 
-//        controllers.GlobalRefactor.initContest("Category:Images from Wiki Loves Earth 2014 in " + contest.country,  contest)
+        //        controllers.GlobalRefactor.initContest("Category:Images from Wiki Loves Earth 2014 in " + contest.country,  contest)
 
         roundAndUsers(contest)
 
         //updateResolution(contest)
 
         //Admin.distributeImages(contest, Round.findByContest(contest.id).head)
-  //      createNextRound()
+        //      createNextRound()
       }
     }
   }
@@ -80,23 +80,30 @@ object Tools {
     val newImages = ImageJdbc.byRatingMerged(0, round.id.toInt)
     if (newImages.isEmpty) {
 
-//      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
-//
+      //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
+      //
       val images = ImageJdbc.byRatingMerged(1, prevRound.id.toInt)
-//      ImageJdbc.findAll().filter(_.region == Some("44"))
-//
-      val selection = jurors.flatMap { juror =>
-      images.map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
-    }
+      //      ImageJdbc.findAll().filter(_.region == Some("44"))
 
-//      val images = ImageJdbc.byRoundMerged(prevRound.id.toInt).sortBy(-_.totalRate).take(21)
-//      val selection = images.flatMap(_.selection).map(_.copy(id = 0, round = round.id))
+      val imagesByJurors = images.filter {
+        iwr => iwr.selection.exists {
+          s => jurors.exists(j => j.id == s.juryId)
+        }
+      }
+      //
+      val selection = jurors.flatMap { juror =>
+        imagesByJurors.map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+      }
+
+      //      val images = ImageJdbc.byRoundMerged(prevRound.id.toInt).sortBy(-_.totalRate).take(21)
+      //      val selection = images.flatMap(_.selection).map(_.copy(id = 0, round = round.id))
 
       Selection.batchInsert(selection)
-
-
     }
+
+
   }
+
 
   def updateResolution(contest: ContestJury) = {
 
@@ -106,7 +113,9 @@ object Tools {
     import system.dispatcher
 
     val commons = new MwBot(http, system, controllers.Global.COMMONS_WIKIMEDIA_ORG)
+
     import scala.concurrent.duration._
+
     Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
 
     val category = "Category:Images from Wiki Loves Earth 2014 in Ghana"
@@ -117,8 +126,9 @@ object Tools {
         val newImages = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).groupBy(_.pageId)
         val existing = ImageJdbc.findAll().toSet
 
-        for (i1 <- existing; i2 <- newImages.get(i1.pageId).map(seq => seq.head)
-        if i1.width != i2.width || i1.height != i2.height) {
+        for (i1 <- existing;
+             i2 <- newImages.get(i1.pageId).map(seq => seq.head)
+             if i1.width != i2.width || i1.height != i2.height) {
           println(s"${i2.pageId} ${i1.title}  ${i1.width}x${i1.height} -> ${i2.width}x${i2.height}")
           ImageJdbc.updateResolution(i1.pageId, i2.width, i2.height)
         }

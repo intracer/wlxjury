@@ -57,7 +57,7 @@
 
                     <div class="thumb">
                         <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.toInt, None, "byrate")" >
-                            <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.pageId, Gallery.UrlInProgress)">
+                            <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)">
                         </a>
                     </div>
 

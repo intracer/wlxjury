@@ -43,7 +43,7 @@
 
                     <div class="thumb">
                         <a href="/large/round/@round.id/user/@asUserId/region/@region/pageid/@file.pageId@rateParam(rate)" >
-                            <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.galleryUrls.getOrElse(file.pageId, Gallery.UrlInProgress)">
+                            <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)">
                         </a>
                     </div>
 

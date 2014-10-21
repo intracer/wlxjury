@@ -40,7 +40,7 @@
                             <a href="https://commons.wikimedia.org/wiki/@file.title">@file.title</a> <br/>
                         }
                         case "html" => {
-                            @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}"><img src="${controllers.Global.galleryUrls(file.pageId)}"></a>""" ) { str => @str <br/>}
+                            @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)}"></a>""" ) { str => @str <br/>}
                         }
                     }
                     }
