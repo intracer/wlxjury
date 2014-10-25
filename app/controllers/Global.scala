@@ -123,12 +123,18 @@ object Global {
     }
 
     val isPdf = info.title.toLowerCase.endsWith(".pdf")
+    val isTif = info.title.toLowerCase.endsWith(".tif")
+
+    // /lossy-page1-360px-Zámek_(Nové_Město_nad_Metují).tif.jpg
 
     val url = info.url
     if (px < w || isPdf) {
       val lastSlash = url.lastIndexOf("/")
-      url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" + (if (isPdf) "page1-" else "") +
-        px.toInt + "px-" + url.substring(lastSlash + 1) + (if (isPdf) ".jpg" else "")
+      url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" +
+        (if (isPdf) "page1-" else
+        if (isTif) "lossy-page1-" else
+          "") +
+        px.toInt + "px-" + url.substring(lastSlash + 1) + (if (isPdf || isTif) ".jpg" else "")
     } else {
       url
     }
