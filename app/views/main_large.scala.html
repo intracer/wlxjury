@@ -5,7 +5,8 @@
         url: String,
         readOnly: Boolean = false,
         rate: Option[Int],
-        module: String = "byrate")(content: Html)(implicit lang: Lang)
+        module: String = "byrate",
+        preload: Iterable[org.intracer.wmua.ImageWithRating] = Seq.empty)(content: Html)(implicit lang: Lang)
 
 <!DOCTYPE html>
 
@@ -63,6 +64,16 @@
         }}
         });
 
+        });
+
+        function preload(arrayOfImages) {
+            $(arrayOfImages).each(function(){
+                $('<img/>')[0].src = this;
+                });
+        }
+
+        $(window).bind("load", function() {
+            preload([@Html(preload.map(i => s"'${controllers.Global.resizeTo(i.image, controllers.Global.largeSize)}'").mkString(","))]);
         });
 
         </script>
