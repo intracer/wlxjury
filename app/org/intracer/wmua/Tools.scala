@@ -3,6 +3,7 @@ package org.intracer.wmua
 import akka.actor.ActorSystem
 import client.dto.Namespace
 import client.{HttpClientImpl, MwBot}
+import controllers.GlobalRefactor
 import org.joda.time.DateTime
 import scalikejdbc.{LoggingSQLAndTimeSettings, GlobalSettings, ConnectionPool}
 
@@ -19,6 +20,7 @@ object Tools {
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
     ConnectionPool.singleton("jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury", "***REMOVED***", "***REMOVED***")
+//    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
@@ -30,6 +32,10 @@ object Tools {
       warningThresholdMillis = 3000L,
       warningLogLevel = 'warn
     )
+
+   // users()
+    initImages()
+    return
 
 
     //    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
@@ -133,6 +139,32 @@ object Tools {
           ImageJdbc.updateResolution(i1.pageId, i2.width, i2.height)
         }
     }
+  }
+
+  def users() = {
+    for (i<- 1 to 12) {
+      val password = User.randomString(8)
+      val hash =   User.sha1("Ukraine/" + password)
+
+      println(s"pw: $password, hash: $hash")
+
+    }
+
+  }
+
+  def initImages(): Unit = {
+
+    val contest = ContestJury.find(15L).get
+
+    GlobalRefactor.initContest("User:***REMOVED***/embeddedin", contest)
+    val round = Round.find(21L).get
+
+    val selection = Selection.byRound(21L)
+    if (selection.isEmpty) {
+
+      ImageDistributor.distributeImages(contest, round)
+    }
+
   }
 
 }

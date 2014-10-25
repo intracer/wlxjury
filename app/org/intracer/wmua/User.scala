@@ -133,43 +133,43 @@ object User extends SQLSyntaxSupport[User] {
 
   def find(id: Long)(implicit session: DBSession = autoSession): Option[User] = withSQL {
     select.from(User as c).where.eq(c.id, id).and.append(isNotDeleted)
-  }.map(User(c)).single.apply()
+  }.map(User(c)).single().apply()
 
   def findAll()(implicit session: DBSession = autoSession): List[User] = withSQL {
     select.from(User as c)
       .where.append(isNotDeleted)
       .orderBy(c.id)
-  }.map(User(c)).list.apply()
+  }.map(User(c)).list().apply()
 
   def findByContest(contest: Int)(implicit session: DBSession = autoSession): List[User] = withSQL {
     select.from(User as c)
       .where.append(isNotDeleted).and.
       eq(column.contest, contest)
       .orderBy(c.id)
-  }.map(User(c)).list.apply()
+  }.map(User(c)).list().apply()
 
   def countByEmail(id: Long, email: String)(implicit session: DBSession = autoSession): Long = withSQL {
     select(sqls.count).from(User as c).where.eq(column.email, email).and.ne(column.id, id)
-  }.map(rs => rs.long(1)).single.apply().get
+  }.map(rs => rs.long(1)).single().apply().get
 
   def findByEmail(email: String)(implicit session: DBSession = autoSession): List[User] = {
     val users = withSQL {
       select.from(User as c)
         .where.append(isNotDeleted).and.eq(column.email, email)
         .orderBy(c.id)
-    }.map(User(c)).list.apply()
+    }.map(User(c)).list().apply()
    users
   }
 
   def countAll()(implicit session: DBSession = autoSession): Long = withSQL {
     select(sqls.count).from(User as c).where.append(isNotDeleted)
-  }.map(rs => rs.long(1)).single.apply().get
+  }.map(rs => rs.long(1)).single().apply().get
 
   def findAllBy(where: SQLSyntax)(implicit session: DBSession = autoSession): List[User] = withSQL {
     select.from(User as c)
-      .where.append(isNotDeleted).and.append(sqls"${where}")
+      .where.append(isNotDeleted).and.append(sqls"$where")
       .orderBy(c.id)
-  }.map(User(c)).list.apply()
+  }.map(User(c)).list().apply()
 
 //  def findByRoles(roles: Set[String])(implicit session: DBSession = autoSession): List[User] = withSQL {
 //    select.from(User as c)
@@ -178,8 +178,8 @@ object User extends SQLSyntaxSupport[User] {
 //  }.map(User(c)).list.apply()
 
   def countBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Long = withSQL {
-    select(sqls.count).from(User as c).where.append(isNotDeleted).and.append(sqls"${where}")
-  }.map(_.long(1)).single.apply().get
+    select(sqls.count).from(User as c).where.append(isNotDeleted).and.append(sqls"$where")
+  }.map(_.long(1)).single().apply().get
 
   def create(fullname: String, email: String, password: String, roles: Set[String], contest: Int, lang: Option[String] = None, createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): User = {
     val id = withSQL {
@@ -191,7 +191,7 @@ object User extends SQLSyntaxSupport[User] {
         column.contest -> contest,
         column.lang -> lang,
         column.createdAt -> createdAt)
-    }.updateAndReturnGeneratedKey.apply()
+    }.updateAndReturnGeneratedKey().apply()
 
     User(id = id, fullname = fullname, email = email, password = Some(password), contest = contest, createdAt = createdAt)
   }
@@ -203,17 +203,17 @@ object User extends SQLSyntaxSupport[User] {
       column.roles -> roles.head,
       column.lang -> lang
     ).where.eq(column.id, id)
-  }.update.apply()
+  }.update().apply()
 
   def updateHash(id: Long, hash:String)(implicit session: DBSession = autoSession): Unit = withSQL {
     update(User).set(
       column.password -> hash
     ).where.eq(column.id, id)
-  }.update.apply()
+  }.update().apply()
 
 
   def destroy(filename: String, email: String)(implicit session: DBSession = autoSession): Unit = withSQL {
     update(User).set(column.deletedAt -> DateTime.now).where.eq(column.email, email)
-  }.update.apply()
+  }.update().apply()
 
 }

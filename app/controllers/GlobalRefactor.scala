@@ -58,22 +58,21 @@ object GlobalRefactor {
       val monuments = monumentQuery.byMonumentTemplate()
 
       MonumentJdbc.batchInsert(monuments)
-
     }
 
   }
 
   def initImagesFromCategory(contest: ContestJury, query: SinglePageQuery): Future[Unit] = {
-    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
+    query.imageInfoByGenerator("images", "im", Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = Some("")).map {
       filesInCategory =>
         val newImages: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId)
 
         contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
-          query.revisionsByGenerator("categorymembers", "cm",
-            Set.empty, Set("content", "timestamp", "user", "comment")) map {
+          query.revisionsByGenerator("images", "im",
+            Set.empty, Set("content", "timestamp", "user", "comment"), titlePrefix = Some("")) map {
             pages =>
 
-              val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
+             // val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
               val ids: Seq[String] = pages.sortBy(_.pageid)
                 .flatMap(_.text.map(Template.getDefaultParam(_, monumentIdTemplate)))
                 //                .map(id => if (id.matches(idRegex)) Some(id) else Some(id))

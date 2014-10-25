@@ -82,21 +82,21 @@ object Selection extends SQLSyntaxSupport[Selection]{
     select.from(Selection as s)
       .where.append(isNotDeleted)
       .orderBy(s.id)
-  }.map(Selection(s)).list.apply()
+  }.map(Selection(s)).list().apply()
 
   def countAll()(implicit session: DBSession = autoSession): Long = withSQL {
     select(sqls.count).from(Selection as s).where.append(isNotDeleted)
-  }.map(rs => rs.long(1)).single.apply().get
+  }.map(rs => rs.long(1)).single().apply().get
 
   def findAllBy(where: SQLSyntax)(implicit session: DBSession = autoSession): List[Selection] = withSQL {
     select.from(Selection as s)
-      .where.append(isNotDeleted).and.append(sqls"${where}")
+      .where.append(isNotDeleted).and.append(sqls"$where")
       .orderBy(s.id)
-  }.map(Selection(s)).list.apply()
+  }.map(Selection(s)).list().apply()
 
   def countBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Long = withSQL {
-    select(sqls.count).from(Selection as s).where.append(isNotDeleted).and.append(sqls"${where}")
-  }.map(_.long(1)).single.apply().get
+    select(sqls.count).from(Selection as s).where.append(isNotDeleted).and.append(sqls"$where")
+  }.map(_.long(1)).single().apply().get
 
   def create(pageId: Long, rate: Int,
              fileid: String, juryId: Int, round: Int, createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): Selection = {
@@ -107,7 +107,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
         column.juryId -> juryId,
         column.round -> round,
         column.createdAt -> createdAt)
-    }.updateAndReturnGeneratedKey.apply()
+    }.updateAndReturnGeneratedKey().apply()
 
      Selection(id = id, pageId = pageId, rate = rate, juryId = juryId, round = round, createdAt = createdAt)
   }
@@ -140,14 +140,14 @@ object Selection extends SQLSyntaxSupport[Selection]{
       eq(column.pageId, pageId).and.
       eq(column.juryId, juryId).and.
       eq(column.round, round)
-  }.update.apply()
+  }.update().apply()
 
   def rate(pageId: Long, juryId: Long, round: Long, rate: Int = 1)(implicit session: DBSession = autoSession): Unit = withSQL {
     update(Selection).set(column.rate -> rate).where.
       eq(column.pageId, pageId).and.
       eq(column.juryId, juryId).and.
       eq(column.round, round)
-  }.update.apply()
+  }.update().apply()
 
 
 

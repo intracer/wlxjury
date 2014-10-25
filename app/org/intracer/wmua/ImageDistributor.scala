@@ -18,7 +18,7 @@ object ImageDistributor {
     val jurors = round.jurors
 
     val currentSelection = ImageJdbc.byRatingMerged(1, round.id.toInt)
-    if (true || currentSelection.isEmpty) {
+    if (currentSelection.isEmpty) {
 //      Selection.
 
       val selection: Seq[Selection] = round.distribution match {
