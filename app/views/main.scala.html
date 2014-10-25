@@ -74,7 +74,7 @@
                                     }
                         }
 
-                        @if(user.id != asUserId && user.roles.contains("organizer")) {
+                        @if(user.id != asUserId && user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
                             <li class="brand" style="margin-top : 5px">
                                 @currentRounds.map(_.description).mkString(", ")
                             </li>

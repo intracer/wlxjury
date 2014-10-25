@@ -65,7 +65,7 @@ object Global {
 
     Global.initContestFiles(ImageJdbc.findAll())
 
-//    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY_NAMESPACE)) flatMap {
+//    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY)) flatMap {
 //      categories =>
 //        val filtered = categories.filter(c => c.title.startsWith("Category:Images from Wiki Loves Earth 2014 in "))
 //        Future.traverse(filtered) {

@@ -21,7 +21,11 @@
                         } else {
                             <a href="/byrate/round/@round.id/user/@user.id/page/1"><div class="btn btn-small"><i class="icon-signal"></i></div></a>
                         }
-                        <a href="/filelist/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))"><div class="btn btn-small @if(count == 0){disabled}"><i class="icon-align-justify"></i></div></a>
+                        @if(round.rates.id==1) {
+                            <a href="/filelist/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))"><div class="btn btn-small @if(count == 0) {disabled}"><i class="icon-align-justify"></i></div></a>
+                        } else {
+                            <a href="/filelist/round/@round.id/user/@user.id/page/1"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
+                        }
                     </div>
         @if(round.rates.id==1) { @count }
         }
@@ -118,16 +122,22 @@
                             <div class="btn-group">
                             @if(round.rates.id==1) {
                                 <a href="/gallery/round/@round.id/user/0/page/1@rateParam(Some(1))"><div class="btn btn-small @if(total == 0){disabled}"><i class="icon-th"></i></div></a>
-                            } else {
-                                <a href="/byrate/round/@round.id/user/0/page/1"><div class="btn btn-small @if(total == 0){disabled}"><i class="icon-signal"></i></div></a>
-                            }
                                 <a href="/filelist/round/@round.id/user/0/page/1@rateParam(Some(1))"><div class="btn btn-small @if(total == 0){disabled}"><i class="icon-align-justify"></i></div></a>
+                            } else {
+                                <a href="/byrate/round/@round.id/user/0/page/1"><div class="btn btn-small"><i class="icon-signal"></i></div></a>
+                                <a href="/filelist/round/@round.id/user/0/page/1"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
+                            }
+
                             </div>
-                            @totalByRate.getOrElse(1, 0)
+                            @if(round.rates.id==1) {
+                                @totalByRate.getOrElse(1, 0)
+                            }
                         </th>
                         <th colspan="2" style="text-align: center">
                             <!-- <a href="/gallery/user/0/rate/0/page/1"> -->
-                            @{total - totalByRate.getOrElse(1, 0)}
+                            @if(round.rates.id==1) {
+                                @{total - totalByRate.getOrElse(1, 0)}
+                            }
                             <!-- </a> -->
                         </th>
                     </tr>

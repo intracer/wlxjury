@@ -64,7 +64,7 @@ object GlobalRefactor {
   }
 
   def initImagesFromCategory(contest: ContestJury, query: SinglePageQuery): Future[Unit] = {
-    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE_NAMESPACE)).map {
+    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
       filesInCategory =>
         val newImages: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId)
 

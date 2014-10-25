@@ -61,7 +61,7 @@
     @main_large(module,
     user,
     files(index).totalRate / 2.0,
-    s"/large/round/${round.id.toInt}/region/$region/pageid/${files(index).pageId}/select/", true, rate) {
+    s"/large/round/${round.id.toInt}/region/$region/pageid/${files(index).pageId}/select/", readOnly = !user.roles.contains("jury"), rate = rate) {
         <div class="container-fluid" style="padding-left:5px; margin-left:0px; margin-right:0px">
             <div class="row-fluid">
        <div class="span2" style="margin-left:0px; min-width: 185px">
@@ -76,7 +76,7 @@
                        }
                    } else {
                        <div id="rate-image" style="margin-top:10px;"></div>
-                      <input type="text" id="scoretarget"/>
+                      <!-- <input type="text" id="scoretarget"/> -->
                    }
            </div>
 
@@ -95,7 +95,7 @@
         </ul>
                 @for(m <- monument) {
                     <div class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">
-                        @Html(m.typ + " " + m.subType) <br>
+                        @Html(m.typ.getOrElse("") + " " + m.subType.getOrElse("")) <br>
                         @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br>
                     @Html(Monument.wikiLinkToUrl(m.place.getOrElse(""), "uk.wikipedia.org"))
                     </div>

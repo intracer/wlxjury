@@ -121,7 +121,7 @@ object Tools {
     val category = "Category:Images from Wiki Loves Earth 2014 in Ghana"
     val query = commons.page(category)
 
-    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE_NAMESPACE)).map {
+    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
       filesInCategory =>
         val newImages = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).groupBy(_.pageId)
         val existing = ImageJdbc.findAll().toSet

@@ -26,7 +26,7 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     photo = rs.stringOpt(c.photo),
     gallery = rs.stringOpt(c.gallery),
     resolution = rs.stringOpt(c.resolution),
-    pageParam =  rs.string(c.pageParam)
+    page =  rs.string(c.page)
   )
 
   def batchInsert(monuments: Seq[Monument]) {
@@ -42,7 +42,7 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
       m.subType,
         m.photo,
         m.gallery,
-        m.pageParam
+        m.page
       ))
       withSQL {
         insert.into(MonumentJdbc).namedValues(
@@ -54,7 +54,7 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
           column.subType -> sqls.?,
           column.photo -> sqls.?,
           column.gallery -> sqls.?,
-          column.pageParam -> sqls.?
+          column.page -> sqls.?
         )
       }.batch(batchParams: _*).apply()
     }
@@ -64,10 +64,10 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     select.from(MonumentJdbc as c)
       //      .where.append(isNotDeleted)
       .orderBy(c.id)
-  }.map(MonumentJdbc(c)).list.apply()
+  }.map(MonumentJdbc(c)).list().apply()
 
   def find(id: String)(implicit session: DBSession = autoSession): Option[Monument] = withSQL {
     select.from(MonumentJdbc as c).where.eq(c.id, id) //.and.append(isNotDeleted)
-  }.map(MonumentJdbc(c)).single.apply()
+  }.map(MonumentJdbc(c)).single().apply()
 
 }
