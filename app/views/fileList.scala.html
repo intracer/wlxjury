@@ -37,10 +37,10 @@
                 @for(file <- pageFiles) {
                     @format1 match {
                         case "wiki" => {
-                            <a href="https://commons.wikimedia.org/wiki/@file.title">@file.title</a> <br/>
+                            <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
                         }
                         case "html" => {
-                            @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)}"></a>""" ) { str => @str <br/>}
+                            @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)}"></a>""" ) {str => @str <br/> }
                         }
                     }
                     }
@@ -66,10 +66,10 @@
                     <td>
                 @format1 match {
                     case "wiki" => {
-                        <a href="https://commons.wikimedia.org/wiki/@file.title">@file.title</a> <br/>
+                        <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
                     }
                     case "html" => {
-                        @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}"><img src="${controllers.Global.galleryUrls(file.pageId)}"></a>""") { str => @str <br/>}
+                        @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)}"></a>""") { str => @str <br/>}
                     }
                 }
                     </td>

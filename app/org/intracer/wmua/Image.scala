@@ -1,5 +1,6 @@
 package org.intracer.wmua
 
+import controllers.Instrumented
 import scalikejdbc._
 import client.dto.Page
 
@@ -15,16 +16,12 @@ case class Image(pageId: Long, contest: Long, title: String,
 
 }
 
-object ImageJdbc extends SQLSyntaxSupport[Image] {
+object ImageJdbc extends SQLSyntaxSupport[Image] with Instrumented {
 
   def fromPage(page: Page, contest: ContestJury):Option[Image] = {
     for (imageInfo <- page.imageInfo.headOption)
      yield new Image(page.pageid, contest.id, page.title, imageInfo.url, imageInfo.descriptionUrl, imageInfo.width, imageInfo.height, None)
   }
-
-  private  val imagesByContest = collection.mutable.Map[Long, Seq[Image]]()
-
-  def byContest(id: Long) = imagesByContest.getOrElseUpdate(id, findByContest(id))
 
   override val tableName = "images"
 

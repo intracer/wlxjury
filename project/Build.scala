@@ -34,14 +34,17 @@ object ApplicationBuild extends Build {
    "org.slf4j"          %  "slf4j-simple"              % "[1.7,)",          // slf4j implementation
     "org.apache.commons" % "commons-email" % "1.3.2",
     "org.intracer" %% "mwbot" % "0.2.0",
-//    "com.typesafe.play" %% "play-slick" % "0.6.0.1",
+    //"io.dropwizard.metrics" % "metrics-core" % "3.1.0",
+      "nl.grons" %% "metrics-scala" % "3.3.0_a2.2",
+
+    //    "com.typesafe.play" %% "play-slick" % "0.6.0.1",
   "org.specs2"           %% "specs2"                          % "2.4.2"               % "test"
 
   )
 
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
-    // Add your own project settings here      
+    net.virtualvoid.sbt.graph.Plugin.graphSettings: _*
   )
 
 }

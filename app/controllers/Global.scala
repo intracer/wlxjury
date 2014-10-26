@@ -4,6 +4,7 @@ import java.io.{File, FileReader}
 import java.util.Properties
 
 import client.{HttpClientImpl, MwBot}
+import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import org.intracer.wmua._
 import play.Play
 import play.api._
@@ -20,9 +21,11 @@ object Global {
   val thumbSize = 150
   val largeSize = 1280
 
-  var galleryUrls = collection.mutable.Map[Long, String]()
-  var largeUrls = collection.mutable.Map[Long, String]()
-  var thumbUrls = collection.mutable.Map[Long, String]()
+  private val galleryUrls = collection.mutable.Map[Long, String]()
+  private val largeUrls = collection.mutable.Map[Long, String]()
+  private val thumbUrls = collection.mutable.Map[Long, String]()
+
+  val metrics = new MetricRegistry()
 
   val projectRoot = Play.application().path()
 
@@ -51,6 +54,8 @@ object Global {
       warningLogLevel = 'warn
     )
 
+    val reporter = JmxReporter.forRegistry(metrics).build()
+    reporter.start()
 
 //    contestByCountry =
 
@@ -63,7 +68,7 @@ object Global {
   def contestImages() {
     //Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
 
-    Global.initContestFiles(ImageJdbc.findAll())
+    // Global.initContestFiles(ImageJdbc.findAll())
 
 //    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY)) flatMap {
 //      categories =>
