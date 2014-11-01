@@ -19,6 +19,11 @@
         <div class="@btnClass"><i class="@iconClass"></i></div>
     }
 
+    @buttonWithImage(btnClass: String, image:String) = {
+        <div class="@btnClass"><img src="@routes.Assets.at(s"images/$image")"></div>
+    }
+
+
     @optionalButton(condition: () => Boolean, link: ()=> String, icon: String, clazz: String) = {
         @if(condition()) {
             <a href="@link.apply()"> @button(s"btn $clazz", icon)</a>
@@ -54,6 +59,20 @@
         }
     }
 
+    @buttonStar() = {
+        @if(files(index).rate <=0 ) {
+        <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/1@{rateParam(rate)}">
+            @buttonWithImage("btn btn-small", "star-off.png")
+        </a>
+        }
+        @if(files(index).rate >0 ) {
+        <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/0@{rateParam(rate)}">
+            @buttonWithImage("btn btn-small", "star-on.png")
+        </a>
+        }
+    }
+
+
     @thumbSmall(file:ImageWithRating, style:String) = {
         <div class="@style">
     }
@@ -76,6 +95,8 @@
                    @if(round.rates == Round.binaryRound) {
                        @if(user.id.toInt == asUserId) {
                            @buttonSelect()
+                       } else {
+                         <!--  @buttonStar() -->
                        }
                    } else {
                        <div id="rate-image" style="margin-top:10px;"></div>
@@ -89,7 +110,7 @@
 
                        @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
                         <div style="margin:5px auto;"><a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.toInt, rate, module)">
-                            <img width="150" height="120" class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.thumbSize)" >
+                            <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.thumbSize)" >
                         </a>
                         </div>
                     </div>
@@ -98,7 +119,8 @@
         </ul>
                 @for(m <- monument) {
                     <div class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">
-                        @Html(m.typ.getOrElse("") + " " + m.subType.getOrElse("")) <br>
+                            @Messages(files(index).image.region.getOrElse("")), @Html(Monument.wikiLinkToUrl(m.city.getOrElse(""), "uk.wikipedia.org")) <br>
+<!--                        @Html(m.typ.getOrElse("") + " " + m.subType.getOrElse("")) <br> -->
                         @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br>
                     @Html(Monument.wikiLinkToUrl(m.place.getOrElse(""), "uk.wikipedia.org"))
                     </div>

@@ -46,7 +46,7 @@
                             <li><a class="brand" style="margin-top : 5px" href="/admin/rounds">@Messages("rounds")</a>
                                 }
                         @if(user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
-                            <li><a class="brand" style="margin-top : 5px" href="/roundstat">@Messages("Statistics")</a>
+                            <li><a class="brand" style="margin-top : 5px" href="/roundstat">@Messages("statistics")</a>
                                 }
 
                         @for(round <- currentRounds
@@ -80,25 +80,28 @@
                             </li>
                         <li>
                         <div class="btn-group" style="margin-top:10px">
-                            <a class="btn" href="#">@if(asUserId != 0){ @asUser.fullname } else {@Messages("All")}</a>
+                            <a class="btn" href="#">@if(asUserId != 0){ @asUser.fullname } else {@Messages("all")}</a>
                             <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 @for(round <- currentRounds) {
                                     @for(juror <- round.jurors) {
                                         <li><a href="/@title/round/@round.id/user/@juror.id/region/@region/page/1@rateParam(rate)">@juror.fullname</a></li>
                                     }
-                                    <li><a href="/@title/round/@round.id/user/0/region/@region/page/1@rateParam(rate)">@Messages("All")</a></li>
+                                    <li><a href="/@title/round/@round.id/user/0/region/@region/page/1@rateParam(rate)">@Messages("all")</a></li>
                                 }
                             </ul>
                         </div>
                             @for(round <- currentRounds) {
                                 @if(round.rates.id == 1) {
                                     <div class="btn-group" style="margin-top : 10px">
-                                        <a class="btn" href="#">@Map(1 -> "Selected", 0 -> "Unrated", -1 -> "Rejected")(rate.getOrElse(0))</a>
+                                        <a class="btn" href="#">@Messages(rate.fold("all")(r => Map(1 -> "selected", 0 -> "unrated", -1 -> "rejected")(r)))</a>
                                         <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
                                         <ul class="dropdown-menu">
-                                        @for((rateName, rate) <- Seq(("Selected", Some(1)), ("Unrated", Some(0)), ("Rejected", Some(-1)))) {
-                                            <li><a href="/@title/round/@currentRounds.head.id/user/@asUserId/region/@region/page/1@rateParam(rate)">@rateName</a></li>
+                                            <li>
+                                                <a style="margin-top: 5px" href="/gallery/round/@round.id/user/@asUserId/page/1">@Messages("all")</a>
+                                            </li>
+                                        @for((rateName, rate) <- Seq(("selected", Some(1)), ("unrated", Some(0)), ("rejected", Some(-1)))) {
+                                            <li><a href="/@title/round/@currentRounds.head.id/user/@asUserId/region/@region/page/1@rateParam(rate)">@Messages(rateName)</a></li>
                                         }
                                         </ul>
                                     </div>

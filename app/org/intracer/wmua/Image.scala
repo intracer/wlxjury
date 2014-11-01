@@ -1,8 +1,7 @@
 package org.intracer.wmua
 
-import controllers.Instrumented
-import scalikejdbc._
 import client.dto.Page
+import scalikejdbc._
 
 case class Image(pageId: Long, contest: Long, title: String,
                  url: String, pageUrl: String,
@@ -16,11 +15,17 @@ case class Image(pageId: Long, contest: Long, title: String,
 
 }
 
-object ImageJdbc extends SQLSyntaxSupport[Image] with Instrumented {
+object ImageJdbc extends SQLSyntaxSupport[Image] {
 
   def fromPage(page: Page, contest: ContestJury):Option[Image] = {
-    for (imageInfo <- page.imageInfo.headOption)
-     yield new Image(page.pageid, contest.id, page.title, imageInfo.url, imageInfo.descriptionUrl, imageInfo.width, imageInfo.height, None)
+    try {
+      for (imageInfo <- page.imageInfo.headOption)
+      yield new Image(page.pageid, contest.id, page.title, imageInfo.url, imageInfo.descriptionUrl, imageInfo.width, imageInfo.height, None)
+    } catch  {
+      case e: Throwable =>
+        println(e)
+        throw e
+    }
   }
 
   override val tableName = "images"

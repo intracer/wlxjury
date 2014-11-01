@@ -25,11 +25,18 @@ object GlobalRefactor {
     if (images.isEmpty) {
       val query = commons.page(category)
       //PageQuery.byId(category.pageid)
-      initImagesFromCategory(contest, query)
+      initImagesFromCategory(contest, query, Seq.empty)
     } else {
       //        initContestFiles(contest, images)
       //createJury()
     }
+  }
+
+  def appendImages(category: String, contest: ContestJury): Any = {
+    val images = ImageJdbc.findByContest(contest.id)
+
+      val query = commons.page(category)
+      initImagesFromCategory(contest, query, images)
   }
 
   def createJury() {
@@ -48,7 +55,7 @@ object GlobalRefactor {
 
   def initLists(contest: Contest) = {
 
-    if (MonumentJdbc.findAll().isEmpty) {
+    if (true || MonumentJdbc.findAll().isEmpty) {
       val ukWiki = new MwBot(http, system, "uk.wikipedia.org")
 
       Await.result(ukWiki.login("***REMOVED***", "***REMOVED***"), http.timeout)
@@ -62,21 +69,23 @@ object GlobalRefactor {
 
   }
 
-  def initImagesFromCategory(contest: ContestJury, query: SinglePageQuery): Future[Unit] = {
-    query.imageInfoByGenerator("images", "im", Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = Some("")).map {
+  def initImagesFromCategory(contest: ContestJury, query: SinglePageQuery, existing: Seq[Image]): Future[Unit] = {
+    val existingPageIds = existing.map(_.pageId)
+
+    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
       filesInCategory =>
-        val newImages: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId)
+        val newImages: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId).filterNot(i => existingPageIds.contains(i.pageId))
 
         contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
-          query.revisionsByGenerator("images", "im",
-            Set.empty, Set("content", "timestamp", "user", "comment"), titlePrefix = Some("")) map {
+          query.revisionsByGenerator("categorymembers", "cm",
+            Set.empty, Set("content", "timestamp", "user", "comment"), titlePrefix = None) map {
             pages =>
 
-             // val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-              val ids: Seq[String] = pages.sortBy(_.pageid)
-                .flatMap(_.text.map(Template.getDefaultParam(_, monumentIdTemplate)))
+              val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
+              val ids: Seq[String] = pages.sortBy(_.pageid).filterNot(i => existingPageIds.contains(i.pageid))
+                .map(_.text.map(Template.getDefaultParam(_, monumentIdTemplate))
                 //                .map(id => if (id.matches(idRegex)) Some(id) else Some(id))
-                //.map(id => if (id.size < 100) Some(id) else None)
+                .map(id => if (id.size < 100) id else id.substring(0, 100)).getOrElse(""))
 
               val imagesWithIds = newImages.zip(ids).map {
                 case (image, id) => image.copy(monumentId = Some(id))

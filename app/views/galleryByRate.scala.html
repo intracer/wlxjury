@@ -29,7 +29,7 @@
 
 @main("byrate", user, asUserId, asUser, allFiles, Seq(round), true, None, region, pager(asUserId, regionFiles, page, None, round.id.toInt, region, "byrate"))  {
 
-    @if(round.contest == 14) {
+    @if(round.contest == 14 || round.contest == 16) {
         <div class="row-fluid" >
             <div class="pagination pagination-centered" style="margin-top : 10px ; margin-bottom : 5px ;">
                 <ul>
@@ -57,7 +57,7 @@
 
                     <div class="thumb">
                         <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.toInt, None, "byrate")" >
-                            <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)">
+                            <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)">
                         </a>
                     </div>
 

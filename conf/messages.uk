@@ -18,7 +18,11 @@ unrated = Без оцінки
 selected = Вибрані
 rejected = Відкинуті
 rated = Оцінені
+all = Всі
 all.jury.rating = Сумарний вибір журі
+
+statistics = Статистика
+
 
 top-x = Топ 21
 regions = Регіони
@@ -26,6 +30,8 @@ regions = Регіони
 welcome.subject = Ласкаво просимо до журі {0}
 wiki.loves.earth = Вікі любить Землю
 wiki.loves.earth.Ukraine = Вікі любить Землю 2014 в Україні
+wiki.loves.monuments.Ukraine = Вікі любить пам'ятки 2014 в Україні
+
 welcome.messsage = Організаційний комітет конкурсу {0} радий запросити Вас до журі.\nЗайдіть, будь ласка, за посиланням {1} \nіз логіном: {2} і паролем: {3}\nЗ повагою, {4}
 
 error.technical=Technical Error, please Retry

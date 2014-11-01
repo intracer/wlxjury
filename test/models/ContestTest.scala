@@ -10,7 +10,7 @@ class ContestTest extends Specification with WithTestDatabase {
 
     "be ok" in {
       val contests = ContestJury.findAll()
-      contests must not beEmpty
+      contests must not (beEmpty)
     }
   }
 

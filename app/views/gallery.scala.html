@@ -14,7 +14,7 @@
 
     @main("gallery", user, asUserId, asUser, allFiles, Seq(round), true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.toInt, region))  {
 
-    @if(round.contest == 14) {
+    @if(round.contest == 14 || round.contest == 16) {
         <div class="row-fluid" >
             <div class="pagination pagination-centered" style="margin-top : 10 px ; margin-bottom : 5 px ;">
                 <ul>
@@ -43,7 +43,7 @@
 
                     <div class="thumb">
                         <a href="/large/round/@round.id/user/@asUserId/region/@region/pageid/@file.pageId@rateParam(rate)" >
-                            <img width="300" height="200" class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)">
+                            <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)">
                         </a>
                     </div>
 

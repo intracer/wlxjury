@@ -18,7 +18,11 @@ unrated = Без оценки
 selected = Выбранные
 rejected = Отброшенные
 rated = С оценкой
+all = Все
 all.jury.rating = Суммарный выбор жюри
+
+statistics = Статистика
+
 
 top-x = Топ 21
 

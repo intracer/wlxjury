@@ -16,6 +16,8 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     name = rs.string(c.name),
     description = rs.stringOpt(c.description),
     article = None,
+    year = rs.stringOpt(c.year),
+    city = rs.stringOpt(c.city),
     place = rs.stringOpt(c.place),
     user = rs.stringOpt(c.user),
     area = rs.stringOpt(c.area),
@@ -26,7 +28,8 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     photo = rs.stringOpt(c.photo),
     gallery = rs.stringOpt(c.gallery),
     resolution = rs.stringOpt(c.resolution),
-    page =  rs.string(c.page)
+    page =  rs.string(c.page),
+    contest = rs.longOpt(c.contest)
   )
 
   def batchInsert(monuments: Seq[Monument]) {
@@ -37,24 +40,30 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
         m.name,
         m.description,
 //        i.article,
+        m.year,
+        m.city,
         m.place,
       m.typ,
       m.subType,
         m.photo,
         m.gallery,
-        m.page
+        m.page,
+        m.contest
       ))
       withSQL {
         insert.into(MonumentJdbc).namedValues(
           column.id -> sqls.?,
           column.name -> sqls.?,
           column.description -> sqls.?,
+          column.year -> sqls.?,
+          column.city -> sqls.?,
           column.place -> sqls.?,
           column.typ -> sqls.?,
           column.subType -> sqls.?,
           column.photo -> sqls.?,
           column.gallery -> sqls.?,
-          column.page -> sqls.?
+          column.page -> sqls.?,
+          column.contest ->  sqls.?
         )
       }.batch(batchParams: _*).apply()
     }

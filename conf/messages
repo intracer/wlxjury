@@ -19,7 +19,10 @@ unrated = Unrated
 selected = Selected
 rejected = Rejected
 rated = Rated
+all = All
 all.jury.rating = All jury rating
+
+statistics = Statistics
 
 top-x = Top 21
 regions = Regions
@@ -29,6 +32,8 @@ wiki.loves.earth.Ukraine = Wiki Loves Earth 2014 in Ukraine
 wiki.loves.earth.Nepal = Wiki Loves Earth 2014 in Nepal
 wiki.loves.earth.Ghana = Wiki Loves Earth 2014 in Ghana
 wiki.loves.earth.Netherlands = Wiki Loves Earth 2014 in the Netherlands
+
+wiki.loves.monuments.Ukraine = Wiki Loves Monuments 2014 in Ukraine
 
 welcome.subject = Welcome to {0} jury
 welcome.messsage = Organizing committee of {0} is glad to welcome you as a jury member.\nPlease login to our jury tool {1} \nwith login: {2} and password: {3}\nRegards, {4}

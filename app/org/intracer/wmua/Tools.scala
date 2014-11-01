@@ -2,10 +2,11 @@ package org.intracer.wmua
 
 import akka.actor.ActorSystem
 import client.dto.Namespace
+import client.wlx.dto.Contest
+import client.wlx.query.MonumentQuery
 import client.{HttpClientImpl, MwBot}
-import controllers.GlobalRefactor
 import org.joda.time.DateTime
-import scalikejdbc.{LoggingSQLAndTimeSettings, GlobalSettings, ConnectionPool}
+import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
 
 import scala.concurrent.Await
 
@@ -33,10 +34,12 @@ object Tools {
       warningLogLevel = 'warn
     )
 
-   // users()
+    // users()
     initImages()
-    return
+    val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
 
+//    GlobalRefactor.initLists(wlmContest)
+    return
 
     //    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
@@ -106,8 +109,15 @@ object Tools {
 
       Selection.batchInsert(selection)
     }
+  }
 
+  def insertMonumentsWLM() = {
 
+    val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
+
+    val monumentQuery = MonumentQuery.create(wlmContest)
+    val allMonuments = monumentQuery.byMonumentTemplate(wlmContest.listTemplate)
+    println(allMonuments.size)
   }
 
 
@@ -142,9 +152,9 @@ object Tools {
   }
 
   def users() = {
-    for (i<- 1 to 12) {
+    for (i <- 1 to 12) {
       val password = User.randomString(8)
-      val hash =   User.sha1("Ukraine/" + password)
+      val hash = User.sha1("Ukraine/" + password)
 
       println(s"pw: $password, hash: $hash")
 
@@ -154,16 +164,15 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJury.find(15L).get
+    val contest = ContestJury.find(16L).get
 
-    GlobalRefactor.initContest("User:***REMOVED***/embeddedin", contest)
-    val round = Round.find(21L).get
+    //GlobalRefactor.appendImages("Category:WLM 2014 in Ukraine Round One", contest)
 
-    val selection = Selection.byRound(21L)
-    if (selection.isEmpty) {
+    val round = Round.find(22L).get
 
-      ImageDistributor.distributeImages(contest, round)
-    }
+//    val selection = Selection.byRound(22L)
+
+    ImageDistributor.distributeImages(contest, round)
 
   }
 

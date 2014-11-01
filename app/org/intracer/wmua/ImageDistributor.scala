@@ -6,7 +6,7 @@ object ImageDistributor {
 
   def distributeImages(contest: ContestJury, round: Round) {
 
-    val images: Seq[Image] = if (round.number == 1) {
+    val allImages: Seq[Image] = if (round.number == 1) {
       ImageJdbc.findByContest(contest.id)
     } else {
       val rounds = Round.findByContest(contest.id)
@@ -15,38 +15,47 @@ object ImageDistributor {
       }).getOrElse(Seq.empty)
     }
 
-    val jurors = round.jurors
+    val allJurors = round.jurors
 
-    val currentSelection = ImageJdbc.byRatingMerged(1, round.id.toInt)
-    if (currentSelection.isEmpty) {
-//      Selection.
+    val currentSelection = ImageJdbc.byRoundMerged(round.id.toInt)
+    //      Selection.
 
-      val selection: Seq[Selection] = round.distribution match {
-        case 0 =>
-          jurors.flatMap { juror =>
-            images.map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
-          }
-        case 1 =>
-          images.zipWithIndex.map {
-            case (img, i) => new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now)
-          }
-        //          jurors.zipWithIndex.flatMap { case (juror, i) =>
-        //            images.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
-        //          }
-
-        case 2 =>
-          images.zipWithIndex.flatMap {
-            case (img, i) => Seq(
-              new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now),
-              new Selection(0, img.pageId, 0, jurors((i + 1) % jurors.size).id, round.id, DateTime.now)
-            )
-          }
-        //          jurors.zipWithIndex.flatMap { case (juror, i) =>
-        //            imagesTwice.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
-        //          }
-      }
-      Selection.batchInsert(selection)
+    val oldImagesSelection = currentSelection.filter(iwr => iwr.selection.nonEmpty)
+    val oldImageIds = oldImagesSelection.map(iwr => iwr.pageId)
+    val oldJurorIds: Set[Long] = oldImagesSelection.toSet.flatMap{
+      iwr:ImageWithRating =>
+        iwr.selection.map(s => s.juryId).toSet
     }
+
+    val images = allImages.filterNot(i => oldImageIds.contains(i.pageId))
+    val jurors = allJurors.filterNot(j => oldJurorIds.contains(j.id))
+
+    val selection: Seq[Selection] = round.distribution match {
+      case 0 =>
+        jurors.flatMap { juror =>
+          images.map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+        }
+      case 1 =>
+        images.zipWithIndex.map {
+          case (img, i) => new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now)
+        }
+      //          jurors.zipWithIndex.flatMap { case (juror, i) =>
+      //            images.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+      //          }
+
+      case 2 =>
+        images.zipWithIndex.flatMap {
+          case (img, i) => Seq(
+            new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now),
+            new Selection(0, img.pageId, 0, jurors((i + 1) % jurors.size).id, round.id, DateTime.now),
+            new Selection(0, img.pageId, 0, jurors((i + 2) % jurors.size).id, round.id, DateTime.now)
+          )
+        }
+      //          jurors.zipWithIndex.flatMap { case (juror, i) =>
+      //            imagesTwice.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+      //          }
+    }
+    Selection.batchInsert(selection)
   }
 
   def createNextRound(round: Round, jurors: Seq[User], prevRound: Round) = {
