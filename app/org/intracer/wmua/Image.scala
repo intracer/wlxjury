@@ -13,6 +13,22 @@ case class Image(pageId: Long, contest: Long, title: String,
 
   def region: Option[String] = monumentId.map(_.split("-")(0))
 
+  def resizeTo(resizeToX: Int, resizeToY: Int): Int =
+    Image.resizeTo(width, height, resizeToX, resizeToY)
+}
+
+
+object Image {
+
+  def resizeTo(w: Int, h: Int, resizeToX: Int, resizeToY: Int): Int = {
+    val xRatio = w.toDouble / resizeToX
+    val yRatio = h.toDouble / resizeToY
+
+    val width = Math.min(resizeToX, w / yRatio)
+    width.toInt
+  }
+
+
 }
 
 object ImageJdbc extends SQLSyntaxSupport[Image] {

@@ -1,8 +1,5 @@
 package controllers
 
-import java.io.{File, FileReader}
-import java.util.Properties
-
 import client.{HttpClientImpl, MwBot}
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import org.intracer.wmua._
@@ -11,15 +8,17 @@ import play.api._
 import play.api.libs.concurrent.Akka
 import scalikejdbc.{GlobalSettings, LoggingSQLAndTimeSettings}
 
-import scala.collection.JavaConverters._
-
 
 object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
-  val gallerySize = 300
-  val thumbSize = 150
-  val largeSize = 1280
+  val gallerySizeX = 300
+  val gallerySizeY = 200
+  val gallerySizeDouble = 600
+  val thumbSizeX = 150
+  val thumbSizeY = 120
+  val largeSizeX = 1280
+  val largeSizeY = 1180
 
   private val galleryUrls = collection.mutable.Map[Long, String]()
   private val largeUrls = collection.mutable.Map[Long, String]()
@@ -103,9 +102,9 @@ object Global {
   def initContestFiles(filesInCategory: Seq[Image]) {
 
     for (file <- filesInCategory) {
-      val galleryUrl = resizeTo(file, gallerySize)
-      val thumbUrl = resizeTo(file, thumbSize)
-      val largeUrl = resizeTo(file, largeSize)
+      val galleryUrl = resizeTo(file, gallerySizeX, gallerySizeY)
+      val thumbUrl = resizeTo(file, thumbSizeX, thumbSizeY)
+      val largeUrl = resizeTo(file, largeSizeX, largeSizeY)
 
       galleryUrls(file.pageId) = galleryUrl
       thumbUrls(file.pageId) = thumbUrl
@@ -113,49 +112,26 @@ object Global {
     }
   }
 
-  def resizeTo(info: Image, resizeTo: Int) = {
+  def resizeTo(info: Image, resizeToWidth: Int, resizeToHeight: Int): String = {
     val h = info.height
     val w = info.width
 
-    val px = if (w >= h) Math.min(w, resizeTo)
-    else {
-      if (h > resizeTo) {
-        val ratio = h.toFloat / resizeTo
-        w / ratio
-      } else {
-        w
-      }
-    }
+    val px = info.resizeTo(resizeToWidth, resizeToHeight)
 
     val isPdf = info.title.toLowerCase.endsWith(".pdf")
     val isTif = info.title.toLowerCase.endsWith(".tif")
 
-    // /lossy-page1-360px-Zámek_(Nové_Město_nad_Metují).tif.jpg
-
     val url = info.url
-    if (px < w || isPdf) {
+    if (px < w || isPdf || isTif) {
       val lastSlash = url.lastIndexOf("/")
       url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" +
         (if (isPdf) "page1-" else
         if (isTif) "lossy-page1-" else
           "") +
-        px.toInt + "px-" + url.substring(lastSlash + 1) + (if (isPdf || isTif) ".jpg" else "")
+        px + "px-" + url.substring(lastSlash + 1) + (if (isPdf || isTif) ".jpg" else "")
     } else {
       url
     }
-  }
-
-
-
-  def loadFileCache(file: File): Map[String, String] = {
-    val galleryUrlsProps = new Properties
-    galleryUrlsProps.load(new FileReader(file))
-
-    Logger.info("loadFileCache file " + file)
-    Logger.info("loadFileCache size " + galleryUrlsProps.size())
-    Logger.info("loadFileCache head " + galleryUrlsProps.asScala.head)
-
-    galleryUrlsProps.asScala.toMap
   }
 
 }

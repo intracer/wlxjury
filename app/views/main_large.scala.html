@@ -73,7 +73,7 @@
         }
 
         $(window).bind("load", function() {
-            preload([@Html(preload.map(i => s"'${controllers.Global.resizeTo(i.image, controllers.Global.largeSize)}'").mkString(","))]);
+            preload([@Html(preload.map(i => s"'${controllers.Global.resizeTo(i.image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)}'").mkString(","))]);
         });
 
         </script>

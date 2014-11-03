@@ -40,7 +40,8 @@
                             <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
                         }
                         case "html" => {
-                            @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)}"></a>""" ) {str => @str <br/> }
+                            @defining(
+                                s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)}"></a>""" ) {str => @str <br/> }
                         }
                     }
                     }
@@ -69,7 +70,7 @@
                         <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
                     }
                     case "html" => {
-                        @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySize)}"></a>""") { str => @str <br/>}
+                        @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)}"></a>""") { str => @str <br/>}
                     }
                 }
                     </td>

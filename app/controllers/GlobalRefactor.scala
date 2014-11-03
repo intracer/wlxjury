@@ -74,7 +74,11 @@ object GlobalRefactor {
 
     query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
       filesInCategory =>
-        val newImages: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId).filterNot(i => existingPageIds.contains(i.pageId))
+        val newImagesOrigIds: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId).filterNot(i => existingPageIds.contains(i.pageId))
+
+        val maxId = newImagesOrigIds.map(_.pageId).max * 256
+
+        val newImages = newImagesOrigIds.map(p => p.copy(pageId = maxId + p.pageId))
 
         contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
           query.revisionsByGenerator("categorymembers", "cm",

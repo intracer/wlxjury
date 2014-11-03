@@ -110,7 +110,7 @@
 
                        @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
                         <div style="margin:5px auto;"><a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.toInt, rate, module)">
-                            <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.thumbSize)" >
+                            <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.thumbSizeX, controllers.Global.thumbSizeY)" >
                         </a>
                         </div>
                     </div>
@@ -130,7 +130,9 @@
 
        <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
 
-      <a href="https://commons.wikimedia.org/wiki/@files(index).title" target="_blank"> <img alt="@files(index).title" src="@controllers.Global.resizeTo(files(index).image, controllers.Global.largeSize)" style="max-width:100%; height:auto;"> </a>
+      <a href="https://commons.wikimedia.org/wiki/@files(index).title" target="_blank">
+          <img alt="@files(index).title" src="@controllers.Global.resizeTo(files(index).image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)" style="max-width:100%; height:auto;">
+      </a>
 
        </div>
     </div>

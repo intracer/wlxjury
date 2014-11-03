@@ -164,11 +164,11 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJury.find(16L).get
+    val contest = ContestJury.find(17L).get
 
-    //GlobalRefactor.appendImages("Category:WLM 2014 in Ukraine Round One", contest)
+//    GlobalRefactor.appendImages("Category:WLM 2014 in Ukraine Round One", contest)
 
-    val round = Round.find(22L).get
+    val round = Round.find(23L).get
 
 //    val selection = Selection.byRound(22L)
 
