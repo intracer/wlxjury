@@ -1,0 +1,22 @@
+@(dto: UiSelectionDto[Any], iconOnly: Boolean = false)(implicit lang: Lang)
+<div class="btn-group" style="margin-top : 10px">
+    <a class="btn" href="#">
+        @dto.current.icon.fold(Html(dto.current.localizedText(lang))) { iconClass =>
+            <i class="@iconClass"></i>
+        }
+
+    </a>
+    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+    <ul class="dropdown-menu">
+        @for((id, value) <- dto.optValues) {
+            <li>
+                <a href="@dto.call(id)">
+                    @value.icon.map { iconClass =>
+                        <i class="@iconClass"></i>
+                    }
+                    @value.localizedText(lang)
+                </a>
+            </li>
+        }
+    </ul>
+</div>

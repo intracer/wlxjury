@@ -27,6 +27,15 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
 
 case class Rates(id: Int, name: String, minRate: Int = 0, maxRate: Int = 1)
 
+object Rates {
+
+  val map =  Map(1 -> "selected", 0 -> "unrated", -1 -> "rejected")
+
+  val pairs:Seq[(Option[Int], String)] = Seq(Some(1) -> "selected", Some(0) -> "unrated", Some(-1) -> "rejected")
+
+
+}
+
 //case class Limits(min:Int, max:Int, recommended: Option[Int])
 
 object Round extends SQLSyntaxSupport[Round] {

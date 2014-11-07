@@ -1,0 +1,7 @@
+@(dto: UiSelectionDto[Any])(implicit lang: Lang)
+@for((id, value) <- dto.optValues) {
+    <li class="@if(dto.idOpt == id){active active-}@value.text">
+        <a style="margin-top: 5px" href="@dto.call(id)">@Messages(value.localizedText(lang))</a>
+    </li>
+    }
+

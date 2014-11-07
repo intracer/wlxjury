@@ -72,6 +72,16 @@
                                     <a style="margin-top : 5px ;" href="/byrate/round/@round.id/user/0/page/1">@Messages("all.jury.rating")
                                     (@user.roundFiles(round.id).count(_.rate > 0))</a>
                                     }
+                            <li>
+                                <div class="btn-group" style="margin-top : 10px">
+                                    <a href="@routes.Gallery.list(user = asUserId, page = 1, region = region, round = round.id.toInt, rate = rate)">
+                                        <div class="btn btn-small"><i class="icon-th-large"></i></div>
+                                    </a>
+                                    <a href="/gallery/round/@round.id/user/@asUserId/region/@region/page/1@rateParam(rate)">
+                                        <div class="btn btn-small"><i class="icon-th"></i></div>
+                                    </a>
+                                </div>
+
                         }
 
                         @if(user.id != asUserId && user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
@@ -79,42 +89,51 @@
                                 @currentRounds.map(_.description).mkString(", ")
                             </li>
                         <li>
-                        <div class="btn-group" style="margin-top:10px">
-                            <a class="btn" href="#">@if(asUserId != 0){ @asUser.fullname } else {@Messages("all")}</a>
-                            <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
-                            <ul class="dropdown-menu">
-                                @for(round <- currentRounds) {
-                                    @for(juror <- round.jurors) {
-                                        <li><a href="/@title/round/@round.id/user/@juror.id/region/@region/page/1@rateParam(rate)">@juror.fullname</a></li>
-                                    }
-                                    <li><a href="/@title/round/@round.id/user/0/region/@region/page/1@rateParam(rate)">@Messages("all")</a></li>
-                                }
-                            </ul>
-                        </div>
+
                             @for(round <- currentRounds) {
+                                @dropDownSelection(
+                                    new UiSelectionDto[Option[Int]](
+                                        routes.Gallery.query(module = title, _, page = 1, region = region, round = round.id.toInt, rate),
+                                        Some(asUserId),
+                                        SelectionItem("all"),
+                                        round.jurors.map(u => (Some(u.id.toInt), SelectionItem(u.fullname, localized = false))),
+                                        defaultKey = Some(0)
+                                    ).asInstanceOf[UiSelectionDto[Any]]
+                                )
+
                                 @if(round.rates.id == 1) {
-                                    <div class="btn-group" style="margin-top : 10px">
-                                        <a class="btn" href="#">@Messages(rate.fold("all")(r => Map(1 -> "selected", 0 -> "unrated", -1 -> "rejected")(r)))</a>
-                                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
-                                        <ul class="dropdown-menu">
-                                            <li>
-                                                <a style="margin-top: 5px" href="/gallery/round/@round.id/user/@asUserId/page/1">@Messages("all")</a>
-                                            </li>
-                                        @for((rateName, rate) <- Seq(("selected", Some(1)), ("unrated", Some(0)), ("rejected", Some(-1)))) {
-                                            <li><a href="/@title/round/@currentRounds.head.id/user/@asUserId/region/@region/page/1@rateParam(rate)">@Messages(rateName)</a></li>
-                                        }
-                                        </ul>
+                                    @dropDownSelection(
+                                        new UiSelectionDto[Option[Int]](
+                                            routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.id.toInt, _),
+                                            rate,
+                                            SelectionItem("all"),
+                                            Seq(
+                                                Some(1)-> SelectionItem("selected"),
+                                                Some(0) -> SelectionItem("unrated"),
+                                                Some(-1) -> SelectionItem("rejected")),
+                                            None
+                                        ).asInstanceOf[UiSelectionDto[Any]]
+                                    )
+                                }
+                                @if(round.rates.id == 1) {
+                                    @dropDownSelection(
+                                        new UiSelectionDto[String](
+                                            routes.Gallery.query(_, user = Some(asUserId), page = 1, region = region, round = round.id.toInt, rate),
+                                            "gallery",
+                                            SelectionItem("thumbnails", Some("icon-th")),
+                                            Seq(
+                                                /*"gallerylarge" -> SelectionItem("large.thumbnails",Some("icon-th-large")),*/
+                                                "filelist" -> SelectionItem("file.list", Some("icon-align-justify"))),
+                                            "gallery"
+                                        ).asInstanceOf[UiSelectionDto[Any]]
+                                    , iconOnly = true)
+                                } else{
+                                    <div class="btn-group" style="margin-top : 12px">
+                                        <a href="/gallery/round/@round.id/user/@asUserId/region/@region/page/1@rateParam(rate)"><div class="btn btn-small"><i class="icon-th-large"></i></div></a>
+                                        <a href="/byrate/round/@round.id/user/@asUserId/region/@region/page/1"><div class="btn btn-small"><i class="icon-signal"></i></div></a>
+                                        <a href="/filelist/round/@round.id/user/@asUserId/region/@region/page/1"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
                                     </div>
                                 }
-                                <div class="btn-group" style="margin-top : 12px">
-                                @if(round.rates.id == 1) {
-                                    <a href="/gallery/round/@round.id/user/@asUserId/region/@region/page/1@rateParam(rate)"><div class="btn btn-small"><i class="icon-th"></i></div></a>
-                                    <a href="/filelist/round/@round.id/user/@asUserId/region/@region/page/1@rateParam(rate)"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
-                                } else{
-                                    <a href="/byrate/round/@round.id/user/@asUserId/region/@region/page/1"><div class="btn btn-small"><i class="icon-signal"></i></div></a>
-                                    <a href="/filelist/round/@round.id/user/@asUserId/region/@region/page/1"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
-                                }
-                                </div>
                             }
                             </li>
                         }

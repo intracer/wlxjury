@@ -14,7 +14,8 @@ object Global {
 
   val gallerySizeX = 300
   val gallerySizeY = 200
-  val gallerySizeDouble = 600
+  val gallerySizeXDouble = 600
+  val gallerySizeYDouble = 400
   val thumbSizeX = 150
   val thumbSizeY = 120
   val largeSizeX = 1280

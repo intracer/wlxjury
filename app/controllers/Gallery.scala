@@ -5,6 +5,7 @@ import org.intracer.wmua._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.cache.Cache
+import play.mvc.Call
 
 object Gallery extends Controller with Secured with Instrumented {
 
@@ -22,27 +23,42 @@ object Gallery extends Controller with Secured with Instrumented {
   private[this] val timerByRate = metrics.timer("Gallery.byRate")
   private[this] val timerShow = metrics.timer("Gallery.show")
 
+
+  def query(module: String, asUserId: Option[Int], page: Int = 1, region: String = "all", roundId: Int = 0, rate: Option[Int]) = {
+    listGeneric(module, asUserId.getOrElse(0), pager => page, region, roundId, rate )
+  }
+
   def list(asUserId: Int, page: Int = 1, region: String = "all", roundId: Int = 0, rate: Option[Int]) =
-    listGeneric(asUserId, pager => page, region, roundId, rate )
+    listGeneric("gallery", asUserId, pager => page, region, roundId, rate )
 
   def listAtId(asUserId: Int, pageId: Long, region: String = "all", roundId: Int = 0, rate: Option[Int]) =
-    listGeneric(asUserId, pager => pager.at(pageId), region, roundId, rate )
+    listGeneric("gallery", asUserId, pager => pager.at(pageId), region, roundId, rate )
 
-  def listGeneric(asUserId: Int, pageFn: Pager => Int, region: String = "all", roundId: Int = 0, rate: Option[Int]) = withAuth {
+  def listGeneric(module: String, asUserId: Int, pageFn: Pager => Int, region: String = "all", roundId: Int = 0, rate: Option[Int]) = withAuth {
     user =>
       implicit request =>
         timerList.time {
           val round = if (roundId == 0) Round.current(user) else Round.find(roundId).get
           val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
 
-          val ratedFiles = filterByRate(round, rate, uFiles)
+          val ratedFiles = rate.fold(uFiles.sortBy(-_.totalRate))(r => filterByRate(round, rate, uFiles))
           val byReg = byRegion(ratedFiles)
           val files = regionFiles(region, ratedFiles)
 
           val pager = new Pager(files)
           val page = pageFn(pager)
           val pageFiles = pager.pageFiles(page)
-          Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, uFiles, page, round, rate, region, byReg))
+
+          module match {
+            case "gallery" =>
+              Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, uFiles, page, round, rate, region, byReg))
+
+            case "filelist" =>
+              Ok(views.html.fileList(user, asUserId, asUser, files, files, uFiles, page, round, rate, region, byReg, "wiki"))
+
+            case "byrate" =>
+              Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, uFiles, page, round, region, byReg))
+          }
         }
   }
 

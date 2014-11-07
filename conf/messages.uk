@@ -22,7 +22,8 @@ all = Всі
 all.jury.rating = Сумарний вибір журі
 
 statistics = Статистика
-
+thumbnails = Іконки
+file.list = Список файлів
 
 top-x = Топ 21
 regions = Регіони

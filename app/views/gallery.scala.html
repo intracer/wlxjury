@@ -12,7 +12,7 @@
         byRegion: Map[String, Int])(
         implicit flash: Flash, lang: Lang)
 
-    @main("gallery", user, asUserId, asUser, allFiles, Seq(round), true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.toInt, region))  {
+    @main("gallery", user, asUserId, asUser, allFiles, Seq(round), gallery = true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.toInt, region))  {
 
     @if(round.contest == 14 || round.contest == 16 || round.contest == 17) {
         <div class="row-fluid" >
