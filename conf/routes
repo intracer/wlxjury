@@ -96,6 +96,12 @@ GET         /monuments                                                          
 
 GET         /error                                                                  controllers.Application.error(message: String ?= "Unknown error")
 
+GET         /webjars/*file                                                          controllers.WebJarAssets.at(file)
+
+GET     /chat                           controllers.ChatApplication.index
+GET     /chatFeed/:room             controllers.ChatApplication.chatFeed(room: String)
+POST    /chat                       controllers.ChatApplication.postMessage
+
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)
 

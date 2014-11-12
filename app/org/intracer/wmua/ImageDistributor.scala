@@ -27,7 +27,7 @@ object ImageDistributor {
         iwr.selection.map(s => s.juryId).toSet
     }
 
-    val images = allImages.filterNot(i => oldImageIds.contains(i.pageId))
+    val images = allImages // allImages.filterNot(i => oldImageIds.contains(i.pageId))
     val jurors = allJurors.filterNot(j => oldJurorIds.contains(j.id))
 
     val selection: Seq[Selection] = round.distribution match {

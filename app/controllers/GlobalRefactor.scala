@@ -1,7 +1,7 @@
 package controllers
 
 import akka.actor.ActorSystem
-import client.dto.{Namespace, SinglePageQuery, Template}
+import client.dto.{SinglePageQuery, Template}
 import client.wlx.dto.Contest
 import client.wlx.query.MonumentQuery
 import client.{HttpClientImpl, MwBot}
@@ -72,17 +72,19 @@ object GlobalRefactor {
   def initImagesFromCategory(contest: ContestJury, query: SinglePageQuery, existing: Seq[Image]): Future[Unit] = {
     val existingPageIds = existing.map(_.pageId)
 
-    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
+
+    //bot.page("User:***REMOVED***/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
+    query.imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some("")).map {
       filesInCategory =>
         val newImagesOrigIds: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId).filterNot(i => existingPageIds.contains(i.pageId))
 
-        val maxId = newImagesOrigIds.map(_.pageId).max * 256
+        val maxId = newImagesOrigIds.map(_.pageId).max * 1024
 
         val newImages = newImagesOrigIds.map(p => p.copy(pageId = maxId + p.pageId))
 
         contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
-          query.revisionsByGenerator("categorymembers", "cm",
-            Set.empty, Set("content", "timestamp", "user", "comment"), titlePrefix = None) map {
+          query.revisionsByGenerator("images", "im",
+            Set.empty, Set("content", "timestamp", "user", "comment"), titlePrefix = Some("")) map {
             pages =>
 
               val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
@@ -93,7 +95,7 @@ object GlobalRefactor {
 
               val imagesWithIds = newImages.zip(ids).map {
                 case (image, id) => image.copy(monumentId = Some(id))
-              }
+              }.filter(_.monumentId.forall(_.startsWith("18-")))
               saveNewImages(contest, imagesWithIds)
           }
         }

@@ -83,3 +83,73 @@ img.cropped {
     right: 0;
     bottom: 0;
 }
+
+
+body {
+    font-family: helvetica;
+    color: #333;
+    background: #CCC;
+}
+
+#chat {
+    min-height: 200px;
+    right: 10px;
+    left: 30px;
+    background: #AAA;
+    max-width: 850px;
+    width: 100%;
+    height:600px;
+    overflow: scroll;
+}
+
+.msg {
+    padding: 10px;
+    width: 100%;
+    background: #FF9966;
+}
+
+.others {
+    background: #EEE;
+}
+
+.juliet {
+    background: #FF69B4;
+}
+
+#textField {
+    width: 800px;
+    position: relative;
+    top: 4px;
+}
+
+#userField {
+    width: 210px;
+    position: relative;
+    top: 1px;
+}
+
+#header {
+    color: #EEE;
+    width: 500px;
+    height: 40px;
+    font-weight: bold;
+    padding: 10px;
+    background: #303030;
+}
+
+#footer {
+    color: #EEE;
+    width: 500px;
+    height: 60px;
+    font-weight: bold;
+    padding: 10px;
+    background: #303030;
+}
+
+#roomSelect {
+
+}
+
+.undo {
+    padding: 20px 0;
+}

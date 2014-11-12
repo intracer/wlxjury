@@ -36,7 +36,9 @@ object ApplicationBuild extends Build {
     "org.intracer" %% "mwbot" % "0.2.0",
     //"io.dropwizard.metrics" % "metrics-core" % "3.1.0",
       "nl.grons" %% "metrics-scala" % "3.3.0_a2.2",
-
+    "org.webjars" % "webjars-play_2.10" % "2.2.0",
+    "org.webjars" % "angularjs" % "1.1.5-1",
+    "org.webjars" % "bootstrap" % "2.3.2",
     //    "com.typesafe.play" %% "play-slick" % "0.6.0.1",
   "org.specs2"           %% "specs2"                          % "2.4.2"               % "test"
 

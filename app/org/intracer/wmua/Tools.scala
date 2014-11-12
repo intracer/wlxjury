@@ -39,25 +39,25 @@ object Tools {
     val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
 
 //    GlobalRefactor.initLists(wlmContest)
-    return
+//    return
 
     //    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
-    for (contest <- ContestJury.findAll()) {
-
-      if (contest.country == "Ghana") {
-        println(contest)
+//    for (contest <- ContestJury.findAll()) {
+//
+//      if (contest.country == "Ghana") {
+//        println(contest)
 
         //        controllers.GlobalRefactor.initContest("Category:Images from Wiki Loves Earth 2014 in " + contest.country,  contest)
 
-        roundAndUsers(contest)
+        //roundAndUsers(contest)
 
         //updateResolution(contest)
 
         //Admin.distributeImages(contest, Round.findByContest(contest.id).head)
-        //      createNextRound()
-      }
-    }
+//        createNextRound()
+//      }
+//    }
   }
 
   def roundAndUsers(contest: ContestJury) {
@@ -164,16 +164,19 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJury.find(17L).get
+    val contest = ContestJury.find(16L).get
 
-//    GlobalRefactor.appendImages("Category:WLM 2014 in Ukraine Round One", contest)
+//    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
+//    GlobalRefactor.appendImages(category, contest)
 
-    val round = Round.find(23L).get
+    val prevRound = Round.find(24L).get
+    val round = Round.find(28L).get
 
 //    val selection = Selection.byRound(22L)
 
     ImageDistributor.distributeImages(contest, round)
 
+//    createNextRound(round, round.jurors, prevRound)
   }
 
 }

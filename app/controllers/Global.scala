@@ -43,6 +43,8 @@ object Global {
   def onStart(app: Application) {
     Logger.info("Application has started")
 
+//    ChatActors
+
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
       singleLineMode = false,
