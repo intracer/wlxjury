@@ -27,7 +27,12 @@
                             <a href="/filelist/round/@round.id/user/@user.id/page/1"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
                         }
                     </div>
-        @if(round.rates.id==1) { @count }
+        @if(round.rates.id==1) { @count } else {
+            @byUserRateCount.getOrElse(user.id, Map.empty).toSeq.collect({
+                case (x,y) if x > 0 => y
+            }).sum
+
+        }
         }
     }
 
