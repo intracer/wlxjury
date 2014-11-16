@@ -5,7 +5,7 @@
  *
  * @author  : Washington Botelho
  * @doc     : http://wbotelhos.com/raty
- * @version : 2.6.0
+ * @version : 2.7.0
  *
  */
 
@@ -45,6 +45,7 @@
 
         methods._createScore.call(this);
         methods._apply.call(this, this.opt.score);
+        methods._setTitle.call(this, this.opt.score);
         methods._target.call(this, this.opt.score);
 
         if (this.opt.readOnly) {
@@ -58,7 +59,7 @@
     },
 
     _adjustCallback: function() {
-      var options = ['number', 'readOnly', 'score', 'scoreName', 'target'];
+      var options = ['number', 'readOnly', 'score', 'scoreName', 'target', 'path'];
 
       for (var i = 0; i < options.length; i++) {
         if (typeof this.opt[options[i]] === 'function') {
@@ -176,6 +177,10 @@
         }
 
         if (execute || execute === undefined) {
+          if (that.opt.half && !that.opt.precision) {
+            score = methods._roundHalfScore.call(that, score);
+          }
+
           methods._apply.call(that, score);
         }
       });
@@ -201,6 +206,7 @@
 
         methods._apply.call(that, score);
         methods._target.call(that, score, evt);
+        methods._resetTitle.call(that);
 
         if (that.opt.mouseout) {
           that.opt.mouseout.call(that, score, evt);
@@ -238,7 +244,8 @@
         methods._fill.call(that, score);
 
         if (that.opt.half) {
-          methods._roundStars.call(that, score);
+          methods._roundStars.call(that, score, evt);
+          methods._setTitle.call(that, score, evt);
 
           that.self.data('score', score);
         }
@@ -416,7 +423,7 @@
 
         hint = group[decimal];
       } else if (this.opt.halfShow || this.opt.half) {
-        decimal = set && decimal === 0 ? 1: decimal > 5 ? 1 : 0;
+        decimal = set && decimal === 0 ? 1 : decimal > 5 ? 1 : 0;
 
         hint = group[decimal];
       }
@@ -454,24 +461,47 @@
       return this.opt.score && this.opt.score >= i ? 'starOn' : 'starOff';
     },
 
-    _roundStars: function(score) {
-      var rest = (score % 1).toFixed(2);
+    _resetTitle: function(star) {
+      for (var i = 0; i < this.opt.number; i++) {
+        this.stars[i].title = methods._getHint.call(this, i + 1);
+      }
+    },
 
-      if (rest > this.opt.round.down) {                      // Up:   [x.76 .. x.99]
-        var name = 'starOn';
+     _roundHalfScore: function(score) {
+      var integer = parseInt(score, 10),
+          decimal = methods._getFirstDecimal.call(this, score);
 
-        if (this.opt.halfShow && rest < this.opt.round.up) { // Half: [x.26 .. x.75]
+      if (decimal !== 0) {
+        decimal = decimal > 5 ? 1 : 0.5;
+      }
+
+      return integer + decimal;
+    },
+
+    _roundStars: function(score, evt) {
+      var
+        decimal = (score % 1).toFixed(2),
+        name    ;
+
+      if (evt || this.move) {
+        name = decimal > 0.5 ? 'starOn' : 'starHalf';
+      } else if (decimal > this.opt.round.down) {               // Up:   [x.76 .. x.99]
+        name = 'starOn';
+
+        if (this.opt.halfShow && decimal < this.opt.round.up) { // Half: [x.26 .. x.75]
           name = 'starHalf';
-        } else if (rest < this.opt.round.full) {             // Down: [x.00 .. x.5]
+        } else if (decimal < this.opt.round.full) {             // Down: [x.00 .. x.5]
           name = 'starOff';
         }
+      }
 
+      if (name) {
         var
           icon = this.opt[name],
           star = this.stars[Math.ceil(score) - 1];
 
         methods._setIcon.call(this, star, icon);
-      }                                                      // Full down: [x.00 .. x.25]
+      }                                                         // Full down: [x.00 .. x.25]
     },
 
     _setIcon: function(star, icon) {
@@ -487,6 +517,16 @@
         target.val(score);
       } else {
         target.html(score);
+      }
+    },
+
+    _setTitle: function(score, evt) {
+      if (score) {
+        var
+          integer = parseInt(Math.ceil(score), 10),
+          star    = this.stars[integer - 1];
+
+        star.title = methods._getHint.call(this, score, evt);
       }
     },
 

@@ -2,9 +2,10 @@ package org.intracer.wmua
 
 import akka.actor.ActorSystem
 import client.dto.Namespace
-import client.wlx.dto.Contest
+import client.wlx.dto.{SpecialNomination, Contest}
 import client.wlx.query.MonumentQuery
 import client.{HttpClientImpl, MwBot}
+import controllers.GlobalRefactor
 import org.joda.time.DateTime
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
 
@@ -16,6 +17,27 @@ object Tools {
   //  db.default.url="jdbc:mysql://localhost/wlxjury"
   //  db.default.user="***REMOVED***"
   //  db.default.password="***REMOVED***"
+
+  val regions = Set(
+    "01", // Crimea
+    "05", // Vinnitsa
+    "07", // Volyn
+    "12", // Dnipro
+    "18", // Dnipro
+    "23", // Zaporizzia
+     "26", // IF
+     "32",  // Kyivska
+    "35",  // Kirovohradska,
+    "48", // Mykolaivska
+    "53", // Poltavska
+    "56", // RIvnenska
+    "61", //Ternopilska
+      "65", //Khersonska
+    "71", //Khersonska
+    "85" //Sevastopol
+  )
+
+
 
 
   def main(args: Array[String]) {
@@ -34,9 +56,10 @@ object Tools {
       warningLogLevel = 'warn
     )
 
-    // users()
+     //users()
     initImages()
     val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
+    //wooden(wlmContest)
 
 //    GlobalRefactor.initLists(wlmContest)
 //    return
@@ -91,7 +114,11 @@ object Tools {
 
       //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
       //
-      val images = ImageJdbc.byRatingMerged(1, prevRound.id.toInt)
+      val images =
+      ImageJdbc.byRoundMerged(prevRound.id.toInt).filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate).toArray
+
+      //ImageJdbc.byRatingMerged(1, prevRound.id.toInt).toArray
+
       //      ImageJdbc.findAll().filter(_.region == Some("44"))
 
       val imagesByJurors = images.filter {
@@ -170,13 +197,31 @@ object Tools {
 //    GlobalRefactor.appendImages(category, contest)
 
     val prevRound = Round.find(24L).get
-    val round = Round.find(28L).get
+    val round = Round.find(29L).get
 
 //    val selection = Selection.byRound(22L)
 
-    ImageDistributor.distributeImages(contest, round)
+   // ImageDistributor.distributeImages(contest, round)
 
-//    createNextRound(round, round.jurors, prevRound)
+    createNextRound(round, round.jurors, prevRound)
+  }
+
+  def wooden(wlmContest: Contest) = {
+    val page = "Commons:Images from Wiki Loves Monuments 2014 in Ukraine special nomination Пам'ятки дерев'яної архітектури України"
+    val monumentQuery = MonumentQuery.create(wlmContest)
+    val nomination = SpecialNomination.wooden
+    val monumentsListsId = monumentQuery.byPage(nomination.pages.head, nomination.listTemplate).map(_.id).toSet
+    val nanaRound = Round.find(27L).get
+    val monumentIdsByNana = ImageJdbc.byRatingMerged(1, nanaRound.id.toInt).flatMap(_.image.monumentId).toSet
+
+    val onlyNana = monumentIdsByNana -- monumentsListsId
+
+    val allIds = monumentIdsByNana ++ monumentsListsId
+
+    val category = "Category:Images from Wiki Loves Monuments 2014 in Ukraine"
+    val contest = ContestJury.find(20L).get
+    GlobalRefactor.appendImages(category, contest, allIds)
+
   }
 
 }

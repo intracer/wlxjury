@@ -38,7 +38,10 @@
                                 <a style="margin-top: 5px;" href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(-1))">@Messages("rejected") (@user.roundFiles(round.id).count(_.rate == -1))</a>
                                 } else {
                             <li>
+
+                            @if(round.contest == 16) {
                                 <a class="brand" style="margin-top : 5px;" href="/chat">@Messages("chat") </a>
+                            }
 
                                 @if(user.roundFiles(round.id).count(_.rate == 0) > 0) {
                                 <li class="@if(rate == Some(0)) {active}">
@@ -48,9 +51,12 @@
                             <li class="@if(rate != Some(0) && asUserId == user.id.toInt) {active}">
                                 <a style="margin-top : 5px ;" href="/byrate/round/@round.id/user/@user.id/page/1">@Messages("rated")
                                     (@user.roundFiles(round.id).count(_.rate > 0))</a>
+
+                            @if(false) {
                             <li class="@if(rate != Some(0) && asUserId == 0) {active}">
                                 <a style="margin-top : 5px ;" href="/byrate/round/@round.id/user/0/page/1">@Messages("all.jury.rating")
                                     (@user.roundFiles(round.id).count(_.rate > 0))</a>
+                                }
 
                                 }
                     }

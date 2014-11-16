@@ -4,6 +4,7 @@
         score: Double,
         url: String,
         readOnly: Boolean = false,
+        round: org.intracer.wmua.Round,
         rate: Option[Int],
         module: String = "byrate",
         preload: Iterable[org.intracer.wmua.ImageWithRating] = Seq.empty)(content: Html)(implicit lang: Lang)
@@ -28,41 +29,50 @@
         $.fn.raty.defaults.path = '@routes.Assets.at("images")';
 
         $(document).ready(function() {
-        var $window = $(window);
+        var $window = $ ( window ) ;
 
         // Function to handle changes to style classes based on window width
-        function checkWidth() {
-        if ($window.width() < 1175) {
-        $('#mainContent').removeClass('span10').addClass('span9');
-        };
+        function checkWidth ( ) {
+        if ( $window.width ( ) < 1175 ) {
+        $ ( '#mainContent' ).removeClass ( 'span10' ).addClass ( 'span9' ) ;
+        } ;
 
-        if ($window.width() >= 1175) {
-        $('#mainContent').removeClass('span9').addClass('span10');
+        if ( $window.width ( ) >= 1175 ) {
+        $ ( '#mainContent' ).removeClass ( 'span9' ).addClass ( 'span10' ) ;
         }
         }
 
         // Execute on load
-        checkWidth();
+        checkWidth ( ) ;
 
         // Bind event listener
-        $(window).resize(checkWidth);
+        $ ( window ).resize ( checkWidth ) ;
 
-        $('#rate-image').raty(
-        {
-            score: @score,
-            half : true,
-            cancel  : true,
-            starHalf : 'star-half-big.png',
-            starOff : 'star-off-big.png',
-            starOn  : 'star-on-big.png',
-            cancelOff : 'cancel-off-big.png',
-            cancelOn  : 'cancel-on-big.png',
-            @if(readOnly) {readOnly : 'true'} else {
-            click: function(score, evt) {
-            document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&")';
-            return false;
-        }}
-        });
+
+        @defining(if(round.rates.id <= 10) "-big.png" else ".png") { sizeSuffix =>
+
+            $ ( '#rate-image' ).raty ( {
+        score : @score,
+        half : true,
+        cancel : true,
+        starHalf : 'star-half@sizeSuffix',
+        starOff : 'star-off@sizeSuffix',
+        starOn : 'star-on@sizeSuffix',
+        cancelOff : 'cancel-off@sizeSuffix',
+        cancelOn : 'cancel-on@sizeSuffix',
+        number : @(round.rates.id / 2),
+        hints :[ ],
+            @if(readOnly) {
+                readOnly : 'true'
+            } else {
+                click : function ( score, evt ) {
+                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&")';
+                return false ;
+                }
+            }
+        } ) ;
+
+        }
 
         });
 

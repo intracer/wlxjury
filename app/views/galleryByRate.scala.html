@@ -10,17 +10,19 @@
         region: String = "all",
         byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang)
 
-    @showStar(star: Int, rate: Int) = {
-    @if((rate/2) >= star){/assets/images/star-on-big.png}
-    @if(rate < star*2 && rate>(star-1)*2){/assets/images/star-half-big.png}
-    @if(rate <= (star-1)*2){/assets/images/star-off-big.png}
+    @showStar(star: Int, rate: Int, big: Boolean) = {
+        @defining(if (big) "-big.png" else ".png") { sizeSuffix =>
+            @if((rate / 2) >= star) {/assets/images/star-on@sizeSuffix}
+            @if(rate < star * 2 && rate > (star - 1) * 2) {/assets/images/star-half@sizeSuffix}
+            @if(rate <= (star - 1) * 2) {/assets/images/star-off@sizeSuffix}
+        }
     }
 
     @showRate(file: org.intracer.wmua.ImageWithRating, index: Int) = {
        <div style="margin-bottom: 10px; color: #ffffff;"> <b>@index. </b>
        <span style="margin-left: 5px; margin-right: 10px;">
-        @for(i <- 1 to 5) {
-            <img alt="@i" src="@showStar(i, file.totalRate.toInt)">
+        @for(i <- 1 to round.rates.id / 2) {
+            <img alt="@i" src="@showStar(i, file.totalRate.toInt, round.rates.id <= 10)">
             }
             @file.rateString
         </span>
@@ -29,7 +31,7 @@
 
 @main("byrate", user, asUserId, asUser, allFiles, Seq(round), true, None, region, pager(asUserId, regionFiles, page, None, round.id.toInt, region, "byrate"))  {
 
-    @if(round.contest == 14 || round.contest == 16 || round.contest == 17) {
+    @if(round.contest == 14 || round.contest == 16 || round.contest == 17 || round.contest == 20) {
         <div class="row-fluid" >
             <div class="pagination pagination-centered" style="margin-top : 10px ; margin-bottom : 5px ;">
                 <ul>

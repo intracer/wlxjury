@@ -99,7 +99,7 @@ GET         /error                                                              
 GET         /webjars/*file                                                          controllers.WebJarAssets.at(file)
 
 GET     /chat                           controllers.ChatApplication.index
-GET     /chatFeed/:room             controllers.ChatApplication.chatFeed(room: String)
+GET     /chatFeed/:round             controllers.ChatApplication.chatFeed(round: String)
 POST    /chat                       controllers.ChatApplication.postMessage
 
 

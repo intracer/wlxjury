@@ -1,6 +1,6 @@
 package controllers
 
-import org.intracer.wmua.{User, Comment, CommentJdbc, Round}
+import org.intracer.wmua.{Comment, CommentJdbc, Round, User}
 import org.joda.time.DateTime
 import play.api.libs.EventSource
 import play.api.libs.concurrent.Execution.Implicits._
@@ -71,25 +71,27 @@ object ChatApplication extends Controller with Secured {
     Enumeratee.onIterateeDone { () => println(addr + " - SSE disconnected")}
 
   /** Controller action serving activity based on room */
-  def chatFeed(room: String) = withAuth {
+  def chatFeed(round: String) = withAuth {
     user =>
       implicit req =>
 
         val round = Round.current(user)
 
-//        cache(round.id) {
+//        val future: Future[SimpleResult] = cache(round) {
 //          Concurrent.broadcast[JsValue]
 //        }.map {
 //          case (chatOut, _) =>
 
             println(req.remoteAddress + " - SSE connected")
             Ok.feed(chatOut
-              &> filter(room)
+              //              &> filter(room)
               &> Concurrent.buffer(50)
               &> connDeathWatch(req.remoteAddress)
               &> EventSource()
             ).as("text/event-stream")
-//        }.value.get.get
+//        }
+//
+//        AsyncResult(future)
   }
 
 }

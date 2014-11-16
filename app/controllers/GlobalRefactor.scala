@@ -15,7 +15,7 @@ object GlobalRefactor {
 
   val http = new HttpClientImpl(system)
 
-  val commons = new MwBot(http, system, "commons.wikimedia.org")
+  val commons =  MwBot.get(MwBot.commons)
 
   import controllers.GlobalRefactor.system.dispatcher
 
@@ -32,11 +32,11 @@ object GlobalRefactor {
     }
   }
 
-  def appendImages(category: String, contest: ContestJury): Any = {
+  def appendImages(category: String, contest: ContestJury, idsFilter: Set[String] = Set.empty): Any = {
     val images = ImageJdbc.findByContest(contest.id)
 
       val query = commons.page(category)
-      initImagesFromCategory(contest, query, images)
+      initImagesFromCategory(contest, query, images, idsFilter)
   }
 
   def createJury() {
@@ -69,22 +69,26 @@ object GlobalRefactor {
 
   }
 
-  def initImagesFromCategory(contest: ContestJury, query: SinglePageQuery, existing: Seq[Image]): Future[Unit] = {
+  def initImagesFromCategory(
+                              contest: ContestJury,
+                              query: SinglePageQuery,
+                              existing: Seq[Image],
+                              idsFilter: Set[String] = Set.empty): Future[Unit] = {
     val existingPageIds = existing.map(_.pageId)
 
 
     //bot.page("User:***REMOVED***/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
-    query.imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some("")).map {
+    query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
       filesInCategory =>
         val newImagesOrigIds: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId).filterNot(i => existingPageIds.contains(i.pageId))
 
-        val maxId = newImagesOrigIds.map(_.pageId).max * 1024
+        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
 
         val newImages = newImagesOrigIds.map(p => p.copy(pageId = maxId + p.pageId))
 
         contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
-          query.revisionsByGenerator("images", "im",
-            Set.empty, Set("content", "timestamp", "user", "comment"), titlePrefix = Some("")) map {
+          query.revisionsByGenerator("categorymembers", "cm",
+            Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
             pages =>
 
               val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
@@ -95,7 +99,7 @@ object GlobalRefactor {
 
               val imagesWithIds = newImages.zip(ids).map {
                 case (image, id) => image.copy(monumentId = Some(id))
-              }.filter(_.monumentId.forall(_.startsWith("18-")))
+              }.filter(_.monumentId.forall(id => idsFilter.isEmpty || idsFilter.contains(id)))
               saveNewImages(contest, imagesWithIds)
           }
         }

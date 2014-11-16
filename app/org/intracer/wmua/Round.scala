@@ -41,7 +41,7 @@ object Rates {
 object Round extends SQLSyntaxSupport[Round] {
 
   val binaryRound = new Rates(1, "+/-", -1, 1)
-  val rateRounds = (3 to 10).map(i => new Rates(i, s"1-$i rating", 1, i))
+  val rateRounds = (3 to 20).map(i => new Rates(i, s"1-$i rating", 1, i))
 
   val rates = Seq(binaryRound) ++ rateRounds
 

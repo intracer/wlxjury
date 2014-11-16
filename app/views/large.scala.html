@@ -82,6 +82,7 @@
     files(index).totalRate / 2.0,
     s"/large/round/${round.id.toInt}/region/$region/pageid/${files(index).pageId}/select/",
     readOnly = !user.roles.contains("jury"),
+    round = round,
     rate = rate,
     preload = files.view.slice(start, end)) {
         <div class="container-fluid" style="padding-left:5px; margin-left:0px; margin-right:0px">

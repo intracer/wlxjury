@@ -66,7 +66,7 @@ pager: Html = Html.empty)(implicit lang: Lang)
 
             <div id="chat">
                 <div class="{{msg.who}} msg" ng-repeat="msg in msgs"
-                ng-class="msg.user === 'Juliet' ? 'juliet' : msg.user !== user ? 'others' : ''"> <!-- {{msg.createdAt}}<br/> -->
+                ng-class="msg.user !== user ? 'others' : ''"> <!-- {{msg.createdAt}}<br/> -->
                     <strong>{{msg.username}}: </strong>{{msg.body}}<br/>
                 </div>
             </div>
