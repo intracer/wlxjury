@@ -19,22 +19,23 @@ object Tools {
   //  db.default.password="***REMOVED***"
 
   val regions = Set(
-    "01", // Crimea
-    "05", // Vinnitsa
-    "07", // Volyn
-    "12", // Dnipro
-    "18", // Dnipro
-    "23", // Zaporizzia
-     "26", // IF
-     "32",  // Kyivska
-    "35",  // Kirovohradska,
-    "48", // Mykolaivska
-    "53", // Poltavska
-    "56", // RIvnenska
-    "61", //Ternopilska
-      "65", //Khersonska
-    "71", //Khersonska
-    "85" //Sevastopol
+//    "01", // Crimea
+//    "05", // Vinnitsa
+//    "07", // Volyn
+//    "12", // Dnipro
+//    "18", // Dnipro
+//    "23", // Zaporizzia
+//     "26", // IF
+//     "32",  // Kyivska
+//    "35",  // Kirovohradska,
+//    "48", // Mykolaivska
+//    "53", // Poltavska
+//    "56", // RIvnenska
+//    "61", //Ternopilska
+//      "65", //Khersonska
+//    "71", //Khersonska
+//    "85" //Sevastopol
+  "44"  // Luhanska
   )
 
 
@@ -110,14 +111,15 @@ object Tools {
 
   def createNextRound(round: Round, jurors: Seq[User], prevRound: Round) = {
     val newImages = ImageJdbc.byRatingMerged(0, round.id.toInt)
-    if (newImages.isEmpty) {
+    if (true || newImages.isEmpty) {
 
       //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
       //
-      val images =
-      ImageJdbc.byRoundMerged(prevRound.id.toInt).filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate).toArray
+      val images = ImageJdbc.byRatingMerged(1, prevRound.id.toInt).toArray
+      //ImageJdbc.byRoundMerged(prevRound.id.toInt)//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
+      //.toArray
 
-      //ImageJdbc.byRatingMerged(1, prevRound.id.toInt).toArray
+
 
       //      ImageJdbc.findAll().filter(_.region == Some("44"))
 
@@ -191,13 +193,13 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJury.find(16L).get
+    val contest = ContestJury.find(20L).get
 
 //    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
 //    GlobalRefactor.appendImages(category, contest)
 
-    val prevRound = Round.find(24L).get
-    val round = Round.find(29L).get
+    val prevRound = Round.find(30L).get
+    val round = Round.find(33L).get
 
 //    val selection = Selection.byRound(22L)
 

@@ -15,7 +15,8 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
                  images: Seq[Page] = Seq.empty,
                  selected: Seq[Page] = Seq.empty,
                  createdAt: DateTime = DateTime.now,
-                 deletedAt: Option[DateTime] = None) {
+                 deletedAt: Option[DateTime] = None,
+                 active: Boolean = false) {
 
   def jurors = User.findAllBy(sqls.in(User.c.roles, roles.toSeq).and.eq(User.c.contest, contest))
 
@@ -79,7 +80,8 @@ object Round extends SQLSyntaxSupport[Round] {
     limitMax = rs.intOpt(c.limitMax),
     recommended = rs.intOpt(c.recommended),
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
-    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
+    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime),
+    active = rs.booleanOpt(c.active).getOrElse(false)
   )
 
 
@@ -90,17 +92,17 @@ object Round extends SQLSyntaxSupport[Round] {
     select.from(Round as c)
       .where.append(isNotDeleted)
       .orderBy(c.id)
-  }.map(Round(c)).list.apply()
+  }.map(Round(c)).list().apply()
 
   def findByContest(contest: Long)(implicit session: DBSession = autoSession): List[Round] = withSQL {
     select.from(Round as c)
       .where.append(isNotDeleted).and.eq(c.contest, contest)
       .orderBy(c.id)
-  }.map(Round(c)).list.apply()
+  }.map(Round(c)).list().apply()
 
   def find(id: Long)(implicit session: DBSession = autoSession): Option[Round] = withSQL {
     select.from(Round as c).where.eq(c.id, id).and.append(isNotDeleted)
-  }.map(Round(c)).single.apply()
+  }.map(Round(c)).single().apply()
 
   def create(number: Int, name: Option[String], contest: Int, roles: String, distribution: Int,
              rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int],
@@ -117,7 +119,7 @@ object Round extends SQLSyntaxSupport[Round] {
         column.limitMax -> limitMax,
         column.recommended -> recommended,
         column.createdAt -> createdAt)
-    }.updateAndReturnGeneratedKey.apply()
+    }.updateAndReturnGeneratedKey().apply()
 
     new Round(id = id, name = name, number = number, contest = contest, roles = Set(roles), distribution = distribution,
       rates = ratesById(rates).head, limitMin = limitMin,
@@ -132,11 +134,12 @@ object Round extends SQLSyntaxSupport[Round] {
       column.rates -> round.rates.id,
       column.limitMin -> round.limitMin,
       column.limitMax -> round.limitMax,
-      column.recommended -> round.recommended
+      column.recommended -> round.recommended,
+      column.active -> round.active
     ).where.eq(column.id, id)
-  }.update.apply()
+  }.update().apply()
 
   def countByContest(contest: Int)(implicit session: DBSession = autoSession): Int = withSQL {
     select(sqls.count).from(Round as c).where.eq(column.contest, contest)
-  }.map(rs => rs.int(1)).single.apply().get
+  }.map(rs => rs.int(1)).single().apply().get
 }

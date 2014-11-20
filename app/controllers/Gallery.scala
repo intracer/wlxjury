@@ -183,7 +183,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
         val rounds = Round.activeRounds(user.contest)
 
-        val roundOption = rounds.find(_.id.toInt == roundId)
+        val roundOption = rounds.find(_.id.toInt == roundId).filter(_.active)
 
         roundOption.fold(Redirect(routes.Gallery.list(user.id.toInt, 1, region, roundId, rate))) { round =>
 

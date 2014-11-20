@@ -23,6 +23,13 @@
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
         <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.js"></script>
         <script src="@routes.Assets.at("javascripts/jquery.raty.js")"></script>
+        @if(false){  <script src="@routes.Assets.at("javascripts/jquery.hotkeys.js")"></script>}
+
+        <script>
+        $(document).on('keypress', null, 'down', function(){
+
+        });
+        </script>
 
         <script>
 
@@ -47,7 +54,6 @@
 
         // Bind event listener
         $ ( window ).resize ( checkWidth ) ;
-
 
         @defining(if(round.rates.id <= 10) "-big.png" else ".png") { sizeSuffix =>
 
