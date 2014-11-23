@@ -22,7 +22,7 @@
                         <li><a class="brand" style="margin-top : 5px" href="/admin/users">@Messages("users")</a>
                         <li><a class="brand" style="margin-top : 5px" href="/admin/rounds">@Messages("rounds")</a>
                             }
-                    @if(user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
+                    @if(user.roles.intersect(Set("organizer", "admin", "jury")).nonEmpty) {
                         <li><a class="brand" style="margin-top : 5px" href="/roundstat">@Messages("statistics")</a>
                             }
 

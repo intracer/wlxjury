@@ -41,7 +41,7 @@ object Rounds extends Controller with Secured {
         val byJurorNum = grouped.mapValues(_.size)
 
         Ok(views.html.roundStat(user, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
-  }, Set(User.ADMIN_ROLE) ++ User.ORG_COM_ROLES)
+  }, Set(User.ADMIN_ROLE, "jury") ++ User.ORG_COM_ROLES)
 
   def roundStat(roundId: Int) = withAuth({
     user =>

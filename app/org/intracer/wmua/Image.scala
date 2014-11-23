@@ -152,6 +152,13 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
     //      .append(isNotDeleted)
   }.map(ImageJdbc(c)).list().apply()
 
+  def findWithSelection(id: Long, roundId: Long)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
+    select.from(ImageJdbc as c)
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(c.pageId, id).and
+      .eq(Selection.s.round, roundId)
+  }.map(rs => (ImageJdbc(c)(rs), Selection(Selection.s)(rs))).list().apply().map{case (i,s ) => ImageWithRating(i,Seq(s))}
+
   def byUserImageWithRating(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
     select.from(ImageJdbc as c)
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)

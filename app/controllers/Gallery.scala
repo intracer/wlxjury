@@ -39,25 +39,36 @@ object Gallery extends Controller with Secured with Instrumented {
       implicit request =>
         timerList.time {
           val round = if (roundId == 0) Round.current(user) else Round.find(roundId).get
-          val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
 
-          val ratedFiles = rate.fold(uFiles.sortBy(-_.totalRate))(r => filterByRate(round, rate, uFiles))
-          val byReg = byRegion(ratedFiles)
-          val files = regionFiles(region, ratedFiles)
+          val userContest = user.contest
+          val roundContest = round.contest
 
-          val pager = new Pager(files)
-          val page = pageFn(pager)
-          val pageFiles = pager.pageFiles(page)
+          if (userContest != roundContest ||
+            (user.roles.intersect(Set("admin", "organizer")).isEmpty
+              && !ContestJury.byId(userContest).exists(_.currentRound == roundId))) {
+            onUnAuthorized(user)
+          } else {
 
-          module match {
-            case "gallery" =>
-              Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, uFiles, page, round, rate, region, byReg))
+            val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
 
-            case "filelist" =>
-              Ok(views.html.fileList(user, asUserId, asUser, files, files, uFiles, page, round, rate, region, byReg, "wiki"))
+            val ratedFiles = rate.fold(uFiles.sortBy(-_.totalRate))(r => filterByRate(round, rate, uFiles))
+            val byReg = byRegion(ratedFiles)
+            val files = regionFiles(region, ratedFiles)
 
-            case "byrate" =>
-              Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, uFiles, page, round, region, byReg))
+            val pager = new Pager(files)
+            val page = pageFn(pager)
+            val pageFiles = pager.pageFiles(page)
+
+            module match {
+              case "gallery" =>
+                Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, uFiles, page, round, rate, region, byReg))
+
+              case "filelist" =>
+                Ok(views.html.fileList(user, asUserId, asUser, files, files, uFiles, page, round, rate, region, byReg, "wiki"))
+
+              case "byrate" =>
+                Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, uFiles, page, round, region, byReg))
+            }
           }
         }
   }

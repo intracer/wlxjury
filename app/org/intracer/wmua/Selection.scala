@@ -26,7 +26,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
       .eq(s.juryId, user.id).and
       .eq(s.round, roundId).and
       .append(isNotDeleted)
-  }.map(Selection(s)).list.apply()
+  }.map(Selection(s)).list().apply()
 
   def byUserSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
     select.from(Selection as s).where
@@ -34,20 +34,20 @@ object Selection extends SQLSyntaxSupport[Selection]{
       .eq(s.round, roundId).and
       .ne(s.rate, 0).and
       .append(isNotDeleted)
-  }.map(Selection(s)).list.apply()
+  }.map(Selection(s)).list().apply()
 
   def byRoundSelected(roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
     select.from(Selection as s).where
       .eq(s.round, roundId).and
       .ne(s.rate, 0).and
       .append(isNotDeleted)
-  }.map(Selection(s)).list.apply()
+  }.map(Selection(s)).list().apply()
 
   def byRound(roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
     select.from(Selection as s).where
       .eq(s.round, roundId).and
       .append(isNotDeleted)
-  }.map(Selection(s)).list.apply()
+  }.map(Selection(s)).list().apply()
 
   def byUserNotSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
     select.from(Selection as s).where
@@ -55,7 +55,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
       .eq(s.round, roundId).and
       .eq(s.rate, 0).and
       .append(isNotDeleted)
-  }.map(Selection(s)).list.apply()
+  }.map(Selection(s)).list().apply()
 
 
   def apply(c: SyntaxProvider[Selection])(rs: WrappedResultSet): Selection = apply(c.resultName)(rs)

@@ -38,16 +38,19 @@
 
     @main(Messages("statistics"), user, user.id.toInt, user, Seq.empty, Seq(round)) {
 
-        <div class="row-fluid" >
-
-            <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">
-                <ul>
+        @if(user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
+            <div class="row-fluid" >
+                <div class="pagination pagination-centered" style="margin-top: 10px; margin-bottom: 5px;">
+                    <ul>
                     @for(r <- rounds) {
-                        <li><a href="/roundstat/@r.id" @if(r.id == round.id){style="font-weight: bold"}> Round @r.description </a></li>
+                        <li><a href="/roundstat/@r.id" @if(r.id == round.id) {
+                            style="font-weight: bold"}> Round @r.description </a>
+                        </li>
                     }
-                </ul>
+                    </ul>
+                </div>
             </div>
-        </div>
+        }
 
         <div class="row-fluid" >
 
