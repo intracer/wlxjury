@@ -127,3 +127,5 @@ total = Разом
 51=Одесская
 profile=Профиль
 regions=Регионы
+
+full.resolution = Полное разрешение: <nobr>{0}</nobr>; {1} Мпкс

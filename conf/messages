@@ -161,3 +161,5 @@ total = Total
 53=Poltava O.
 21=Zakarpattia O.
 51=Odessa O.
+
+full.resolution = Full resolution: <nobr>{0}</nobr>; {1} Mpx

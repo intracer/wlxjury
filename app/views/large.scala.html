@@ -125,7 +125,16 @@
                         @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br>
                     @Html(Monument.wikiLinkToUrl(m.place.getOrElse(""), "uk.wikipedia.org"))
                     </div>
+
+
                 }
+            <div class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">
+               <a href="@files(index).image.url">@Html(Messages(
+                   "full.resolution",
+                   files(index).image.resolutionStr,
+                   files(index).image.mpxStr
+               ))</a>
+            </div>
 
        </div>
 

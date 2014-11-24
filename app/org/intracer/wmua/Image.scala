@@ -1,5 +1,7 @@
 package org.intracer.wmua
 
+import java.text.DecimalFormat
+
 import client.dto.Page
 import scalikejdbc._
 
@@ -15,10 +17,17 @@ case class Image(pageId: Long, contest: Long, title: String,
 
   def resizeTo(resizeToX: Int, resizeToY: Int): Int =
     Image.resizeTo(width, height, resizeToX, resizeToY)
+
+  def resolutionStr = s"${width} x $height"
+
+  def mpxStr = Image.fmt.format(width * height / 1000000.0)
+
 }
 
 
 object Image {
+
+  def fmt = new DecimalFormat("0.0")
 
   def resizeTo(w: Int, h: Int, resizeToX: Int, resizeToY: Int): Int = {
     val xRatio = w.toDouble / resizeToX
