@@ -72,14 +72,13 @@
         }
     }
 
-
     @thumbSmall(file:ImageWithRating, style:String) = {
         <div class="@style">
     }
 
     @main_large(module,
     user,
-    files(index).totalRate / 2.0,
+    files(index).totalRate(round) / 2.0,
     s"/large/round/${round.id.toInt}/region/$region/pageid/${files(index).pageId}/select/",
     readOnly = !user.roles.contains("jury") || !round.active,
     round = round,
@@ -124,17 +123,22 @@
 <!--                        @Html(m.typ.getOrElse("") + " " + m.subType.getOrElse("")) <br> -->
                         @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br>
                     @Html(Monument.wikiLinkToUrl(m.place.getOrElse(""), "uk.wikipedia.org"))
+
+                  @if(false){  <a href="@routes.Monuments.byId(m.id)"><i class="icon-forward"></i></a> }
+
                     </div>
 
 
                 }
-            <div class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">
-               <a href="@files(index).image.url">@Html(Messages(
-                   "full.resolution",
-                   files(index).image.resolutionStr,
-                   files(index).image.mpxStr
-               ))</a>
-            </div>
+                @if(false) {
+                    <div class="well" style="margin-right : 5 px ; margin-top : 10 px ; padding : 5 px ;">
+                        <a href="@files(index).image.url">@Html(Messages(
+                            "full.resolution",
+                            files(index).image.resolutionStr,
+                            files(index).image.mpxStr
+                        ))</a>
+                    </div>
+                }
 
        </div>
 

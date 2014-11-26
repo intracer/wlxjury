@@ -1,5 +1,6 @@
 @(monuments: Seq[client.wlx.dto.Monument])
 @import client.wlx.dto.Monument
+@import org.intracer.wmua.ImageJdbc
 <!DOCTYPE html>
 
 <html>
@@ -12,6 +13,8 @@
         <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.js"></script>
 
         <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/bootstrap-sortable.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+
         <script src="@routes.Assets.at("javascripts/moment.min.js")"></script>
         <script src="@routes.Assets.at("javascripts/bootstrap-sortable.js")"></script>
     </head>
@@ -20,10 +23,14 @@
             <thead>
                 <tr>
                     <th>@Messages("id")</th>
+                    <th>@Messages("image")</th>
                     <th>@Messages("name")</th>
+                    <th>@Messages("year")</th>
                     <th>@Messages("place")</th>
+                    <th>@Messages("city")</th>
                     <th>@Messages("user")</th>
                     <th>@Messages("coordinates")</th>
+                    <th>@Messages("page")</th>
                     <th>@Messages("type")</th>
                     <th>@Messages("commons")</th>
                     <th>@Messages("resolution")</th>
@@ -33,13 +40,44 @@
             @for(monument <- monuments) {
                 <tr>
                     <td>@monument.id</td>
+                    <td>@monument.photo.map{ photo =>
+                      <a href="https://commons.wikimedia.org/wiki/File:@photo">photo</a>
+                    }</td>
                     <td>@Html(Monument.wikiLinkToUrl(monument.name, "uk.wikipedia.org")) </td>
+                    <td>@monument.year.getOrElse("")</td>
                     <td>@Html(Monument.wikiLinkToUrl(monument.place, "uk.wikipedia.org"))</td>
+                    <td>@Html(Monument.wikiLinkToUrl(monument.city, "uk.wikipedia.org"))</td>
                     <td>@monument.user</td>
                     <td>@monument.lat, @monument.lon</td>
+                    <td><a href="https://uk.wikipedia.org/wiki/@monument.page">@monument.page</a></td>
                     <td>@monument.typ <br/> @monument.subType</td>
-                    <td>@monument.gallery</td>
+                    <td><a href="https://commons.wikimedia.org/wiki/Category:@monument.gallery">@monument.gallery</td>
                     <td>@monument.resolution</td>
+                </tr>
+                <tr>
+                    <td colspan="12">
+
+                    <div class="row-fluid" >
+
+                        <ul class="gallery mw-gallery-traditional">
+
+                        @for((file, index) <- ImageJdbc.findByMonumentId(monument.id).zipWithIndex) {
+                            <li class="gallerybox">
+                                <h1 id="@file.pageId" style="display: inline; width: 1px; height: 1px"></h1>
+
+                                <div class="thumb">
+                                    <a href="" >
+                                        <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)">
+                                    </a>
+                                </div>
+
+                            </li>
+                        }
+
+                        </ul>
+
+                    </div>
+                    </td>
                 </tr>
 
             }

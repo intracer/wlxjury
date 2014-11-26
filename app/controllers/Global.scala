@@ -50,7 +50,7 @@ object Global {
       singleLineMode = false,
       printUnprocessedStackTrace = false,
       stackTraceDepth = 15,
-      logLevel = 'debug,
+      logLevel = 'info,
       warningEnabled = false,
       warningThresholdMillis = 3000L,
       warningLogLevel = 'warn

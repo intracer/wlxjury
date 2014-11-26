@@ -11,14 +11,21 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
                  limitMin: Option[Int],
                  limitMax: Option[Int],
                  recommended: Option[Int],
-                 jury: Seq[User] = Seq.empty,
                  images: Seq[Page] = Seq.empty,
                  selected: Seq[Page] = Seq.empty,
                  createdAt: DateTime = DateTime.now,
                  deletedAt: Option[DateTime] = None,
-                 active: Boolean = false) {
+                 active: Boolean = false,
+                 optionalRate: Boolean = false) {
 
   def jurors = User.findAllBy(sqls.in(User.c.roles, roles.toSeq).and.eq(User.c.contest, contest))
+
+  def activeJurors  = if (!optionalRate) _allJurors else _activeJurors
+
+  lazy val _activeJurors = Selection.activeJurors(id)
+
+  lazy val _allJurors = Selection.allJurors(id)
+
 
   def allImages = ImageJdbc.byRoundMerged(id.toInt)
 
@@ -81,7 +88,8 @@ object Round extends SQLSyntaxSupport[Round] {
     recommended = rs.intOpt(c.recommended),
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime),
-    active = rs.booleanOpt(c.active).getOrElse(false)
+    active = rs.booleanOpt(c.active).getOrElse(false),
+    optionalRate  = rs.booleanOpt(c.optionalRate).getOrElse(false)
   )
 
 

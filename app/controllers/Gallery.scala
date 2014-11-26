@@ -51,7 +51,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
 
-            val ratedFiles = rate.fold(uFiles.sortBy(-_.totalRate))(r => filterByRate(round, rate, uFiles))
+            val ratedFiles = rate.fold(uFiles.sortBy(-_.totalRate(round)))(r => filterByRate(round, rate, uFiles))
             val byReg = byRegion(ratedFiles)
             val files = regionFiles(region, ratedFiles)
 
@@ -82,7 +82,7 @@ object Gallery extends Controller with Secured with Instrumented {
           val (uFiles, asUser) = filesByUserId(asUserId, None, user, round)
 
           val byReg = byRegion(uFiles)
-          val files = regionFiles(region, uFiles).sortBy(-_.totalRate)
+          val files = regionFiles(region, uFiles).sortBy(-_.totalRate(round))
 
           val pager = new Pager(files)
           val page = pageFn(pager)
@@ -259,7 +259,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
       val (allFiles, asUser) = filesByUserId(asUserId, rate, user, round)
 
-      val sorted = if (module == "byrate") allFiles.sortBy(-_.totalRate) else allFiles
+      val sorted = if (module == "byrate") allFiles.sortBy(-_.totalRate(round)) else allFiles
 
       val files = regionFiles(region, filterByRate(round, rate, sorted))
 

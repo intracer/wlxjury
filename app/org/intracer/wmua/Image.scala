@@ -42,6 +42,8 @@ object Image {
 
 object ImageJdbc extends SQLSyntaxSupport[Image] {
 
+  private val isNotDeleted = sqls.isNull(Selection.s.deletedAt)
+
   def fromPage(page: Page, contest: ContestJury):Option[Image] = {
     try {
       for (imageInfo <- page.imageInfo.headOption)
@@ -119,6 +121,13 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
       .orderBy(c.pageId)
   }.map(ImageJdbc(c)).list().apply()
 
+  def findByMonumentId(monumentId: String)(implicit session: DBSession = autoSession): List[Image] = withSQL {
+    select.from(ImageJdbc as c)
+      .where
+      .eq(c.monumentId, monumentId)
+      .orderBy(c.pageId)
+  }.map(ImageJdbc(c)).list().apply()
+
   def find(id: Long)(implicit session: DBSession = autoSession): Option[Image] = withSQL {
     select.from(ImageJdbc as c).where.eq(c.pageId, id) //.and.append(isNotDeleted)
   }.map(ImageJdbc(c)).single().apply()
@@ -148,8 +157,8 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
     select.from(ImageJdbc as c)
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
       .where.eq(Selection.s.juryId, user.id).and
-      .eq(Selection.s.round, roundId)
-    //      .append(isNotDeleted)
+      .eq(Selection.s.round, roundId).and
+      .append(isNotDeleted)
   }.map(ImageJdbc(c)).list().apply()
 
   def byUserSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Image] = withSQL {
@@ -157,8 +166,8 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
       .where.eq(Selection.s.juryId, user.id).and
       .eq(Selection.s.round, roundId).and
-      .ne(Selection.s.rate, 0)
-    //      .append(isNotDeleted)
+      .ne(Selection.s.rate, 0).and
+      .append(isNotDeleted)
   }.map(ImageJdbc(c)).list().apply()
 
   def findWithSelection(id: Long, roundId: Long)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
@@ -173,7 +182,7 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
       .where.eq(Selection.s.juryId, user.id).and
       .eq(Selection.s.round, roundId)
-    //      .append(isNotDeleted)
+      .and.append(isNotDeleted)
   }.map(rs => (ImageJdbc(c)(rs), Selection(Selection.s)(rs))).list().apply().map{case (i,s ) => ImageWithRating(i,Seq(s))}
 
   def byRating(roundId: Long, rate: Int)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
@@ -181,7 +190,7 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
       .where.eq(Selection.s.rate, rate).and
       .eq(Selection.s.round, roundId)
-    //      .append(isNotDeleted)
+      .and.append(isNotDeleted)
   }.map(rs => (ImageJdbc(c)(rs), Selection(Selection.s)(rs))).list().apply().map{case (i,s ) => ImageWithRating(i,Seq(s))}
 
   def byRatingGE(roundId: Long, rate: Int)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
@@ -189,7 +198,7 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
       .where.ge(Selection.s.rate, rate).and
       .eq(Selection.s.round, roundId)
-    //      .append(isNotDeleted)
+      .and.append(isNotDeleted)
   }.map(rs => (ImageJdbc(c)(rs), Selection(Selection.s)(rs))).list().apply().map{case (i,s ) => ImageWithRating(i,Seq(s))}
 
 
@@ -197,7 +206,7 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
     select.from(ImageJdbc as c)
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
       .where.eq(Selection.s.round, roundId)
-    //      .append(isNotDeleted)
+      .and.append(isNotDeleted)
   }.map(rs => (ImageJdbc(c)(rs), Selection(Selection.s)(rs))).list().apply().map{case (i,s ) => ImageWithRating(i,Seq(s))}
 
   def byRatingMerged(rate: Int, round: Int): Seq[ImageWithRating] = {

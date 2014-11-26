@@ -38,7 +38,7 @@
 
     @main(Messages("statistics"), user, user.id.toInt, user, Seq.empty, Seq(round)) {
 
-        @if(user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
+        @if(user.roles.intersect(Set("organizer", "admin", "jury")).nonEmpty) {
             <div class="row-fluid" >
                 <div class="pagination pagination-centered" style="margin-top: 10px; margin-bottom: 5px;">
                     <ul>

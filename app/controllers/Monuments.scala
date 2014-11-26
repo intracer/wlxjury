@@ -12,4 +12,12 @@ object Monuments extends Controller {
       Ok(views.html.monuments(monuments))
   }
 
+  def byId(id: String) = Action {
+    implicit request =>
+
+      val monuments = MonumentJdbc.find(id).toSeq
+      Ok(views.html.monuments(monuments))
+  }
+
+
 }

@@ -62,7 +62,7 @@
                     </th>
                 </thead>
                 <tbody>
-            @for(file <- pageFiles.sortBy(-_.totalRate)) {
+            @for(file <- pageFiles.sortBy(-_.totalRate(round))) {
                 <tr>
                     <td>
                 @format1 match {
@@ -74,7 +74,7 @@
                     }
                 }
                     </td>
-                    <td>@file.rateString</td>
+                    <td>@file.rateString(round)</td>
                 </tr>
             }
                 </tbody>

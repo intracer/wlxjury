@@ -94,13 +94,15 @@ GET         /roundstat/:round                                                   
 
 GET         /monuments                                                              controllers.Monuments.list()
 
+GET         /monuments/id/:id                                                       controllers.Monuments.byId(id)
+
 GET         /error                                                                  controllers.Application.error(message: String ?= "Unknown error")
 
 GET         /webjars/*file                                                          controllers.WebJarAssets.at(file)
 
-GET     /chat                           controllers.ChatApplication.index
-GET     /chatFeed/:round             controllers.ChatApplication.chatFeed(round: String)
-POST    /chat                       controllers.ChatApplication.postMessage
+GET         /chat                                                                   controllers.ChatApplication.index
+GET         /chatFeed/:round                                                        controllers.ChatApplication.chatFeed(round: String)
+POST        /chat                                                                   controllers.ChatApplication.postMessage
 
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)

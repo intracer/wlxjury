@@ -1,7 +1,7 @@
 package org.intracer.wmua
 
-import scalikejdbc._
 import org.joda.time.DateTime
+import scalikejdbc._
 
 case class Selection(
                       id: Long,
@@ -149,9 +149,38 @@ object Selection extends SQLSyntaxSupport[Selection]{
       eq(column.round, round)
   }.update().apply()
 
+  import SQLSyntax.{count, distinct}
+  def activeJurors(roundId: Long)(implicit session: DBSession = autoSession): Int =
+    sql"""SELECT count( 1 )
+    FROM (
+
+      SELECT s.jury_id
+    FROM selection s
+    WHERE s.round = $roundId and s.deleted_at is null
+    GROUP BY s.jury_id
+    HAVING sum(s.rate) > 0
+    ) j"""
+  .map(_.int(1)).single().apply().get
+
+  //    val j = SubQuery.syntax("j").include(s)
+  //    select(count(distinct(j.juryId))).from {
+  //      select(s.juryId).from(Selection as s).where.eq(s.round, roundId).as(j)
+  //        .groupBy(j.juryId)
+  //        .having(gt(sum(j.rate), 0))
+  //    }
+  //    //      .append(isNotDeleted)
 
 
-//  def destroyAll(filename: String)(implicit session: DBSession = autoSession): Unit = withSQL {
+  def allJurors(roundId: Long)(implicit session: DBSession = autoSession): Int = withSQL {
+    select(count(distinct(Selection.s.juryId))).from(Selection as Selection.s).where.eq(Selection.s.round, roundId)
+      .groupBy(Selection.s.juryId)
+      .append(isNotDeleted)
+  }.map(_.int(1)).single().apply().get
+
+
+
+
+  //  def destroyAll(filename: String)(implicit session: DBSession = autoSession): Unit = withSQL {
 //    update(Selection).set(column.deletedAt -> DateTime.now).where.eq(column.filename, filename)
 //  }.update.apply()
 
