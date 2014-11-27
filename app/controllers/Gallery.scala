@@ -298,7 +298,10 @@ object Gallery extends Controller with Secured with Instrumented {
     val end = Math.min(files.size, right + extraRight)
     val monument = files(index).image.monumentId.flatMap(MonumentJdbc.find)
 
-    Ok(views.html.large(user, asUserId, files, index, start, end, page, rate, region, round, monument, module))
+    val comments = CommentJdbc.findByRoundAndSubject(round.id.toInt, files(index).pageId)
+
+
+    Ok(views.html.large(user, asUserId, files, index, start, end, page, rate, region, round, monument, module, comments))
   }
 
   val loginForm = Form(

@@ -16,7 +16,8 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
                  createdAt: DateTime = DateTime.now,
                  deletedAt: Option[DateTime] = None,
                  active: Boolean = false,
-                 optionalRate: Boolean = false) {
+                 optionalRate: Boolean = false,
+                 juryOrgView: Boolean = false) {
 
   def jurors = User.findAllBy(sqls.in(User.c.roles, roles.toSeq).and.eq(User.c.contest, contest))
 
@@ -89,7 +90,8 @@ object Round extends SQLSyntaxSupport[Round] {
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime),
     active = rs.booleanOpt(c.active).getOrElse(false),
-    optionalRate  = rs.booleanOpt(c.optionalRate).getOrElse(false)
+    optionalRate  = rs.booleanOpt(c.optionalRate).getOrElse(false),
+    juryOrgView = rs.booleanOpt(c.juryOrgView).getOrElse(false)
   )
 
 

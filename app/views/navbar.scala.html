@@ -22,12 +22,13 @@
                         <li><a class="brand" style="margin-top : 5px" href="/admin/users">@Messages("users")</a>
                         <li><a class="brand" style="margin-top : 5px" href="/admin/rounds">@Messages("rounds")</a>
                             }
-                    @if(user.roles.intersect(Set("organizer", "admin", "jury")).nonEmpty) {
+                    @for(round <- currentRounds) {
+
+                    @if(user.roles.intersect(Set("organizer", "admin")).nonEmpty || (user.roles.contains("jury") && round.juryOrgView)) {
                         <li><a class="brand" style="margin-top : 5px" href="/roundstat">@Messages("statistics")</a>
                             }
 
-                    @for(round <- currentRounds
-                        if (asUserId == 0 || asUserId == user.id) && round.roles.intersect(user.roles).nonEmpty) {
+                        @if((asUserId == 0 || asUserId == user.id) && round.roles.intersect(user.roles).nonEmpty){
                         <li class="brand" style="margin-top : 5px; margin-left: 10px">@Messages(round.description)</li>
                         @if(round.rates == Round.binaryRound) {
                             <li class="@if(rate == Some(0)){active}">
@@ -59,6 +60,7 @@
                                 }
 
                                 }
+                        }
                     }
 
                     @if(user.id != asUserId && user.roles.intersect(Set("organizer", "admin")).nonEmpty) {

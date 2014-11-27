@@ -23,24 +23,29 @@ object Rounds extends Controller with Secured {
       implicit request =>
         //        val rounds = Round.findByContest(user.contest)
         val round: Round = Round.current(user)
-        val contest = ContestJury.byId(user.contest).get
-        val rounds = Round.findByContest(user.contest)
 
-        val selection = Selection.byRound(round.id)
+        if (user.roles.contains("jury") && !round.juryOrgView) {
+          onUnAuthorized(user)
+        } else {
 
-        val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
-        val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
+          val rounds = Round.findByContest(user.contest)
 
-        val totalCount = selection.map(_.pageId).toSet.size
-        val totalByRateCount = selection.groupBy(_.rate).mapValues(_.map(_.pageId).toSet.size)
+          val selection = Selection.byRound(round.id)
 
-        val byPageId: Map[Long, Seq[Selection]] = selection.filter(_.rate > 0).groupBy(_.pageId)
-        val pageIdToNumber: Map[Long, Int] = byPageId.mapValues(_.size)
-        val swapped: Seq[(Int, Long)] = pageIdToNumber.toSeq.map(_.swap)
-        val grouped: Map[Int, Seq[(Int, Long)]] = swapped.groupBy(_._1)
-        val byJurorNum = grouped.mapValues(_.size)
+          val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
+          val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
 
-        Ok(views.html.roundStat(user, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
+          val totalCount = selection.map(_.pageId).toSet.size
+          val totalByRateCount = selection.groupBy(_.rate).mapValues(_.map(_.pageId).toSet.size)
+
+          val byPageId: Map[Long, Seq[Selection]] = selection.filter(_.rate > 0).groupBy(_.pageId)
+          val pageIdToNumber: Map[Long, Int] = byPageId.mapValues(_.size)
+          val swapped: Seq[(Int, Long)] = pageIdToNumber.toSeq.map(_.swap)
+          val grouped: Map[Int, Seq[(Int, Long)]] = swapped.groupBy(_._1)
+          val byJurorNum = grouped.mapValues(_.size)
+
+          Ok(views.html.roundStat(user, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
+        }
   }, Set(User.ADMIN_ROLE, "jury") ++ User.ORG_COM_ROLES)
 
   def roundStat(roundId: Int) = withAuth({
@@ -48,19 +53,24 @@ object Rounds extends Controller with Secured {
       implicit request =>
         //        val rounds = Round.findByContest(user.contest)
         val round: Round = Round.find(roundId.toLong).get
-        val rounds = Round.findByContest(user.contest)
 
-        val selection = Selection.byRound(round.id)
+        if (user.roles.contains("jury") && !round.juryOrgView) {
+          onUnAuthorized(user)
+        } else {
+          val rounds = Round.findByContest(user.contest)
 
-        val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
-        val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
+          val selection = Selection.byRound(round.id)
 
-        val totalCount = selection.map(_.pageId).toSet.size
-        val totalByRateCount = selection.groupBy(_.rate).mapValues(_.map(_.pageId).toSet.size)
+          val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
+          val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
 
-        val byJurorNum = selection.filter(_.rate > 0).groupBy(_.pageId).mapValues(_.size).toSeq.map(_.swap).groupBy(_._1).mapValues(_.size)
+          val totalCount = selection.map(_.pageId).toSet.size
+          val totalByRateCount = selection.groupBy(_.rate).mapValues(_.map(_.pageId).toSet.size)
 
-        Ok(views.html.roundStat(user, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
+          val byJurorNum = selection.filter(_.rate > 0).groupBy(_.pageId).mapValues(_.size).toSeq.map(_.swap).groupBy(_._1).mapValues(_.size)
+
+          Ok(views.html.roundStat(user, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
+        }
   }, Set(User.ADMIN_ROLE, "jury") ++ User.ORG_COM_ROLES)
 
 //  def byRate(roundId: Int) = withAuth({

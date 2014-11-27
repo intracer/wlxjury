@@ -105,7 +105,7 @@ body {
 .msg {
     padding: 10px;
     width: 100%;
-    background: #FF9966;
+    background: #AAA;
 }
 
 .others {
@@ -122,6 +122,19 @@ body {
     top: 4px;
 }
 
+.imageComment {
+    width: 800px;
+    position: relative;
+    background-color: #CCC;
+    top: 4px;
+}
+
+.imageComment:focus{
+    border-color: rgba(239, 239, 239, 0.8);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 6px rgba(239, 239, 239, 0.6);
+    outline: 0 none;
+}
+
 #userField {
     width: 210px;
     position: relative;
@@ -136,6 +149,17 @@ body {
     padding: 10px;
     background: #303030;
 }
+
+.comment-header {
+    width: 80px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: bold;
+    background-color: #AAA;
+    border: 1px solid #AAA;
+    -webkit-border-radius: 4px 0 4px 0;
+    -moz-border-radius: 4px 0 4px 0;
+    border-radius: 4px 4px 0 0;}
 
 #footer {
     color: #EEE;
