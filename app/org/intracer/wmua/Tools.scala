@@ -115,11 +115,9 @@ object Tools {
 
       //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
       //
-      val images = ImageJdbc.byRatingMerged(1, prevRound.id.toInt).toArray
-      //ImageJdbc.byRoundMerged(prevRound.id.toInt)//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
-      //.toArray
-
-
+      val images = //ImageJdbc.byRatingMerged(1, prevRound.id.toInt).toArray
+      ImageJdbc.byRoundMerged(prevRound.id.toInt).sortBy(-_.totalRate(prevRound))//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
+      .toArray.take(28)
 
       //      ImageJdbc.findAll().filter(_.region == Some("44"))
 
@@ -193,13 +191,13 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJury.find(20L).get
+    val contest = ContestJury.find(19L).get
 
 //    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
 //    GlobalRefactor.appendImages(category, contest)
 
-    val prevRound = Round.find(30L).get
-    val round = Round.find(33L).get
+    val prevRound = Round.find(32L).get
+    val round = Round.find(34L).get
 
 //    val selection = Selection.byRound(22L)
 

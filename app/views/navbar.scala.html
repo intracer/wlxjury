@@ -40,7 +40,7 @@
                                 } else {
                             <li>
 
-                            @if(round.contest == 16) {
+                            @if(round.id == 34) {
                                 <a class="brand" style="margin-top : 5px;" href="/chat">@Messages("chat") </a>
                             }
 
@@ -67,13 +67,14 @@
                         <li class="brand" style="margin-top : 5px">
                         @currentRounds.map(_.description).mkString(", ")
                         </li>
-                        <li>
-                            <a class="brand" style="margin-top : 5px; margin-left: 10px" href="/chat">@Messages("chat") </a>
-                        </li>
-
-                        <li>
-
                         @for(round <- currentRounds) {
+                            @if(round.id == 34) {
+                                <li>
+                                    <a class="brand" style="margin-top : 5 px ; margin-left : 10 px" href="/chat">@Messages("chat") </a>
+                                </li>
+                            }
+                            <li>
+
                             @dropDownSelection(
                                 new UiSelectionDto[Option[Int]](
                                     routes.Gallery.query(module = title, _, page = 1, region = region, round = round.id.toInt, rate),

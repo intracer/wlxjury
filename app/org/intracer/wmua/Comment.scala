@@ -8,7 +8,7 @@ case class Comment(
   userId: Int,
   username: String,
   round: Int,
-  room: Int,
+  room: Long,
   createdAt: String,
   body: String)
 {
@@ -35,7 +35,7 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
     body = rs.string(c.body)
   )
 
-  def create(userId: Int, username: String, round: Int, room: Int, body: String, createdAt: String = DateTime.now.toString)(implicit session: DBSession = autoSession): Comment = {
+  def create(userId: Int, username: String, round: Int, room: Long, body: String, createdAt: String = DateTime.now.toString)(implicit session: DBSession = autoSession): Comment = {
     val id = withSQL {
       insert.into(CommentJdbc).namedValues(
         column.userId -> userId,

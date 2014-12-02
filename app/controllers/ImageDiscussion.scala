@@ -1,6 +1,5 @@
 package controllers
 
-import controllers.Admin._
 import org.intracer.wmua.{CommentJdbc, Round}
 import play.api.data.Form
 import play.api.data.Forms._
@@ -38,7 +37,7 @@ object ImageDiscussion extends Controller with Secured {
           formWithErrors => // binding failure, you retrieve the form containing errors,
             Redirect(routes.Gallery.large(user.id.toInt, pageId, region, round.id.toInt, rate, module)),
           commentBody => {
-            CommentJdbc.create(user.id.toInt, user.fullname, round.id.toInt, pageId.toInt, commentBody.text)
+            CommentJdbc.create(user.id.toInt, user.fullname, round.id.toInt, pageId, commentBody.text)
             Redirect(routes.Gallery.large(user.id.toInt, pageId, region, round.id.toInt, rate, module).url.concat("#comments"))
           }
     )

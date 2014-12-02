@@ -133,8 +133,8 @@
 
 
                 }
-                @if(false) {
-                    <div class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">
+                @if(round.contest == 19) {
+                    <div style="margin-right: 5px; margin-top: 10px; padding: 5px;">
                         <a href="@files(index).image.url">@Html(Messages(
                             "full.resolution",
                             files(index).image.resolutionStr,
@@ -151,26 +151,28 @@
           <img alt="@files(index).title" src="@controllers.Global.resizeTo(files(index).image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)" style="max-width:100%; height:auto;">
       </a>
 
-           <div style="margin-right: 5px; margin-top: 10px; padding: 5px;">
-               <div id="comments" name="comments" class="comment-header msg">
-                   <strong>@Messages("Comments")</strong>
-               </div>
-           @for(msg <- comments) {
-               <div class="msg">
-                   <strong>@msg.username: </strong>@msg.body<br/>
+           @if(round.active || comments.nonEmpty) {
+               <div style="margin-right: 5px; margin-top: 10px; padding: 5px;">
+                   <div id="comments" name="comments" class="comment-header msg">
+                       <strong>@Messages("Comments")</strong>
+                   </div>
+                   @for(msg <- comments) {
+                       <div class="msg">
+                           <strong>@msg.username: </strong> @msg.body <br/>
+                       </div>
+                   }
+                   @if(round.active) {
+                       <div>
+                       @form(routes.ImageDiscussion.addComment(files(index).pageId, region, rate, module), 'class -> "form-vertical", 'id -> "addComment") {
+                           <input type="hidden" name="id" id="id" value="0" />
+                           <textarea class="imageComment" id="text" name="text" rows="3" placeholder="@Messages("Your comment here")"></textarea>
+                           <input type="button" class="btn btn-primary" id="saySomething" value="Submit" onClick="document.forms[ 'addComment' ].submit ( ) ;" />
+                       }
+                       </div>
+                   }
+
                </div>
            }
-               @if(round.active) {
-               <div>
-               @form(routes.ImageDiscussion.addComment(files(index).pageId, region, rate, module), 'class -> "form-vertical", 'id -> "addComment") {
-                   <input type="hidden" name="id" id="id" value="0" />
-                   <textarea class="imageComment" id="text" name="text" rows="3" placeholder="@Messages("Your comment here")"></textarea>
-                   <input type="button" class="btn btn-primary" id="saySomething" value="Submit" onClick="document.forms['addComment'].submit();" />
-               }
-               </div>
-               }
-
-           </div>
        </div>
     </div>
     </div>

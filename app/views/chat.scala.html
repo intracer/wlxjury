@@ -67,6 +67,11 @@ pager: Html = Html.empty)(implicit lang: Lang)
             <div id="chat">
                 <div class="{{msg.who}} msg" ng-repeat="msg in msgs"
                 ng-class="msg.user !== user ? 'others' : ''"> <!-- {{msg.createdAt}}<br/> -->
+                    <div ng-if="{{msg.room > 1}} ">
+                        <a href="large/round/34/user/@asUserId/pageid/{{msg.room}}?module=byrate">
+                            <i class="icon-picture"></i>
+                        </a>
+                    </div>
                     <strong>{{msg.username}}: </strong>{{msg.body}}<br/>
                 </div>
             </div>
