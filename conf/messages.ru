@@ -129,3 +129,11 @@ profile=Профиль
 regions=Регионы
 
 full.resolution = Полное разрешение: <nobr>{0}</nobr>; {1} Мпкс
+
+back.to.gallery = Обратно в галерею
+previous.image = Предыдущее изображение
+next.image = Следующее изображение
+select.image = Выбрать изображение
+reject.image = Отбросить изображение
+up.key = Вверх
+down.key = Вниз

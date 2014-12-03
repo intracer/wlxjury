@@ -131,3 +131,11 @@ total = Разом
 profile=Профіль
 
 full.resolution = Повна роздільність: <nobr>{0}</nobr>; {1} Мпкс
+
+back.to.gallery = До галереї
+previous.image = Попереднє зображення
+next.image = Наступне зображення
+select.image = Вибрати зображення
+reject.image = Відкинути зображення
+up.key = Вгору
+down.key = Вниз

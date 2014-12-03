@@ -163,3 +163,11 @@ total = Total
 51=Odessa O.
 
 full.resolution = Full resolution: <nobr>{0}</nobr>; {1} Mpx
+
+back.to.gallery = Back to gallery
+previous.image = Previous image
+next.image = Next image
+select.image = Select image
+reject.image = Reject image
+up.key = Up
+down.key = Down

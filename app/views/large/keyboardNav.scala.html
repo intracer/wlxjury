@@ -64,4 +64,20 @@
         return false ;
     });
 
+    @if(round.rates == org.intracer.wmua.Round.binaryRound && user.id.toInt == asUserId && round.active && user.roles.contains("jury")) {
+       @if(files(index).rate <= 0) {
+           $ ( document ).on ( 'keydown', null, 'space', function ( e ) {
+           e.preventDefault ( ) ;
+           window.location = "/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/1@{rateParam(rate)}"
+           return false ;
+           });
+        }
+        @if(files(index).rate >= 0) {
+            $ ( document ).on ( 'keydown', null, 'del', function ( e ) {
+            e.preventDefault ( ) ;
+            window.location = "/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/-1@{rateParam(rate)}"
+            return false ;
+            });
+        }
+    }
 </script>
