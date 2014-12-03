@@ -1,0 +1,87 @@
+@(
+        user: org.intracer.wmua.User,
+        asUserId: Int,
+        files: Seq[org.intracer.wmua.ImageWithRating],
+        index: Int,
+        page: Int,
+        rate: Option[Int],
+        region: String = "all",
+        round: org.intracer.wmua.Round,
+        module : String = "gallery")(
+        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
+@import  org.intracer.wmua.Round
+
+    @button(btnClass: String, iconClass:String) = {
+    <div class="@btnClass"><i class="@iconClass"></i></div>
+}
+
+@buttonWithImage(btnClass: String, image:String) = {
+    <div class="@btnClass"><img src="@routes.Assets.at(s"images/$image")"></div>
+}
+
+
+@optionalButton(condition: () => Boolean, link: ()=> String, icon: String, clazz: String) = {
+    @if(condition()) {
+        <a href="@link.apply()"> @button(s"btn $clazz", icon)</a>
+    } else {
+        @button(s"btn disabled $clazz", icon)
+    }
+}
+
+@buttonGallery() = {
+    <a href="/@module/round/@round.id/user/@asUserId/region/@region/pageid/@files(index).pageId@rateParam(rate)#@files(index).pageId">@button("btn btn-small", "icon-th")</a>
+}
+
+@buttonUp() = {
+    @optionalButton(() => index > 0,
+        () => routes.Gallery.large(asUserId, files(index-1).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request),
+        "icon-chevron-up", "btn-small")
+}
+
+@buttonDown() = {
+    @optionalButton(() => index < files.size-1, () => routes.Gallery.large(asUserId, files(index+1).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request), "icon-chevron-down", "btn-small")
+}
+
+@buttonSelect() = {
+    @if(files(index).rate <=0 ) {
+        <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/1@{rateParam(rate)}">
+        @button("btn btn-success btn-small", "icon-ok icon-white")
+        </a>
+    }
+    @if(files(index).rate >=0 ) {
+        <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/-1@{rateParam(rate)}">
+        @button("btn btn-danger btn-small", "icon-ban-circle icon-white")
+        </a>
+    }
+}
+
+@buttonStar() = {
+    @if(files(index).rate <=0 ) {
+        <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/1@{rateParam(rate)}">
+        @buttonWithImage("btn btn-small", "star-off.png")
+        </a>
+    }
+    @if(files(index).rate >0 ) {
+        <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/0@{rateParam(rate)}">
+        @buttonWithImage("btn btn-small", "star-on.png")
+        </a>
+    }
+}
+
+<div class="btn-group" style="margin:10px;">
+    @buttonGallery()
+    @buttonUp()
+    @buttonDown()
+
+    @if(round.rates == Round.binaryRound) {
+        @if(user.id.toInt == asUserId && round.active && user.roles.contains("jury")) {
+            @buttonSelect()
+        } else {
+                <!--  @buttonStar() -->
+        }
+    } else {
+        <div id="rate-image" style="margin-top:10px;"></div>
+            <!-- <input type="text" id="scoretarget"/> -->
+    }
+</div>
+

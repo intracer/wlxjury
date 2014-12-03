@@ -1,0 +1,16 @@
+@(image: org.intracer.wmua.Image, monument: Option[client.wlx.dto.Monument])(implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
+@import client.wlx.dto.Monument
+
+@for(m <- monument) {
+    <div class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">
+        @Messages(image.region.getOrElse("")), @Html(Monument.wikiLinkToUrl(m.city.getOrElse(""), "uk.wikipedia.org")) <br>
+        <!--                        @Html(m.typ.getOrElse("") + " " + m.subType.getOrElse("")) <br> -->
+        @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br>
+        @Html(Monument.wikiLinkToUrl(m.place.getOrElse(""), "uk.wikipedia.org"))
+
+        @if(false){  <a href="@routes.Monuments.byId(m.id)"><i class="icon-forward"></i></a> }
+
+    </div>
+
+
+}

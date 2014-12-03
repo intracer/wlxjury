@@ -13,70 +13,6 @@
         module : String = "gallery",
         comments: Seq[org.intracer.wmua.Comment])(
         implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
-@import org.intracer.wmua.ImageWithRating
-@import client.wlx.dto.Monument
-@import  org.intracer.wmua.Round
-
-    @button(btnClass: String, iconClass:String) = {
-        <div class="@btnClass"><i class="@iconClass"></i></div>
-    }
-
-    @buttonWithImage(btnClass: String, image:String) = {
-        <div class="@btnClass"><img src="@routes.Assets.at(s"images/$image")"></div>
-    }
-
-
-    @optionalButton(condition: () => Boolean, link: ()=> String, icon: String, clazz: String) = {
-        @if(condition()) {
-            <a href="@link.apply()"> @button(s"btn $clazz", icon)</a>
-        } else {
-            @button(s"btn disabled $clazz", icon)
-        }
-    }
-
-    @buttonGallery() = {
-        <a href="/@module/round/@round.id/user/@asUserId/region/@region/pageid/@files(index).pageId@rateParam(rate)#@files(index).pageId">@button("btn btn-small", "icon-th")</a>
-    }
-
-    @buttonUp() = {
-        @optionalButton(() => index > 0,
-            () => routes.Gallery.large(asUserId, files(index-1).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request),
-        "icon-chevron-up", "btn-small")
-    }
-
-    @buttonDown() = {
-        @optionalButton(() => index < files.size-1, () => routes.Gallery.large(asUserId, files(index+1).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request), "icon-chevron-down", "btn-small")
-    }
-
-    @buttonSelect() = {
-        @if(files(index).rate <=0 ) {
-            <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/1@{rateParam(rate)}">
-            @button("btn btn-success btn-small", "icon-ok icon-white")
-            </a>
-        }
-        @if(files(index).rate >=0 ) {
-            <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/-1@{rateParam(rate)}">
-                @button("btn btn-danger btn-small", "icon-ban-circle icon-white")
-            </a>
-        }
-    }
-
-    @buttonStar() = {
-        @if(files(index).rate <=0 ) {
-        <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/1@{rateParam(rate)}">
-            @buttonWithImage("btn btn-small", "star-off.png")
-        </a>
-        }
-        @if(files(index).rate >0 ) {
-        <a href="/large/round/@round.id.toInt/region/@region/pageid/@files(index).pageId/select/0@{rateParam(rate)}">
-            @buttonWithImage("btn btn-small", "star-on.png")
-        </a>
-        }
-    }
-
-    @thumbSmall(file:ImageWithRating, style:String) = {
-        <div class="@style">
-    }
 
     @main_large(module,
     user,
@@ -89,68 +25,22 @@
         <div class="container-fluid" style="padding-left:5px; margin-left:0px; margin-right:0px">
             <div class="row-fluid">
        <div class="span2" style="margin-left:0px; min-width: 185px">
-           <div class="btn-group" style="margin:10px;">
-               @buttonGallery()
-               @buttonUp()
-               @buttonDown()
 
-                   @if(round.rates == Round.binaryRound) {
-                       @if(user.id.toInt == asUserId && round.active && user.roles.contains("jury")) {
-                           @buttonSelect()
-                       } else {
-                         <!--  @buttonStar() -->
-                       }
-                   } else {
-                       <div id="rate-image" style="margin-top:10px;"></div>
-                      <!-- <input type="text" id="scoretarget"/> -->
-                   }
-           </div>
+           @navigationButtons(user, asUserId, files, index, page, rate, region, round, module)
+           @thumbsBar(user, asUserId, files, index, start, end, rate, region, round, module)
 
-        <ul class="gallery mw-gallery-traditional">
-            @for((file, i) <- files.view.zipWithIndex.slice(start, end)) {
-                <li class="gallerybox">
-
-                       @thumbSmall(file, if(i == index) "thumb_small current" else "thumb_small")
-                        <div style="margin:5px auto;"><a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.toInt, rate, module)">
-                            <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.thumbSizeX, controllers.Global.thumbSizeY)" >
-                        </a>
-                        </div>
-                    </div>
-                </li>
-            }
-        </ul>
-                @for(m <- monument) {
-                    <div class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">
-                            @Messages(files(index).image.region.getOrElse("")), @Html(Monument.wikiLinkToUrl(m.city.getOrElse(""), "uk.wikipedia.org")) <br>
-<!--                        @Html(m.typ.getOrElse("") + " " + m.subType.getOrElse("")) <br> -->
-                        @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br>
-                    @Html(Monument.wikiLinkToUrl(m.place.getOrElse(""), "uk.wikipedia.org"))
-
-                  @if(false){  <a href="@routes.Monuments.byId(m.id)"><i class="icon-forward"></i></a> }
-
-                    </div>
-
-
-                }
-                @if(round.contest == 19) {
-                    <div style="margin-right: 5px; margin-top: 10px; padding: 5px;">
-                        <a href="@files(index).image.url">@Html(Messages(
-                            "full.resolution",
-                            files(index).image.resolutionStr,
-                            files(index).image.mpxStr
-                        ))</a>
-                    </div>
-                }
+           @monumentInfo(files(index).image, monument)
+           @fullSizeUrl(files(index).image, round)
 
        </div>
 
        <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
 
-      <a href="https://commons.wikimedia.org/wiki/@files(index).title" target="_blank">
-          <img alt="@files(index).title" src="@controllers.Global.resizeTo(files(index).image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)" style="max-width:100%; height:auto;">
-      </a>
+            <a href="https://commons.wikimedia.org/wiki/@files(index).title" target="_blank">
+                <img alt="@files(index).title" src="@controllers.Global.resizeTo(files(index).image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)" style="max-width:100%; height:auto;">
+            </a>
 
-       @commentsView(files, index, rate, region, round, module, comments)
+       @commentsView(files(index).pageId, rate, region, round, module, comments)
 
        </div>
     </div>

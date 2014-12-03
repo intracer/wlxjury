@@ -1,0 +1,32 @@
+@(
+        user: org.intracer.wmua.User,
+        asUserId: Int,
+        files: Seq[org.intracer.wmua.ImageWithRating],
+        index: Int,
+        start: Int,
+        end: Int,
+        rate: Option[Int],
+        region: String = "all",
+        round: org.intracer.wmua.Round,
+        module : String = "gallery")(
+        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
+
+
+@thumbSmall(style:String) = {
+    <div class="@style">
+}
+
+<ul class="gallery mw-gallery-traditional">
+@for((file, i) <- files.view.zipWithIndex.slice(start, end)) {
+    <li class="gallerybox">
+
+    @thumbSmall(if(i == index) "thumb_small current" else "thumb_small")
+        <div style="margin:5px auto;">
+            <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.toInt, rate, module)">
+                <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.thumbSizeX, controllers.Global.thumbSizeY)" >
+            </a>
+        </div>
+    </div>
+    </li>
+}
+</ul>
