@@ -1,0 +1,43 @@
+@(      score: Double,
+        url: String,
+        readOnly: Boolean = false,
+        round: org.intracer.wmua.Round,
+        rate: Option[Int],
+        module: String = "byrate")(implicit lang: Lang)
+
+@if(round.rates.id > 1) {
+
+    <script src="@routes.Assets.at("javascripts/jquery.raty.js")"></script>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/jquery.raty.css")">
+
+    <script>
+    $(document).ready(function() {
+        $.fn.raty.defaults.path = '@routes.Assets.at("images")';
+
+        @defining(if(round.rates.id <= 10) "-big.png" else ".png"){ sizeSuffix =>
+
+            $('#rate-image').raty({
+                score: @score,
+                half: true,
+                cancel: true,
+                starHalf: 'star-half@sizeSuffix ',
+                starOff: 'star-off@sizeSuffix ',
+                starOn: 'star-on@sizeSuffix ',
+                cancelOff: 'cancel-off@sizeSuffix ',
+                cancelOn: 'cancel-on@sizeSuffix ',
+                number: @(round.rates.id / 2),
+                precision: false,
+                hints:[ '', '', '', '', '', '', '', '', '', '' ],
+                @if(readOnly) {
+                    readOnly : 'true'
+                } else {
+                    click : function(score, evt) {
+                        document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&")';
+                        return false;
+                    }
+                }
+            });
+        }
+    })
+    </script>
+}

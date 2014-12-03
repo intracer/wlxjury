@@ -1,0 +1,34 @@
+@(
+        title: String,
+        user: org.intracer.wmua.User = null,
+        score: Double,
+        url: String,
+        readOnly: Boolean = false,
+        round: org.intracer.wmua.Round,
+        rate: Option[Int],
+        module: String = "byrate",
+        preload: Iterable[org.intracer.wmua.ImageWithRating] = Seq.empty)(content: Html)(implicit lang: Lang)
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>@title</title>
+        <meta charset="UTF-8">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+        <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+        <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.js"></script>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+        <script src="@routes.Assets.at("javascripts/checkwidth.js")"></script>
+
+        @raty(score, url, readOnly, round, rate, module)
+        @preloadImages(preload)
+
+    </head>
+    <body class="gallery">
+
+        @content
+
+    </body>
+</html>

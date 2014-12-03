@@ -11,14 +11,9 @@
         implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
 @import  org.intracer.wmua.Round
 
-    @button(btnClass: String, iconClass:String) = {
-    <div class="@btnClass"><i class="@iconClass"></i></div>
-}
+@button(btnClass: String, iconClass:String) = { <div class="@btnClass"><i class="@iconClass"></i></div> }
 
-@buttonWithImage(btnClass: String, image:String) = {
-    <div class="@btnClass"><img src="@routes.Assets.at(s"images/$image")"></div>
-}
-
+@buttonWithImage(btnClass: String, image:String) = { <div class="@btnClass"><img src="@routes.Assets.at(s"images/$image")"></div> }
 
 @optionalButton(condition: () => Boolean, link: ()=> String, icon: String, clazz: String) = {
     @if(condition()) {

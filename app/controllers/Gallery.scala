@@ -301,7 +301,7 @@ object Gallery extends Controller with Secured with Instrumented {
     val comments = CommentJdbc.findByRoundAndSubject(round.id.toInt, files(index).pageId)
 
 
-    Ok(views.html.large(user, asUserId, files, index, start, end, page, rate, region, round, monument, module, comments))
+    Ok(views.html.large.large(user, asUserId, files, index, start, end, page, rate, region, round, monument, module, comments))
   }
 
   val loginForm = Form(
