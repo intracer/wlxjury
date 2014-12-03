@@ -1,13 +1,18 @@
 @(
         title: String,
         user: org.intracer.wmua.User = null,
+        asUserId: Int,
         score: Double,
         url: String,
         readOnly: Boolean = false,
-        round: org.intracer.wmua.Round,
+        files: Seq[org.intracer.wmua.ImageWithRating],
+        index: Int,
+        page: Int,
         rate: Option[Int],
+        region: String = "all",
+        round: org.intracer.wmua.Round,
         module: String = "byrate",
-        preload: Iterable[org.intracer.wmua.ImageWithRating] = Seq.empty)(content: Html)(implicit lang: Lang)
+        preload: Iterable[org.intracer.wmua.ImageWithRating] = Seq.empty)(content: Html)(implicit lang: Lang, request: play.api.mvc.Request[Any])
 
 <!DOCTYPE html>
 
@@ -23,6 +28,8 @@
         <script src="@routes.Assets.at("javascripts/checkwidth.js")"></script>
 
         @raty(score, url, readOnly, round, rate, module)
+        @keyboardNav(user, asUserId, files, index, page, rate, region, round, module)
+
         @preloadImages(preload)
 
     </head>

@@ -16,33 +16,39 @@
 
     @main_large(module,
     user,
+    asUserId,
     files(index).totalRate(round) / 2.0,
     s"/large/round/${round.id.toInt}/region/$region/pageid/${files(index).pageId}/select/",
     readOnly = !user.roles.contains("jury") || !round.active || user.id.toInt != asUserId,
+    files = files,
+    index = index,
+    page = page,
+    region = region,
     round = round,
     rate = rate,
+    module = module,
     preload = files.view.slice(start, end)) {
         <div class="container-fluid" style="padding-left:5px; margin-left:0px; margin-right:0px">
             <div class="row-fluid">
-       <div class="span2" style="margin-left:0px; min-width: 185px">
+                <div class="span2" style="margin-left:0px; min-width: 185px">
 
-           @navigationButtons(user, asUserId, files, index, page, rate, region, round, module)
-           @thumbsBar(user, asUserId, files, index, start, end, rate, region, round, module)
+                    @navigationButtons(user, asUserId, files, index, page, rate, region, round, module)
+                    @thumbsBar(user, asUserId, files, index, start, end, rate, region, round, module)
 
-           @monumentInfo(files(index).image, monument)
-           @fullSizeUrl(files(index).image, round)
+                    @monumentInfo(files(index).image, monument)
+                    @fullSizeUrl(files(index).image, round)
 
-       </div>
+               </div>
 
-       <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
+               <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
 
-            <a href="https://commons.wikimedia.org/wiki/@files(index).title" target="_blank">
-                <img alt="@files(index).title" src="@controllers.Global.resizeTo(files(index).image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)" style="max-width:100%; height:auto;">
-            </a>
+                    <a href="https://commons.wikimedia.org/wiki/@files(index).title" target="_blank">
+                        <img alt="@files(index).title" src="@controllers.Global.resizeTo(files(index).image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)" style="max-width:100%; height:auto;">
+                    </a>
 
-       @commentsView(files(index).pageId, rate, region, round, module, comments)
+                    @commentsView(files(index).pageId, rate, region, round, module, comments)
 
-       </div>
-    </div>
+                </div>
+        </div>
     </div>
     }

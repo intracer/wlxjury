@@ -1,8 +1,67 @@
-@if(false) {
-    <script src="@routes.Assets.at("../../../public/javascripts/jquery.hotkeys.js")"></script>
-    <script>
-    $ ( document ).on ( 'keypress', null, 'down', function ( ) {
+@(
+        user: org.intracer.wmua.User,
+        asUserId: Int,
+        files: Seq[org.intracer.wmua.ImageWithRating],
+        index: Int,
+        page: Int,
+        rate: Option[Int],
+        region: String = "all",
+        round: org.intracer.wmua.Round,
+        module : String = "gallery")(
+        implicit lang: Lang, request: play.api.mvc.Request[Any])
+<script src="@routes.Assets.at("javascripts/jquery.hotkeys.js")"></script>
+<script>
+    @if(index < files.size-1) {
+        $ ( document ).on ( 'keydown', null, 'down', function ( e ) {
+            e.preventDefault ( ) ;
+            window.location = "@routes.Gallery.large(asUserId, files(index + 1).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request)"
+            return false;
+        });
+    }
 
-    } ) ;
-    </script>
-}
+    @if(index > 0) {
+        $ ( document ).on ( 'keydown', null, 'up', function ( e ) {
+            e.preventDefault ( ) ;
+            window.location = "@routes.Gallery.large(asUserId, files(index - 1).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request)"
+            return false;
+        });
+    }
+
+    $ ( document ).on ( 'keydown', null, 'esc', function ( e ) {
+        e.preventDefault ( ) ;
+        window.location = "/@module/round/@round.id/user/@asUserId/region/@region/pageid/@files(index).pageId@rateParam(rate)#@files(index).pageId"
+        return false;
+    });
+
+    $ ( document ).on ( 'keydown', null, 'pagedown', function ( e ) {
+            e.preventDefault ( ) ;
+            @if(index < files.size-5) {
+               window.location = "@routes.Gallery.large(asUserId, files(index + 5).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request)"
+            } else {
+                window.location = "  @routes.Gallery.large(asUserId, files(files.size-1).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request) "
+            }
+            return false;
+    });
+    $ ( document ).on ( 'keydown', null, 'pageup', function ( e ) {
+          e.preventDefault ( ) ;
+          @if(index > 4) {
+                window.location = "@routes.Gallery.large(asUserId, files(index - 5).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request)"
+           } else {
+                window.location = "@routes.Gallery.large(asUserId, files(0).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request)"
+           }
+           return false ;
+    });
+
+    $ ( document ).on ( 'keydown', null, 'home', function ( e ) {
+        e.preventDefault ( ) ;
+        window.location = " @routes.Gallery.large(asUserId, files(0).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request) "
+        return false ;
+    });
+
+    $ ( document ).on ( 'keydown', null, 'end', function ( e ) {
+        e.preventDefault ( ) ;
+        window.location = "@routes.Gallery.large(asUserId, files(files.size-1).pageId, region, round.id.toInt, rate, module).absoluteURL(false)(request)"
+        return false ;
+    });
+
+</script>
