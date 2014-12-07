@@ -19,7 +19,7 @@ case class Round(id: Long, number: Int, name: Option[String], contest: Int,
                  optionalRate: Boolean = false,
                  juryOrgView: Boolean = false) {
 
-  def jurors = User.findAllBy(sqls.in(User.c.roles, roles.toSeq).and.eq(User.c.contest, contest))
+  def jurors = User.findAllBy(sqls.in(User.u.roles, roles.toSeq).and.eq(User.u.contest, contest))
 
   def activeJurors  = if (!optionalRate) _allJurors else _activeJurors
 

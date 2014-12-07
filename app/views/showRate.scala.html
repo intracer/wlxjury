@@ -1,0 +1,27 @@
+@(
+        selection: org.intracer.wmua.Selection, round:
+        org.intracer.wmua.Round,
+        title: String,
+        module: String,
+        asUserId: Long,
+        region: String,
+        pageId: Long
+        )
+
+<div style="margin-bottom: 10px; color: #ffffff;">
+
+    <a href="/@module/round/@round.id/user/@asUserId/region/@region/pageid/@pageId@rateParam(if(round.rates.id == 1) Some(1) else None)#@pageId">
+        @title
+    </a>
+        <br/>
+    <span style="margin-left: 5px; margin-right: 10px;">
+        @if(round.rates.id == 1) {
+            <i class="icon-ok icon-white"></i>
+        } else {
+            @for(i <- 1 to round.rates.id / 2) {
+                <img alt="@i" src="@showStar(i, selection.rate, round.rates.id <= 10)">
+            }
+            @selection.rate
+        }
+    </span>
+</div>

@@ -43,6 +43,16 @@ object Selection extends SQLSyntaxSupport[Selection]{
       .append(isNotDeleted)
   }.map(Selection(s)).list().apply()
 
+  def byRoundAndImageWithJury(roundId: Long, imageId: Long)(implicit session: DBSession = autoSession): Seq[(Selection, User)] = withSQL {
+    select.from(Selection as s)
+      .innerJoin(User as User.u).on(User.u.id, Selection.s.juryId)
+      .where.eq(s.round, roundId).and
+      .eq(s.pageId, imageId).and
+      .gt(s.rate, 0).and
+      .append(isNotDeleted)
+      .orderBy(s.rate).desc
+  }.map(rs => (Selection(Selection.s)(rs), User(User.u)(rs))).list().apply()
+
   def byRound(roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
     select.from(Selection as s).where
       .eq(s.round, roundId).and
@@ -76,7 +86,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
 
   def find(id: Long)(implicit session: DBSession = autoSession): Option[Selection] = withSQL {
     select.from(Selection as s).where.eq(s.id, id).and.append(isNotDeleted)
-  }.map(Selection(s)).single.apply()
+  }.map(Selection(s)).single().apply()
 
   def findAll()(implicit session: DBSession = autoSession): List[Selection] = withSQL {
     select.from(Selection as s)
@@ -176,8 +186,6 @@ object Selection extends SQLSyntaxSupport[Selection]{
       .groupBy(Selection.s.juryId)
       .append(isNotDeleted)
   }.map(_.int(1)).single().apply().get
-
-
 
 
   //  def destroyAll(filename: String)(implicit session: DBSession = autoSession): Unit = withSQL {

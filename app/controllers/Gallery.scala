@@ -278,16 +278,20 @@ object Gallery extends Controller with Secured with Instrumented {
         return Redirect(routes.Gallery.list(asUserId, 1, region, round.id.toInt, rate))
       }
 
+      val selection = if (user.canViewOrgInfo(round)) {
+        Selection.byRoundAndImageWithJury(round.id, pageId)
+      } else Seq.empty
+
       index = files.indexWhere(_.pageId == newPageId)
       val page = index / (Pager.filesPerPage(files) + 1) + 1
 
-      show2(index, files, user, asUserId, rate, page, round, region, module)
+      show2(index, files, user, asUserId, rate, page, round, region, module, selection)
     }
   }
 
 
   def show2(index: Int, files: Seq[ImageWithRating], user: User, asUserId: Int, rate: Option[Int],
-            page: Int, round: Round, region: String, module: String)
+            page: Int, round: Round, region: String, module: String, selection: Seq[(Selection, User)])
            (implicit request: Request[Any]): SimpleResult = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
     val extraLeft = if (files.size < index + 3) index + 3 - files.size else 0
@@ -301,7 +305,7 @@ object Gallery extends Controller with Secured with Instrumented {
     val comments = CommentJdbc.findByRoundAndSubject(round.id.toInt, files(index).pageId)
 
 
-    Ok(views.html.large.large(user, asUserId, files, index, start, end, page, rate, region, round, monument, module, comments))
+    Ok(views.html.large.large(user, asUserId, files, index, start, end, page, rate, region, round, monument, module, comments, selection))
   }
 
   val loginForm = Form(

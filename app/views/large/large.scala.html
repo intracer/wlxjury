@@ -11,7 +11,8 @@
         round: org.intracer.wmua.Round,
         monument: Option[client.wlx.dto.Monument],
         module : String = "gallery",
-        comments: Seq[org.intracer.wmua.Comment])(
+        comments: Seq[org.intracer.wmua.Comment],
+        selection: Seq[(org.intracer.wmua.Selection, org.intracer.wmua.User)])(
         implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
 
     @main_large(module,
@@ -37,6 +38,7 @@
 
                     @monumentInfo(files(index).image, monument)
                     @fullSizeUrl(files(index).image, round)
+                    @juryStat(selection, round, module, region)
 
                </div>
 

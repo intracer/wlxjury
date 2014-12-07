@@ -1,0 +1,12 @@
+@(
+        selections: Seq[(org.intracer.wmua.Selection, org.intracer.wmua.User)],
+        round: org.intracer.wmua.Round,
+        module: String,
+        region: String
+        )
+
+<ol>
+@for((selection, user) <- selections) {
+    <li>@showRate(selection, round, user.fullname, module, user.id, region, selection.pageId)
+}
+</ol>

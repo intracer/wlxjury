@@ -1,0 +1,6 @@
+@(star: Int, rate: Int, big: Boolean)
+    @defining(if (big) "-big.png" else ".png") { sizeSuffix =>
+        @if((rate / 2) >= star) {/assets/images/star-on@sizeSuffix}
+        @if(rate < star * 2 && rate > (star - 1) * 2) {/assets/images/star-half@sizeSuffix}
+        @if(rate <= (star - 1) * 2) {/assets/images/star-off@sizeSuffix}
+    }

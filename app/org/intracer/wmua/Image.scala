@@ -18,7 +18,7 @@ case class Image(pageId: Long, contest: Long, title: String,
   def resizeTo(resizeToX: Int, resizeToY: Int): Int =
     Image.resizeTo(width, height, resizeToX, resizeToY)
 
-  def resolutionStr = s"${width} x $height"
+  def resolutionStr = s"$width x $height"
 
   def mpxStr = Image.fmt.format(width * height / 1000000.0)
 
@@ -226,6 +226,16 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
     val merged = raw.groupBy(_.pageId).mapValues(iws => new ImageWithRating(iws.head.image, iws.map(_.selection.head)))
     merged.values.toSeq
   }
+
+//  import SQLSyntax.{ sum }
+//  def byRoundSummed(roundId: Int)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
+//    select(c.*, sum(Selection.s.rate)).from(ImageJdbc as c)
+//      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+//      .where.eq(Selection.s.round, roundId)
+//      .and.append(isNotDeleted).groupBy(Selection.s.pageId)
+//  }.map(rs => (ImageJdbc(c)(rs), Selection(Selection.s)(rs))).list().apply().map{case (i,s ) => ImageWithRating(i,Seq(s))
+//  }
+
 
 
 }

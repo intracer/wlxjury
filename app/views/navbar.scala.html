@@ -24,7 +24,7 @@
                             }
                     @for(round <- currentRounds) {
 
-                    @if(user.roles.intersect(Set("organizer", "admin")).nonEmpty || (user.roles.contains("jury") && round.juryOrgView)) {
+                    @if(user.canViewOrgInfo(round)) {
                         <li><a class="brand" style="margin-top : 5px" href="/roundstat">@Messages("statistics")</a>
                             }
 
