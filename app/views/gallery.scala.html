@@ -14,24 +14,7 @@
 
     @main("gallery", user, asUserId, asUser, allFiles, Seq(round), gallery = true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.toInt, region))  {
 
-    @if(round.contest == 14 || round.contest == 16 || round.contest == 17 || round.contest == 20) {
-        <div class="row-fluid" >
-            <div class="pagination pagination-centered" style="margin-top : 10 px ; margin-bottom : 5 px ;">
-                <ul>
-                    <li><a href="@routes.Gallery.list(asUserId, 1, "all", round.id.toInt, rate)" @if("all" == region) {
-                        style="font-weight: bold"}>*</a></li>
-                    @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id, 0) > 0) {
-
-                        <li><a href="/gallery/round/@round.id/user/@asUserId/region/@id/page/1@rateParam(rate)" @if(id == region) {
-                            style="font-weight: bold"}
-                            >@Messages(id) (@byRegion(id))</a>
-                        </li>
-                    }
-                </ul>
-            </div>
-        </div>
-    }
-
+    @regionNav("gallery", asUserId, round, region, byRegion, rate)
 
     <div class="row-fluid" >
 

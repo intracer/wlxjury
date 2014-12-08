@@ -14,17 +14,7 @@
 
 @main("filelist", user, asUserId, asUser, allFiles, Seq(round), false, rate, region) {
 
-    <div class="row-fluid" >
-        <div class="pagination pagination-centered" style="margin-top:10px; margin-bottom:5px;">
-            <ul>
-                <li><a href="/filelist/round/@round.id/user/@asUserId/page/1@rateParam(rate)" @if("all" == region){style="font-weight: bold"}>*</a></li>
-                @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id,0) > 0) {
-
-                    <li><a href="/filelist/round/@round.id/user/@asUserId/region/@id/page/1@rateParam(rate)" @if(id == region){style="font-weight: bold"}>@name (@byRegion(id))</a></li>
-                }
-            </ul>
-        </div>
-    </div>
+    @regionNav("filelist", asUserId, round, region, byRegion)
 
     <div class="row-fluid" >
 

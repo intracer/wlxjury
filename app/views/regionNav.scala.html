@@ -1,0 +1,26 @@
+@(      module: String,
+        asUserId: Int,
+        round: org.intracer.wmua.Round,
+        region: String = "all",
+        byRegion: Map[String, Int],
+        rate: Option[Int] = None)(implicit flash: Flash, lang: Lang)
+
+@if(round.contest == 14 || round.contest == 16 || round.contest == 17 || round.contest == 20) {
+    <div class="row-fluid" >
+        <div class="pagination pagination-centered" style="margin-top : 10px ; margin-bottom : 5px ;">
+            <ul>
+                <li>
+                    <a href="/@module/round/@round.id/user/@asUserId/page/1@rateParam(rate)" @if("all" == region) {style="font-weight: bold"}>*</a>
+                </li>
+                @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id, 0) > 0) {
+                    <li>
+                        <a href="/@module/round/@round.id/user/@asUserId/region/@id/page/1@rateParam(rate)" @if(id == region) {style="font-weight: bold"}>
+                            @Messages(id) (@byRegion(id))
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+}
