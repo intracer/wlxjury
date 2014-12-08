@@ -227,14 +227,15 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
     merged.values.toSeq
   }
 
-//  import SQLSyntax.{ sum }
-//  def byRoundSummed(roundId: Int)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
-//    select(c.*, sum(Selection.s.rate)).from(ImageJdbc as c)
-//      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
-//      .where.eq(Selection.s.round, roundId)
-//      .and.append(isNotDeleted).groupBy(Selection.s.pageId)
-//  }.map(rs => (ImageJdbc(c)(rs), Selection(Selection.s)(rs))).list().apply().map{case (i,s ) => ImageWithRating(i,Seq(s))
-//  }
+  import SQLSyntax.{sum, count}
+  def byRoundSummed(roundId: Long)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
+    select(sum(Selection.s.rate), count(Selection.s.rate), c.result.*).from(ImageJdbc as c)
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.round, roundId)
+      .and.append(isNotDeleted).groupBy(Selection.s.pageId)
+  }.map(rs => (ImageJdbc(c)(rs), rs.int(1), rs.int(2))).list().apply().map{
+    case (i, sum, count) => ImageWithRating(i, Seq(new Selection(0, i.pageId, sum, 0, roundId)), count)
+  }
 
 
 

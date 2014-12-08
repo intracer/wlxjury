@@ -151,7 +151,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
   def filesByUserId(asUserId: Int, rate: Option[Int], user: User, round: Round): (Seq[ImageWithRating], User) = {
     if (asUserId == 0) {
-      (rate.fold(ImageJdbc.byRoundMerged(round.id.toInt))(r => ImageJdbc.byRatingMerged(r, round.id.toInt)), null)
+      (rate.fold(ImageJdbc.byRoundSummed(round.id))(r => ImageJdbc.byRatingMerged(r, round.id.toInt)), null)
     } else
     if (asUserId != user.id.toInt) {
       val asUser: User = User.find(asUserId).get

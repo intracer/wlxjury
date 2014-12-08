@@ -10,7 +10,7 @@ case class Selection(
                      //	fileid: String, // TODO remove
                       juryId: Long,
                       round: Long,
-                      createdAt: DateTime,
+                      createdAt: DateTime = DateTime.now,
                       deletedAt: Option[DateTime] = None)
 {
 
