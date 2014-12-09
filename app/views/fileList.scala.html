@@ -14,7 +14,7 @@
 
 @main("filelist", user, asUserId, asUser, allFiles, Seq(round), false, rate, region) {
 
-    @regionNav("filelist", asUserId, round, region, byRegion)
+    @regionNav({region:String => s"/filelist/round/${round.id}/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
 
     <div class="row-fluid" >
 

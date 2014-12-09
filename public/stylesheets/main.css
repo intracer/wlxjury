@@ -18,6 +18,20 @@ body.gallery{
     color : #c75b5b;
 }
 
+#regionnav>li>a {
+    padding-top: 4px;
+    padding-right: 8px;
+    padding-bottom: 4px;
+    padding-left: 8px;
+}
+
+#pagenav>li>a {
+    padding-top: 4px;
+    padding-right: 8px;
+    padding-bottom: 4px;
+    padding-left: 8px;
+}
+
 
 ul.gallery {
     margin: 2px;

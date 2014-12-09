@@ -7,10 +7,10 @@
         module: String = "gallery"
         )
 
-<div>
 @if(page!=0 && Pager.pages(currentFiles) > 1) {
-    <div class="pagination pagination-centered" style="margin-top : 10px ; margin-bottom : 5px ;">
-        <ul>
+    <li>
+    <div  class="col-md-12 text-center" >
+        <ul class="pagination"  id="pagenav" style="margin-top : 10px ; margin-bottom : 0px;">
             @if(page > 1) {
                 <li><a href="/@module/round/@roundId/user/@asUserId/region/@region/page/@{page-1}@rateParam(rate)">&laquo;</a></li>
             } else {
@@ -30,5 +30,5 @@
             }
         </ul>
     </div>
+    </li>
 }
-</div>

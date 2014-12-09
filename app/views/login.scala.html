@@ -1,34 +1,33 @@
 @(loginForm: Form[(String, String)])(implicit flash: Flash, lang: Lang)
 
-@import helper._
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render(_, lang)) }
-
 <h3>@Messages("signin.signin")</h3>
 
-@form(routes.Application.auth(), 'class -> "form-vertical") {
 
-    @if(loginForm.hasGlobalErrors) {
-        <p class="error">
-            <span class="label important">@Messages(loginForm.errors.head.message)</span>
-        </p>
-    }
+<div class="col-md-6">
+    <form role="form" action="@routes.Application.auth()" method="POST">
 
-    <fieldset>
-        @inputText(
-            loginForm("login"),
-            'placeholder -> Messages("login"),
-            '_label -> Messages("signin.your.login")
- ,           '_help -> ""
-        )
-        @inputPassword(
-            loginForm("password"),
-            '_label -> Messages("signin.your.password"),
-            'placeholder -> Messages("password")
-  ,          '_help ->""
-        )
-    </fieldset>
+        @if(loginForm.hasGlobalErrors) {
+            <div class="alert alert-danger" role="alert">
+                @Messages(loginForm.errors.head.message)
+            </div>
+        }
 
-    <div class="form-actions">
-        <input type="submit" class="btn btn-primary" value="@Messages("signin.signin")">
-    </div>
-}
+        <fieldset>
+            <div class="form-group">
+                <label for="login" class="control-label">@Messages("signin.your.login")</label>
+                <input type="text" class="form-control" id="login" name="login" placeholder="@Messages("login")">
+            </div>
+            <div class="form-group">
+                <label for="password" class="control-label">@Messages("signin.your.password")</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+            </div>
+        </fieldset>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-default btn-primary">@Messages("signin.signin")</button>
+        </div>
+
+
+    </form>
+</div>
+
+

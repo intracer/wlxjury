@@ -10,10 +10,6 @@
     @import org.intracer.wmua.Round
     @import org.intracer.wmua.Selection
 
-    @implicitFieldConstructor = @{
-        FieldConstructor(twitterBootstrapInput.render(_, lang))
-    }
-
     @main(Messages("rounds"), adminUser, adminUser.id.toInt) {
         <div class="row-fluid" >
             <h3>@Messages("Contest: " + ContestJury.byId(adminUser.contest).head.name)</h3>

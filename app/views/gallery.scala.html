@@ -9,12 +9,12 @@
         round: org.intracer.wmua.Round,
         rate: Option[Int],
         region: String = "all",
-        byRegion: Map[String, Int])(
-        implicit flash: Flash, lang: Lang)
+        byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang)
 
     @main("gallery", user, asUserId, asUser, allFiles, Seq(round), gallery = true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.toInt, region))  {
 
-    @regionNav("gallery", asUserId, round, region, byRegion, rate)
+    @regionNav({region:String => s"/gallery/round/${round.id}/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
+
 
     <div class="row-fluid" >
 

@@ -12,50 +12,52 @@
         pager: Html = Html.empty)(implicit lang: Lang)
 @import org.intracer.wmua.Round
 
-<div class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar navbar-inverse" role="navigation" style="margin-bottom: 10px;">
     <div class="navbar-inner">
         <div class="container-fluid" style="margin-left : 5px ; margin-right : 5px">
-            <div class="nav-collapse collapse">
-                <ul class="nav">
+            <div class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
                 @if(user != null) {
                     @if(user.roles.contains("admin")) {
-                        <li><a class="brand" style="margin-top : 5px" href="/admin/users">@Messages("users")</a>
-                        <li><a class="brand" style="margin-top : 5px" href="/admin/rounds">@Messages("rounds")</a>
+                        <li role="presentation"><a class="brand" href="/admin/users">@Messages("users")</a>
+                        <li role="presentation"><a class="brand" href="/admin/rounds">@Messages("rounds")</a>
                             }
                     @for(round <- currentRounds) {
 
                     @if(user.canViewOrgInfo(round)) {
-                        <li><a class="brand" style="margin-top : 5px" href="/roundstat">@Messages("statistics")</a>
+                        <li role="presentation"><a class="brand" href="/roundstat">@Messages("statistics")</a>
                             }
 
                         @if((asUserId == 0 || asUserId == user.id) && round.roles.intersect(user.roles).nonEmpty){
-                        <li class="brand" style="margin-top : 5px; margin-left: 10px">@Messages(round.description)</li>
+                        <li  role="presentation" class="brand" style="margin-left: 10px">
+                            <a href="#">@Messages(round.description)</a>
+                        </li>
                         @if(round.rates == Round.binaryRound) {
-                            <li class="@if(rate == Some(0)){active}">
-                                <a style="margin-top: 5px" href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(0))">@Messages("unrated") (@user.roundFiles(round.id).count(_.rate == 0))</a>
-                            <li class="@if(rate == Some(1)){active active-}selected">
-                                <a style="margin-top: 5px;" href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(1))">@Messages("selected") (@user.roundFiles(round.id).count(_.rate == 1))</a>
-                            <li class="@if(rate == Some(-1)){active active-}rejected">
-                                <a style="margin-top: 5px;" href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(-1))">@Messages("rejected") (@user.roundFiles(round.id).count(_.rate == -1))</a>
+                            <li role="presentation" class="@if(rate == Some(0)){active}">
+                                <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(0))">@Messages("unrated") (@user.roundFiles(round.id).count(_.rate == 0))</a>
+                            <li role="presentation" class="@if(rate == Some(1)){active active-}selected">
+                                <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(1))">@Messages("selected") (@user.roundFiles(round.id).count(_.rate == 1))</a>
+                            <li role="presentation" class="@if(rate == Some(-1)){active active-}rejected">
+                                <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(-1))">@Messages("rejected") (@user.roundFiles(round.id).count(_.rate == -1))</a>
                                 } else {
-                            <li>
+                            <li role="presentation">
 
                             @if(round.id == 34) {
-                                <a class="brand" style="margin-top : 5px;" href="/chat">@Messages("chat") </a>
+                                <a class="brand" href="/chat">@Messages("chat") </a>
                             }
 
                                 @if(user.roundFiles(round.id).count(_.rate == 0) > 0) {
-                                <li class="@if(rate == Some(0)) {active}">
-                                    <a style="margin-top : 5px" href="/gallery/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
+                                <li  role="presentation" class="@if(rate == Some(0)) {active}">
+                                    <a href="/gallery/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
                                         (@user.roundFiles(round.id).count(_.rate == 0))</a>
                                     }
-                            <li class="@if(rate != Some(0) && asUserId == user.id.toInt) {active}">
-                                <a style="margin-top : 5px ;" href="/byrate/round/@round.id/user/@user.id/page/1">@Messages("rated")
+                            <li  role="presentation" class="@if(rate != Some(0) && asUserId == user.id.toInt) {active}">
+                                <a  href="/byrate/round/@round.id/user/@user.id/page/1">@Messages("rated")
                                     (@user.roundFiles(round.id).count(_.rate > 0))</a>
 
                             @if(false) {
-                            <li class="@if(rate != Some(0) && asUserId == 0) {active}">
-                                <a style="margin-top : 5px ;" href="/byrate/round/@round.id/user/0/page/1">@Messages("all.jury.rating")
+                            <li  role="presentation" class="@if(rate != Some(0) && asUserId == 0) {active}">
+                                <a href="/byrate/round/@round.id/user/0/page/1">@Messages("all.jury.rating")
                                     (@user.roundFiles(round.id).count(_.rate > 0))</a>
                                 }
 
@@ -64,16 +66,16 @@
                     }
 
                     @if(user.id != asUserId && user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
-                        <li class="brand" style="margin-top : 5px">
-                        @currentRounds.map(_.description).mkString(", ")
+                        <li  role="presentation" class="brand" >
+                            <a href="#">@currentRounds.map(_.description).mkString(", ")</a>
                         </li>
                         @for(round <- currentRounds) {
                             @if(round.id == 34) {
-                                <li>
-                                    <a class="brand" style="margin-top : 5 px ; margin-left : 10 px" href="/chat">@Messages("chat") </a>
+                                <li  role="presentation">
+                                    <a class="brand" style="margin-left: 10px;" href="/chat">@Messages("chat") </a>
                                 </li>
                             }
-                            <li>
+                            <li role="presentation">
 
                             @dropDownSelection(
                                 new UiSelectionDto[Option[Int]](
@@ -104,10 +106,10 @@
                                     new UiSelectionDto[String](
                                         routes.Gallery.query(_, user = Some(asUserId), page = 1, region = region, round = round.id.toInt, rate),
                                         "gallery",
-                                        SelectionItem("thumbnails", Some("icon-th")),
+                                        SelectionItem("thumbnails", Some("th")),
                                         Seq(
                                             /*"gallerylarge" -> SelectionItem("large.thumbnails",Some("icon-th-large")),*/
-                                            "filelist" -> SelectionItem("file.list", Some("icon-align-justify"))),
+                                            "filelist" -> SelectionItem("file.list", Some("align-justify"))),
                                         "gallery"
                                     ).asInstanceOf[UiSelectionDto[Any]]
                                     , iconOnly = true)
@@ -123,13 +125,14 @@
                     }
 
                 } else {
-                    <a class="brand" style="margin-top : 5px" href="#">@Messages("application.name")</a>
+                    <a class="brand" href="#">@Messages("application.name")</a>
                 }
+                    @pager
                 </ul>
+                @logged(user)
+
             </div>
-            @logged(user)
-            @pager
 
         </div>
     </div>
-</div>
+</nav>

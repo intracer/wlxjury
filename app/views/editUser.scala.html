@@ -2,11 +2,12 @@
 
 @import helper._
 @import org.intracer.wmua.User
-@implicitFieldConstructor = @{ FieldConstructor(twitterBootstrapInput.render(_, lang)) }
 
 
 @main(Messages("edit user"), user, user.id.toInt) {
     <div class="row-fluid" >
+        <div class="col-md-4">
+
 
         @if(editUserForm("id").value != Some("0")) {
             <h3>@Messages("Edit user")</h3>
@@ -17,41 +18,38 @@
 @form(routes.Admin.saveUser, 'class -> "form-vertical") {
 
     @if(editUserForm.hasGlobalErrors) {
-        <p class="error">
-            <span class="label important">@Messages(editUserForm.errors.head.message)</span>
-        </p>
+        <div class="alert alert-danger" role="alert">
+            @Messages(editUserForm.errors.head.message)
+        </div>
     }
 
     <fieldset>
         <input type="hidden" id="id" name="id" value='@editUserForm("id").value' />
         <input type="hidden" name="contest" id="contest" value='@editUserForm("contest").value' />
-        @inputText(
-            editUserForm("fullname"),
-            'placeholder -> Messages("Name"),
-            '_label -> Messages("Name"),
-            '_help -> ""
-        )
-        @inputText(
-            editUserForm("email"),
-            'placeholder -> Messages("Email"),
-            '_label -> Messages("Email"),
-            '_help -> ""
-        )
 
-         @select(editUserForm("roles"), Seq("no", "jury", "organizer", "admin").map(x => (x,x)),
-             Seq('_label -> Messages("Role"), '_help -> "") ++
-                     (if(!user.roles.contains("admin")) Seq('disabled -> "true") else Seq.empty):_* )
+        <div class="form-group">
+            <label for="fullname" class="control-label">@Messages("Name")</label>
+            <input type="text" class="form-control" id="fullname" name="fullname" placeholder="@Messages("Name")">
+        </div>
+        <div class="form-group">
+            <label for="email" class="control-label">@Messages("Email")</label>
+            <input type="text" class="form-control" id="email" name="email" placeholder="@Messages("Email")">
+        </div>
+
+        @if(user.roles.contains("admin")) {
+            @select(editUserForm("roles"), Seq("no", "jury", "organizer", "admin").map(x => (x, x)),
+                Seq('_label -> Messages("Role"), '_help -> "") ++
+                        (if(!user.roles.contains("admin")) Seq('disabled -> "true") else Seq.empty): _*)
+        }
 
         @select(editUserForm("lang"), Seq("en", "ru", "uk" ).map(x => (x, User.LANGS(x))),
             '_label -> Messages("Language"), '_help -> "" )
 
         @if(Some(user.id.toString) == editUserForm("id").value) {
-        @inputPassword(
-            editUserForm("password"),
-            '_label -> "Password",
-            'placeholder -> "",
-            '_help -> ""
-        )
+            <div class="form-group">
+                <label for="password" class="control-label">@Messages("Password")</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+            </div>
         } else {
             @if(editUserForm("id").value != Some("0")) {
                 @flash.get("password-reset").map { msg =>
@@ -65,8 +63,8 @@
     </fieldset>
 
     <div class="form-actions">
-        <input type="submit" class="btn btn-primary" value="@Messages("Save")">
-        <a href="/" class="btn">@Messages("Cancel")</a>
+        <input type="submit" class="btn btn-default btn-primary" value="@Messages("Save")">
+        <a href="/" class="btn btn-default">@Messages("Cancel")</a>
     </div>
 }
 
@@ -74,6 +72,7 @@
         @form(routes.Admin.resetPassword(editUserForm("id").value.get), 'class -> "form-vertical", 'id -> "reset-password" ) {
                 <input type="submit" class="btn" value="@Messages("Reset password")">
         }
+        </div>
         </div>
     </div>
 }

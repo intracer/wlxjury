@@ -1,24 +1,49 @@
-@(monuments: Seq[client.wlx.dto.Monument])
+@(monuments: Seq[client.wlx.dto.Monument],
+  region: String = "all")(implicit flash: Flash, lang: Lang)
 @import client.wlx.dto.Monument
 @import org.intracer.wmua.ImageJdbc
-<!DOCTYPE html>
 
-<html>
-    <head>
-        <title>title</title>
-        <meta charset="UTF-8">
-        <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-        <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.js"></script>
+@main("gallery", null, 0, null, Seq.empty, Seq.empty, gallery = false, None, region, pager(0, Seq.empty, 1, None, 0, region))  {
 
-        <link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/bootstrap-sortable.css")">
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/bootstrap-multiselect.js")"></script>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/bootstrap-multiselect.css")" type="text/css"/>
 
-        <script src="@routes.Assets.at("javascripts/moment.min.js")"></script>
-        <script src="@routes.Assets.at("javascripts/bootstrap-sortable.js")"></script>
-    </head>
-    <body>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $('#regions-select').multiselect({
+            enableFiltering: true,
+            includeSelectAllOption: true
+        });
+        $('#regions-select').on('reset', function() {
+            $('#regions-select option').each(function() {
+                $(this).prop('selected', false);
+            })
+
+            $('#regions-select').multiselect('refresh');
+        });
+    });
+    </script>
+
+    <div class="row-fluid">
+
+        <form class="btn-group" id="example-reset-form">
+            <div class="btn-group">
+                <select id="regions-select" multiple="multiple">
+                    @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1)) {
+                        <option value="@id">@name</option>
+                    }
+                </select>
+                <button type="reset" id="regions-select-reset-button" class="btn btn-default">Reset</button>
+            </div>
+        </form>
+    </div>
+
+    @if(false) {
+        @regionNav({ region: String => "/monuments/region/" + region}, null, region, Map.empty)
+    }
+
+        <div class="row-fluid" >
+
         <table class="table table-bordered table-striped sortable">
             <thead>
                 <tr>
@@ -54,6 +79,7 @@
                     <td><a href="https://commons.wikimedia.org/wiki/Category:@monument.gallery">@monument.gallery</td>
                     <td>@monument.resolution</td>
                 </tr>
+@if(false){
                 <tr>
                     <td colspan="12">
 
@@ -79,9 +105,10 @@
                     </div>
                     </td>
                 </tr>
+}
 
             }
         </tbody>
         </table>
-    </body>
-</html>
+    </div>
+}

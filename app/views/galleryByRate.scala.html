@@ -23,7 +23,7 @@
 
 @main("byrate", user, asUserId, asUser, allFiles, Seq(round), true, None, region, pager(asUserId, regionFiles, page, None, round.id.toInt, region, "byrate"))  {
 
-    @regionNav("byrate", asUserId, round, region, byRegion)
+    @regionNav({region:String => s"/byrate/round/${round.id}/user/$asUserId/region/$region/page/1"}, round, region, byRegion)
 
     <div class="row-fluid" >
 

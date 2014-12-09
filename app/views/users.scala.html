@@ -5,9 +5,6 @@
         round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
 @import helper._
 @import org.intracer.wmua.ContestJury
-    @implicitFieldConstructor = @{
-        FieldConstructor(twitterBootstrapInput.render(_, lang))
-    }
 
 @main(Messages("users"), adminUser, adminUser.id.toInt) {
     <div class="row-fluid" >

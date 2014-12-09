@@ -8,23 +8,35 @@
         totalByRate: Map[Int, Int],
         byJurorNum: Map[Int, Int]
         )(implicit flash: Flash, lang: Lang)
-    @import views.html.helper._
-    @implicitFieldConstructor = @{
-        FieldConstructor(twitterBootstrapInput.render(_, lang))
-    }
 
     @roundLinks(round: org.intracer.wmua.Round, user: org.intracer.wmua.User, rate: Int)= {
         @defining(byUserRateCount.getOrElse(user.id, Map.empty).getOrElse(rate, 0)) { count =>
                     <div class="btn-group">
                         @if(round.rates.id==1) {
-                            <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))"><div class="btn btn-small @if(count == 0) {disabled}"><i class="icon-th"></i></div></a>
+                            <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
+                                <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
+                                    <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
+                                </button>
+                            </a>
                         } else {
-                            <a href="/byrate/round/@round.id/user/@user.id/page/1"><div class="btn btn-small"><i class="icon-signal"></i></div></a>
+                            <a href="/byrate/round/@round.id/user/@user.id/page/1">
+                                <button type="button" class="btn btn-default btn-xs">
+                                    <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
+                                </button>
+                            </a>
                         }
                         @if(round.rates.id==1) {
-                            <a href="/filelist/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))"><div class="btn btn-small @if(count == 0) {disabled}"><i class="icon-align-justify"></i></div></a>
+                            <a href="/filelist/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
+                                <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
+                                    <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
+                                </button>
+                            </a>
                         } else {
-                            <a href="/filelist/round/@round.id/user/@user.id/page/1"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
+                            <a href="/filelist/round/@round.id/user/@user.id/page/1">
+                                <button type="button" class="btn btn-default btn-xs">
+                                    <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
+                                </button>
+                            </a>
                         }
                     </div>
         @if(round.rates.id==1) { @count } else {
@@ -40,8 +52,9 @@
 
         @if(user.roles.intersect(Set("organizer", "admin", "jury")).nonEmpty) {
             <div class="row-fluid" >
-                <div class="pagination pagination-centered" style="margin-top: 10px; margin-bottom: 5px;">
-                    <ul>
+                <nav>
+                <div class="col-md-12 text-center">
+                    <ul class="pagination pagination-centered" style="margin-top: 10px; margin-bottom: 5px;">
                     @for(r <- rounds) {
                         <li><a href="/roundstat/@r.id" @if(r.id == round.id) {
                             style="font-weight: bold"}> Round @r.description </a>
@@ -49,6 +62,7 @@
                     }
                     </ul>
                 </div>
+                </nav>
             </div>
         }
 
@@ -95,8 +109,16 @@
                         </td>
                         <td>
                             @defining(byUserCount.getOrElse(user.id, 0)) { count =>
-                                <a href="/gallery/round/@round.id/user/@user.id/page/1"><div class="btn btn-small @if(count == 0) {disabled}"><i class="icon-th"></i></div></a>
-                                <a href="/filelist/round/@round.id/user/@user.id/page/1"><div class="btn btn-small @if(count == 0) {disabled}"><i class="icon-align-justify"></i></div></a>
+                                <a href="/gallery/round/@round.id/user/@user.id/page/1"
+                                    <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
+                                        <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
+                                    </button>
+                                </a>
+                                <a href="/filelist/round/@round.id/user/@user.id/page/1">
+                                    <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
+                                        <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
+                                    </button>
+                                </a>
                                 @count
                             }
                         </td>
@@ -124,20 +146,43 @@
                             @Messages("Total")
                         </th>
                         <th>
-                            <a href="/gallery/round/@round.id/user/0/page/1"><div class="btn btn-small @if(total == 0) {disabled}"><i class="icon-th"></i></div></a>
-                            <a href="/filelist/round/@round.id/user/0/page/1"><div class="btn btn-small @if(total == 0) {disabled}"><i class="icon-align-justify"></i></div></a>
+                            <a href="/gallery/round/@round.id/user/0/page/1">
+                                <button type="button" class="btn btn-default btn-xs @if(total == 0) {disabled}">
+                                    <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
+                                </button>
+                            </a>
+                            <a href="/filelist/round/@round.id/user/0/page/1">
+                                <button type="button" class="btn btn-default btn-xs @if(total == 0) {disabled}">
+                                    <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
+                                </button>
+                            </a>
                             @total
                         </th>
                         <th>
                             <div class="btn-group">
                             @if(round.rates.id==1) {
-                                <a href="/gallery/round/@round.id/user/0/page/1@rateParam(Some(1))"><div class="btn btn-small @if(total == 0){disabled}"><i class="icon-th"></i></div></a>
-                                <a href="/filelist/round/@round.id/user/0/page/1@rateParam(Some(1))"><div class="btn btn-small @if(total == 0){disabled}"><i class="icon-align-justify"></i></div></a>
+                                <a href="/gallery/round/@round.id/user/0/page/1@rateParam(Some(1))">
+                                    <button type="button" class="btn btn-default btn-xs @if(total == 0){disabled}">
+                                        <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
+                                    </button>
+                                </a>
+                                <a href="/filelist/round/@round.id/user/0/page/1@rateParam(Some(1))">
+                                    <button type="button" class="btn btn-default btn-xs @if(total == 0){disabled}">
+                                        <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
+                                    </button>
+                                </a>
                             } else {
-                                <a href="/byrate/round/@round.id/user/0/page/1"><div class="btn btn-small"><i class="icon-signal"></i></div></a>
-                                <a href="/filelist/round/@round.id/user/0/page/1"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
+                                <a href="/byrate/round/@round.id/user/0/page/1">
+                                    <button type="button" class="btn btn-default btn-xs">
+                                        <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
+                                    </button>
+                                </a>
+                                <a href="/filelist/round/@round.id/user/0/page/1">
+                                    <button type="button" class="btn btn-default btn-xs">
+                                        <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
+                                    </button>
+                                </a>
                             }
-
                             </div>
                             @if(round.rates.id==1) {
                                 @totalByRate.getOrElse(1, 0)
