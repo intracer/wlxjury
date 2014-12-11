@@ -5,7 +5,7 @@
 
 
 @main(Messages("edit user"), user, user.id.toInt) {
-    <div class="row-fluid" >
+    <div class="row" >
         <div class="col-md-4">
 
 
@@ -29,11 +29,11 @@
 
         <div class="form-group">
             <label for="fullname" class="control-label">@Messages("Name")</label>
-            <input type="text" class="form-control" id="fullname" name="fullname" placeholder="@Messages("Name")">
+            <input type="text" class="form-control" id="fullname" name="fullname" placeholder="@Messages("Name")" value="@editUserForm("fullname").value">
         </div>
         <div class="form-group">
             <label for="email" class="control-label">@Messages("Email")</label>
-            <input type="text" class="form-control" id="email" name="email" placeholder="@Messages("Email")">
+            <input type="text" class="form-control" id="email" name="email" placeholder="@Messages("Email")" value="@editUserForm("email").value">
         </div>
 
         @if(user.roles.contains("admin")) {
@@ -48,7 +48,7 @@
         @if(Some(user.id.toString) == editUserForm("id").value) {
             <div class="form-group">
                 <label for="password" class="control-label">@Messages("Password")</label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password" value="">
             </div>
         } else {
             @if(editUserForm("id").value != Some("0")) {

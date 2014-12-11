@@ -15,7 +15,6 @@
     <nav class="navbar navbar-inverse" role="navigation" style="margin-bottom: 10px;">
     <div class="navbar-inner">
         <div class="container-fluid" style="margin-left : 5px ; margin-right : 5px">
-            <div class="collapse navbar-collapse">
                 <ul class="nav navbar-nav">
                 @if(user != null) {
                     @if(user.roles.contains("admin")) {
@@ -30,7 +29,17 @@
 
                         @if((asUserId == 0 || asUserId == user.id) && round.roles.intersect(user.roles).nonEmpty){
                         <li  role="presentation" class="brand" style="margin-left: 10px">
-                            <a href="#">@Messages(round.description)</a>
+                            @dropDownSelection(
+                                new UiSelectionDto[Int](
+                                    routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, _, rate),
+                                    round.id.toInt,
+                                    SelectionItem(round.description),
+                                    Round.findByContest(user.contest).filter(user.canViewOrgInfo).map(r => (r.id.toInt, SelectionItem(r.description, localized = false))),
+                                    defaultKey = round.id.toInt,
+                                    default = false,
+                                    id = 1
+                                ).asInstanceOf[UiSelectionDto[Any]]
+                            )
                         </li>
                         @if(round.rates == Round.binaryRound) {
                             <li role="presentation" class="@if(rate == Some(0)){active}">
@@ -66,10 +75,20 @@
                     }
 
                     @if(user.id != asUserId && user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
-                        <li  role="presentation" class="brand" >
-                            <a href="#">@currentRounds.map(_.description).mkString(", ")</a>
-                        </li>
                         @for(round <- currentRounds) {
+                        <li  role="presentation" class="brand" >
+                        @dropDownSelection(
+                            new UiSelectionDto[Int](
+                                routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, _, rate),
+                                round.id.toInt,
+                                SelectionItem(round.description),
+                                Round.findByContest(user.contest).filter(user.canViewOrgInfo).map(r => (r.id.toInt, SelectionItem(r.description, localized = false))),
+                                defaultKey = round.id.toInt,
+                                default = false,
+                                id = 2
+                            ).asInstanceOf[UiSelectionDto[Any]]
+                        )
+                        </li>
                             @if(round.id == 34) {
                                 <li  role="presentation">
                                     <a class="brand" style="margin-left: 10px;" href="/chat">@Messages("chat") </a>
@@ -83,7 +102,8 @@
                                     Some(asUserId),
                                     SelectionItem("all"),
                                     round.jurors.map(u => (Some(u.id.toInt), SelectionItem(u.fullname, localized = false))),
-                                    defaultKey = Some(0)
+                                    defaultKey = Some(0),
+                                    id = 3
                                 ).asInstanceOf[UiSelectionDto[Any]]
                             )
 
@@ -97,7 +117,8 @@
                                             Some(1)-> SelectionItem("selected"),
                                             Some(0) -> SelectionItem("unrated"),
                                             Some(-1) -> SelectionItem("rejected")),
-                                        None
+                                        None,
+                                    id = 4
                                     ).asInstanceOf[UiSelectionDto[Any]]
                                 )
                             }
@@ -105,20 +126,28 @@
                                 @dropDownSelection(
                                     new UiSelectionDto[String](
                                         routes.Gallery.query(_, user = Some(asUserId), page = 1, region = region, round = round.id.toInt, rate),
-                                        "gallery",
+                                        title,
                                         SelectionItem("thumbnails", Some("th")),
                                         Seq(
                                             /*"gallerylarge" -> SelectionItem("large.thumbnails",Some("icon-th-large")),*/
                                             "filelist" -> SelectionItem("file.list", Some("align-justify"))),
-                                        "gallery"
+                                        "gallery",
+                                        id = 5
                                     ).asInstanceOf[UiSelectionDto[Any]]
                                     , iconOnly = true)
                             } else {
-                                <div class="btn-group" style="margin-top : 12px">
-                                    <a href="/gallery/round/@round.id/user/@asUserId/region/@region/page/1@rateParam(rate)"><div class="btn btn-small"><i class="icon-th-large"></i></div></a>
-                                    <a href="/byrate/round/@round.id/user/@asUserId/region/@region/page/1"><div class="btn btn-small"><i class="icon-signal"></i></div></a>
-                                    <a href="/filelist/round/@round.id/user/@asUserId/region/@region/page/1"><div class="btn btn-small"><i class="icon-align-justify"></i></div></a>
-                                </div>
+                                @dropDownSelection(
+                                    new UiSelectionDto[String](
+                                        routes.Gallery.query(_, user = Some(asUserId), page = 1, region = region, round = round.id.toInt),
+                                        title,
+                                        SelectionItem("thumbnails", Some("th")),
+                                        Seq(
+                                            /*"gallerylarge" -> SelectionItem("large.thumbnails",Some("icon-th-large")),*/
+                                            "filelist" -> SelectionItem("file.list", Some("align-justify"))),
+                                        "byrate",
+                                        id = 6
+                                    ).asInstanceOf[UiSelectionDto[Any]]
+                                    , iconOnly = true)
                             }
                         }
                         </li>
@@ -132,7 +161,5 @@
                 @logged(user)
 
             </div>
-
-        </div>
     </div>
 </nav>

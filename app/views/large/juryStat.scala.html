@@ -5,8 +5,11 @@
         region: String
         )
 
-<ol>
-@for((selection, user) <- selections) {
-    <li>@showRate(selection, round, user.fullname, module, user.id, region, selection.pageId)
-}
-</ol>
+<div style="margin-right: 5px; margin-top: 5px; padding: 5px;">
+    <ol>
+    @for((selection, user) <- selections) {
+        <li>@showRate(selection, round, user.fullname, module, user.id, region, selection.pageId)
+    }
+    </ol>
+</div>
+

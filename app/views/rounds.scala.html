@@ -11,7 +11,7 @@
     @import org.intracer.wmua.Selection
 
     @main(Messages("rounds"), adminUser, adminUser.id.toInt) {
-        <div class="row-fluid" >
+        <div class="row" >
             <h3>@Messages("Contest: " + ContestJury.byId(adminUser.contest).head.name)</h3>
 
             @form(routes.Admin.setImages(), 'class -> "form-vertical", 'id -> "set-images") {

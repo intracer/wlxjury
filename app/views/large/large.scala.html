@@ -30,8 +30,8 @@
     module = module,
     preload = files.view.slice(start, end)) {
         <div class="container-fluid" style="padding-left:5px; margin-left:0px; margin-right:0px">
-            <div class="row-fluid">
-                <div class="span2" style="margin-left:0px; min-width: 185px">
+            <div class="row">
+                <div class="col-xs-1" style="margin-left:0px; min-width: 220px">
 
                     @navigationButtons(user, asUserId, files, index, page, rate, region, round, module)
                     @thumbsBar(user, asUserId, files, index, start, end, rate, region, round, module)
@@ -42,7 +42,7 @@
 
                </div>
 
-               <div id="mainContent" class="span10"  style="margin-left:5px; margin-top: 10px;">
+               <div id="mainContent" class="col-xs-10"  style="margin-left:5px; margin-top: 10px;">
 
                     <a href="https://commons.wikimedia.org/wiki/@files(index).title" target="_blank">
                         <img alt="@files(index).title" src="@controllers.Global.resizeTo(files(index).image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)" style="max-width:100%; height:auto;">

@@ -13,9 +13,7 @@
     @showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
        <div style="margin-bottom: 10px; color: #ffffff;"> <b>@index. </b>
        <span style="margin-left: 5px; margin-right: 10px;">
-        @for(i <- 1 to round.rates.id / 2) {
-            <img alt="@i" src="@showStar(i, file.totalRate(round).toInt, round.rates.id <= 10)">
-            }
+        @for(i <- 1 to round.rates.id / 2) {<img alt="@i" src="@showStar(i, file.totalRate(round).toInt, round.rates.id <= 10)">}
             @file.rateString(round)
         </span>
         </div>
@@ -25,7 +23,7 @@
 
     @regionNav({region:String => s"/byrate/round/${round.id}/user/$asUserId/region/$region/page/1"}, round, region, byRegion)
 
-    <div class="row-fluid" >
+    <div class="row" >
 
         <ul class="gallery mw-gallery-traditional">
            @defining(pageFiles.headOption.map(head => regionFiles.indexWhere(_.pageId == head.pageId)).getOrElse(0)) {start =>

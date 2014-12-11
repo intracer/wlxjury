@@ -16,11 +16,9 @@
         <br/>
     <span style="margin-left: 5px; margin-right: 10px;">
         @if(round.rates.id == 1) {
-            <i class="icon-ok icon-white"></i>
+            <span class="glyphicon glyphicon-ok icon-white" aria-hidden="true"></span>
         } else {
-            @for(i <- 1 to round.rates.id / 2) {
-                <img alt="@i" src="@showStar(i, selection.rate, round.rates.id <= 10)">
-            }
+            @for(i <- 1 to round.rates.id / 2) {<img alt="@i" src="@showStar(i, selection.rate, round.rates.id <= 10)">}
             @selection.rate
         }
     </span>

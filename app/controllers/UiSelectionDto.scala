@@ -2,9 +2,16 @@ package controllers
 
 import play.mvc.Call
 
-class UiSelectionDto[T](val call: T => Call, val idOpt:T, val defaultValue: SelectionItem, val values: Seq[(T, SelectionItem)], val defaultKey: T) {
+class UiSelectionDto[T](
+                         val call: T => Call,
+                         val idOpt:T,
+                         val defaultValue: SelectionItem,
+                         val values: Seq[(T, SelectionItem)],
+                         val defaultKey: T,
+                         val default:Boolean = true,
+                         val id:Int = 0) {
 
-  val optValues: Seq[(T, SelectionItem)] = Seq(defaultKey-> defaultValue) ++
+  val optValues: Seq[(T, SelectionItem)] = (if (default || values.isEmpty) Seq(defaultKey-> defaultValue) else Seq.empty) ++
     values.map {
       case (k, v) => (k, v)
     }
