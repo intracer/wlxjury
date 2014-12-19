@@ -4,15 +4,15 @@
         asUser: org.intracer.wmua.User,
         pageFiles: Seq[org.intracer.wmua.ImageWithRating],
         regionFiles: Seq[org.intracer.wmua.ImageWithRating],
-        allFiles: Seq[org.intracer.wmua.ImageWithRating],
         page: Int,
         round: org.intracer.wmua.Round,
+        rounds: Seq[org.intracer.wmua.Round],
         rate: Option[Int],
         region: String = "all",
         byRegion: Map[String, Int],
         format1:String = "wiki")(implicit flash: Flash, lang: Lang)
 
-@main("filelist", user, asUserId, asUser, allFiles, Seq(round), false, rate, region) {
+@main("filelist", user, asUserId, asUser, Seq(round), rounds, false, rate, region) {
 
     @regionNav({region:String => s"/filelist/round/${round.id}/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
 

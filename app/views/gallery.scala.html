@@ -4,14 +4,14 @@
         asUser: org.intracer.wmua.User,
         pageFiles: Seq[org.intracer.wmua.ImageWithRating],
         regionFiles: Seq[org.intracer.wmua.ImageWithRating],
-        allFiles: Seq[org.intracer.wmua.ImageWithRating],
         page: Int,
         round: org.intracer.wmua.Round,
+        rounds: Seq[org.intracer.wmua.Round],
         rate: Option[Int],
         region: String = "all",
         byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang)
 
-    @main("gallery", user, asUserId, asUser, allFiles, Seq(round), gallery = true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.toInt, region))  {
+    @main("gallery", user, asUserId, asUser, Seq(round), rounds, gallery = true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.toInt, region))  {
 
     @regionNav({region:String => s"/gallery/round/${round.id}/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
 

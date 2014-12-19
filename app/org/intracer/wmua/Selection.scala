@@ -182,9 +182,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
 
 
   def allJurors(roundId: Long)(implicit session: DBSession = autoSession): Int = withSQL {
-    select(count(distinct(Selection.s.juryId))).from(Selection as Selection.s).where.eq(Selection.s.round, roundId)
-      .groupBy(Selection.s.juryId)
-      .append(isNotDeleted)
+    select(count(distinct(Selection.s.juryId))).from(Selection as Selection.s).where.eq(Selection.s.round, roundId).and.append(isNotDeleted)
   }.map(_.int(1)).single().apply().get
 
 

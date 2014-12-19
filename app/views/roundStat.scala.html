@@ -48,7 +48,7 @@
         }
     }
 
-    @main(Messages("statistics"), user, user.id.toInt, user, Seq.empty, Seq(round)) {
+    @main(Messages("statistics"), user, user.id.toInt, user, Seq.empty, Seq.empty, gallery = false) {
 
         @if(user.roles.intersect(Set("organizer", "admin", "jury")).nonEmpty) {
             <div class="row" >
@@ -109,16 +109,19 @@
                         </td>
                         <td>
                             @defining(byUserCount.getOrElse(user.id, 0)) { count =>
-                                <a href="/gallery/round/@round.id/user/@user.id/page/1"
-                                    <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
-                                        <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
-                                    </button>
-                                </a>
-                                <a href="/filelist/round/@round.id/user/@user.id/page/1">
-                                    <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
-                                        <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
-                                    </button>
-                                </a>
+
+                                    @if(round.rates.id == 1) {
+                                        <a href="/gallery/round/@round.id/user/@user.id/page/1"
+                                        <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
+                                            <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
+                                        </button>
+                                        </a>
+                                        <a href="/filelist/round/@round.id/user/@user.id/page/1">
+                                            <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
+                                                <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
+                                            </button>
+                                        </a>
+                                    }
                                 @count
                             }
                         </td>
@@ -146,6 +149,7 @@
                             @Messages("Total")
                         </th>
                         <th>
+                        @if(round.rates.id == 1) {
                             <a href="/gallery/round/@round.id/user/0/page/1">
                                 <button type="button" class="btn btn-default btn-xs @if(total == 0) {disabled}">
                                     <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
@@ -156,11 +160,12 @@
                                     <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
                                 </button>
                             </a>
+                        }
                             @total
                         </th>
                         <th>
                             <div class="btn-group">
-                            @if(round.rates.id==1) {
+                            @if(round.rates.id == 1) {
                                 <a href="/gallery/round/@round.id/user/0/page/1@rateParam(Some(1))">
                                     <button type="button" class="btn btn-default btn-xs @if(total == 0){disabled}">
                                         <span class="glyphicon glyphicon-th" aria-hidden="true"></span>

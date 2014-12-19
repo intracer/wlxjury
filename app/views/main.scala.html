@@ -3,8 +3,8 @@
         user: org.intracer.wmua.User = null,
         asUserId: Int = 0,
         asUser: org.intracer.wmua.User = null,
-        allFiles: Seq[org.intracer.wmua.ImageWithRating] = Seq.empty,
         currentRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
+        rounds: Seq[org.intracer.wmua.Round] = Seq.empty,
         gallery: Boolean = false,
         rate: Option[Int] = None,
         region: String = "all",
@@ -40,9 +40,9 @@
 
     <body @if(gallery){class="gallery"}>
 
-        @navbar(title, user, asUserId, asUser, allFiles, currentRounds, gallery, rate, region, pager)
+        @navbar(title, user, asUserId, asUser, currentRounds, rounds, gallery, rate, region, pager)
 
-     <div class="container-fluid" style="margin-left: 0px; margin-right :0px;">
+     <div class="container-fluid" style="margin-left: 0; margin-right :0;">
 
         @content
 

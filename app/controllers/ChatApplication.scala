@@ -32,7 +32,7 @@ object ChatApplication extends Controller with Secured {
         implicit val commentFormat = Json.format[Comment]
 
         val messages = CommentJdbc.findByRound(round.id.toInt).map(m => Json.toJson(m))
-        Ok(views.html.chat("Chat", user, user.id.toInt, user, messages, user.files, Seq(round), gallery = true))
+        Ok(views.html.chat("Chat", user, user.id.toInt, user, messages, Seq(round), gallery = true))
   }
 
   /** Controller action for POSTing chat messages */

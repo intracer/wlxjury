@@ -1,11 +1,10 @@
 package controllers
 
-import play.api.mvc.{EssentialAction, Request, Controller, SimpleResult}
 import org.intracer.wmua._
+import play.api.cache.Cache
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.cache.Cache
-import play.mvc.Call
+import play.api.mvc.{Controller, EssentialAction, Request, SimpleResult}
 
 object Gallery extends Controller with Secured with Instrumented {
 
@@ -45,10 +44,12 @@ object Gallery extends Controller with Secured with Instrumented {
 
           if (userContest != roundContest ||
             (user.roles.intersect(Set("admin", "organizer")).isEmpty
-              && !ContestJury.byId(userContest).exists(_.currentRound == roundId))) {
+              && !ContestJury.byId(userContest).exists(_.currentRound == roundId)
+              && !round.juryOrgView)) {
             onUnAuthorized(user)
           } else {
 
+            val rounds = Round.findByContest(userContest.toLong)
             val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
 
             val ratedFiles = rate.fold(uFiles.sortBy(-_.totalRate(round)))(r => filterByRate(round, rate, uFiles))
@@ -59,15 +60,24 @@ object Gallery extends Controller with Secured with Instrumented {
             val page = pageFn(pager)
             val pageFiles = pager.pageFiles(page)
 
+            if (round.rates.id == 1 && asUserId == 0) {
+              val pageFiles2 = pageFiles.map(file => new ImageWithRating(file.image, selection = file.selection.filter(_.rate > 0)))
+              Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, round, rounds, region, byReg))
+            } else
+
             module match {
               case "gallery" =>
-                Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, uFiles, page, round, rate, region, byReg))
+                Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, round, rounds, rate, region, byReg))
 
               case "filelist" =>
-                Ok(views.html.fileList(user, asUserId, asUser, files, files, uFiles, page, round, rate, region, byReg, "wiki"))
+                Ok(views.html.fileList(user, asUserId, asUser, files, files, page, round, rounds, rate, region, byReg, "wiki"))
 
               case "byrate" =>
-                Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, uFiles, page, round, region, byReg))
+                if (round.rates.id != 1) {
+                  Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, page, round, rounds, region, byReg))
+                } else {
+                  Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, round, rounds, None, region, byReg))
+                }
             }
           }
         }
@@ -79,6 +89,7 @@ object Gallery extends Controller with Secured with Instrumented {
         timerByRate.time {
 
           val round = if (roundId == 0) Round.current(user) else Round.find(roundId).get
+          val rounds = Round.findByContest(user.contest.toLong)
           val (uFiles, asUser) = filesByUserId(asUserId, None, user, round)
 
           val byReg = byRegion(uFiles)
@@ -87,7 +98,13 @@ object Gallery extends Controller with Secured with Instrumented {
           val pager = new Pager(files)
           val page = pageFn(pager)
           val pageFiles = pager.pageFiles(page)
-          Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, uFiles, page, round, region, byReg))
+          val pageFiles2 = pageFiles.map(file => new ImageWithRating(file.image, selection = file.selection.filter(_.rate > 0)))
+
+          if (round.rates.id != 1) {
+            Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, round, rounds, region, byReg))
+          } else {
+            Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, round, rounds, None, region, byReg))
+          }
         }
   }
 
@@ -110,6 +127,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
         val round = if (roundId == 0) Round.current(user) else Round.find(roundId).get
+        val rounds = Round.findByContest(user.contest.toLong)
 
         val images = round.allImages
         val selection = Selection.byRound(round.id)
@@ -131,13 +149,14 @@ object Gallery extends Controller with Secured with Instrumented {
         val pager = new Pager(files)
         val pageFiles = pager.pageFiles(page)
         val byReg: Map[String, Int] = byRegion(imagesWithSelection)
-        Ok(views.html.gallery(user, 0, null, pageFiles, files, imagesWithSelection, page, round, rate, region, byReg))
+        Ok(views.html.gallery(user, 0, null, pageFiles, files, page, round, rounds, rate, region, byReg))
   }
 
   def fileList(asUserId: Int, page: Int = 1, region: String = "all", roundId: Int = 0, format: String = "wiki", rate: Option[Int]) = withAuth {
     user =>
       implicit request =>
         val round = if (roundId == 0) Round.current(user) else Round.find(roundId).get
+        val rounds = Round.findByContest(user.contest.toLong)
         val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
 
         val ratedFiles = rate.fold(uFiles)(r => uFiles.filter(_.rate == r))
@@ -146,7 +165,7 @@ object Gallery extends Controller with Secured with Instrumented {
         //        val pager = new Pager(files)
         //        val pageFiles = pager.pageFiles(page)
         val byReg: Map[String, Int] = byRegion(ratedFiles)
-        Ok(views.html.fileList(user, asUserId, asUser, files, files, uFiles, page, round, rate, region, byReg, format))
+        Ok(views.html.fileList(user, asUserId, asUser, files, files, page, round, rounds, rate, region, byReg, format))
   }
 
   def filesByUserId(asUserId: Int, rate: Option[Int], user: User, round: Round): (Seq[ImageWithRating], User) = {

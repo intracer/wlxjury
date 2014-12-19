@@ -3,7 +3,6 @@
 asUserId: Int = 0,
 asUser: org.intracer.wmua.User = null,
 messages:Seq[play.api.libs.json.JsValue],
-allFiles: Seq[org.intracer.wmua.ImageWithRating] = Seq.empty,
 currentRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
 gallery: Boolean = false,
 rate: Option[Int] = None,
@@ -48,7 +47,7 @@ pager: Html = Html.empty)(implicit lang: Lang)
     </head>
     <body ng-app="sseChat" @if(gallery) {class="gallery"}>
 
-       @navbar(title, user, asUserId, asUser, allFiles, currentRounds, gallery, rate, region, pager)
+       @navbar(title, user, asUserId, asUser, currentRounds, Seq.empty, gallery, rate, region, pager)
 
        <div class="container-fluid" style="margin-left : 0px ; margin-right : 0px">
 

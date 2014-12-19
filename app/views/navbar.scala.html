@@ -3,8 +3,8 @@
         user: org.intracer.wmua.User = null,
         asUserId: Int = 0,
         asUser: org.intracer.wmua.User = null,
-        allFiles: Seq[org.intracer.wmua.ImageWithRating] = Seq.empty,
         currentRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
+        rounds: Seq[org.intracer.wmua.Round] = Seq.empty,
         gallery: Boolean = false,
         rate: Option[Int] = None,
         region: String = "all",
@@ -122,7 +122,7 @@
                                     ).asInstanceOf[UiSelectionDto[Any]]
                                 )
                             }
-                            @if(round.rates.id == 1) {
+                            @if(round.rates.id == 1 && title != "byrate") {
                                 @dropDownSelection(
                                     new UiSelectionDto[String](
                                         routes.Gallery.query(_, user = Some(asUserId), page = 1, region = region, round = round.id.toInt, rate),
