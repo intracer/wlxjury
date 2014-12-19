@@ -79,10 +79,11 @@
                         <li  role="presentation" class="brand" >
                         @dropDownSelection(
                             new UiSelectionDto[Int](
-                                routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, _, rate),
+                                {roundId: Int => routes.Gallery.query(module = if (rounds.find(_.id == roundId.toLong).get.rates.id == 1) "gallery" else "byrate",
+                                    Some(asUserId), page = 1, region = region, roundId, rate)},
                                 round.id.toInt,
                                 SelectionItem(round.description),
-                                Round.findByContest(user.contest).filter(user.canViewOrgInfo).map(r => (r.id.toInt, SelectionItem(r.description, localized = false))),
+                                rounds.filter(user.canViewOrgInfo).map(r => (r.id.toInt, SelectionItem(r.description, localized = false))),
                                 defaultKey = round.id.toInt,
                                 default = false,
                                 id = 2
