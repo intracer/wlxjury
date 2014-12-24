@@ -61,7 +61,7 @@ object Gallery extends Controller with Secured with Instrumented {
             val pageFiles = pager.pageFiles(page)
 
             if (round.rates.id == 1 && asUserId == 0) {
-              val pageFiles2 = pageFiles.map(file => new ImageWithRating(file.image, selection = file.selection.filter(_.rate > 0)))
+              val pageFiles2 = pageFiles.map(file => new ImageWithRating(file.image, selection = file.selection.filter(_.rate > 0), countFromDb = file.countFromDb))
               Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, round, rounds, region, byReg))
             } else
 
@@ -98,7 +98,7 @@ object Gallery extends Controller with Secured with Instrumented {
           val pager = new Pager(files)
           val page = pageFn(pager)
           val pageFiles = pager.pageFiles(page)
-          val pageFiles2 = pageFiles.map(file => new ImageWithRating(file.image, selection = file.selection.filter(_.rate > 0)))
+          val pageFiles2 = pageFiles.map(file => new ImageWithRating(file.image, selection = file.selection.filter(_.rate > 0), countFromDb = file.countFromDb))
 
           if (round.rates.id != 1) {
             Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, round, rounds, region, byReg))
