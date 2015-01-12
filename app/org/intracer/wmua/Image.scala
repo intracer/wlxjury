@@ -232,11 +232,9 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
     select(sum(Selection.s.rate), count(Selection.s.rate), c.result.*).from(ImageJdbc as c)
       .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
       .where.eq(Selection.s.round, roundId)
+      .and.gt(Selection.s.rate, 0)
       .and.append(isNotDeleted).groupBy(Selection.s.pageId)
   }.map(rs => (ImageJdbc(c)(rs), rs.int(1), rs.int(2))).list().apply().map{
     case (i, sum, count) => ImageWithRating(i, Seq(new Selection(0, i.pageId, sum, 0, roundId)), count)
   }
-
-
-
 }
