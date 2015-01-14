@@ -4,7 +4,7 @@ import org.intracer.wmua._
 import play.api.cache.Cache
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.mvc.{Controller, EssentialAction, Request, SimpleResult}
+import play.api.mvc.{Controller, EssentialAction, Request, Result}
 
 object Gallery extends Controller with Secured with Instrumented {
 
@@ -251,7 +251,7 @@ object Gallery extends Controller with Secured with Instrumented {
     } + ("all" -> files.size)
   }
 
-  def checkLargeIndex(asUser: User, rate: Option[Int], index: Int, pageId: Long, files: Seq[ImageWithRating], region: String, roundId: Int, module: String): SimpleResult = {
+  def checkLargeIndex(asUser: User, rate: Option[Int], index: Int, pageId: Long, files: Seq[ImageWithRating], region: String, roundId: Int, module: String): Result = {
       val newIndex = if (index > files.size - 2)
         files.size - 2
       else index + 1
@@ -272,7 +272,7 @@ object Gallery extends Controller with Secured with Instrumented {
     }
   }
 
-  def show(pageId: Long, user: User, asUserId: Int, rate: Option[Int], region: String, roundId: Int, module: String)(implicit request: Request[Any]): SimpleResult = {
+  def show(pageId: Long, user: User, asUserId: Int, rate: Option[Int], region: String, roundId: Int, module: String)(implicit request: Request[Any]): Result = {
     timerShow.time {
       val round = if (roundId == 0) Round.current(user) else Round.find(roundId).get
 
@@ -311,7 +311,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
   def show2(index: Int, files: Seq[ImageWithRating], user: User, asUserId: Int, rate: Option[Int],
             page: Int, round: Round, region: String, module: String, selection: Seq[(Selection, User)])
-           (implicit request: Request[Any]): SimpleResult = {
+           (implicit request: Request[Any]): Result = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
     val extraLeft = if (files.size < index + 3) index + 3 - files.size else 0
 

@@ -14,7 +14,7 @@ object Application extends Controller with Secured {
         indexRedirect(user)
   }
 
-  def indexRedirect(user: User): SimpleResult = {
+  def indexRedirect(user: User): Result = {
     if (user.roles.contains(User.ORG_COM_ROLES.head)) {
       Redirect(routes.Rounds.currentRoundStat())
     } else if (user.roles.contains(User.JURY_ROLES.head)) {

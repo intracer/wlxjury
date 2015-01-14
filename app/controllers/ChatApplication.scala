@@ -77,7 +77,7 @@ object ChatApplication extends Controller with Secured {
 
         val round = Round.current(user)
 
-//        val future: Future[SimpleResult] = cache(round) {
+//        val future: Future[Result] = cache(round) {
 //          Concurrent.broadcast[JsValue]
 //        }.map {
 //          case (chatOut, _) =>
