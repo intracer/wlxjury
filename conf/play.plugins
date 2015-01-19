@@ -1,2 +1,3 @@
+200:com.edulify.play.hikaricp.HikariCPPlugin
 777:scalikejdbc.PlayPlugin
 888:scalikejdbc.PlayFixturePlugin

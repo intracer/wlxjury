@@ -7,6 +7,8 @@ version      := "1.0-SNAPSHOT"
 
 val scalikejdbcVersion =  "2.2.1"
 
+resolvers += Resolver.url("Edulify Repository", url("http://edulify.github.io/modules/releases/"))(Resolver.ivyStylePatterns)
+
 
 libraryDependencies ++= Seq(
   "com.mohiva" %% "play-silhouette" % "1.0",
@@ -15,6 +17,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "jquery" % "1.11.0",
   "net.codingwell" %% "scala-guice" % "4.0.0-beta4",
   "com.typesafe.play" %% "play-slick" % "0.8.0",
+  "com.edulify" %% "play-hikaricp" % "1.5.1",
   "mysql" % "mysql-connector-java" % "5.1.32",
   "org.scalikejdbc" %% "scalikejdbc"                     % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config"  % scalikejdbcVersion,
