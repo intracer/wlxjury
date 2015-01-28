@@ -13,8 +13,16 @@
     @showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
        <div style="margin-bottom: 10px; color: #ffffff;"> <b>@index. </b>
        <span style="margin-left: 5px; margin-right: 10px;">
+           @if(round.rates.id != 2) {
         @for(i <- 1 to round.rates.id / 2) {<img alt="@i" src="@showStar(i, file.totalRate(round).toInt, round.rates.id <= 10)">}
             @file.rateString(round)
+           } else {
+               @for(i <- 1 to file.totalRate(round).toInt) {
+                   <button type="button" class="btn btn-default btn-sm active btn-success">
+                       <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                   </button>
+               }
+           }
         </span>
         </div>
     }
