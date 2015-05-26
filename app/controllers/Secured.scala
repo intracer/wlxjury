@@ -1,7 +1,6 @@
 package controllers
 
 import org.intracer.wmua.User
-import play.api.i18n.Messages
 import play.api.mvc._
 
 trait Secured {
@@ -23,7 +22,7 @@ trait Secured {
     }
   }
 
-  def withAuth[A](bodyParser: BodyParser[A])(f: => User => Request[A] => Result, roles: Set[String] = Set(User.ADMIN_ROLE, "jury", "organizer")) = {
+  def withAuthBP[A](bodyParser: BodyParser[A])(f: => User => Request[A] => Result, roles: Set[String] = Set(User.ADMIN_ROLE, "jury", "organizer")) = {
     Security.Authenticated(user, onUnAuthenticated) { user =>
       if (roles.intersect(user.roles).nonEmpty)
         Action(bodyParser)(request => f(user)(request))

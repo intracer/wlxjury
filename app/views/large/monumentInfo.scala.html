@@ -1,5 +1,5 @@
-@(image: org.intracer.wmua.Image, monument: Option[client.wlx.dto.Monument])(implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
-@import client.wlx.dto.Monument
+@(image: org.intracer.wmua.Image, monument: Option[org.scalawiki.wlx.dto.Monument])(implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
+@import org.scalawiki.wlx.dto.Monument
 
 @for(m <- monument) {
     <div class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">

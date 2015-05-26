@@ -12,10 +12,14 @@ resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositor
 
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.7")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.9")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-web" % "1.0.0")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.4")
+
+addSbtPlugin("com.github.shmishleniy" % "sbt-deploy-ssh" % "0.1.1")
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "0.8.0")
 
 

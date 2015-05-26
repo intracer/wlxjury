@@ -1,11 +1,14 @@
 package controllers
 
 import akka.actor.ActorSystem
-import client.dto.{SinglePageQuery, Template}
-import client.wlx.dto.Contest
-import client.wlx.query.MonumentQuery
-import client.{HttpClientImpl, MwBot}
 import org.intracer.wmua._
+import org.scalawiki.MwBot
+import org.scalawiki.dto.Page
+import org.scalawiki.http.HttpClientImpl
+import org.scalawiki.parser.TemplateParser
+import org.scalawiki.query.SinglePageQuery
+import org.scalawiki.wlx.dto.Contest
+import org.scalawiki.wlx.query.MonumentQuery
 
 import scala.concurrent.{Await, Future}
 
@@ -15,7 +18,7 @@ object GlobalRefactor {
 
   val http = new HttpClientImpl(system)
 
-  val commons =  MwBot.get(MwBot.commons)
+  val commons = MwBot.get(MwBot.commons)
 
   import controllers.GlobalRefactor.system.dispatcher
 
@@ -35,8 +38,8 @@ object GlobalRefactor {
   def appendImages(category: String, contest: ContestJury, idsFilter: Set[String] = Set.empty): Any = {
     val images = ImageJdbc.findByContest(contest.id)
 
-      val query = commons.page(category)
-      initImagesFromCategory(contest, query, images, idsFilter)
+    val query = commons.page(category)
+    initImagesFromCategory(contest, query, images, idsFilter)
   }
 
   def createJury() {
@@ -56,7 +59,7 @@ object GlobalRefactor {
   def initLists(contest: Contest) = {
 
     if (true || MonumentJdbc.findAll().isEmpty) {
-      val ukWiki = new MwBot(http, system, "uk.wikipedia.org")
+      val ukWiki = new MwBot(http, system, "uk.wikipedia.org", None)
 
       Await.result(ukWiki.login("***REMOVED***", "***REMOVED***"), http.timeout)
       //    listsNew(system, http, ukWiki)
@@ -74,8 +77,7 @@ object GlobalRefactor {
                               query: SinglePageQuery,
                               existing: Seq[Image],
                               idsFilter: Set[String] = Set.empty): Future[Unit] = {
-    val existingPageIds = existing.map(_.pageId)
-
+    val existingPageIds = existing.map(_.pageId).toSet
 
     //bot.page("User:***REMOVED***/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
     query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
@@ -87,15 +89,13 @@ object GlobalRefactor {
         val newImages = newImagesOrigIds.map(p => p.copy(pageId = maxId + p.pageId))
 
         contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
+
           query.revisionsByGenerator("categorymembers", "cm",
             Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
             pages =>
 
               val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-              val ids: Seq[String] = pages.sortBy(_.pageid).filterNot(i => existingPageIds.contains(i.pageid))
-                .map(_.text.map(Template.getDefaultParam(_, monumentIdTemplate))
-                //                .map(id => if (id.matches(idRegex)) Some(id) else Some(id))
-                .map(id => if (id.size < 100) id else id.substring(0, 100)).getOrElse(""))
+              val ids: Seq[String] = monumentIds(pages, existingPageIds, monumentIdTemplate)
 
               val imagesWithIds = newImages.zip(ids).map {
                 case (image, id) => image.copy(monumentId = Some(id))
@@ -103,6 +103,19 @@ object GlobalRefactor {
               saveNewImages(contest, imagesWithIds)
           }
         }
+    }
+  }
+
+  def defaultParam(text: String, templateName: String): Option[String] =
+    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt("1"))
+
+  def monumentIds(pages: Seq[Page], existingPageIds: Set[Long], monumentIdTemplate: String): Seq[String] = {
+
+    pages.sortBy(_.id).filterNot(i => existingPageIds.contains(i.id.get)).map {
+      page =>
+        page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
+          //                .map(id => if (id.matches(idRegex)) Some(id) else Some(id))
+          .map(id => if (id.length < 100) id else id.substring(0, 100)).getOrElse("")
     }
   }
 

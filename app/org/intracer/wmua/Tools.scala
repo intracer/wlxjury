@@ -1,10 +1,11 @@
 package org.intracer.wmua
 
 import akka.actor.ActorSystem
-import client.dto.Namespace
-import client.wlx.dto.{SpecialNomination, Contest}
-import client.wlx.query.MonumentQuery
-import client.{HttpClientImpl, MwBot}
+import org.scalawiki.dto.Namespace
+import org.scalawiki.http.HttpClientImpl
+import org.scalawiki.wlx.dto.{SpecialNomination, Contest}
+import org.scalawiki.wlx.query.MonumentQuery
+import org.scalawiki.MwBot
 import controllers.GlobalRefactor
 import org.joda.time.DateTime
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
@@ -155,7 +156,7 @@ object Tools {
 
     import system.dispatcher
 
-    val commons = new MwBot(http, system, controllers.Global.COMMONS_WIKIMEDIA_ORG)
+    val commons = new MwBot(http, system, controllers.Global.COMMONS_WIKIMEDIA_ORG, None)
 
     import scala.concurrent.duration._
 

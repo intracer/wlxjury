@@ -1,8 +1,9 @@
 package controllers
 
-import client.{HttpClientImpl, MwBot}
+import org.scalawiki.MwBot
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import org.intracer.wmua._
+import org.scalawiki.http.HttpClientImpl
 import play.Play
 import play.api._
 import play.api.libs.concurrent.Akka
@@ -35,7 +36,7 @@ object Global {
 
   val http = new HttpClientImpl(Akka.system)
 
-  val commons = new MwBot(http, Akka.system, COMMONS_WIKIMEDIA_ORG)
+  val commons = new MwBot(http, Akka.system, COMMONS_WIKIMEDIA_ORG, None)
 
 //  var contestByCountry: Map[String, Seq[ContestJury]] = Map.empty
 

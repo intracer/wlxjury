@@ -2,7 +2,7 @@ package org.intracer.wmua
 
 import scalikejdbc._
 import org.joda.time.DateTime
-import client.dto.Page
+import org.scalawiki.dto.Page
 
 case class Round(id: Long, number: Int, name: Option[String], contest: Int,
                  roles: Set[String] = Set("jury"),

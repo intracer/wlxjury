@@ -2,7 +2,7 @@ package org.intracer.wmua
 
 import java.text.DecimalFormat
 
-import client.dto.Page
+import org.scalawiki.dto.Page
 import scalikejdbc._
 
 case class Image(pageId: Long, contest: Long, title: String,
@@ -46,8 +46,8 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
 
   def fromPage(page: Page, contest: ContestJury):Option[Image] = {
     try {
-      for (imageInfo <- page.imageInfo.headOption)
-      yield new Image(page.pageid, contest.id, page.title, imageInfo.url, imageInfo.descriptionUrl, imageInfo.width, imageInfo.height, None)
+      for (imageInfo <- page.images.headOption)
+      yield new Image(page.id.get, contest.id, page.title, imageInfo.url.get, imageInfo.pageUrl.get, imageInfo.width.get, imageInfo.height.get, None)
     } catch  {
       case e: Throwable =>
         println(e)

@@ -1,6 +1,6 @@
 package org.intracer.wmua
 
-import client.wlx.dto.Monument
+import org.scalawiki.wlx.dto.Monument
 import scalikejdbc._
 
 object MonumentJdbc extends SQLSyntaxSupport[Monument]{
@@ -11,7 +11,7 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
 
   def apply(c: SyntaxProvider[Monument])(rs: WrappedResultSet): Monument = apply(c.resultName)(rs)
 
-  def apply(c: ResultName[Monument])(rs: WrappedResultSet): Monument = new Monument(textParam = "",
+  def apply(c: ResultName[Monument])(rs: WrappedResultSet): Monument = new Monument(
     id = rs.string(c.id),
     name = rs.string(c.name),
     description = rs.stringOpt(c.description),
@@ -29,7 +29,8 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     gallery = rs.stringOpt(c.gallery),
     resolution = rs.stringOpt(c.resolution),
     page =  rs.string(c.page),
-    contest = rs.longOpt(c.contest)
+    contest = rs.longOpt(c.contest),
+    listConfig =  null //  listConfig, should not be mandatory?
   )
 
   def batchInsert(monuments: Seq[Monument]) {

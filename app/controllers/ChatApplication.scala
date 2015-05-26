@@ -37,7 +37,7 @@ object ChatApplication extends Controller with Secured {
 
   /** Controller action for POSTing chat messages */
   def postMessage =
-    withAuth(parse.json) ({
+    withAuthBP(parse.json) ({
       user =>
         req =>
           val body: JsValue = req.body.asInstanceOf[JsObject]
