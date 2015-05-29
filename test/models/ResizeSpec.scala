@@ -27,10 +27,8 @@ class ResizeSpec extends Specification {
       val (boxX, boxY) = (320, 200)
 
       val px = Image.resizeTo(imageX, imageY, boxX, boxY)
-      px === 200
+      px === 320
     }
-
-
   }
 
 }

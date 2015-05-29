@@ -62,11 +62,12 @@ object ImageDistributor {
     val newImages = ImageJdbc.byRatingMerged(1, round.id.toInt)
     if (false && newImages.isEmpty) {
 
+
       //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
       //
       val images =
       //ImageJdbc.byRoundMerged(prevRound.id.toInt).filter(_.image.region.exists(r => !selectedRegions.contains(r))) ++
-        ImageJdbc.findAll().filter(_.region == Some("44"))
+        ImageJdbc.findAll().filter(_.region.contains("44"))
       //
       val selection = jurors.flatMap { juror =>
         images.map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))

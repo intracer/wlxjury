@@ -58,8 +58,6 @@ libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.3.0",
   "org.webjars" % "bootstrap" % "3.1.1",
   "org.webjars" % "jquery" % "1.11.0",
- // "net.codingwell" %% "scala-guice" % "4.0.0-beta4",
-//  "com.typesafe.play" %% "play-slick" % "0.8.0",
   "com.edulify" %% "play-hikaricp" % "2.0.5",
   "mysql" % "mysql-connector-java" % "5.1.35",
   "org.scalikejdbc" %% "scalikejdbc"                     % scalikejdbcVersion,
@@ -69,10 +67,8 @@ libraryDependencies ++= Seq(
   "org.slf4j"          %  "slf4j-simple"              % "[1.7,)",
   "org.apache.commons" % "commons-email" % "1.3.2",
   "org.scalawiki" %% "scalawiki" % "0.3",
-//  "org.intracer" %% "mwbot" % "0.2.1",
   "org.webjars" % "angularjs" % "1.1.5-1",
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
-  "org.specs2"           %% "specs2"                          % "2.4.2"               % "test",
   jdbc, cache, filters
 )
 
