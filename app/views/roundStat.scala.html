@@ -7,7 +7,7 @@
         total: Int,
         totalByRate: Map[Int, Int],
         byJurorNum: Map[Int, Int]
-        )(implicit flash: Flash, lang: Lang)
+        )(implicit flash: Flash, lang: Lang, messages: Messages)
 
     @roundLinks(round: org.intracer.wmua.Round, user: org.intracer.wmua.User, rate: Int)= {
         @defining(byUserRateCount.getOrElse(user.id, Map.empty).getOrElse(rate, 0)) { count =>

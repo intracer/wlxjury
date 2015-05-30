@@ -4,6 +4,7 @@ import org.intracer.wmua._
 import play.api.cache.Cache
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{Controller, EssentialAction, Request, Result}
 
 object Gallery extends Controller with Secured with Instrumented {

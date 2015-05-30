@@ -8,7 +8,7 @@
         round: org.intracer.wmua.Round,
         rounds: Seq[org.intracer.wmua.Round],
         region: String = "all",
-        byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang)
+        byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang, messages: Messages)
 
     @showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
        <div style="margin-bottom: 10px; color: #ffffff;"> <b>@index. </b>

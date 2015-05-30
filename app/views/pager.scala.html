@@ -5,16 +5,16 @@
         roundId: Int,
         region: String = "all",
         module: String = "gallery"
-        )
+        )(implicit messages: Messages)
 
 @if(page!=0 && Pager.pages(currentFiles) > 1) {
     <li>
     <div  class="col-md-12 text-center" >
-        <ul class="pagination"  id="pagenav" style="margin-top : 10px ; margin-bottom : 0px;">
+        <ul class="pagination"  id="pagenav" style="margin-top: 10px; margin-bottom: 0px;">
             @if(page > 1) {
                 <li><a href="/@module/round/@roundId/user/@asUserId/region/@region/page/@{page-1}@rateParam(rate)">&laquo;</a></li>
             } else {
-                <li class="disabled"><a href="#" style="color : #999999 ; background-color : #f5f5f5 ;">&laquo;</a></li>
+                <li class="disabled"><a href="#" style="color: #999999; background-color: #f5f5f5 ;">&laquo;</a></li>
             }
             @for(i <- 1 to Pager.pages(currentFiles)) {
                 @if(i == page) {
@@ -26,7 +26,7 @@
             @if(page < Pager.pages(currentFiles)) {
                 <li><a href="/@module/round/@roundId/user/@asUserId/region/@region/page/@{page + 1}@rateParam(rate)">&raquo;</a></li>
             } else {
-                <li class="disabled"><a href="#" style="color : #999999 ; background-color : #f5f5f5 ;">&raquo;</a></li>
+                <li class="disabled"><a href="#" style="color: #999999 ; background-color: #f5f5f5 ;">&raquo;</a></li>
             }
         </ul>
     </div>

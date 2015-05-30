@@ -1,4 +1,4 @@
-@(user: org.intracer.wmua.User, editRoundForm: Form[org.intracer.wmua.Round], round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
+@(user: org.intracer.wmua.User, editRoundForm: Form[org.intracer.wmua.Round], round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang, messages: Messages)
 @import org.intracer.wmua.Selection
 
 @import helper._
@@ -14,7 +14,7 @@
             <h3>@Messages("Create round")</h3>
         }
 
-@form(routes.Admin.saveRound, 'class -> "form-vertical") {
+@form(routes.Rounds.saveRound, 'class -> "form-vertical") {
 
     @if(editRoundForm.hasGlobalErrors) {
         <p class="error">

@@ -130,31 +130,30 @@ object User extends SQLSyntaxSupport[User] {
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
   )
 
-  //  private val autoSession = AutoSession
-  private val isNotDeleted = sqls.isNull(u.deletedAt)
+  def isNotDeleted(implicit session: DBSession = AutoSession) = sqls.isNull(u.deletedAt)
 
-  def find(id: Long)(implicit session: DBSession = autoSession): Option[User] = withSQL {
+  def find(id: Long)(implicit session: DBSession = AutoSession): Option[User] = withSQL {
     select.from(User as u).where.eq(u.id, id).and.append(isNotDeleted)
   }.map(User(u)).single().apply()
 
-  def findAll()(implicit session: DBSession = autoSession): List[User] = withSQL {
+  def findAll()(implicit session: DBSession = AutoSession): List[User] = withSQL {
     select.from(User as u)
       .where.append(isNotDeleted)
       .orderBy(u.id)
   }.map(User(u)).list().apply()
 
-  def findByContest(contest: Int)(implicit session: DBSession = autoSession): List[User] = withSQL {
+  def findByContest(contest: Int)(implicit session: DBSession = AutoSession): List[User] = withSQL {
     select.from(User as u)
       .where.append(isNotDeleted).and.
       eq(column.contest, contest)
       .orderBy(u.id)
   }.map(User(u)).list().apply()
 
-  def countByEmail(id: Long, email: String)(implicit session: DBSession = autoSession): Long = withSQL {
+  def countByEmail(id: Long, email: String)(implicit session: DBSession = AutoSession): Long = withSQL {
     select(sqls.count).from(User as u).where.eq(column.email, email).and.ne(column.id, id)
   }.map(rs => rs.long(1)).single().apply().get
 
-  def findByEmail(email: String)(implicit session: DBSession = autoSession): List[User] = {
+  def findByEmail(email: String)(implicit session: DBSession = AutoSession): List[User] = {
     val users = withSQL {
       select.from(User as u)
         .where.append(isNotDeleted).and.eq(column.email, email)
@@ -163,27 +162,27 @@ object User extends SQLSyntaxSupport[User] {
    users
   }
 
-  def countAll()(implicit session: DBSession = autoSession): Long = withSQL {
+  def countAll()(implicit session: DBSession = AutoSession): Long = withSQL {
     select(sqls.count).from(User as u).where.append(isNotDeleted)
   }.map(rs => rs.long(1)).single().apply().get
 
-  def findAllBy(where: SQLSyntax)(implicit session: DBSession = autoSession): List[User] = withSQL {
+  def findAllBy(where: SQLSyntax)(implicit session: DBSession = AutoSession): List[User] = withSQL {
     select.from(User as u)
       .where.append(isNotDeleted).and.append(sqls"$where")
       .orderBy(u.id)
   }.map(User(u)).list().apply()
 
-//  def findByRoles(roles: Set[String])(implicit session: DBSession = autoSession): List[User] = withSQL {
+//  def findByRoles(roles: Set[String])(implicit session: DBSession = AutoSession): List[User] = withSQL {
 //    select.from(User as c)
 //      .where.in(column.roles, roles)
 //      .orderBy(c.id)
 //  }.map(User(c)).list.apply()
 
-  def countBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Long = withSQL {
+  def countBy(where: SQLSyntax)(implicit session: DBSession = AutoSession): Long = withSQL {
     select(sqls.count).from(User as u).where.append(isNotDeleted).and.append(sqls"$where")
   }.map(_.long(1)).single().apply().get
 
-  def create(fullname: String, email: String, password: String, roles: Set[String], contest: Int, lang: Option[String] = None, createdAt: DateTime = DateTime.now)(implicit session: DBSession = autoSession): User = {
+  def create(fullname: String, email: String, password: String, roles: Set[String], contest: Int, lang: Option[String] = None, createdAt: DateTime = DateTime.now)(implicit session: DBSession = AutoSession): User = {
     val id = withSQL {
       insert.into(User).namedValues(
         column.fullname -> fullname,
@@ -198,7 +197,7 @@ object User extends SQLSyntaxSupport[User] {
     User(id = id, fullname = fullname, email = email, password = Some(password), contest = contest, createdAt = createdAt)
   }
 
-  def updateUser(id: Long, fullname: String, email: String, roles: Set[String], lang: Option[String])(implicit session: DBSession = autoSession): Unit = withSQL {
+  def updateUser(id: Long, fullname: String, email: String, roles: Set[String], lang: Option[String])(implicit session: DBSession = AutoSession): Unit = withSQL {
     update(User).set(
       column.fullname -> fullname,
       column.email -> email,
@@ -207,14 +206,14 @@ object User extends SQLSyntaxSupport[User] {
     ).where.eq(column.id, id)
   }.update().apply()
 
-  def updateHash(id: Long, hash:String)(implicit session: DBSession = autoSession): Unit = withSQL {
+  def updateHash(id: Long, hash:String)(implicit session: DBSession = AutoSession): Unit = withSQL {
     update(User).set(
       column.password -> hash
     ).where.eq(column.id, id)
   }.update().apply()
 
 
-  def destroy(filename: String, email: String)(implicit session: DBSession = autoSession): Unit = withSQL {
+  def destroy(filename: String, email: String)(implicit session: DBSession = AutoSession): Unit = withSQL {
     update(User).set(column.deletedAt -> DateTime.now).where.eq(column.email, email)
   }.update().apply()
 

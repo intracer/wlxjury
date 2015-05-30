@@ -9,9 +9,9 @@ trait Secured {
     request.session.get(Security.username).map(_.trim.toLowerCase).flatMap(User.byUserName)
   }
 
-  def onUnAuthenticated(request: RequestHeader) = Results.Redirect(routes.Application.login())
+  def onUnAuthenticated(request: RequestHeader) = Results.Redirect(routes.Login.login())
 
-  def onUnAuthorized(user: User) = Results.Redirect(routes.Application.error("You don't have permission to access this page"))
+  def onUnAuthorized(user: User) = Results.Redirect(routes.Login.error("You don't have permission to access this page"))
 
   def withAuth(f: => User => Request[AnyContent] => Result, roles: Set[String] = Set(User.ADMIN_ROLE, "jury", "organizer")) = {
     Security.Authenticated(user, onUnAuthenticated) { user =>

@@ -10,7 +10,7 @@
         rate: Option[Int],
         region: String = "all",
         byRegion: Map[String, Int],
-        format1:String = "wiki")(implicit flash: Flash, lang: Lang)
+        format1:String = "wiki")(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @main("filelist", user, asUserId, asUser, Seq(round), rounds, false, rate, region) {
 

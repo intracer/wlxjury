@@ -5,7 +5,7 @@
         round: org.intracer.wmua.Round,
         module : String = "gallery",
         comments: Seq[org.intracer.wmua.Comment])(
-        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
+        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
 @import helper._
 
 @if(round.active || comments.nonEmpty) {

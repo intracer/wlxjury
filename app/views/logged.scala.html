@@ -1,4 +1,4 @@
-@(user: org.intracer.wmua.User)(implicit lang: Lang)
+@(user: org.intracer.wmua.User)(implicit lang: Lang, messages: Messages)
 
 @if(user != null) {
     <ul class="nav navbar-nav navbar-right" >
@@ -13,7 +13,7 @@
                 </a>
             </li>
             <li>
-                <a href="@routes.Application.logout()">
+                <a href="@routes.Login.logout()">
                     <span class="glyphicon glyphicon-off"></span> @Messages("logout")
                 </a>
             </li>

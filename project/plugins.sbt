@@ -12,7 +12,7 @@ resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositor
 
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.3.9")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-web" % "1.0.0")
 

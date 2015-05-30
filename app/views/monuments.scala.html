@@ -1,5 +1,5 @@
 @(monuments: Seq[org.scalawiki.wlx.dto.Monument],
-  region: String = "all")(implicit flash: Flash, lang: Lang)
+  region: String = "all")(implicit flash: Flash, lang: Lang, messages: Messages)
 @import org.scalawiki.wlx.dto.Monument
 @import org.intracer.wmua.ImageJdbc
 

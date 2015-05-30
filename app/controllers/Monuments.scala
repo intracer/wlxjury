@@ -2,6 +2,8 @@ package controllers
 
 import org.intracer.wmua.MonumentJdbc
 import play.api.mvc.{Action, Controller}
+import play.api.Play.current
+import play.api.i18n.Messages.Implicits._
 
 object Monuments extends Controller {
 

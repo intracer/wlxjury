@@ -1,10 +1,10 @@
-@(loginForm: Form[(String, String)])(implicit flash: Flash, lang: Lang)
+@(loginForm: Form[(String, String)])(implicit flash: Flash, lang: Lang, messages: Messages)
 
 <h3>@Messages("signin.signin")</h3>
 
 
 <div class="col-md-6">
-    <form role="form" action="@routes.Application.auth()" method="POST">
+    <form role="form" action="@routes.Login.auth()" method="POST">
 
         @if(loginForm.hasGlobalErrors) {
             <div class="alert alert-danger" role="alert">

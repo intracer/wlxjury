@@ -9,7 +9,7 @@
         rounds: Seq[org.intracer.wmua.Round],
         rate: Option[Int],
         region: String = "all",
-        byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang)
+        byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang, messages: Messages)
 
     @main("gallery", user, asUserId, asUser, Seq(round), rounds, gallery = true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.toInt, region))  {
 

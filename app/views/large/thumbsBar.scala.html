@@ -9,7 +9,7 @@
         region: String = "all",
         round: org.intracer.wmua.Round,
         module : String = "gallery")(
-        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
+        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
 
 
 @thumbSmall(style:String) = {

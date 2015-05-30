@@ -1,7 +1,7 @@
-@(dto: UiSelectionDto[Any], iconOnly: Boolean = false)(implicit lang: Lang)
+@(dto: UiSelectionDto[Any], iconOnly: Boolean = false)(implicit lang: Lang, messages: Messages)
 <li class="dropdown">
     <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" href="#">
-        @dto.current.icon.fold(Html(dto.current.localizedText(lang))) { iconClass =>
+        @dto.current.icon.fold(Html(dto.current.localizedText)) { iconClass =>
                 <span class="glyphicon glyphicon-@iconClass" style="font-size: 12px"></span>
         }
         <span class="caret"></span>
@@ -13,7 +13,7 @@
                     @value.icon.map { iconClass =>
                         <span class="glyphicon glyphicon-@iconClass" style="font-size: 12px" aria-hidden="true"></span>
                     }
-                    @value.localizedText(lang)
+                    @value.localizedText
                 </a>
             </li>
         }

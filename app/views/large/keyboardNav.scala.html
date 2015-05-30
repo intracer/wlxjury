@@ -8,7 +8,7 @@
         region: String = "all",
         round: org.intracer.wmua.Round,
         module : String = "gallery")(
-        implicit lang: Lang, request: play.api.mvc.Request[Any])
+        implicit lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
 <script src="@routes.Assets.at("javascripts/jquery.hotkeys.js")"></script>
 <script>
     @if(index < files.size-1) {

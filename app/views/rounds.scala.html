@@ -4,7 +4,7 @@
         editRoundForm: Form[org.intracer.wmua.Round],
         editImagesForm: Form[Option[String]],
         selectRoundForm: Form[String],
-        round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang)
+        round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang, messages: Messages)
     @import helper._
     @import org.intracer.wmua.ContestJury
     @import org.intracer.wmua.Round
@@ -14,7 +14,7 @@
         <div class="row" >
             <h3>@Messages("Contest: " + ContestJury.byId(adminUser.contest).head.name)</h3>
 
-            @form(routes.Admin.setImages(), 'class -> "form-vertical", 'id -> "set-images") {
+            @form(routes.Rounds.setImages(), 'class -> "form-vertical", 'id -> "set-images") {
                 <table>
                     <tr>
                         <td>
@@ -31,7 +31,7 @@
                 </table>
             }
 
-            @form(routes.Admin.setRound(), 'class -> "form-vertical", 'id -> "set-round") {
+            @form(routes.Rounds.setRound(), 'class -> "form-vertical", 'id -> "set-round") {
                 <table>
                     <tr>
                         <td>
@@ -48,7 +48,7 @@
                 </table>
             }
 
-        @form(routes.Admin.startRound(), 'class -> "form-vertical", 'id -> "start-round") {
+        @form(routes.Rounds.startRound(), 'class -> "form-vertical", 'id -> "start-round") {
                         <div class="control-group">
                             <input type="submit" class="btn" value="@Messages("Start round")">
                         </div>
@@ -88,7 +88,7 @@
                         </tr>
                     }
 
-                    @form(routes.Admin.saveRound, 'class -> "form-vertical", 'id -> "add-round") {
+                    @form(routes.Rounds.saveRound, 'class -> "form-vertical", 'id -> "add-round") {
                         <tr>
                             @if(editRoundForm.hasGlobalErrors) {
                                 <p class="error">

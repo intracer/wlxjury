@@ -9,7 +9,7 @@
         rate: Option[Int] = None,
         region: String = "all",
         //        menu: Html = Html.empty,
-        pager: Html = Html(""))(implicit lang: Lang)
+        pager: Html = Html(""))(implicit lang: Lang, messages: Messages)
 @import org.intracer.wmua.Round
 
     <nav class="navbar navbar-inverse" role="navigation" style="margin-bottom: 10px;">

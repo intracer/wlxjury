@@ -5,8 +5,12 @@ import play.api.data.Forms._
 import play.api.data._
 import play.api.i18n.Lang
 import play.api.mvc._
+import play.api.Play.current
+import play.api.i18n.Messages.Implicits._
+import play.api.mvc.Results._
 
-object Application extends Controller with Secured {
+
+object Login extends Controller with Secured {
 
   def index = withAuth {
     user =>
@@ -27,13 +31,13 @@ object Application extends Controller with Secured {
     } else if (user.roles.contains(User.ADMIN_ROLE)){
       Redirect(routes.Admin.users())
     } else {
-      Redirect(routes.Application.error("You don't have permission to access this page"))
+      Redirect(routes.Login.error("You don't have permission to access this page"))
     }
   }
 
   def login = Action {
     implicit request =>
-      Ok(views.html.index(Application.loginForm))
+      Ok(views.html.index(loginForm))
   }
 
   def auth() = Action {
@@ -47,7 +51,6 @@ object Application extends Controller with Secured {
           val user = User.login(value._1, value._2).get
           val round = Round.activeRounds(user.contest).head
           val result = indexRedirect(user).withSession(Security.username -> value._1.trim)
-          import play.api.Play.current
           user.lang.fold(result)(l => result.withLang(Lang(l)))
         }
       )
@@ -60,7 +63,7 @@ object Application extends Controller with Secured {
    */
   def logout = Action {
     //      session.data = Map()
-    Redirect(routes.Application.login()).withNewSession
+    Redirect(routes.Login.login()).withNewSession
   }
 
   def error(message: String) = withAuth {

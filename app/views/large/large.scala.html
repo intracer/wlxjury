@@ -13,7 +13,7 @@
         module : String = "gallery",
         comments: Seq[org.intracer.wmua.Comment],
         selection: Seq[(org.intracer.wmua.Selection, org.intracer.wmua.User)])(
-        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any])
+        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
 
     @main_large(module,
     user,

@@ -12,7 +12,8 @@
         region: String = "all",
         round: org.intracer.wmua.Round,
         module: String = "byrate",
-        preload: Iterable[org.intracer.wmua.ImageWithRating] = Seq.empty)(content: Html)(implicit lang: Lang, request: play.api.mvc.Request[Any])
+        preload: Iterable[org.intracer.wmua.ImageWithRating] = Seq.empty
+        )(content: Html)(implicit lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
 
 <!DOCTYPE html>
 

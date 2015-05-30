@@ -4,13 +4,22 @@ import _root_.play.api.i18n.Messages
 import scalikejdbc._
 import scalikejdbc.WrappedResultSet
 
-case class ContestJury(id: Long, year: Int, country: String, images: Option[String], currentRound: Int, monumentIdTemplate:Option[String]) {
-  def name = Messages("wiki.loves.earth." + country, year)
+case class ContestJury(
+                        id: Long,
+                        year: Int,
+                        country: String,
+                        images: Option[String],
+                        currentRound: Int,
+                        monumentIdTemplate:Option[String],
+                        messages: Messages) {
+  def name = Messages("wiki.loves.earth." + country, year)(messages)
 
   def getImages = images.getOrElse("Category:Images from " + name)
 }
 
 object ContestJury extends SQLSyntaxSupport[ContestJury] {
+
+  var messages: Messages = _
 
   def currentRound(id: Int) = find(id).get.currentRound
 
@@ -27,7 +36,8 @@ object ContestJury extends SQLSyntaxSupport[ContestJury] {
     country = rs.string(c.country),
     images = rs.stringOpt(c.images),
     currentRound = rs.int(c.currentRound),
-    monumentIdTemplate = rs.stringOpt(c.monumentIdTemplate)
+    monumentIdTemplate = rs.stringOpt(c.monumentIdTemplate),
+    messages
   )
 
   val c = ContestJury.syntax("c")

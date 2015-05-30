@@ -7,7 +7,8 @@ import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.iteratee.{Concurrent, Enumeratee, Enumerator}
 import play.api.libs.json._
 import play.api.mvc._
-
+import play.api.Play.current
+import play.api.i18n.Messages.Implicits._
 
 object ChatApplication extends Controller with Secured {
 

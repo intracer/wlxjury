@@ -3,7 +3,7 @@
         user: org.intracer.wmua.User = null,
         asUserId: Int = 0,
         asUser: org.intracer.wmua.User = null
-)(implicit flash: Flash, lang: Lang)
+)(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @main("error", user, asUserId, asUser) {
     <p class="error">

@@ -1,11 +1,13 @@
 package controllers
 
 import org.intracer.wmua._
-import org.joda.time.DateTime
+import play.api.Play.current
 import play.api.data.Form
 import play.api.data.Forms._
+import play.api.i18n.Messages.Implicits._
 import play.api.i18n.{Lang, Messages}
 import play.api.mvc.Controller
+import play.api.mvc.Results._
 import play.cache.Cache
 
 object Admin extends Controller with Secured {
@@ -40,7 +42,7 @@ object Admin extends Controller with Secured {
           formUser => {
 
             if (!(user.roles.contains(User.ADMIN_ROLE) || user.id == formUser.id)) {
-              Redirect(routes.Application.index())
+              Redirect(routes.Login.index())
             }
 
             val count: Long = User.countByEmail(formUser.id, formUser.email)
@@ -67,7 +69,6 @@ object Admin extends Controller with Secured {
               val result = Redirect(routes.Admin.users)
               val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
 
-              import play.api.Play.current
               lang.fold(result)(l => result.withLang(Lang(l)))
             }
           }
@@ -102,122 +103,18 @@ object Admin extends Controller with Secured {
     )(User.applyEdit)(User.unapplyEdit)
   )
 
-  val imagesForm = Form("images" -> optional(text()))
+//  def rounds() = withAuth({
+//    user =>
+//      implicit request =>
+//        val rounds = Round.findByContest(user.contest)
+//        val contest = ContestJury.byId(user.contest).get
+//
+//        Ok(views.html.rounds(user, rounds, editRoundForm,
+//          imagesForm.fill(Some(contest.getImages)),
+//          selectRoundForm.fill(contest.currentRound.toString),
+//          Round.current(user)))
+//  }, Set(User.ADMIN_ROLE))
 
-  val selectRoundForm = Form("currentRound" -> text())
-
-  val editRoundForm = Form(
-    mapping(
-      "id" -> longNumber(),
-      "number" -> number(),
-      "name" -> optional(text()),
-      "contest" -> number,
-      "roles" -> text(),
-      "distribution" -> number,
-      "rates" -> number,
-      "limitMin" -> optional(number),
-      "limitMax" -> optional(number),
-      "recommended" -> optional(number)
-    )(Round.applyEdit)(Round.unapplyEdit)
-  )
-
-  def rounds() = withAuth({
-    user =>
-      implicit request =>
-        val rounds = Round.findByContest(user.contest)
-        val contest = ContestJury.byId(user.contest).get
-
-        Ok(views.html.rounds(user, rounds, editRoundForm,
-          imagesForm.fill(Some(contest.getImages)),
-          selectRoundForm.fill(contest.currentRound.toString),
-          Round.current(user)))
-  }, Set(User.ADMIN_ROLE))
-
-
-  def setRound() = withAuth({
-    user =>
-      implicit request =>
-        val newRound = selectRoundForm.bindFromRequest.get
-
-        ContestJury.setCurrentRound(user.contest, newRound.toInt)
-
-        Redirect(routes.Admin.rounds())
-  }, Set(User.ADMIN_ROLE))
-
-  def startRound() = withAuth({
-    user =>
-      implicit request =>
-
-        val rounds = Round.findByContest(user.contest)
-        val contest = ContestJury.byId(user.contest).get
-        val currentRound = rounds.find(_.id.toInt == contest.currentRound).get
-        val nextRound = rounds.find(_.number == currentRound.number + 1).get
-
-        ContestJury.setCurrentRound(user.contest, nextRound.id.toInt)
-
-        Redirect(routes.Admin.rounds())
-  }, Set(User.ADMIN_ROLE))
-
-
-  def distributeImages(contest: ContestJury, round: Round) {
-    ImageDistributor.distributeImages(contest, round)
-  }
-
-  def editRound(id: String) = withAuth({
-    user =>
-      implicit request =>
-        val round = Round.find(id.toLong).get
-
-        val filledRound = editRoundForm.fill(round)
-
-        Ok(views.html.editRound(user, filledRound, Round.current(user)))
-  }, Set(User.ADMIN_ROLE))
-
-  def saveRound() = withAuth({
-    user =>
-      implicit request =>
-
-        editRoundForm.bindFromRequest.fold(
-          formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(views.html.editRound(user, formWithErrors, Round.current(user))),
-          round => {
-            if (round.id == 0) {
-              createNewRound(user, round)
-            } else {
-              Round.updateRound(round.id, round)
-            }
-            Redirect(routes.Admin.rounds())
-          }
-        )
-  }, Set(User.ADMIN_ROLE))
-
-  def createNewRound(user: User, round: Round): Round = {
-
-    //  val contest: Contest = Contest.byId(round.contest).head
-
-    val count = Round.countByContest(round.contest)
-
-    Round.create(count + 1, round.name, round.contest, round.roles.head, round.distribution, round.rates.id, round.limitMin, round.limitMax, round.recommended)
-
-  }
-
-  def setImages() = withAuth({
-    user =>
-      implicit request =>
-        val imagesSource: Option[String] = imagesForm.bindFromRequest.get
-        val contest = ContestJury.byId(user.contest).get
-        ContestJury.updateImages(contest.id, imagesSource)
-
-        //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
-
-        val round: Round = Round.find(ContestJury.currentRound(contest.id.toInt).toLong).get
-        distributeImages(contest, round)
-
-        //        Round.up
-
-        Redirect(routes.Admin.rounds())
-
-  }, Set(User.ADMIN_ROLE))
 
   def resetPassword(id: String) = withAuth({
     user =>
