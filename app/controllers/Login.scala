@@ -9,7 +9,6 @@ import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Results._
 
-
 object Login extends Controller with Secured {
 
   def index = withAuth {

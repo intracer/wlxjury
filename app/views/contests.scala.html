@@ -1,0 +1,46 @@
+@(
+        adminUser: org.intracer.wmua.User,
+        contests: Seq[org.intracer.wmua.ContestJury]
+        )(implicit flash: Flash, lang: Lang, messages: Messages)
+@import helper._
+@import org.intracer.wmua.ContestJury
+
+@main(Messages("contests"), adminUser, adminUser.id.toInt) {
+    <div class="row" >
+        <h3>@Messages("contests")</h3>
+
+        <table class="table table-striped table-condensed" style="background-color: #CCCCCC;">
+
+            <thead>
+                <tr>
+                    <th>@Messages("name")</th>
+                    <th>@Messages("country")</th>
+                    <th>@Messages("year")</th>
+                    <th>@Messages("images")</th>
+                    <th>@Messages("objects")</th>
+                    <th>@Messages("users")</th>
+                    <th>@Messages("jurors")</th>
+                    <th>@Messages("id.template")</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @for(contest <- contests) {
+                    <tr>
+                        <td>@Messages(contest.name)</td>
+                        <td>@Messages(contest.country)</td>
+                        <td>@contest.year</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>@contest.monumentIdTemplate.getOrElse("")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+

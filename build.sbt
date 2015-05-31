@@ -58,6 +58,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "jquery" % "1.11.0",
   //  "com.edulify" %% "play-hikaricp" % "2.0.5",
   "mysql" % "mysql-connector-java" % "5.1.35",
+  "com.typesafe.play" %% "play-slick" % "1.0.0",
   "org.scalikejdbc" %% "scalikejdbc" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % scalikejdbcPlayVersion,

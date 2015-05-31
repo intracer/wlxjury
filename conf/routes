@@ -106,6 +106,7 @@ GET         /chat                                                               
 GET         /chatFeed/:round                                                        controllers.ChatApplication.chatFeed(round: String)
 POST        /chat                                                                   controllers.ChatApplication.postMessage
 
+GET         /contests                                                               controllers.Contests.list()
 
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)
