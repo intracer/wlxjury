@@ -44,8 +44,8 @@ object Tools {
 
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
-    ConnectionPool.singleton("jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury", "***REMOVED***", "***REMOVED***")
-//    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
+//    ConnectionPool.singleton("jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury", "***REMOVED***", "***REMOVED***")
+    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
@@ -192,19 +192,19 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJury.find(19L).get
+    val contest = ContestJury.find(21L).get
 
-//    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
-//    GlobalRefactor.appendImages(category, contest)
+    val category: String = "Category:Images from Wiki Loves Earth 2015 in Russia"
+    GlobalRefactor.appendImages(category, contest)
 
-    val prevRound = Round.find(32L).get
-    val round = Round.find(34L).get
+//    val prevRound = Round.find(32L).get
+//    val round = Round.find(34L).get
 
 //    val selection = Selection.byRound(22L)
 
    // ImageDistributor.distributeImages(contest, round)
 
-    createNextRound(round, round.jurors, prevRound)
+//    createNextRound(round, round.jurors, prevRound)
   }
 
   def wooden(wlmContest: Contest) = {
