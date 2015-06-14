@@ -66,7 +66,7 @@ object Global {
 //    contestByCountry =
 
     KOATUU.load()
-    contestImages()
+    //contestImages()
 
     Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
   }

@@ -12,8 +12,8 @@ import scala.collection.mutable
 
 case class User(fullname: String, email: String, id: Long,
                 roles: Set[String] = Set.empty, password: Option[String] = None, contest: Int,
-               // selected: collection.mutable.SortedSet[ImageWithRating] = collection.mutable.SortedSet[ImageWithRating](),
-                 lang: Option[String] = None,
+                // selected: collection.mutable.SortedSet[ImageWithRating] = collection.mutable.SortedSet[ImageWithRating](),
+                lang: Option[String] = None,
                 files: mutable.Buffer[ImageWithRating] = mutable.Buffer.empty,
                 createdAt: DateTime = DateTime.now,
                 deletedAt: Option[DateTime] = None) {
@@ -22,7 +22,7 @@ case class User(fullname: String, email: String, id: Long,
 
   def roundFiles(roundId: Long) = Gallery.userFiles(this, roundId)
 
-//    def withFiles(files: Seq[ImageWithRating]) = this.copy(files = files)
+  //    def withFiles(files: Seq[ImageWithRating]) = this.copy(files = files)
 
   //def roles = Seq("jury")
 
@@ -35,7 +35,7 @@ case class User(fullname: String, email: String, id: Long,
 object User extends SQLSyntaxSupport[User] {
   //  def apply(id: Int, fullname: String, login: String, password: String): User =
 
-  val LANGS = Map("en" -> "English", "ru" -> "Русский", "uk"-> "Українська")
+  val LANGS = Map("en" -> "English", "ru" -> "Русский", "uk" -> "Українська")
 
   override val tableName = "users"
 
@@ -57,6 +57,7 @@ object User extends SQLSyntaxSupport[User] {
     sb.toString()
   }
 
+  // TODO fix leading zero dropped
   def hash(user: User, password: String): String = {
     val contest: ContestJury = ContestJury.byId(user.contest).head
     User.sha1(contest.country + "/" + password)
@@ -70,7 +71,13 @@ object User extends SQLSyntaxSupport[User] {
     val userOpt = if (sha1(unameTrimmed + "/" + passwordTrimmed) == "***REMOVED***") {
       Some(wmuaUser)
     } else {
-      User.findByEmail(username).headOption.filter(user => hash(user, password) == user.password.get)
+
+      val dbUser = User.findByEmail(username)
+      dbUser.headOption.filter(user => {
+        val hashComputed = hash(user, password)
+        val hashDb = user.password.get
+        hashComputed == hashDb
+      })
     }
 
     for (user <- userOpt) {
@@ -118,17 +125,20 @@ object User extends SQLSyntaxSupport[User] {
 
   def apply(c: SyntaxProvider[User])(rs: WrappedResultSet): User = apply(c.resultName)(rs)
 
-  def apply(c: ResultName[User])(rs: WrappedResultSet): User = new User(
-    id = rs.int(c.id),
-    fullname = rs.string(c.fullname),
-    email = rs.string(c.email),
-    roles = Set(rs.string(c.roles), "USER_ID_"+ rs.int(c.id)),
-    contest = rs.int(c.contest),
-    password = Some(rs.string(c.password)),
-    lang = rs.stringOpt(c.lang),
-    createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
-    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
-  )
+  def apply(c: ResultName[User])(rs: WrappedResultSet): User = {
+    val id = rs.int(c.id)
+    new User(
+        id = id,
+        fullname = rs.string(c.fullname),
+        email = rs.string(c.email),
+        roles = rs.string(c.roles).split(",").toSet ++ Set("USER_ID_" + id),
+        contest = rs.int(c.contest),
+        password = Some(rs.string(c.password)),
+        lang = rs.stringOpt(c.lang),
+        createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
+        deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
+      )
+  }
 
   //  private val autoSession = AutoSession
   private val isNotDeleted = sqls.isNull(u.deletedAt)
@@ -160,7 +170,7 @@ object User extends SQLSyntaxSupport[User] {
         .where.append(isNotDeleted).and.eq(column.email, email)
         .orderBy(u.id)
     }.map(User(u)).list().apply()
-   users
+    users
   }
 
   def countAll()(implicit session: DBSession = autoSession): Long = withSQL {
@@ -173,11 +183,11 @@ object User extends SQLSyntaxSupport[User] {
       .orderBy(u.id)
   }.map(User(u)).list().apply()
 
-//  def findByRoles(roles: Set[String])(implicit session: DBSession = autoSession): List[User] = withSQL {
-//    select.from(User as c)
-//      .where.in(column.roles, roles)
-//      .orderBy(c.id)
-//  }.map(User(c)).list.apply()
+  //  def findByRoles(roles: Set[String])(implicit session: DBSession = autoSession): List[User] = withSQL {
+  //    select.from(User as c)
+  //      .where.in(column.roles, roles)
+  //      .orderBy(c.id)
+  //  }.map(User(c)).list.apply()
 
   def countBy(where: SQLSyntax)(implicit session: DBSession = autoSession): Long = withSQL {
     select(sqls.count).from(User as u).where.append(isNotDeleted).and.append(sqls"$where")
@@ -207,7 +217,7 @@ object User extends SQLSyntaxSupport[User] {
     ).where.eq(column.id, id)
   }.update().apply()
 
-  def updateHash(id: Long, hash:String)(implicit session: DBSession = autoSession): Unit = withSQL {
+  def updateHash(id: Long, hash: String)(implicit session: DBSession = autoSession): Unit = withSQL {
     update(User).set(
       column.password -> hash
     ).where.eq(column.id, id)

@@ -3,7 +3,7 @@ package controllers
 import akka.actor.ActorSystem
 import org.intracer.wmua._
 import org.scalawiki.MwBot
-import org.scalawiki.dto.Page
+import org.scalawiki.dto.{Namespace, Page}
 import org.scalawiki.http.HttpClientImpl
 import org.scalawiki.query.SinglePageQuery
 import org.scalawiki.wikitext.TemplateParser
@@ -80,22 +80,38 @@ object GlobalRefactor {
     val existingPageIds = existing.map(_.pageId).toSet
 
     //bot.page("User:***REMOVED***/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
-    query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
+    query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), namespaces = Set(Namespace.FILE), titlePrefix = None).map {
       filesInCategory =>
-        val newImagesOrigIds: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId).filterNot(i => existingPageIds.contains(i.pageId))
+                val bigImages = filesInCategory.filter(_.images.head.pixels.exists(_ < 2 * 1000 * 1000))
 
-//        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
-//
-//        val newImages = newImagesOrigIds.map(p => p.copy(pageId = maxId + p.pageId))
+        val newImagesOrigIds: Seq[Image] = bigImages.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId).filterNot(i => existingPageIds.contains(i.pageId))
+
+        val byId = newImagesOrigIds.groupBy(_.pageId).mapValues(_.head)
+        // val newImagesIds = newImagesOrigIds.map(_.pageId).toSet
+
+        //        val toDelete = existingPageIds -- newImagesIds
+        //
+        //        toDelete.foreach(ImageJdbc.deleteImage)
+
+        //        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
+        //
+        //        val newImages = newImagesOrigIds.map(p => p.copy(pageId = maxId + p.pageId))
 
         contest.monumentIdTemplate.fold(saveNewImages(contest, newImagesOrigIds)) { monumentIdTemplate =>
 
           query.revisionsByGenerator("categorymembers", "cm",
-            Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
+            namespaces = Set(Namespace.FILE), Set("content", "timestamp", "user", "comment"), limit = "500", titlePrefix = None) map {
             pages =>
 
               val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-              val ids: Seq[String] = monumentIds(pages, existingPageIds, monumentIdTemplate)
+              val ids = monumentIds(pages, existingPageIds, monumentIdTemplate)
+
+              //              ids.foreach {
+              //                case (pageid, monumentId) =>
+              //                  ImageJdbc.updateMonumentId(pageid, monumentId)
+              //              }
+
+              println("updated ids: " + ids.size)
 
               val imagesWithIds = newImagesOrigIds.zip(ids).map {
                 case (image, id) => image.copy(monumentId = Some(id))
@@ -111,6 +127,12 @@ object GlobalRefactor {
 
   def monumentIds(pages: Seq[Page], existingPageIds: Set[Long], monumentIdTemplate: String): Seq[String] = {
 
+    //    pages.flatMap {
+    //      page =>
+    //        page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
+    //          .map(id => page.id.get -> (if (id.length < 100) id else id.substring(0, 100)))
+    //    }.toMap
+
     pages.sortBy(_.id).filterNot(i => existingPageIds.contains(i.id.get)).map {
       page =>
         page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
@@ -120,33 +142,14 @@ object GlobalRefactor {
   }
 
   def saveNewImages(contest: ContestJury, imagesWithIds: Seq[Image]) = {
+    println("saving images: " + imagesWithIds.size)
     ImageJdbc.batchInsert(imagesWithIds)
+    println("saved images")
     createJury()
     //    initContestFiles(contest, imagesWithIds)
   }
 
   def initUrls() {
-
-    //    val galleryUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/galleryUrls${i}.txt"))
-    //    val largeUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/largeUrls${i}.txt"))
-    //    val thumbsUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/thumbUrls${i}.txt"))
-    //
-    //    Logger.info("galleryUrlsFiles" + galleryUrlsFiles)
-    //    Logger.info("largeUrlsFiles" + largeUrlsFiles)
-    //    Logger.info("thumbsUrlsFiles" + thumbsUrlsFiles)
-    //
-    //    galleryUrls = galleryUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
-    //    largeUrls = largeUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
-    //    thumbUrls = thumbsUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
-
-    //files = SortedSet[String](galleryUrls.keySet.toSeq:_*).toSeq.slice(0, 1500)
-
-    //    for (file <- files) {
-    //      thumbUrls.put(file, w.getImageUrl(file, 150, 120))
-    //      galleryUrls.put(file, w.getImageUrl(file, 300, 200))
-    //      largeUrls.put(file, w.getImageUrl(file, 1280, 1024))
-    //    }
-
     KOATUU.load()
   }
 

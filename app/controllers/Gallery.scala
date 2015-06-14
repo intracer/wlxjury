@@ -42,17 +42,21 @@ object Gallery extends Controller with Secured with Instrumented {
           val userContest = user.contest
           val roundContest = round.contest
 
-          if (userContest != roundContest ||
-            (user.roles.intersect(Set("admin", "organizer")).isEmpty
-              && !ContestJury.byId(userContest).exists(_.currentRound == roundId)
-              && !round.juryOrgView)) {
+          if (userContest != roundContest && !ContestJury.byId(userContest).exists(_.currentRound == roundId)
+//            ||  // TODO fix (user.roles.intersect(Set("admin", "organizer")).isEmpty
+//              &&
+//              && !round.juryOrgView)
+          ) {
             onUnAuthorized(user)
           } else {
 
             val rounds = Round.findByContest(userContest.toLong)
             val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
 
-            val ratedFiles = rate.fold(uFiles.sortBy(-_.totalRate(round)))(r => filterByRate(round, rate, uFiles))
+            val ratedFiles = rate.fold(
+              uFiles.filter(_.selection.nonEmpty).sortBy(-_.totalRate(round))
+            )(r => filterByRate(round, rate, uFiles))
+
             val byReg = byRegion(ratedFiles)
             val files = regionFiles(region, ratedFiles)
 
@@ -61,7 +65,13 @@ object Gallery extends Controller with Secured with Instrumented {
             val pageFiles = pager.pageFiles(page)
 
             if (round.rates.id == 1 && asUserId == 0) {
-              val pageFiles2 = pageFiles.map(file => new ImageWithRating(file.image, selection = file.selection.filter(_.rate > 0), countFromDb = file.countFromDb))
+              val pageFiles2 = pageFiles.map {
+                file => new ImageWithRating(
+                  file.image,
+                  selection = file.selection.filter(_.rate > 0),
+                  countFromDb = file.countFromDb
+                )
+              }
               Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, round, rounds, region, byReg))
             } else
 
@@ -83,36 +93,11 @@ object Gallery extends Controller with Secured with Instrumented {
         }
   }
 
-  def byRateGeneric(asUserId: Int, pageFn: Pager => Int, region: String = "all", roundId: Int = 0) = withAuth {
-    user =>
-      implicit request =>
-        timerByRate.time {
-
-          val round = if (roundId == 0) Round.current(user) else Round.find(roundId).get
-          val rounds = Round.findByContest(user.contest.toLong)
-          val (uFiles, asUser) = filesByUserId(asUserId, None, user, round)
-
-          val byReg = byRegion(uFiles)
-          val files = regionFiles(region, uFiles).sortBy(-_.totalRate(round))
-
-          val pager = new Pager(files)
-          val page = pageFn(pager)
-          val pageFiles = pager.pageFiles(page)
-          val pageFiles2 = pageFiles.map(file => new ImageWithRating(file.image, selection = file.selection.filter(_.rate > 0), countFromDb = file.countFromDb))
-
-          if (round.rates.id != 1) {
-            Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, round, rounds, region, byReg))
-          } else {
-            Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, round, rounds, None, region, byReg))
-          }
-        }
-  }
-
   def byRate(asUserId: Int, page: Int = 1, region: String = "all", roundId: Int = 0) =
-    byRateGeneric(asUserId, pager => page, region, roundId)
+    listGeneric("byrate", asUserId, pager => page, region, roundId, None)
 
   def byRateAt(asUserId: Int, pageId: Long, region: String = "all", roundId: Int = 0) =
-    byRateGeneric(asUserId, pager => pager.at(pageId), region, roundId)
+    listGeneric("byrate", asUserId, pager => pager.at(pageId), region, roundId, None)
 
   def filterByRate(round: Round, rate: Option[Int], uFiles: Seq[ImageWithRating]): Seq[ImageWithRating] = {
     if (rate.isEmpty) uFiles
@@ -323,7 +308,6 @@ object Gallery extends Controller with Secured with Instrumented {
 
     val comments = CommentJdbc.findByRoundAndSubject(round.id.toInt, files(index).pageId)
 
-
     Ok(views.html.large.large(user, asUserId, files, index, start, end, page, rate, region, round, monument, module, comments, selection))
   }
 
@@ -337,3 +321,4 @@ object Gallery extends Controller with Secured with Instrumented {
   )
 
 }
+

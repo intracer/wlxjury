@@ -41,10 +41,10 @@ case class ImageWithRating(image: Image, selection: Seq[Selection], countFromDb:
      round._allJurors
    } else
 
-   if (selection.head.juryId == 0 && !round.optionalRate)
+   if (selection.headOption.exists(_.juryId == 0) && !round.optionalRate)
      countFromDb
     else
-    if (selection.size == 1 && selection.head.juryId != 0)
+    if (selection.size == 1 && selection.headOption.exists(_.juryId != 0))
       1
     else if (round.optionalRate)
       round.activeJurors

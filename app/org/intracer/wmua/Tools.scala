@@ -39,13 +39,13 @@ object Tools {
   "44"  // Luhanska
   )
 
-
-
-
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
-//    ConnectionPool.singleton("jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury", "***REMOVED***", "***REMOVED***")
-    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
+    val url: String = "jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
+    println(s"URL:" + url)
+
+    ConnectionPool.singleton(url, "***REMOVED***", "***REMOVED***")
+//    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
@@ -111,14 +111,14 @@ object Tools {
   }
 
   def createNextRound(round: Round, jurors: Seq[User], prevRound: Round) = {
-    val newImages = ImageJdbc.byRatingMerged(0, round.id.toInt)
-    if (true || newImages.isEmpty) {
+    val nextRoundImages = ImageJdbc.byRatingMerged(0, round.id.toInt)
+    if (nextRoundImages.isEmpty) {
 
       //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
       //
-      val images = //ImageJdbc.byRatingMerged(1, prevRound.id.toInt).toArray
-      ImageJdbc.byRoundMerged(prevRound.id.toInt).sortBy(-_.totalRate(prevRound))//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
-      .toArray.take(28)
+      val images = ImageJdbc.byRatingMerged(1, prevRound.id.toInt).toArray
+//      ImageJdbc.byRoundMerged(prevRound.id.toInt).sortBy(-_.totalRate(prevRound))//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
+//      .toArray.take(28)
 
       //      ImageJdbc.findAll().filter(_.region == Some("44"))
 
@@ -140,14 +140,12 @@ object Tools {
   }
 
   def insertMonumentsWLM() = {
-
     val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
 
     val monumentQuery = MonumentQuery.create(wlmContest)
     val allMonuments = monumentQuery.byMonumentTemplate(wlmContest.listTemplate)
     println(allMonuments.size)
   }
-
 
   def updateResolution(contest: ContestJury) = {
 
@@ -192,17 +190,20 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJury.find(21L).get
+    val contest = ContestJury.find(30L).get
 
-    val category: String = "Category:Images from Wiki Loves Earth 2015 in Russia"
-    GlobalRefactor.appendImages(category, contest)
+    val category = "Category:Images from Wiki Loves Earth 2015 in France"
+//    GlobalRefactor.appendImages(category, contest)
 
-//    val prevRound = Round.find(32L).get
-//    val round = Round.find(34L).get
+//    GlobalRefactor.initLists(Contest.WLEUkraine(2015, "09-15", "10-15"))
+
+//    val prevRound = Round.find(39L).get
+    val round = Round.find(48L).get
 
 //    val selection = Selection.byRound(22L)
 
-   // ImageDistributor.distributeImages(contest, round)
+    //println(s"Distributing images")
+   ImageDistributor.distributeImages(contest, round)
 
 //    createNextRound(round, round.jurors, prevRound)
   }

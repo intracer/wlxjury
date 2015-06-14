@@ -1,7 +1,6 @@
 package controllers
 
 import org.intracer.wmua._
-import org.joda.time.DateTime
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{Lang, Messages}
@@ -60,10 +59,14 @@ object Admin extends Controller with Secured {
                   val hash = User.hash(formUser, password)
                   User.updateHash(formUser.id, hash)
                 }
-
-
               }
               Cache.remove(s"user/${user.email}")
+
+              val contest = ContestJury.find(user.contest).get
+              val round = Round.current(user)
+
+              ImageDistributor.distributeImages(contest, round)
+
               val result = Redirect(routes.Admin.users)
               val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
 

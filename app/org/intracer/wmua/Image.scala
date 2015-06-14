@@ -107,6 +107,17 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
     ).where.eq(column.pageId, pageId)
   }.update().apply()
 
+  def updateMonumentId(pageId: Long, monumentId: String)(implicit session: DBSession = autoSession): Unit = withSQL {
+    update(ImageJdbc).set(
+      column.monumentId -> monumentId
+    ).where.eq(column.pageId, pageId)
+  }.update().apply()
+
+
+  def deleteImage(pageId: Long)(implicit session: DBSession = autoSession): Unit = withSQL {
+    delete.from(ImageJdbc).where.eq(ImageJdbc.column.pageId, pageId)
+  }.update().apply()
+
   def findAll()(implicit session: DBSession = autoSession): List[Image] = withSQL {
     select.from(ImageJdbc as c)
       //      .where.append(isNotDeleted)

@@ -30,7 +30,8 @@ top-x = Топ 21
 
 welcome.subject = Ласкаво просимо до журі {0}
 wiki.loves.earth = Вики любит Землю
-wiki.loves.earth.Ukraine = Вики любит Землю 2014 в Украине
+wiki.loves.earth.Ukraine = Вики любит Землю 2015 в Украине
+wiki.loves.earth.Russia = Вики любит Землю 2015 в России
 welcome.messsage = Організаційний комітет конкурсу {0} радий запросити Вас до журі.\nЗайдіть, будь ласка, за посиланням {1} \nіз логіном: {2} і паролем: {3}\nЗ повагою, {4}
 
 error.technical=Technical Error, please Retry

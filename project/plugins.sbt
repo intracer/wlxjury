@@ -22,4 +22,6 @@ addSbtPlugin("com.github.shmishleniy" % "sbt-deploy-ssh" % "0.1.1")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "0.8.0")
 
+addSbtPlugin("org.ensime" % "ensime-sbt" % "0.1.6")
+
 
