@@ -2,7 +2,6 @@ package controllers
 
 import db.scalikejdbc._
 import org.intracer.wmua._
-import play.api.cache.Cache
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.Messages.Implicits._
@@ -200,7 +199,8 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def userFiles(user: User, roundId: Long): Seq[ImageWithRating] = {
-    val files = Cache.getOrElse(s"user/${user.id}/round/$roundId", 900){
+    val files = //Cache.getOrElse(s"user/${user.id}/round/$roundId", 900) TODO use cache
+    {
       ImageJdbc.byUserImageWithRating(user, roundId)
     }
     user.files.clear()

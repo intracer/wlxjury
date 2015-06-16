@@ -9,6 +9,8 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
 
   var messages: Messages = _
 
+  override val tableName = "contest_jury"
+
   implicit def session: DBSession = autoSession
 
   override def currentRound(id: Long): Option[Long] =

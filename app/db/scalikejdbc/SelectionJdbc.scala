@@ -9,6 +9,8 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
 
   implicit def session: DBSession = autoSession
 
+  override val tableName = "selection"
+
   def byUser(user: User, roundId: Long): Seq[Selection] = withSQL {
     select.from(SelectionJdbc as s).where
       .eq(s.juryId, user.id).and

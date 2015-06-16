@@ -3,7 +3,6 @@ package db.scalikejdbc
 import java.math.BigInteger
 import java.security.MessageDigest
 
-import _root_.play.cache.Cache
 import db.UserDao
 import org.intracer.wmua.{ContestJury, User}
 import org.joda.time.DateTime
@@ -43,8 +42,8 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
 
     for (user <- userOpt) {
       val contest = ContestJuryJdbc.find(user.contest).get
-      Cache.set(s"contest/${contest.id}", contest)
-      Cache.set(s"user/${user.email}", user)
+   //   Cache.set(s"contest/${contest.id}", contest)
+   //   Cache.set(s"user/${user.email}", user)
     }
 
     userOpt
