@@ -1,7 +1,7 @@
+@import db.scalikejdbc.ImageJdbc
 @(monuments: Seq[org.scalawiki.wlx.dto.Monument],
   region: String = "all")(implicit flash: Flash, lang: Lang, messages: Messages)
 @import org.scalawiki.wlx.dto.Monument
-@import org.intracer.wmua.ImageJdbc
 
 @main("gallery", null, 0, null, Seq.empty, Seq.empty, gallery = false, None, region, pager(0, Seq.empty, 1, None, 0, region))  {
 

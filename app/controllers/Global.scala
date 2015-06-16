@@ -1,5 +1,6 @@
 package controllers
 
+import _root_.db.scalikejdbc.ContestJuryJdbc
 import org.scalawiki.MwBot
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import org.intracer.wmua._
@@ -95,7 +96,7 @@ object Global {
     val country = countryOpt.fold(category.replace("Category:Images from Wiki Loves Earth 2014 in ", ""))(identity)
 
     //"Ukraine"
-    val contestOpt = ContestJury.byCountry.get(country).flatMap(_.headOption)
+    val contestOpt = ContestJuryJdbc.byCountry.get(country).flatMap(_.headOption)
 
     for (contest <- contestOpt) {
       GlobalRefactor.initContest(category, contest)

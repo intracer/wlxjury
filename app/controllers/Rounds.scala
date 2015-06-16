@@ -1,5 +1,6 @@
 package controllers
 
+import db.scalikejdbc.{SelectionJdbc, ContestJuryJdbc, RoundJdbc}
 import org.intracer.wmua._
 import play.api.data.Form
 import play.api.data.Forms._
@@ -12,23 +13,23 @@ object Rounds extends Controller with Secured {
   def rounds() = withAuth({
     user =>
       implicit request =>
-        val rounds = Round.findByContest(user.contest)
-        val contest = ContestJury.byId(user.contest).get
+        val rounds = RoundJdbc.findByContest(user.contest)
+        val contest = ContestJuryJdbc.byId(user.contest)
 
         Ok(views.html.rounds(user, rounds, editRoundForm,
           imagesForm.fill(Some(contest.getImages)),
           selectRoundForm.fill(contest.currentRound.toString),
-          Round.current(user)))
+          RoundJdbc.current(user)))
   }, Set(User.ADMIN_ROLE))
 
   def editRound(id: String) = withAuth({
     user =>
       implicit request =>
-        val round = Round.find(id.toLong).get
+        val round = RoundJdbc.find(id.toLong).get
 
         val filledRound = editRoundForm.fill(round)
 
-        Ok(views.html.editRound(user, filledRound, Round.current(user)))
+        Ok(views.html.editRound(user, filledRound, RoundJdbc.current(user)))
   }, Set(User.ADMIN_ROLE))
 
   def saveRound() = withAuth({
@@ -37,12 +38,12 @@ object Rounds extends Controller with Secured {
 
         editRoundForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(views.html.editRound(user, formWithErrors, Round.current(user))),
+            BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user))),
           round => {
-            if (round.id == 0) {
+            if (round.id.contains(0)) {
               createNewRound(user, round)
             } else {
-              Round.updateRound(round.id, round)
+              RoundJdbc.updateRound(round.id.get, round)
             }
             Redirect(routes.Rounds.rounds())
           }
@@ -53,9 +54,10 @@ object Rounds extends Controller with Secured {
 
     //  val contest: Contest = Contest.byId(round.contest).head
 
-    val count = Round.countByContest(round.contest)
+    val count = RoundJdbc.countByContest(round.contest)
 
-    Round.create(count + 1, round.name, round.contest, round.roles.head, round.distribution, round.rates.id, round.limitMin, round.limitMax, round.recommended)
+    RoundJdbc.create(count + 1, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
+      round.limitMin, round.limitMax, round.recommended)
 
   }
 
@@ -64,7 +66,7 @@ object Rounds extends Controller with Secured {
       implicit request =>
         val newRound = selectRoundForm.bindFromRequest.get
 
-        ContestJury.setCurrentRound(user.contest, newRound.toInt)
+        ContestJuryJdbc.setCurrentRound(user.contest, newRound.toInt)
 
         Redirect(routes.Rounds.rounds())
   }, Set(User.ADMIN_ROLE))
@@ -73,12 +75,12 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
 
-        val rounds = Round.findByContest(user.contest)
-        val contest = ContestJury.byId(user.contest).get
-        val currentRound = rounds.find(_.id.toInt == contest.currentRound).get
+        val rounds = RoundJdbc.findByContest(user.contest)
+        val contest = ContestJuryJdbc.byId(user.contest)
+        val currentRound = rounds.find(_.id == contest.currentRound).get
         val nextRound = rounds.find(_.number == currentRound.number + 1).get
 
-        ContestJury.setCurrentRound(user.contest, nextRound.id.toInt)
+        ContestJuryJdbc.setCurrentRound(user.contest, nextRound.id.get)
 
         Redirect(routes.Rounds.rounds())
   }, Set(User.ADMIN_ROLE))
@@ -93,12 +95,12 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
-        val contest = ContestJury.byId(user.contest).get
-        ContestJury.updateImages(contest.id, imagesSource)
+        val contest = ContestJuryJdbc.byId(user.contest)
+        ContestJuryJdbc.updateImages(contest.id.get, imagesSource)
 
         //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 
-        val round: Round = Round.find(ContestJury.currentRound(contest.id.toInt).toLong).get
+        val round: Round = RoundJdbc.find(ContestJuryJdbc.currentRound(contest.id.get).get).get
         distributeImages(contest, round)
 
         //        Round.up
@@ -112,15 +114,15 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         //        val rounds = Round.findByContest(user.contest)
-        val round: Round = Round.current(user)
+        val round: Round = RoundJdbc.current(user)
 
         if (user.roles.contains("jury") && !round.juryOrgView) {
           onUnAuthorized(user)
         } else {
 
-          val rounds = Round.findByContest(user.contest)
+          val rounds = RoundJdbc.findByContest(user.contest)
 
-          val selection = Selection.byRound(round.id)
+          val selection = SelectionJdbc.byRound(round.id.get)
 
           val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
           val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
@@ -138,18 +140,18 @@ object Rounds extends Controller with Secured {
         }
   }, Set(User.ADMIN_ROLE, "jury") ++ User.ORG_COM_ROLES)
 
-  def roundStat(roundId: Int) = withAuth({
+  def roundStat(roundId: Long) = withAuth({
     user =>
       implicit request =>
         //        val rounds = Round.findByContest(user.contest)
-        val round: Round = Round.find(roundId.toLong).get
+        val round: Round = RoundJdbc.find(roundId).get
 
         if (user.roles.contains("jury") && !round.juryOrgView) {
           onUnAuthorized(user)
         } else {
-          val rounds = Round.findByContest(user.contest)
+          val rounds = RoundJdbc.findByContest(user.contest)
 
-          val selection = Selection.byRound(round.id)
+          val selection = SelectionJdbc.byRound(round.id.get)
 
           val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
           val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
@@ -191,7 +193,7 @@ object Rounds extends Controller with Secured {
       "id" -> longNumber(),
       "number" -> number(),
       "name" -> optional(text()),
-      "contest" -> number,
+      "contest" -> longNumber(),
       "roles" -> text(),
       "distribution" -> number,
       "rates" -> number,
@@ -200,7 +202,4 @@ object Rounds extends Controller with Secured {
       "recommended" -> optional(number)
     )(Round.applyEdit)(Round.unapplyEdit)
   )
-
-
-
 }

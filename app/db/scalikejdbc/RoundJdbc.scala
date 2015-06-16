@@ -1,7 +1,7 @@
 package db.scalikejdbc
 
 import db.RoundDao
-import org.intracer.wmua.{Rates, Round, User}
+import org.intracer.wmua.{ContestJury, Round, User}
 import org.joda.time.DateTime
 import scalikejdbc._
 
@@ -9,34 +9,19 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
 
   implicit def session: DBSession = autoSession
 
-  val binaryRound = new Rates(1, "+/-", -1, 1)
-  val rateRounds = (3 to 20).map(i => new Rates(i, s"1-$i rating", 1, i))
-
-  val rates = Seq(binaryRound) ++ rateRounds
-
-  val ratesById = rates.groupBy(_.id)
-
   override val tableName = "rounds"
-
-  def applyEdit(id: Long, num: Int, name: Option[String], contest: Int, roles: String, distribution: Int,
-                rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int]) =
-    new Round(id, num, name, contest, Set(roles), distribution, ratesById(rates).head, limitMin, limitMax, recommended)
-
-  def unapplyEdit(round: Round): Option[(Long, Int, Option[String], Int, String, Int, Int, Option[Int], Option[Int], Option[Int])] = {
-    Some((round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id, round.limitMin, round.limitMax, round.recommended))
-  }
 
   val c = RoundJdbc.syntax("c")
 
   def apply(c: SyntaxProvider[Round])(rs: WrappedResultSet): Round = apply(c.resultName)(rs)
 
   def apply(c: ResultName[Round])(rs: WrappedResultSet): Round = new Round(
-    id = rs.int(c.id),
+    id = Some(rs.int(c.id)),
     name = Option(rs.string(c.name)),
     number = rs.int(c.number),
     distribution = rs.int(c.distribution),
-    contest = rs.int(c.contest),
-    rates = ratesById(rs.int(c.rates)).head,
+    contest = rs.long(c.contest),
+    rates = Round.ratesById(rs.int(c.rates)).head,
     limitMin = rs.intOpt(c.limitMin),
     limitMax = rs.intOpt(c.limitMax),
     recommended = rs.intOpt(c.recommended),
@@ -51,31 +36,34 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
   //  private val autoSession = AutoSession
   private val isNotDeleted = sqls.isNull(c.deletedAt)
 
-  def activeRounds(contestId: Int) = ContestJuryJdbc.currentRound(contestId).map { roundId => find(roundId) }
-
-  def current(user: User) = {
-    ContestJuryJdbc.byId(user.contest).map { contest =>
-      find(contest.currentRound).getOrElse(new Round(0, 0, None, 14, Set("jury"), 1, binaryRound, Some(1), Some(1), None))
-    }
+  override def activeRounds(contestId: Long): Seq[Round] = {
+    ContestJuryJdbc.currentRound(contestId).flatMap(find).toSeq
   }
 
-  def findAll(): List[Round] = withSQL {
+  //ContestJuryJdbc.currentRound(contestId).map { roundId => find(roundId) }
+
+  override def current(user: User): Round = {
+    val contest: ContestJury = ContestJuryJdbc.byId(user.contest)
+    find(contest.currentRound).getOrElse(new Round(Some(0), 0, None, 14, Set("jury"), 1, Round.binaryRound, Some(1), Some(1), None))
+  }
+
+  override def findAll(): List[Round] = withSQL {
     select.from(RoundJdbc as c)
       .where.append(isNotDeleted)
       .orderBy(c.id)
   }.map(RoundJdbc(c)).list().apply()
 
-  def findByContest(contest: Long): List[Round] = withSQL {
+  override def findByContest(contest: Long): Seq[Round] = withSQL {
     select.from(RoundJdbc as c)
       .where.append(isNotDeleted).and.eq(c.contest, contest)
       .orderBy(c.id)
   }.map(RoundJdbc(c)).list().apply()
 
-  def find(id: Long): Option[Round] = withSQL {
+  override def find(id: Long): Option[Round] = withSQL {
     select.from(RoundJdbc as c).where.eq(c.id, id).and.append(isNotDeleted)
   }.map(RoundJdbc(c)).single().apply()
 
-  def create(number: Int, name: Option[String], contest: Int, roles: String, distribution: Int,
+  override def create(number: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
              rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int],
              createdAt: DateTime = DateTime.now): Round = {
     val id = withSQL {
@@ -92,12 +80,12 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
-    new Round(id = id, name = name, number = number, contest = contest, roles = Set(roles), distribution = distribution,
-      rates = ratesById(rates).head, limitMin = limitMin,
+    new Round(id = Some(id), name = name, number = number, contest = contest, roles = Set(roles), distribution = distribution,
+      rates = Round.ratesById(rates).head, limitMin = limitMin,
       limitMax = limitMax, recommended = recommended, createdAt = createdAt)
   }
 
-  def updateRound(id: Long, round: Round): Unit = withSQL {
+  override def updateRound(id: Long, round: Round): Unit = withSQL {
     update(RoundJdbc).set(
       column.name -> round.name,
       column.roles -> round.roles,
@@ -110,7 +98,7 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     ).where.eq(column.id, id)
   }.update().apply()
 
-  def countByContest(contest: Int): Int = withSQL {
+  override def countByContest(contest: Long): Int = withSQL {
     select(sqls.count).from(RoundJdbc as c).where.eq(column.contest, contest)
   }.map(rs => rs.int(1)).single().apply().get
 }

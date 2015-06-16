@@ -4,10 +4,10 @@ import db.ContestJuryDao
 import org.intracer.wmua.ContestJury
 import play.api.Play
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
-
 import slick.driver.JdbcProfile
+import spray.util.pimpFuture
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class ContestsDaoSlick extends HasDatabaseConfig[JdbcProfile] with ContestJuryDao {
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
@@ -22,42 +22,41 @@ class ContestsDaoSlick extends HasDatabaseConfig[JdbcProfile] with ContestJuryDa
 
     def name = column[String]("name")
 
-    def country = column[String]("country")
-
     def year = column[Int]("year")
 
-    def images = column[String]("images") // commonscat realy
+    def country = column[String]("country")
 
-    def currentRound = column[Int]("current_round")
+    def images = column[Option[String]]("images") // commonscat realy
 
-    def monumentIdTemplate = column[String]("monument_id_template")
+    def currentRound = column[Long]("current_round")
 
-    def * = (id, name, country, year, images, currentRound, monumentIdTemplate) <>(ContestJury.tupled, ContestJury.unapply)
+    def monumentIdTemplate = column[Option[String]]("monument_id_template")
+
+    def * = (id, name, year, country, images, currentRound, monumentIdTemplate) <> (ContestJury.tupled, ContestJury.unapply)
 
   }
 
-  override def findAll(): Future[Seq[ContestJury]] = db.run(Contests.result).map(_.toList)
+  override def findAll(): Seq[ContestJury] = db.run(Contests.result).map(_.toList).await
 
-  def insert(cat: ContestJury): Future[Int] = db.run(Contests += cat)
+  def insert(cat: ContestJury): Int = db.run(Contests += cat).await
 
-  override def currentRound(id: Int): Future[Int] = byId(id).map(_.currentRound)
+  override def currentRound(id: Long): Option[Long] = find(id).map(_.currentRound)
 
-  override def byId(id: Int): Future[ContestJury] =
-    db.run(Contests.filter(_.id === id).result.head)
+  override def byId(id: Long): ContestJury = find(id).get
 
-  override def countAll(): Future[Int] =
-    db.run(Contests.length.result)
+  override def countAll(): Long =
+    db.run(Contests.length.result).await
 
-  override def byCountry: Future[Map[String, Seq[ContestJury]]] =
-    findAll().map(_.groupBy(_.country))
+  override def byCountry: Map[String, Seq[ContestJury]] =
+    findAll().groupBy(_.country)
 
-  override def find(id: Long): Future[ContestJury] =
-    byId(id.toInt)
+  override def find(id: Long): Option[ContestJury] =
+    db.run(Contests.filter(_.id === id).result.headOption).await
 
-  override def setCurrentRound(id: Int, round: Int): Future[Int] =
-    db.run(Contests.filter(_.id === id).map(_.currentRound).update(round))
+  override def setCurrentRound(id: Long, round: Long): Int =
+    db.run(Contests.filter(_.id === id).map(_.currentRound).update(round)).await
 
-  override def updateImages(id: Long, images: Option[String]): Future[Int] =
-    db.run(Contests.filter(_.id === id).map(_.images).update(images.orNull))
+  override def updateImages(id: Long, images: Option[String]): Int =
+    db.run(Contests.filter(_.id === id).map(_.images).update(images)).await
 
 }

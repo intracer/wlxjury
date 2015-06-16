@@ -5,19 +5,19 @@ import org.joda.time.DateTime
 
 trait RoundDao {
 
-  def activeRounds(contestId: Int)
+  def activeRounds(contestId: Long): Seq[Round]
 
-  def current(user: User)
+  def current(user: User): Round
 
-  def findAll(): List[Round]
+  def findAll(): Seq[Round]
 
-  def findByContest(contest: Long)
+  def findByContest(contest: Long): Seq[Round]
 
   def find(id: Long): Option[Round]
 
   def create(number: Int,
              name: Option[String],
-             contest: Int,
+             contest: Long,
              roles: String,
              distribution: Int,
              rates: Int,
@@ -29,6 +29,6 @@ trait RoundDao {
 
   def updateRound(id: Long, round: Round)
 
-  def countByContest(contest: Int): Int
+  def countByContest(contest: Long): Int
 
 }

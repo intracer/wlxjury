@@ -1,6 +1,6 @@
 @(
         user: org.intracer.wmua.User,
-        asUserId: Int,
+        asUserId: Long,
         asUser: org.intracer.wmua.User,
         pageFiles: Seq[org.intracer.wmua.ImageWithRating],
         regionFiles: Seq[org.intracer.wmua.ImageWithRating],
@@ -14,7 +14,7 @@
 
 @main("filelist", user, asUserId, asUser, Seq(round), rounds, false, rate, region) {
 
-    @regionNav({region:String => s"/filelist/round/${round.id}/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
+    @regionNav({region:String => s"/filelist/round/${round.id.get}/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
 
     <div class="row" >
 

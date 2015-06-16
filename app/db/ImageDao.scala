@@ -2,46 +2,44 @@ package db
 
 import org.intracer.wmua.{Image, ImageWithRating, User}
 
-import scala.concurrent.Future
-
 trait ImageDao {
-  def batchInsert(images: Seq[Image]): Future[Unit]
+  def batchInsert(images: Seq[Image]): Unit
 
-  def updateResolution(pageId: Long, width: Int, height: Int): Future[Unit]
+  def updateResolution(pageId: Long, width: Int, height: Int): Unit
 
-  def findAll(): Future[List[Image]]
+  def findAll(): Seq[Image]
 
-  def findByContest(contest: Long): Future[List[Image]]
+  def findByContest(contest: Long): Seq[Image]
 
-  def findByMonumentId(monumentId: String): Future[List[Image]]
+  def findByMonumentId(monumentId: String): Seq[Image]
 
-  def find(id: Long): Future[Image]
-  def bySelection(round: Long): Future[List[Image]]
+  def find(id: Long): Option[Image]
+  def bySelection(round: Long): Seq[Image]
 
-  def bySelectionNotSelected(round: Long): Future[List[Image]]
+  def bySelectionNotSelected(round: Long): Seq[Image]
 
-  def bySelectionSelected(round: Long): Future[List[Image]]
+  def bySelectionSelected(round: Long): Seq[Image]
 
-  def byUser(user: User, roundId: Long): Future[Seq[Image]]
+  def byUser(user: User, roundId: Long): Seq[Image]
 
-  def byUserSelected(user: User, roundId: Long): Future[Seq[Image]]
+  def byUserSelected(user: User, roundId: Long): Seq[Image]
 
-  def findWithSelection(id: Long, roundId: Long): Future[Seq[ImageWithRating]]
+  def findWithSelection(id: Long, roundId: Long): Seq[ImageWithRating]
 
-  def byUserImageWithRating(user: User, roundId: Long): Future[Seq[ImageWithRating]]
+  def byUserImageWithRating(user: User, roundId: Long): Seq[ImageWithRating]
 
-  def byRating(roundId: Long, rate: Int): Future[Seq[ImageWithRating]]
+  def byRating(roundId: Long, rate: Int): Seq[ImageWithRating]
 
-  def byRatingGE(roundId: Long, rate: Int): Future[Seq[ImageWithRating]]
+  def byRatingGE(roundId: Long, rate: Int): Seq[ImageWithRating]
 
-  def byRound(roundId: Long): Future[Seq[ImageWithRating]]
+  def byRound(roundId: Long): Seq[ImageWithRating]
 
-  def byRatingMerged(rate: Int, round: Int): Future[Seq[ImageWithRating]]
+  def byRatingMerged(rate: Int, round: Long): Seq[ImageWithRating]
 
-  def byRatingGEMerged(rate: Int, round: Int): Future[Seq[ImageWithRating]]
+  def byRatingGEMerged(rate: Int, round: Long): Seq[ImageWithRating]
 
-  def byRoundMerged(round: Int): Future[Seq[ImageWithRating]]
+  def byRoundMerged(round: Long): Seq[ImageWithRating]
 
-  def byRoundSummed(roundId: Long): Future[Seq[ImageWithRating]]
+  def byRoundSummed(roundId: Long): Seq[ImageWithRating]
 
 }

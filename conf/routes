@@ -14,53 +14,53 @@ POST        /auth                                                               
 
 GET         /auth                                                                   controllers.Login.login()
 
-GET         /query                                                                  controllers.Gallery.query(module:String ?= "gallery", user: Option[Int] ?= None, page: Int ?= 1, region: String ?= "all", round: Int ?= 0, rate: Option[Int] ?= None)
+GET         /query                                                                  controllers.Gallery.query(module:String ?= "gallery", user: Option[Long] ?= None, page: Int ?= 1, region: String ?= "all", round: Long ?= 0, rate: Option[Int] ?= None)
 
-GET         /byrate/user/:user/page/:page                                           controllers.Gallery.byRate(user: Int, page: Int, region: String = "all", round: Int = 0)
+GET         /byrate/user/:user/page/:page                                           controllers.Gallery.byRate(user: Long, page: Int, region: String = "all", round: Long = 0)
 
-GET         /byrate/user/:user/region/:region/page/:page                            controllers.Gallery.byRate(user: Int, page: Int, region: String, round: Int = 0)
+GET         /byrate/user/:user/region/:region/page/:page                            controllers.Gallery.byRate(user: Long, page: Int, region: String, round: Long = 0)
 
-GET         /byrate/round/:round/user/:user/page/:page                              controllers.Gallery.byRate(user: Int, page: Int, region: String = "all", round: Int)
+GET         /byrate/round/:round/user/:user/page/:page                              controllers.Gallery.byRate(user: Long, page: Int, region: String = "all", round: Long)
 
-GET         /byrate/round/:round/user/:user/region/:region/page/:page               controllers.Gallery.byRate(user: Int, page: Int, region: String, round: Int)
+GET         /byrate/round/:round/user/:user/region/:region/page/:page               controllers.Gallery.byRate(user: Long, page: Int, region: String, round: Long)
 
-GET         /byrate/round/:round/user/:user/region/:region/pageid/:pageid           controllers.Gallery.byRateAt(user: Int, pageid: Long, region: String, round: Int)
+GET         /byrate/round/:round/user/:user/region/:region/pageid/:pageid           controllers.Gallery.byRateAt(user: Long, pageid: Long, region: String, round: Long)
 
-GET         /gallery/user/:user/page/:page                                          controllers.Gallery.list(user: Int, page: Int, region: String = "all", round: Int = 0, rate: Option[Int] ?= None)
+GET         /gallery/user/:user/page/:page                                          controllers.Gallery.list(user: Long, page: Int, region: String = "all", round: Long = 0, rate: Option[Int] ?= None)
 
-GET         /gallery/user/:user/region/:region/page/:page                           controllers.Gallery.list(user: Int, page: Int, region: String, round: Int = 0, rate: Option[Int] ?= None)
+GET         /gallery/user/:user/region/:region/page/:page                           controllers.Gallery.list(user: Long, page: Int, region: String, round: Long = 0L, rate: Option[Int] ?= None)
 
-GET         /gallery/round/:round/user/:user/page/:page                             controllers.Gallery.list(user: Int, page: Int, region: String = "all", round: Int, rate: Option[Int] ?= None)
+GET         /gallery/round/:round/user/:user/page/:page                             controllers.Gallery.list(user: Long, page: Int, region: String = "all", round: Long, rate: Option[Int] ?= None)
 
-GET         /gallery/round/:round/user/:user/region/:region/page/:page              controllers.Gallery.list(user: Int, page: Int, region: String, round: Int, rate: Option[Int] ?= None)
+GET         /gallery/round/:round/user/:user/region/:region/page/:page              controllers.Gallery.list(user: Long, page: Int, region: String, round: Long, rate: Option[Int] ?= None)
 
-GET         /gallery/round/:round/user/:user/region/:region/pageid/:pageid          controllers.Gallery.listAtId(user: Int, pageid: Long, region: String, round: Int, rate: Option[Int] ?= None)
+GET         /gallery/round/:round/user/:user/region/:region/pageid/:pageid          controllers.Gallery.listAtId(user: Long, pageid: Long, region: String, round: Long, rate: Option[Int] ?= None)
 
-GET         /gallery/round/:round/users/:users/page/:page                           controllers.Gallery.listByNumber(users: Int, page: Int, region: String = "all", round: Int, rate: Option[Int] ?= None)
+GET         /gallery/round/:round/users/:users/page/:page                           controllers.Gallery.listByNumber(users: Int, page: Int, region: String = "all", round: Long, rate: Option[Int] ?= None)
 
-GET         /gallery/round/:round/users/:users/region/:region/page/:page            controllers.Gallery.listByNumber(users: Int, page: Int, region: String, round: Int, rate: Option[Int] ?= None)
+GET         /gallery/round/:round/users/:users/region/:region/page/:page            controllers.Gallery.listByNumber(users: Int, page: Int, region: String, round: Long, rate: Option[Int] ?= None)
 
-GET         /filelist/user/:user/page/:page                                         controllers.Gallery.fileList(user: Int, page: Int, region: String = "all", round: Int = 0, format:String ?= "wiki", rate: Option[Int] ?= None)
+GET         /filelist/user/:user/page/:page                                         controllers.Gallery.fileList(user: Long, page: Int, region: String = "all", round: Long = 0, format:String ?= "wiki", rate: Option[Int] ?= None)
 
-GET         /filelist/user/:user/region/:region/page/:page                          controllers.Gallery.fileList(user: Int, page: Int, region: String, round: Int = 0, format:String ?= "wiki", rate: Option[Int] ?= None)
+GET         /filelist/user/:user/region/:region/page/:page                          controllers.Gallery.fileList(user: Long, page: Int, region: String, round: Long = 0, format:String ?= "wiki", rate: Option[Int] ?= None)
 
-GET         /filelist/round/:round/user/:user/page/:page                            controllers.Gallery.fileList(user: Int, page: Int, region: String = "all", round: Int, format:String ?= "wiki", rate: Option[Int] ?= None)
+GET         /filelist/round/:round/user/:user/page/:page                            controllers.Gallery.fileList(user: Long, page: Int, region: String = "all", round: Long, format:String ?= "wiki", rate: Option[Int] ?= None)
 
-GET         /filelist/round/:round/user/:user/region/:region/page/:page             controllers.Gallery.fileList(user: Int, page: Int, region: String, round: Int, format:String ?= "wiki", rate: Option[Int] ?= None)
+GET         /filelist/round/:round/user/:user/region/:region/page/:page             controllers.Gallery.fileList(user: Long, page: Int, region: String, round: Long, format:String ?= "wiki", rate: Option[Int] ?= None)
 
-GET         /large/user/:user/pageid/:pageid                                        controllers.Gallery.large(user: Int, pageid: Long, region: String = "all", round:Int = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
+GET         /large/user/:user/pageid/:pageid                                        controllers.Gallery.large(user: Long, pageid: Long, region: String = "all", round: Long = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
 
-GET         /large/user/:user/region/:region/pageid/:pageid                         controllers.Gallery.large(user: Int, pageid: Long, region: String, round:Int = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
+GET         /large/user/:user/region/:region/pageid/:pageid                         controllers.Gallery.large(user: Long, pageid: Long, region: String, round: Long = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
 
-GET         /large/round/:round/user/:user/pageid/:pageid                           controllers.Gallery.large(user: Int, pageid: Long, region: String = "all", round:Int, rate: Option[Int] ?= None, module: String ?= "gallery")
+GET         /large/round/:round/user/:user/pageid/:pageid                           controllers.Gallery.large(user: Long, pageid: Long, region: String = "all", round: Long, rate: Option[Int] ?= None, module: String ?= "gallery")
 
-GET         /large/round/:round/user/:user/region/:region/pageid/:pageid            controllers.Gallery.large(user: Int, pageid: Long, region: String,round:Int, rate: Option[Int] ?= None, module: String ?= "gallery")
+GET         /large/round/:round/user/:user/region/:region/pageid/:pageid            controllers.Gallery.large(user: Long, pageid: Long, region: String, round:Long, rate: Option[Int] ?= None, module: String ?= "gallery")
 
 POST        /comment/region/:region/pageid/:pageid                                  controllers.ImageDiscussion.addComment(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery")
 
-GET         /large/round/:round/pageid/:pageId/select/:select                       controllers.Gallery.selectByPageId(round: Int, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery")
+GET         /large/round/:round/pageid/:pageId/select/:select                       controllers.Gallery.selectByPageId(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery")
 
-GET         /large/round/:round/region/:region/pageid/:pageId/select/:select        controllers.Gallery.selectByPageId(round: Int,pageId: Long, select: Int, region: String, rate: Option[Int] ?= None, module: String ?= "gallery")
+GET         /large/round/:round/region/:region/pageid/:pageId/select/:select        controllers.Gallery.selectByPageId(round: Long, pageId: Long, select: Int, region: String, rate: Option[Int] ?= None, module: String ?= "gallery")
 
 GET         /gallery/page/:page                                                     controllers.Gallery.listCurrent(page: Int, region: String = "all", rate: Option[Int] ?= None)
 
@@ -92,7 +92,7 @@ POST        /admin/startround                                                   
 
 GET         /roundstat                                                              controllers.Rounds.currentRoundStat()
 
-GET         /roundstat/:round                                                       controllers.Rounds.roundStat(round: Int)
+GET         /roundstat/:round                                                       controllers.Rounds.roundStat(round: Long)
 
 GET         /monuments                                                              controllers.Monuments.list()
 

@@ -1,5 +1,6 @@
 package controllers
 
+import db.scalikejdbc.{ContestJuryJdbc, RoundJdbc, UserJdbc}
 import org.intracer.wmua._
 import play.api.Play.current
 import play.api.data.Form
@@ -17,19 +18,19 @@ object Admin extends Controller with Secured {
   def users() = withAuth({
     user =>
       implicit request =>
-        val users = User.findByContest(user.contest)
+        val users = UserJdbc.findByContest(user.contest)
 
-        Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), Round.current(user)))
+        Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), RoundJdbc.current(user)))
   }, Set(User.ADMIN_ROLE))
 
   def editUser(id: String) = withAuth({
     user =>
       implicit request =>
-        val editedUser = User.find(id.toLong).get
+        val editedUser = UserJdbc.find(id.toLong).get
 
         val filledForm = editUserForm.fill(editedUser)
 
-        Ok(views.html.editUser(user, filledForm, Round.current(user)))
+        Ok(views.html.editUser(user, filledForm, RoundJdbc.current(user)))
   }, Set(User.ADMIN_ROLE, s"USER_ID_$id"))
 
   def saveUser() = withAuth({
@@ -38,29 +39,35 @@ object Admin extends Controller with Secured {
 
         editUserForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(views.html.editUser(user, formWithErrors, Round.current(user))),
+            BadRequest(views.html.editUser(user, formWithErrors, RoundJdbc.current(user))),
           formUser => {
-
+            val userId = formUser.id.get
             if (!(user.roles.contains(User.ADMIN_ROLE) || user.id == formUser.id)) {
               Redirect(routes.Login.index())
             }
 
-            val count: Long = User.countByEmail(formUser.id, formUser.email)
+            val count: Long = UserJdbc.countByEmail(userId, formUser.email)
             if (count > 0) {
-              BadRequest(views.html.editUser(user, editUserForm.fill(formUser).withError("email", "email should be unique"), Round.current(user)))
+              BadRequest(
+                views.html.editUser(
+                  user,
+                  editUserForm.fill(formUser).withError("email", "email should be unique"),
+                  RoundJdbc.current(user)
+                )
+              )
             } else {
-              if (formUser.id == 0) {
+              if (userId == 0) {
                 createNewUser(user, formUser)
               } else {
                 if (!user.roles.contains(User.ADMIN_ROLE)) {
-                  val origUser = User.find(formUser.id).get
-                  User.updateUser(formUser.id, formUser.fullname, formUser.email, origUser.roles, formUser.lang)
+                  val origUser = UserJdbc.find(formUser.id.get).get
+                  UserJdbc.updateUser(userId, formUser.fullname, formUser.email, origUser.roles, formUser.lang)
                 } else {
-                  User.updateUser(formUser.id, formUser.fullname, formUser.email, formUser.roles, formUser.lang)
+                  UserJdbc.updateUser(userId, formUser.fullname, formUser.email, formUser.roles, formUser.lang)
                 }
                 for (password <- formUser.password) {
-                  val hash = User.hash(formUser, password)
-                  User.updateHash(formUser.id, hash)
+                  val hash = UserJdbc.hash(formUser, password)
+                  UserJdbc.updateHash(userId, hash)
                 }
 
 
@@ -76,15 +83,15 @@ object Admin extends Controller with Secured {
   })
 
   def createNewUser(user: User, formUser: User): Unit = {
-    val contest: ContestJury = ContestJury.byId(formUser.contest).head
+    val contest: ContestJury = ContestJuryJdbc.byId(formUser.contest)
     createUser(user, formUser, contest)
   }
 
   def createUser(user: User, formUser: User, contest: ContestJury) {
-    val password = User.randomString(8)
-    val hash = User.hash(formUser, password)
+    val password = UserJdbc.randomString(8)
+    val hash = UserJdbc.hash(formUser, password)
     val juryhome = "http://wlxjury.wikimedia.in.ua"
-    User.create(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest, formUser.lang)
+    UserJdbc.create(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest, formUser.lang)
     implicit val lang = formUser.lang.fold(Lang("en"))(Lang.apply)
     val subject: String = Messages("welcome.subject", Messages(contest.name))
     val message: String = Messages("welcome.messsage", Messages(contest.name), juryhome, formUser.email, password, user.fullname)
@@ -98,7 +105,7 @@ object Admin extends Controller with Secured {
       "email" -> email,
       "password" -> optional(text()),
       "roles" -> optional(text()),
-      "contest" -> number,
+      "contest" -> longNumber,
       "lang" -> optional(text())
     )(User.applyEdit)(User.unapplyEdit)
   )
@@ -119,13 +126,13 @@ object Admin extends Controller with Secured {
   def resetPassword(id: String) = withAuth({
     user =>
       implicit request =>
-        val editedUser = User.find(id.toLong).get
+        val editedUser = UserJdbc.find(id.toLong).get
 
-        val password = User.randomString(8)
-        val contest: ContestJury = ContestJury.byId(editedUser.contest).head
-        val hash = User.hash(editedUser, password)
+        val password = UserJdbc.randomString(8)
+        val contest: ContestJury = ContestJuryJdbc.byId(editedUser.contest)
+        val hash = UserJdbc.hash(editedUser, password)
 
-        User.updateHash(editedUser.id, hash)
+        UserJdbc.updateHash(editedUser.id.get, hash)
 
         val juryhome = "http://localhost:9000"
         //        User.updateUser(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest)

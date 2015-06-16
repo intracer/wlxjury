@@ -1,6 +1,6 @@
 @(
         user: org.intracer.wmua.User,
-        asUserId: Int,
+        asUserId: Long,
         files: Seq[org.intracer.wmua.ImageWithRating],
         index: Int,
         start: Int,
@@ -22,7 +22,7 @@
 
     @thumbSmall(if(i == index) "thumb_small current" else "thumb_small")
         <div style="margin:5px auto;">
-            <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.toInt, rate, module)">
+            <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.get, rate, module)">
                 <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.thumbSizeX, controllers.Global.thumbSizeY)" >
             </a>
         </div>

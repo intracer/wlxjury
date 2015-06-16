@@ -1,5 +1,6 @@
 package org.intracer.wmua
 
+import db.scalikejdbc.{SelectionJdbc, RoundJdbc, ImageJdbc}
 import org.joda.time.DateTime
 
 object ImageDistributor {
@@ -7,17 +8,17 @@ object ImageDistributor {
   def distributeImages(contest: ContestJury, round: Round) {
 
     val allImages: Seq[Image] = if (round.number == 1) {
-      ImageJdbc.findByContest(contest.id)
+      ImageJdbc.findByContest(contest.id.get)
     } else {
-      val rounds = Round.findByContest(contest.id)
+      val rounds = RoundJdbc.findByContest(contest.id.get)
       (for (prevRound <- rounds.find(_.number == round.number - 1)) yield {
-        ImageJdbc.byRatingMerged(1, prevRound.id.toInt).map(_.image)
+        ImageJdbc.byRatingMerged(1, prevRound.id.get).map(_.image)
       }).getOrElse(Seq.empty)
     }
 
     val allJurors = round.jurors
 
-    val currentSelection = ImageJdbc.byRoundMerged(round.id.toInt)
+    val currentSelection = ImageJdbc.byRoundMerged(round.id.get)
     //      Selection.
 
     val oldImagesSelection = currentSelection.filter(iwr => iwr.selection.nonEmpty)
@@ -28,16 +29,16 @@ object ImageDistributor {
     }
 
     val images = allImages // allImages.filterNot(i => oldImageIds.contains(i.pageId))
-    val jurors = allJurors.filterNot(j => oldJurorIds.contains(j.id))
+    val jurors = allJurors.filterNot(j => oldJurorIds.contains(j.id.get))
 
     val selection: Seq[Selection] = round.distribution match {
       case 0 =>
         jurors.flatMap { juror =>
-          images.map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+          images.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
         }
       case 1 =>
         images.zipWithIndex.map {
-          case (img, i) => new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now)
+          case (img, i) => new Selection(0, img.pageId, 0, jurors(i % jurors.size).id.get, round.id.get, DateTime.now)
         }
       //          jurors.zipWithIndex.flatMap { case (juror, i) =>
       //            images.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
@@ -46,20 +47,20 @@ object ImageDistributor {
       case 2 =>
         images.zipWithIndex.flatMap {
           case (img, i) => Seq(
-            new Selection(0, img.pageId, 0, jurors(i % jurors.size).id, round.id, DateTime.now),
-            new Selection(0, img.pageId, 0, jurors((i + 1) % jurors.size).id, round.id, DateTime.now),
-            new Selection(0, img.pageId, 0, jurors((i + 2) % jurors.size).id, round.id, DateTime.now)
+            new Selection(0, img.pageId, 0, jurors(i % jurors.size).id.get, round.id.get, DateTime.now),
+            new Selection(0, img.pageId, 0, jurors((i + 1) % jurors.size).id.get, round.id.get, DateTime.now),
+            new Selection(0, img.pageId, 0, jurors((i + 2) % jurors.size).id.get, round.id.get, DateTime.now)
           )
         }
       //          jurors.zipWithIndex.flatMap { case (juror, i) =>
       //            imagesTwice.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
       //          }
     }
-    Selection.batchInsert(selection)
+    SelectionJdbc.batchInsert(selection)
   }
 
   def createNextRound(round: Round, jurors: Seq[User], prevRound: Round) = {
-    val newImages = ImageJdbc.byRatingMerged(1, round.id.toInt)
+    val newImages = ImageJdbc.byRatingMerged(1, round.id.get)
     if (false && newImages.isEmpty) {
 
 
@@ -70,13 +71,13 @@ object ImageDistributor {
         ImageJdbc.findAll().filter(_.region.contains("44"))
       //
       val selection = jurors.flatMap { juror =>
-        images.map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+        images.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
       }
 
       //      val images = ImageJdbc.byRoundMerged(prevRound.id.toInt).sortBy(-_.totalRate).take(21)
       //      val selection = images.flatMap(_.selection).map(_.copy(id = 0, round = round.id))
 
-      Selection.batchInsert(selection)
+      SelectionJdbc.batchInsert(selection)
 
 
     }

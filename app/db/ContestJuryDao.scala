@@ -2,24 +2,22 @@ package db
 
 import org.intracer.wmua.ContestJury
 
-import scala.concurrent.Future
-
 trait ContestJuryDao {
 
-  def currentRound(id: Int): Future[Int]
+  def currentRound(id: Long): Option[Long]
 
-  def byCountry: Future[Map[String, Seq[ContestJury]]]
+  def byCountry: Map[String, Seq[ContestJury]]
 
-  def byId(id: Int): Future[ContestJury]
+  def byId(id: Long): ContestJury
 
-  def find(id: Long): Future[ContestJury]
+  def find(id: Long): Option[ContestJury]
 
-  def findAll(): Future[Seq[ContestJury]]
+  def findAll(): Seq[ContestJury]
 
-  def countAll(): Future[Int]
+  def countAll(): Long
 
-  def updateImages(id: Long, images: Option[String]): Future[Int]
+  def updateImages(id: Long, images: Option[String]): Int
 
-  def setCurrentRound(id: Int, round: Int): Future[Int]
+  def setCurrentRound(id: Long, round: Long): Int
 
 }

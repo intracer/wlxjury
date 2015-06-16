@@ -1,6 +1,6 @@
 @(
         user: org.intracer.wmua.User,
-        asUserId: Int,
+        asUserId: Long,
         asUser: org.intracer.wmua.User,
         pageFiles: Seq[org.intracer.wmua.ImageWithRating],
         regionFiles: Seq[org.intracer.wmua.ImageWithRating],
@@ -27,7 +27,7 @@
         </div>
     }
 
-@main("byrate", user, asUserId, asUser, Seq(round), rounds, true, None, region, pager(asUserId, regionFiles, page, None, round.id.toInt, region, "byrate"))  {
+@main("byrate", user, asUserId, asUser, Seq(round), rounds, true, None, region, pager(asUserId, regionFiles, page, None, round.id.get, region, "byrate"))  {
 
     @regionNav({region:String => s"/byrate/round/${round.id}/user/$asUserId/region/$region/page/1"}, round, region, byRegion)
 
@@ -40,7 +40,7 @@
                     <h1 id="@file.pageId" style="display: inline; width: 1px; height: 1px"></h1>
 
                     <div class="thumb">
-                        <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.toInt, None, "byrate")" >
+                        <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.get, None, "byrate")" >
                             <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)">
                         </a>
                     </div>

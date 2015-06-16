@@ -38,8 +38,8 @@ version := "1.0-SNAPSHOT"
 
 scalaVersion := "2.11.6"
 
-val scalikejdbcVersion = "2.2.6"
-val scalikejdbcPlayVersion = "2.4.0.RC1"
+val scalikejdbcVersion = "2.2.7"
+val scalikejdbcPlayVersion = "2.4.0"
 
 resolvers += Resolver.url("Edulify Repository", url("http://edulify.github.io/modules/releases/"))(Resolver.ivyStylePatterns)
 
@@ -58,7 +58,9 @@ libraryDependencies ++= Seq(
   "org.webjars" % "jquery" % "1.11.0",
   //  "com.edulify" %% "play-hikaricp" % "2.0.5",
   "mysql" % "mysql-connector-java" % "5.1.35",
+  "com.typesafe.slick" %% "slick" % "3.0.0",
   "com.typesafe.play" %% "play-slick" % "1.0.0",
+  "com.github.tototoshi" %% "slick-joda-mapper" % "2.0.0",
   "org.scalikejdbc" %% "scalikejdbc" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % scalikejdbcPlayVersion,
@@ -66,7 +68,7 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % scalikejdbcPlayVersion,
   "org.slf4j" % "slf4j-simple" % "[1.7,)",
   "org.apache.commons" % "commons-email" % "1.3.2",
-  "org.scalawiki" %% "scalawiki" % "0.3",
+  "org.scalawiki" %% "scalawiki" % "0.4-M1",
   "org.webjars" % "angularjs" % "1.1.5-1",
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
   jdbc, cache, filters, evolutions, specs2 % Test

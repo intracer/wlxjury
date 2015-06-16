@@ -1,8 +1,8 @@
-@(      asUserId: Int = 0,
+@(      asUserId: Long = 0,
         currentFiles: Seq[org.intracer.wmua.ImageWithRating] = Seq.empty,
         page: Int = 0,
         rate: Option[Int] = None,
-        roundId: Int,
+        roundId: Long,
         region: String = "all",
         module: String = "gallery"
         )(implicit messages: Messages)

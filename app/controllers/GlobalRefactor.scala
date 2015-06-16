@@ -1,12 +1,13 @@
 package controllers
 
 import akka.actor.ActorSystem
+import db.scalikejdbc.{SelectionJdbc, ImageJdbc}
 import org.intracer.wmua._
 import org.scalawiki.MwBot
 import org.scalawiki.dto.Page
 import org.scalawiki.http.HttpClientImpl
-import org.scalawiki.parser.TemplateParser
 import org.scalawiki.query.SinglePageQuery
+import org.scalawiki.wikitext.TemplateParser
 import org.scalawiki.wlx.dto.Contest
 import org.scalawiki.wlx.query.MonumentQuery
 
@@ -23,7 +24,7 @@ object GlobalRefactor {
   import controllers.GlobalRefactor.system.dispatcher
 
   def initContest(category: String, contest: ContestJury): Any = {
-    val images = ImageJdbc.findByContest(contest.id)
+    val images = ImageJdbc.findByContest(contest.id.get)
 
     if (images.isEmpty) {
       val query = commons.page(category)
@@ -36,7 +37,7 @@ object GlobalRefactor {
   }
 
   def appendImages(category: String, contest: ContestJury, idsFilter: Set[String] = Set.empty): Any = {
-    val images = ImageJdbc.findByContest(contest.id)
+    val images = ImageJdbc.findByContest(contest.id.get)
 
     val query = commons.page(category)
     initImagesFromCategory(contest, query, images, idsFilter)
@@ -50,7 +51,7 @@ object GlobalRefactor {
     //        Admin.createNewUser(User.wmuaUser, user)
     //      }
     //    }
-    val selection = Selection.findAll()
+    val selection = SelectionJdbc.findAll()
     if (selection.isEmpty) {
       //Admin.distributeImages(Contest.byId(14).get)
     }

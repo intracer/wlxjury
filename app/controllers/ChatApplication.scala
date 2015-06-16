@@ -1,14 +1,15 @@
 package controllers
 
-import org.intracer.wmua.{Comment, CommentJdbc, Round, User}
+import db.scalikejdbc.RoundJdbc
+import org.intracer.wmua.{Comment, CommentJdbc, User}
 import org.joda.time.DateTime
+import play.api.Play.current
+import play.api.i18n.Messages.Implicits._
 import play.api.libs.EventSource
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.iteratee.{Concurrent, Enumeratee, Enumerator}
 import play.api.libs.json._
 import play.api.mvc._
-import play.api.Play.current
-import play.api.i18n.Messages.Implicits._
 
 object ChatApplication extends Controller with Secured {
 
@@ -24,7 +25,7 @@ object ChatApplication extends Controller with Secured {
   def index = withAuth {
     user =>
       implicit request =>
-        val round = Round.current(user)
+        val round = RoundJdbc.current(user)
 
 //        cache(round.id) {
 //          Concurrent.broadcast[JsValue]
@@ -32,8 +33,8 @@ object ChatApplication extends Controller with Secured {
 
         implicit val commentFormat = Json.format[Comment]
 
-        val messages = CommentJdbc.findByRound(round.id.toInt).map(m => Json.toJson(m))
-        Ok(views.html.chat("Chat", user, user.id.toInt, user, messages, Seq(round), gallery = true))
+        val messages = CommentJdbc.findByRound(round.id.get).map(m => Json.toJson(m))
+        Ok(views.html.chat("Chat", user, user.id.get, user, messages, Seq(round), gallery = true))
   }
 
   /** Controller action for POSTing chat messages */
@@ -43,7 +44,7 @@ object ChatApplication extends Controller with Secured {
         req =>
           val body: JsValue = req.body.asInstanceOf[JsObject]
 
-          val round = Round.current(user)
+          val round = RoundJdbc.current(user)
 
 //          cache(round.id) {
 //            Concurrent.broadcast[JsValue]
@@ -58,7 +59,7 @@ object ChatApplication extends Controller with Secured {
           val at = DateTime.now.toString
           val room = (body \ "room").asInstanceOf[JsString].value.toInt
 
-          CommentJdbc.create(userId, username, round.id.toInt, room, text, at)
+          CommentJdbc.create(userId, username, round.id.get, room, text, at)
 
           Ok
     }, roles = Set(User.ADMIN_ROLE, "jury"))
@@ -76,7 +77,7 @@ object ChatApplication extends Controller with Secured {
     user =>
       implicit req =>
 
-        val round = Round.current(user)
+        val round = RoundJdbc.current(user)
 
 //        val future: Future[Result] = cache(round) {
 //          Concurrent.broadcast[JsValue]

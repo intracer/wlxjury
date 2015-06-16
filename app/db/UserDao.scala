@@ -3,21 +3,19 @@ package db
 import org.intracer.wmua.User
 import org.joda.time.DateTime
 
-import scala.concurrent.Future
-
 trait UserDao {
 
-  def byUserName(email: String): Future[User]
+  def byUserName(email: String): Option[User]
 
-  def find(id: Long): Future[User]
+  def find(id: Long): Option[User]
 
-  def findAll(): List[User]
+  def findAll(): Seq[User]
 
-  def findByContest(contest: Int): List[User]
+  def findByContest(contest: Long): Seq[User]
 
-//  def countByEmail(id: Long, email: String): Long
+  def countByEmail(id: Long, email: String): Long
 
-  def findByEmail(email: String): List[User]
+  def findByEmail(email: String): Seq[User]
 
   def countAll(): Long
 
@@ -26,7 +24,7 @@ trait UserDao {
               email: String,
               password: String,
               roles: Set[String],
-              contest: Int,
+              contest: Long,
               lang: Option[String] = None,
               createdAt: DateTime = DateTime.now
               ): User

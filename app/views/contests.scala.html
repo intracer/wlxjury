@@ -5,7 +5,7 @@
 @import helper._
 @import org.intracer.wmua.ContestJury
 
-@main(Messages("contests"), adminUser, adminUser.id.toInt) {
+@main(Messages("contests"), adminUser, adminUser.id.get) {
     <div class="row" >
         <h3>@Messages("contests")</h3>
 

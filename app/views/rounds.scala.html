@@ -1,3 +1,5 @@
+@import db.scalikejdbc.ContestJuryJdbc
+@import db.scalikejdbc.SelectionJdbc
 @(
         adminUser: org.intracer.wmua.User,
         rounds: Seq[org.intracer.wmua.Round],
@@ -10,9 +12,9 @@
     @import org.intracer.wmua.Round
     @import org.intracer.wmua.Selection
 
-    @main(Messages("rounds"), adminUser, adminUser.id.toInt) {
+    @main(Messages("rounds"), adminUser, adminUser.id.get) {
         <div class="row" >
-            <h3>@Messages("Contest: " + ContestJury.byId(adminUser.contest).head.name)</h3>
+            <h3>@Messages("Contest: " + ContestJuryJdbc.byId(adminUser.contest).name)</h3>
 
             @form(routes.Rounds.setImages(), 'class -> "form-vertical", 'id -> "set-images") {
                 <table>
@@ -84,7 +86,7 @@
                             <td>@round.limitMax </td>
                             <td>@round.recommended.fold("")(_.toString) </td> -->
                             <td>@round.allImages.size </td>
-                            <td>@Selection.byRoundSelected(round.id).filter(_.rate > 0).groupBy(_.pageId).size </td>
+                            <td>@SelectionJdbc.byRoundSelected(round.id.get).filter(_.rate > 0).groupBy(_.pageId).size </td>
                         </tr>
                     }
 

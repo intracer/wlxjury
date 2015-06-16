@@ -7,6 +7,7 @@ import play.api.Play
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfig}
 import slick.driver.JdbcProfile
 
+
 class SelectionDaoSlick extends HasDatabaseConfig[JdbcProfile] with SelectionDao {
 
   protected val dbConfig = DatabaseConfigProvider.get[JdbcProfile](Play.current)
@@ -23,16 +24,15 @@ class SelectionDaoSlick extends HasDatabaseConfig[JdbcProfile] with SelectionDao
 
     def rate = column[Int]("rate")
 
-    def juryId = column[Int]("jury_id")
+    def juryId = column[Long]("jury_id")
 
-    def round = column[Int]("round")
+    def round = column[Long]("round")
 
-    def createdAt = column[DateTime]("created_at")
+    //    def createdAt = column[DateTime]("created_at")
+    //
+    //    def deletedAt = column[Option[DateTime]]("deleted_at")
 
-    def deletedAt = column[Option[DateTime]]("deleted_at")
-
-
-    def * = (id, pageId, rate, round, createdAt, deletedAt) <>(Selection.tupled, Selection.unapply)
+    def * = (id, pageId, rate, juryId, round /*createdAt, deletedAt*/ ) <>(SelectionTable.fromDb, SelectionTable.toDb)
 
   }
 
@@ -65,4 +65,32 @@ class SelectionDaoSlick extends HasDatabaseConfig[JdbcProfile] with SelectionDao
   override def allJurors(roundId: Long): Int = ???
 
   override def byRound(roundId: Long): Seq[Selection] = ???
+}
+
+object SelectionTable {
+
+  def fromDb(t: (
+    Long, // fullname
+      Long, // email
+      Int,
+      Long, // password
+      Long
+    ))
+  =
+    new Selection(
+      id = t._1,
+      pageId = t._2,
+      rate = t._3,
+      juryId = t._4,
+      round = t._5
+    )
+
+  def toDb(s: Selection) =
+    Some(
+      s.id,
+      s.pageId,
+      s.rate,
+      s.juryId,
+      s.round
+    )
 }

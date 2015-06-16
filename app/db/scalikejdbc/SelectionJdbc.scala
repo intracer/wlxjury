@@ -33,13 +33,13 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
 
   def byRoundAndImageWithJury(roundId: Long, imageId: Long): Seq[(Selection, User)] = withSQL {
     select.from(SelectionJdbc as s)
-      .innerJoin(User as User.u).on(User.u.id, Selection.s.juryId)
+      .innerJoin(UserJdbc as UserJdbc.u).on(UserJdbc.u.id, SelectionJdbc.s.juryId)
       .where.eq(s.round, roundId).and
       .eq(s.pageId, imageId).and
       .gt(s.rate, 0).and
       .append(isNotDeleted)
       .orderBy(s.rate).desc
-  }.map(rs => (SelectionJdbc(SelectionJdbc.s)(rs), User(User.u)(rs))).list().apply()
+  }.map(rs => (SelectionJdbc(SelectionJdbc.s)(rs), UserJdbc(UserJdbc.u)(rs))).list().apply()
 
   def byRound(roundId: Long): Seq[Selection] = withSQL {
     select.from(SelectionJdbc as s).where

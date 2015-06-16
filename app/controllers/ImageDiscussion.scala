@@ -1,6 +1,7 @@
 package controllers
 
-import org.intracer.wmua.{CommentJdbc, Round}
+import db.scalikejdbc.RoundJdbc
+import org.intracer.wmua.CommentJdbc
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc.Controller
@@ -31,14 +32,14 @@ object ImageDiscussion extends Controller with Secured {
   def addComment(pageId: Long, region: String = "all", rate: Option[Int], module: String) = withAuth {
     user =>
       implicit request =>
-        val round = Round.current(user)
+        val round = RoundJdbc.current(user)
 
         editCommentForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
-            Redirect(routes.Gallery.large(user.id.toInt, pageId, region, round.id.toInt, rate, module)),
+            Redirect(routes.Gallery.large(user.id.get, pageId, region, round.id.get, rate, module)),
           commentBody => {
-            CommentJdbc.create(user.id.toInt, user.fullname, round.id.toInt, pageId, commentBody.text)
-            Redirect(routes.Gallery.large(user.id.toInt, pageId, region, round.id.toInt, rate, module).url.concat("#comments"))
+            CommentJdbc.create(user.id.get, user.fullname, round.id.get, pageId, commentBody.text)
+            Redirect(routes.Gallery.large(user.id.get, pageId, region, round.id.get, rate, module).url.concat("#comments"))
           }
     )
   }

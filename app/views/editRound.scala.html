@@ -5,7 +5,7 @@
 @import org.intracer.wmua.Round
 
 
-@main(Messages("edit round"), user, user.id.toInt) {
+@main(Messages("edit round"), user, user.id.get) {
     <div class="row" >
 
         @if(editRoundForm("id").value != Some("0")) {

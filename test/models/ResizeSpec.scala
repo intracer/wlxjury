@@ -1,6 +1,6 @@
 package models
 
-import org.intracer.wmua.Image
+import org.intracer.wmua.ImageUtil
 import org.specs2.mutable.Specification
 
 class ResizeSpec extends Specification {
@@ -10,7 +10,7 @@ class ResizeSpec extends Specification {
       val (imageX, imageY) = (320, 200)
       val (boxX, boxY) = (320, 200)
 
-      val px = Image.resizeTo(imageX, imageY, boxX, boxY)
+      val px = ImageUtil.resizeTo(imageX, imageY, boxX, boxY)
       px === 320
     }
 
@@ -18,7 +18,7 @@ class ResizeSpec extends Specification {
       val (imageX, imageY) = (640, 400)
       val (boxX, boxY) = (320, 200)
 
-      val px = Image.resizeTo(imageX, imageY, boxX, boxY)
+      val px = ImageUtil.resizeTo(imageX, imageY, boxX, boxY)
       px === 320
     }
 
@@ -26,7 +26,7 @@ class ResizeSpec extends Specification {
       val (imageX, imageY) = (400, 200)
       val (boxX, boxY) = (320, 200)
 
-      val px = Image.resizeTo(imageX, imageY, boxX, boxY)
+      val px = ImageUtil.resizeTo(imageX, imageY, boxX, boxY)
       px === 320
     }
   }

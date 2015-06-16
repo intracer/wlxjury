@@ -1,3 +1,4 @@
+@import db.scalikejdbc.ContestJuryJdbc
 @(
         adminUser: org.intracer.wmua.User,
         users: Seq[org.intracer.wmua.User],
@@ -6,9 +7,9 @@
 @import helper._
 @import org.intracer.wmua.ContestJury
 
-@main(Messages("users"), adminUser, adminUser.id.toInt) {
+@main(Messages("users"), adminUser, adminUser.id.get) {
     <div class="row" >
-        <h3>@Messages("Contest: " + ContestJury.byId(adminUser.contest).head.name)</h3>
+        <h3>@Messages("Contest: " + ContestJuryJdbc.byId(adminUser.contest).name)</h3>
 
         <table class="table table-striped table-condensed" style="background-color : #CCCCCC ;">
 

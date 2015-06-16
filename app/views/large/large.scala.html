@@ -1,6 +1,6 @@
 @(
         user: org.intracer.wmua.User,
-        asUserId: Int,
+        asUserId: Long,
         files: Seq[org.intracer.wmua.ImageWithRating],
         index: Int,
         start: Int,
@@ -19,8 +19,8 @@
     user,
     asUserId,
     files(index).totalRate(round) / 2.0,
-    s"/large/round/${round.id.toInt}/region/$region/pageid/${files(index).pageId}/select/",
-    readOnly = !user.roles.contains("jury") || !round.active || user.id.toInt != asUserId,
+    s"/large/round/${round.id.get}/region/$region/pageid/${files(index).pageId}/select/",
+    readOnly = !user.roles.contains("jury") || !round.active || user.id.get != asUserId,
     files = files,
     index = index,
     page = page,

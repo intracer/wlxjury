@@ -1,6 +1,7 @@
 package org.intracer.wmua
 
 import akka.actor.ActorSystem
+import db.scalikejdbc._
 import org.scalawiki.dto.Namespace
 import org.scalawiki.http.HttpClientImpl
 import org.scalawiki.wlx.dto.{SpecialNomination, Contest}
@@ -86,11 +87,11 @@ object Tools {
   }
 
   def roundAndUsers(contest: ContestJury) {
-    val rounds = Round.findByContest(contest.id)
+    val rounds = RoundJdbc.findByContest(contest.id.get)
     val newRoundNum = 2
     val round = if (rounds.size < newRoundNum) {
-      val r = Round.create(newRoundNum, Some(""), contest.id.toInt, "jury", 0, 10, Some(1), Some(1), None)
-      ContestJury.setCurrentRound(contest.id.toInt, r.id.toInt)
+      val r = RoundJdbc.create(newRoundNum, Some(""), contest.id.get, "jury", 0, 10, Some(1), Some(1), None)
+      ContestJuryJdbc.setCurrentRound(contest.id.get, r.id.get)
       r
     } else {
       rounds.find(_.number == newRoundNum).head
@@ -99,43 +100,48 @@ object Tools {
     if (round.jurors.isEmpty) {
       for (i <- 1 to 10) {
         val login = contest.country.replaceAll("[ \\-\\&]", "")
-        User.create("Test user " + contest.country + i, login + i + "@test", User.sha1(contest.country + "/" + "123"), Set("jury"), contest.id.toInt, Some("en"))
+        UserJdbc.create(
+          "Test user " + contest.country + i,
+          login + i + "@test", UserJdbc.sha1(contest.country + "/" + "123"),
+          Set("jury"),
+          contest.id.get,
+          Some("en"))
       }
     }
 
     val jurors = round.jurors
 
-    ContestJury.setCurrentRound(contest.id.toInt, round.id.toInt)
+    ContestJuryJdbc.setCurrentRound(contest.id.get, round.id.get)
 
     createNextRound(round, jurors, rounds.find(_.number == newRoundNum - 1).get)
   }
 
   def createNextRound(round: Round, jurors: Seq[User], prevRound: Round) = {
-    val newImages = ImageJdbc.byRatingMerged(0, round.id.toInt)
+    val newImages = ImageJdbc.byRatingMerged(0, round.id.get)
     if (true || newImages.isEmpty) {
 
       //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
       //
       val images = //ImageJdbc.byRatingMerged(1, prevRound.id.toInt).toArray
-      ImageJdbc.byRoundMerged(prevRound.id.toInt).sortBy(-_.totalRate(prevRound))//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
+      ImageJdbc.byRoundMerged(prevRound.id.get).sortBy(-_.totalRate(prevRound))//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
       .toArray.take(28)
 
       //      ImageJdbc.findAll().filter(_.region == Some("44"))
 
       val imagesByJurors = images.filter {
         iwr => iwr.selection.exists {
-          s => jurors.exists(j => j.id == s.juryId)
+          s => jurors.exists(j => j.id.contains(s.juryId))
         }
       }
       //
       val selection = jurors.flatMap { juror =>
-        imagesByJurors.map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
+        imagesByJurors.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
       }
 
       //      val images = ImageJdbc.byRoundMerged(prevRound.id.toInt).sortBy(-_.totalRate).take(21)
       //      val selection = images.flatMap(_.selection).map(_.copy(id = 0, round = round.id))
 
-      Selection.batchInsert(selection)
+      SelectionJdbc.batchInsert(selection)
     }
   }
 
@@ -181,8 +187,8 @@ object Tools {
 
   def users() = {
     for (i <- 1 to 12) {
-      val password = User.randomString(8)
-      val hash = User.sha1("Ukraine/" + password)
+      val password = UserJdbc.randomString(8)
+      val hash = UserJdbc.sha1("Ukraine/" + password)
 
       println(s"pw: $password, hash: $hash")
 
@@ -192,13 +198,13 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJury.find(19L).get
+    val contest = ContestJuryJdbc.find(27L).get
 
 //    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
 //    GlobalRefactor.appendImages(category, contest)
 
-    val prevRound = Round.find(32L).get
-    val round = Round.find(34L).get
+    val prevRound = RoundJdbc.find(41L).get
+    val round = RoundJdbc.find(34L).get
 
 //    val selection = Selection.byRound(22L)
 
@@ -212,15 +218,15 @@ object Tools {
     val monumentQuery = MonumentQuery.create(wlmContest)
     val nomination = SpecialNomination.wooden
     val monumentsListsId = monumentQuery.byPage(nomination.pages.head, nomination.listTemplate).map(_.id).toSet
-    val nanaRound = Round.find(27L).get
-    val monumentIdsByNana = ImageJdbc.byRatingMerged(1, nanaRound.id.toInt).flatMap(_.image.monumentId).toSet
+    val nanaRound = RoundJdbc.find(27L).get
+    val monumentIdsByNana = ImageJdbc.byRatingMerged(1, nanaRound.id.get).flatMap(_.image.monumentId).toSet
 
     val onlyNana = monumentIdsByNana -- monumentsListsId
 
     val allIds = monumentIdsByNana ++ monumentsListsId
 
     val category = "Category:Images from Wiki Loves Monuments 2014 in Ukraine"
-    val contest = ContestJury.find(20L).get
+    val contest = ContestJuryJdbc.find(20L).get
     GlobalRefactor.appendImages(category, contest, allIds)
 
   }

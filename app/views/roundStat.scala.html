@@ -10,7 +10,7 @@
         )(implicit flash: Flash, lang: Lang, messages: Messages)
 
     @roundLinks(round: org.intracer.wmua.Round, user: org.intracer.wmua.User, rate: Int)= {
-        @defining(byUserRateCount.getOrElse(user.id, Map.empty).getOrElse(rate, 0)) { count =>
+        @defining(byUserRateCount.getOrElse(user.id.get, Map.empty).getOrElse(rate, 0)) { count =>
                     <div class="btn-group">
                         @if(round.rates.id==1) {
                             <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
@@ -39,8 +39,8 @@
                             </a>
                         }
                     </div>
-        @if(round.rates.id==1) { @count } else {
-            @byUserRateCount.getOrElse(user.id, Map.empty).toSeq.collect({
+        @if(round.rates.id == 1) { @count } else {
+            @byUserRateCount.getOrElse(user.id.get, Map.empty).toSeq.collect({
                 case (x,y) if x > 0 => y
             }).sum
 
@@ -48,7 +48,7 @@
         }
     }
 
-    @main(Messages("statistics"), user, user.id.toInt, user, Seq.empty, Seq.empty, gallery = false) {
+    @main(Messages("statistics"), user, user.id.get, user, Seq.empty, Seq.empty, gallery = false) {
 
         @if(user.roles.intersect(Set("organizer", "admin", "jury")).nonEmpty) {
             <div class="row" >
@@ -108,7 +108,7 @@
                         @user.email
                         </td>
                         <td>
-                            @defining(byUserCount.getOrElse(user.id, 0)) { count =>
+                            @defining(byUserCount.getOrElse(user.id.get, 0)) { count =>
 
                                     @if(round.rates.id == 1) {
                                         <a href="/gallery/round/@round.id/user/@user.id/page/1"
