@@ -58,7 +58,15 @@ object Round extends SQLSyntaxSupport[Round] {
 
   override val tableName = "rounds"
 
-  def activeRounds(contestId: Int) = Seq(find(ContestJury.currentRound(contestId)).get)
+  def activeRounds(contestId: Int): Seq[Round] = {
+    val active = Round.findByContest(contestId).filter(_.active)
+    if (active.nonEmpty)
+      active
+    else {
+      Round.find(ContestJury.currentRound(contestId)).toSeq
+    }
+  }
+    //Seq(find(ContestJury.currentRound(contestId)).get)
 
   def current(user: User) = {
     val contest = ContestJury.byId(user.contest).get

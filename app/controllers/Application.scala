@@ -45,7 +45,7 @@ object Application extends Controller with Secured {
         value => {
           // binding success, you get the actual value
           val user = User.login(value._1, value._2).get
-          val round = Round.activeRounds(user.contest).head
+         // val round = Round.activeRounds(user.contest).headOption.orElse(Round.find(ContestJury.currentRound(user.contest)))
           val result = indexRedirect(user).withSession(Security.username -> value._1.trim)
           import play.api.Play.current
           user.lang.fold(result)(l => result.withLang(Lang(l)))
