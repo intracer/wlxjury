@@ -72,5 +72,12 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
       .orderBy(c.id)
   }.map(CommentJdbc(c)).list().apply()
 
+  def findBySubject(subject: Long)(implicit session: DBSession = autoSession): List[Comment] = withSQL {
+    select.from(CommentJdbc as c)
+      .where //.append(isNotDeleted)
+      // .and
+      .eq(c.room, subject)
+      .orderBy(c.id)
+  }.map(CommentJdbc(c)).list().apply()
 
 }
