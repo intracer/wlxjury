@@ -54,8 +54,7 @@ resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 libraryDependencies ++= Seq(
   // "com.mohiva" %% "play-silhouette" % "1.0",
   "org.webjars" %% "webjars-play" % "2.4.0",
-  "org.webjars" % "bootstrap" % "3.1.1-2",
-  "org.webjars" % "jquery" % "1.11.0",
+  "com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24",
   //  "com.edulify" %% "play-hikaricp" % "2.0.5",
   "mysql" % "mysql-connector-java" % "5.1.35",
   "com.typesafe.slick" %% "slick" % "3.0.0",
