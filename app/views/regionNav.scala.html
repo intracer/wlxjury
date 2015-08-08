@@ -7,14 +7,14 @@
 @if(round == null || round.contest == 14 || round.contest == 16 || round.contest == 17 || round.contest == 20 || round.contest == 23) {
     <div class="row" >
         <nav>
-        <div class="col-md-12 text-center"  style="margin-bottom : 5px ;">
+        <div class="col-md-12 text-center"  style="margin-bottom: 5px;">
             <ul class="pagination" id="regionnav" style="margin-top: 0px; margin-bottom: 0px;">
-                <li>
-                    <a href="@regionToUrl("all")" @if("all" == region) {style="font-weight: bold"}>*</a>
+                <li @if("all" == region) {style="font-weight: bold"}>
+                    <a href="@regionToUrl("all")" >*</a>
                 </li>
                 @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id, 0) > 0) {
-                    <li>
-                        <a href="@regionToUrl(id)" @if(id == region) {style="font-weight: bold"}>
+                    <li @if(id == region) {style="font-weight: bold"}>
+                        <a href="@regionToUrl(id)" >
                             @Messages(id) (@byRegion(id))
                         </a>
                     </li>
