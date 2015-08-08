@@ -13,74 +13,100 @@
         pager: Html = Html(""))(implicit lang: Lang, messages: Messages)
 @import org.intracer.wmua.Round
 
-    <nav class="navbar navbar-inverse" role="navigation" style="margin-bottom: 10px;">
+<nav class="navbar navbar-inverse" role="navigation" style="margin-bottom: 10px;">
     <div class="navbar-inner">
         <div class="container-fluid" style="margin-left : 5px ; margin-right : 5px">
-                <ul class="nav navbar-nav">
+            <ul class="nav navbar-nav">
                 @if(user != null) {
+                        <!--
+                        Admin items: users and rounds setup
+                    -->
                     @if(user.roles.contains("admin")) {
                         <li role="presentation"><a class="brand" href="/admin/users">@Messages("users")</a>
-                        <li role="presentation"><a class="brand" href="/admin/rounds">@Messages("rounds")</a>
-                            }
+                                <!-- <li role="presentation"><a class="brand" href="/admin/rounds">@Messages("rounds")</a> -->
+                        }
+
                     @for(round <- currentRounds) {
 
-                    @if(user.canViewOrgInfo(round)) {
-                        <li role="presentation"><a class="brand" href="/roundstat">@Messages("statistics")</a>
-                            }
+                        <!--
+                        Statistics item, if user has rights
+                        -->
+                        @if(user.canViewOrgInfo(round)) {
+                            <li role="presentation"><a class="brand" href="/roundstat">@Messages("statistics")</a>
+                                }
 
-                        @if((asUserId == 0 || asUserId == user.id) && round.roles.intersect(user.roles).nonEmpty){
+                            <!--
+                            If (viewing users summary or own gallery) and user is juror"
+                        -->
+                        @if((asUserId == 0 || asUserId == user.id.get) && round.roles.intersect(user.roles).nonEmpty) {
+                            <!--
+                                Show rounds dropdown
+                            -->
                         <li  role="presentation" class="brand" style="margin-left: 10px">
-                            @dropDownSelection(
-                                new UiSelectionDto[Long](
-                                    routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, _, rate),
-                                    round.id.get,
-                                    SelectionItem(round.description),
-                                    RoundJdbc.findByContest(user.contest).filter(user.canViewOrgInfo).map(r => (r.id.get, SelectionItem(r.description, localized = false))),
-                                    defaultKey = round.id.get,
-                                    default = false,
-                                    id = 1
-                                ).asInstanceOf[UiSelectionDto[Any]]
-                            )
+                        @dropDownSelection(
+                            new UiSelectionDto[Long](
+                                routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, _, rate),
+                                round.id.get,
+                                SelectionItem(round.description),
+                                RoundJdbc.findByContest(user.contest).filter(user.canViewOrgInfo).map {
+                                    r => (r.id.get, SelectionItem(r.description, localized = false))
+                                },
+                                defaultKey = round.id.get,
+                                default = false,
+                                id = 1
+                            ).asInstanceOf[UiSelectionDto[Any]]
+                        )
                         </li>
+
+                            <!--
+                                If binary round show unrated, selected, rejected tabs
+                            -->
                         @if(round.rates == Round.binaryRound) {
                             <li role="presentation" class="@if(rate.contains(0)){active}">
-                                <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(0))">@Messages("unrated") (@user.roundFiles(round.id.get).count(_.rate == 0))</a>
+                                <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(0))">
+                                    @Messages("unrated") (@user.roundFiles(round.id.get).count(_.rate == 0))
+                                </a>
                             <li role="presentation" class="@if(rate.contains(1)){active active-}selected">
-                                <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(1))">@Messages("selected") (@user.roundFiles(round.id.get).count(_.rate == 1))</a>
+                                <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(1))">
+                                    @Messages("selected") (@user.roundFiles(round.id.get).count(_.rate == 1))
+                                </a>
                             <li role="presentation" class="@if(rate.contains(-1)){active active-}rejected">
-                                <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(-1))">@Messages("rejected") (@user.roundFiles(round.id.get).count(_.rate == -1))</a>
+                                <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(-1))">
+                                    @Messages("rejected") (@user.roundFiles(round.id.get).count(_.rate == -1))
+                                </a>
                                 } else {
-                            <li role="presentation">
+                                <!--
+                                Rating round
+                                -->
 
-                            @if(round.id.contains(34)) {
-                                <a class="brand" href="/chat">@Messages("chat") </a>
-                            }
+                            @if(round.id.get == 34) { <li role="presentation"> <a class="brand" href="/chat">@Messages("chat") </a>}
 
-                                @if(user.roundFiles(round.id.get).count(_.rate == 0) > 0) {
+                            @if(user.roundFiles(round.id.get).count(_.rate == 0) > 0) {
                                 <li  role="presentation" class="@if(rate.contains(0)) {active}">
                                     <a href="/gallery/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
-                                        (@user.roundFiles(round.id.get).count(_.rate == 0))</a>
+                                        (@user.roundFiles(round.id.get).count(_.rate == 0))
+                                    </a>
                                     }
                             <li  role="presentation" class="@if(!rate.contains(0) && asUserId == user.id.get) {active}">
                                 <a  href="/byrate/round/@round.id/user/@user.id/page/1">@Messages("rated")
-                                    (@user.roundFiles(round.id.get).count(_.rate > 0))</a>
+                                    (@user.roundFiles(round.id.get).count(_.rate > 0))
+                                </a>
 
-                            @if(false) {
+                                @if(false) {
                             <li  role="presentation" class="@if(!rate.contains(0) && asUserId == 0) {active}">
                                 <a href="/byrate/round/@round.id/user/0/page/1">@Messages("all.jury.rating")
                                     (@user.roundFiles(round.id.get).count(_.rate > 0))</a>
                                 }
-
                                 }
-                        }
+                    }
                     }
 
-                    @if(!user.id.contains(asUserId) && user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
+                    @if(user.id.get != asUserId && user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
                         @for(round <- currentRounds) {
-                        <li  role="presentation" class="brand" >
-                        @dropDownSelection(
-                            new UiSelectionDto[Long](
-                                {roundId: Long => routes.Gallery.query(module = if (rounds.find(_.id == roundId.toLong).get.rates.id == 1) "gallery" else "byrate",
+                            <li  role="presentation" class="brand" >
+                            @dropDownSelection(
+                                new UiSelectionDto[Long](
+                                {roundId: Long => routes.Gallery.query(module = if (rounds.find(_.id == roundId).get.rates.id == 1) "gallery" else "byrate",
                                     Some(asUserId), page = 1, region = region, roundId, rate)},
                                 round.id.get,
                                 SelectionItem(round.description),
@@ -88,56 +114,67 @@
                                 defaultKey = round.id.get,
                                 default = false,
                                 id = 2
-                            ).asInstanceOf[UiSelectionDto[Any]]
-                        )
-                        </li>
-                            @if(round.id.contains(34)) {
+                                ).asInstanceOf[UiSelectionDto[Any]]
+                            )
+                            </li>
+                            @if(round.id.get == 34) {
                                 <li  role="presentation">
                                     <a class="brand" style="margin-left: 10px;" href="/chat">@Messages("chat") </a>
                                 </li>
                             }
                             <li role="presentation">
 
-                            @dropDownSelection(
-                                new UiSelectionDto[Option[Long]](
-                                    routes.Gallery.query(module = title, _, page = 1, region = region, round = round.id.get, rate),
-                                    Some(asUserId),
-                                    SelectionItem("all"),
-                                    round.jurors.map(u => (Some(u.id.get), SelectionItem(u.fullname, localized = false))),
-                                    defaultKey = Some(0),
-                                    id = 3
-                                ).asInstanceOf[UiSelectionDto[Any]]
-                            )
-
-                            @if(round.rates.id == 1) {
                                 @dropDownSelection(
-                                    new UiSelectionDto[Option[Int]](
-                                        routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.id.get, _),
-                                        rate,
+                                    new UiSelectionDto[Option[Long]](
+                                        routes.Gallery.query(module = title, _, page = 1, region = region, round = round.id.get, rate),
+                                        Some(asUserId),
                                         SelectionItem("all"),
-                                        Seq(
-                                            Some(1)-> SelectionItem("selected"),
-                                            Some(0) -> SelectionItem("unrated"),
-                                            Some(-1) -> SelectionItem("rejected")),
-                                        None,
-                                    id = 4
+                                        round.jurors.map(u => (Some(u.id.get), SelectionItem(u.fullname, localized = false))),
+                                        defaultKey = Some(0L),
+                                        id = 3
                                     ).asInstanceOf[UiSelectionDto[Any]]
                                 )
-                            }
-                            @if(round.rates.id == 1 && title != "byrate") {
-                                @dropDownSelection(
-                                    new UiSelectionDto[String](
-                                        routes.Gallery.query(_, user = Some(asUserId), page = 1, region = region, round = round.id.get, rate),
-                                        title,
-                                        SelectionItem("thumbnails", Some("th")),
-                                        Seq(
-                                            /*"gallerylarge" -> SelectionItem("large.thumbnails",Some("icon-th-large")),*/
-                                            "filelist" -> SelectionItem("file.list", Some("align-justify"))),
-                                        "gallery",
-                                        id = 5
-                                    ).asInstanceOf[UiSelectionDto[Any]]
-                                    , iconOnly = true)
-                            } else {
+
+                                @if(round.rates.id == 1) {
+                                    @dropDownSelection(
+                                        new UiSelectionDto[Option[Int]](
+                                            routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.id.get, _),
+                                            rate,
+                                            SelectionItem("all"),
+                                            Seq(
+                                                Some(1)-> SelectionItem("selected"),
+                                                Some(0) -> SelectionItem("unrated"),
+                                                Some(-1) -> SelectionItem("rejected")),
+                                            None,
+                                            id = 4
+                                        ).asInstanceOf[UiSelectionDto[Any]]
+                                    )
+                                }
+                                @if(/*round.rates.id == 1 &&*/ title != "byrate") {
+                                    @dropDownSelection(
+                                        new UiSelectionDto[String](
+                                            routes.Gallery.query(_, user = Some(asUserId), page = 1, region = region, round = round.id.get, rate),
+                                            title,
+                                            SelectionItem("thumbnails", Some("th")),
+                                            Seq(
+                                                /*"gallerylarge" -> SelectionItem("large.thumbnails",Some("icon-th-large")),*/
+                                                "filelist" -> SelectionItem("file.list", Some("align-justify"))),
+                                            "gallery",
+                                            id = 5
+                                        ).asInstanceOf[UiSelectionDto[Any]]
+                                        , iconOnly = true)
+                                } else {
+                                    @if(user.roundFiles(round.id.get).count(_.rate == 0) > 0) {
+                            <li  role="presentation" class="@if(rate.contains(0)) {active}">
+                                <a href="/gallery/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
+                                    (@user.roundFiles(round.id.get).count(_.rate == 0))
+                                </a>
+                                }
+                            <li  role="presentation" class="@if(!rate.contains(0) && asUserId == user.id.get) {active}">
+                                <a  href="/byrate/round/@round.id/user/@user.id/page/1">@Messages("rated")
+                                    (@user.roundFiles(round.id.get).count(_.rate > 0))
+                                </a>
+
                                 @dropDownSelection(
                                     new UiSelectionDto[String](
                                         routes.Gallery.query(_, user = Some(asUserId), page = 1, region = region, round = round.id.get),
@@ -150,18 +187,18 @@
                                         id = 6
                                     ).asInstanceOf[UiSelectionDto[Any]]
                                     , iconOnly = true)
-                            }
-                        }
-                        </li>
+                                }
+                                }
+                    </li>
                     }
 
                 } else {
                     <a class="brand" href="#">@Messages("application.name")</a>
                 }
-                    @pager
-                </ul>
-                @logged(user)
+                @pager
+            </ul>
+            @logged(user)
 
-            </div>
+        </div>
     </div>
 </nav>

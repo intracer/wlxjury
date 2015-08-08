@@ -11,7 +11,7 @@ class UiSelectionDto[T](
                          val default:Boolean = true,
                          val id:Int = 0) {
 
-  val optValues: Seq[(T, SelectionItem)] = (if (default || values.isEmpty) Seq(defaultKey-> defaultValue) else Seq.empty) ++
+  val optValues: Seq[(T, SelectionItem)] = (if (default || values.isEmpty) Seq(defaultKey -> defaultValue) else Seq.empty) ++
     values.map {
       case (k, v) => (k, v)
     }

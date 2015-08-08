@@ -29,7 +29,7 @@
 
 @main("byrate", user, asUserId, asUser, Seq(round), rounds, true, None, region, pager(asUserId, regionFiles, page, None, round.id.get, region, "byrate"))  {
 
-    @regionNav({region:String => s"/byrate/round/${round.id}/user/$asUserId/region/$region/page/1"}, round, region, byRegion)
+    @regionNav({region:String => s"/byrate/round/${round.id.get}/user/$asUserId/region/$region/page/1"}, round, region, byRegion)
 
     <div class="row" >
 
