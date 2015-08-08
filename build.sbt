@@ -72,9 +72,9 @@ libraryDependencies ++= Seq(
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
   jdbc, cache, filters, evolutions, specs2 % Test
 
-  )
+)
 
-  lazy val root = (project in file (".") ).enablePlugins (PlayScala)
+lazy val root = (project in file (".") ).enablePlugins (PlayScala)
 //lazy val root = (project in file(".")).enablePlugins(PlayScala, DeploySSH).settings(
 //  deployHomeConfigFiles ++= Seq("wm/wmua.conf"),
 //  //  deployConfigs ++= Seq(

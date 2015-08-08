@@ -17,8 +17,8 @@
                     <th>@Messages("country")</th>
                     <th>@Messages("year")</th>
                     <th>@Messages("images")</th>
-                    <th>@Messages("objects")</th>
-                    <th>@Messages("users")</th>
+                        <!--                    <th>@Messages("objects")</th>
+                    <th>@Messages("users")</th> -->
                     <th>@Messages("jurors")</th>
                     <th>@Messages("id.template")</th>
                 </tr>
@@ -26,18 +26,19 @@
 
             <tbody>
 
-                @for(contest <- contests) {
-                    <tr>
-                        <td>@Messages(contest.name)</td>
-                        <td>@Messages(contest.country)</td>
-                        <td>@contest.year</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td>@contest.monumentIdTemplate.getOrElse("")</td>
-                    </tr>
-                }
+            @for(contest <- contests) {
+                <tr>
+                    <td>@Messages(contest.name)</td>
+                    <td>@Messages(contest.country)</td>
+                    <td>@contest.year</td>
+                    <td></td>
+                    <td></td>
+                    <td></td><!--                        <td></td>
+                        <td></td> -->
+                    <td></td>
+                    <td>@contest.monumentIdTemplate.getOrElse("")</td>
+                </tr>
+            }
             </tbody>
         </table>
     </div>

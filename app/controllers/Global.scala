@@ -10,6 +10,9 @@ import play.api._
 import play.api.libs.concurrent.Akka
 import scalikejdbc.{GlobalSettings, LoggingSQLAndTimeSettings}
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 
 object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
@@ -66,6 +69,7 @@ object Global {
     KOATUU.load()
     contestImages()
 
+    Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
   }
 
 

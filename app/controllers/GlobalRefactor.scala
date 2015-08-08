@@ -85,11 +85,11 @@ object GlobalRefactor {
       filesInCategory =>
         val newImagesOrigIds: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId).filterNot(i => existingPageIds.contains(i.pageId))
 
-        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
+//        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
+//
+//        val newImages = newImagesOrigIds.map(p => p.copy(pageId = maxId + p.pageId))
 
-        val newImages = newImagesOrigIds.map(p => p.copy(pageId = maxId + p.pageId))
-
-        contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
+        contest.monumentIdTemplate.fold(saveNewImages(contest, newImagesOrigIds)) { monumentIdTemplate =>
 
           query.revisionsByGenerator("categorymembers", "cm",
             Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
@@ -98,7 +98,7 @@ object GlobalRefactor {
               val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
               val ids: Seq[String] = monumentIds(pages, existingPageIds, monumentIdTemplate)
 
-              val imagesWithIds = newImages.zip(ids).map {
+              val imagesWithIds = newImagesOrigIds.zip(ids).map {
                 case (image, id) => image.copy(monumentId = Some(id))
               }.filter(_.monumentId.forall(id => idsFilter.isEmpty || idsFilter.contains(id)))
               saveNewImages(contest, imagesWithIds)

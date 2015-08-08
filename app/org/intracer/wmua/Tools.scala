@@ -1,7 +1,6 @@
 package org.intracer.wmua
 
 import akka.actor.ActorSystem
-import db.scalikejdbc._
 import org.scalawiki.dto.Namespace
 import org.scalawiki.http.HttpClientImpl
 import org.scalawiki.wlx.dto.{SpecialNomination, Contest}
