@@ -37,14 +37,18 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     val userOpt = if (sha1(unameTrimmed + "/" + passwordTrimmed) == "***REMOVED***") {
       Some(wmuaUser)
     } else {
-      findByEmail(username).headOption.filter(user => hash(user, password) == user.password.get)
+      findByEmail(username).headOption.filter(user => {
+        val inputHash = hash(user, password)
+        val dbHash = user.password.get
+        inputHash == dbHash
+      })
     }
 
-    for (user <- userOpt) {
-      val contest = ContestJuryJdbc.find(user.contest).get
-   //   Cache.set(s"contest/${contest.id}", contest)
-   //   Cache.set(s"user/${user.email}", user)
-    }
+//    for (user <- userOpt) {
+//      val contest = ContestJuryJdbc.find(user.contest).get
+//      Cache.set(s"contest/${contest.id}", contest)
+//      Cache.set(s"user/${user.email}", user)
+//    }
 
     userOpt
   }
