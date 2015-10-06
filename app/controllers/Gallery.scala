@@ -2,8 +2,6 @@ package controllers
 
 import db.scalikejdbc._
 import org.intracer.wmua._
-import play.api.data.Form
-import play.api.data.Forms._
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{Controller, EssentialAction, Request, Result}
 
@@ -329,14 +327,5 @@ object Gallery extends Controller with Secured with Instrumented {
 
     Ok(views.html.large.large(user, asUserId, files, index, start, end, page, rate, region, round, monument, module, comments, selection))
   }
-
-  val loginForm = Form(
-    tuple(
-      "login" -> nonEmptyText(),
-      "password" -> nonEmptyText()
-    ) verifying("invalid.user.or.password", fields => fields match {
-      case (l, p) => UserJdbc.login(l, p).isDefined
-    })
-  )
 
 }
