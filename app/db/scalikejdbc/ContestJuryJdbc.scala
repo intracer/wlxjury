@@ -16,8 +16,6 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
   override def currentRound(id: Long): Option[Long] =
     find(id).map(_.currentRound)
 
-  // find(id).flatMap(cj => Future.successful(cj.currentRound))
-
   override def byCountry = findAll().groupBy(_.country)
 
   //findAll().map(_.groupBy(_.country))
@@ -39,28 +37,21 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
 
   val c = ContestJuryJdbc.syntax("c")
 
-  override def find(id: Long): Option[ContestJury] = //Future {
+  override def find(id: Long): Option[ContestJury] =
     withSQL {
       select.from(ContestJuryJdbc as c).where.eq(c.id, id)
     }.map(ContestJuryJdbc(c)).single().apply()
 
-  // }
-
-  override def findAll(): List[ContestJury] = //Future {
+  override def findAll(): List[ContestJury] =
     withSQL {
       select.from(ContestJuryJdbc as c)
-        .orderBy(c.country)
+        .orderBy(c.id)
     }.map(ContestJuryJdbc(c)).list().apply()
 
-  // }
-
-
-  override def countAll(): Long = //Future {
+  override def countAll(): Long =
     withSQL {
       select(sqls.count).from(ContestJuryJdbc as c)
     }.map(rs => rs.long(1)).single().apply().get
-
-  // }
 
   override def updateImages(id: Long, images: Option[String]): Int = withSQL {
     update(ContestJuryJdbc).set(
@@ -73,4 +64,58 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
       column.currentRound -> round
     ).where.eq(column.id, id)
   }.update().apply()
+
+
+  override def create(id: Option[Long],
+                      name: String,
+                      year: Int,
+                      country: String,
+                      images: Option[String],
+                      currentRound: Long,
+                      monumentIdTemplate: Option[String]): ContestJury = {
+    val dbId = withSQL {
+      insert.into(ContestJuryJdbc).namedValues(
+        column.id -> id,
+        column.name -> name,
+        column.year -> year,
+        column.country -> country,
+        column.images -> images,
+        column.currentRound -> currentRound,
+        column.monumentIdTemplate -> monumentIdTemplate)
+    }.updateAndReturnGeneratedKey().apply()
+
+    ContestJury(id = Some(dbId),
+      name = name,
+      year = year,
+      country = country,
+      images = images,
+      currentRound = currentRound,
+      monumentIdTemplate = monumentIdTemplate)
+  }
+
+  override def batchInsert(contests: Seq[ContestJury]) {
+    val column = ContestJuryJdbc.column
+    DB localTx { implicit session =>
+      val batchParams: Seq[Seq[Any]] = contests.map(c => Seq(
+        c.id,
+        c.name,
+        c.year,
+        c.country,
+        c.images,
+        c.currentRound,
+        c.monumentIdTemplate
+      ))
+      withSQL {
+        insert.into(ContestJuryJdbc).namedValues(
+          column.id -> sqls.?,
+          column.name-> sqls.?,
+          column.year -> sqls.?,
+          column.country -> sqls.?,
+          column.images -> sqls.?,
+          column.currentRound -> sqls.?,
+          column.monumentIdTemplate -> sqls.?
+        )
+      }.batch(batchParams: _*).apply()
+    }
+  }
 }

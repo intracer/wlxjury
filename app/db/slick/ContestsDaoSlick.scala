@@ -59,4 +59,13 @@ class ContestsDaoSlick extends HasDatabaseConfig[JdbcProfile] with ContestJuryDa
   override def updateImages(id: Long, images: Option[String]): Int =
     db.run(Contests.filter(_.id === id).map(_.images).update(images)).await
 
+  override def create(id: Option[Long],
+             name: String,
+             year: Int,
+             country: String,
+             images: Option[String],
+             currentRound: Long,
+             monumentIdTemplate: Option[String]): ContestJury = ???
+
+  override def batchInsert(contests: Seq[ContestJury]): Unit = ???
 }

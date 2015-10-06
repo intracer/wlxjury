@@ -20,4 +20,14 @@ trait ContestJuryDao {
 
   def setCurrentRound(id: Long, round: Long): Int
 
+  def create(id: Option[Long],
+             name: String,
+             year: Int,
+             country: String,
+             images: Option[String],
+             currentRound: Long,
+             monumentIdTemplate: Option[String]): ContestJury
+
+  def batchInsert(contests: Seq[ContestJury])
+
 }
