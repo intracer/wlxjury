@@ -3,7 +3,6 @@ CREATE TABLE selection (
   jury_id integer not null,
   created_at timestamp not null,
   deleted_at timestamp null,
-  email varchar(255),
   round integer,
   page_id bigint,
   rate int

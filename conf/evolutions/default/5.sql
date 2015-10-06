@@ -1,8 +1,15 @@
 # --- !Ups
-
-alter TABLE selection add column round integer;
-update selection set round = 1;
+create table images (
+  page_id bigint PRIMARY KEY,
+  contest bigint not null,
+  title varchar(4000),
+  url varchar(4000),
+  page_url varchar(4000),
+  last_round int,
+  width int,
+  height int,
+  monument_id varchar(255)
+);
 
 # --- !Downs
-
-alter TABLE selection drop column round;
+DROP TABLE images;
