@@ -65,7 +65,6 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
     ).where.eq(column.id, id)
   }.update().apply()
 
-
   override def create(id: Option[Long],
                       name: String,
                       year: Int,
@@ -93,7 +92,7 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
       monumentIdTemplate = monumentIdTemplate)
   }
 
-  override def batchInsert(contests: Seq[ContestJury]) {
+  override def batchInsert(contests: Seq[ContestJury]): Seq[Int] = {
     val column = ContestJuryJdbc.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] = contests.map(c => Seq(

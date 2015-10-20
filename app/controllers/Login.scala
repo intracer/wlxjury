@@ -28,10 +28,12 @@ object Login extends Controller with Secured {
       } else {
         Redirect(routes.Gallery.byRate(user.id.get, 0, "all", 0))
       }
-    } else if (user.roles.contains(User.ADMIN_ROLE)){
+    } else if (User.ADMIN_ROLES.intersect(user.roles).nonEmpty){
       Redirect(routes.Admin.users())
     } else {
-      Redirect(routes.Login.error("You don't have permission to access this page"))
+      Redirect(
+        routes.Login.error("You don't have permission to access this page")
+      )
     }
   }
 
@@ -49,7 +51,6 @@ object Login extends Controller with Secured {
         value => {
           // binding success, you get the actual value
           val user = UserJdbc.login(value._1, value._2).get
-          val round = RoundJdbc.activeRounds(user.contest).head
           val result = indexRedirect(user).withSession(Security.username -> value._1.trim)
           user.lang.fold(result)(l => result.withLang(Lang(l)))
         }

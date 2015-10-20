@@ -26,6 +26,7 @@ trait RoundDao {
              recommended: Option[Int],
              createdAt: DateTime = DateTime.now): Round
 
+  def create(round: Round): Round
 
   def updateRound(id: Long, round: Round)
 

@@ -21,7 +21,7 @@ object Admin extends Controller with Secured {
         val users = UserJdbc.findByContest(user.contest)
 
         Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), RoundJdbc.current(user)))
-  }, Set(User.ADMIN_ROLE))
+  }, User.ADMIN_ROLES)
 
   def editUser(id: String) = withAuth({
     user =>
@@ -31,7 +31,7 @@ object Admin extends Controller with Secured {
         val filledForm = editUserForm.fill(editedUser)
 
         Ok(views.html.editUser(user, filledForm, RoundJdbc.current(user)))
-  }, Set(User.ADMIN_ROLE, s"USER_ID_$id"))
+  }, Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$id"))
 
   def saveUser() = withAuth({
     user =>
@@ -95,7 +95,7 @@ object Admin extends Controller with Secured {
     implicit val lang = formUser.lang.fold(Lang("en"))(Lang.apply)
     val subject: String = Messages("welcome.subject", Messages(contest.name))
     val message: String = Messages("welcome.messsage", Messages(contest.name), juryhome, formUser.email, password, user.fullname)
-    sendMail.sendMail(from = (user.fullname, user.email), to = Seq(user.email), bcc = Seq(user.email), subject = subject, message = message)
+    //sendMail.sendMail(from = (user.fullname, user.email), to = Seq(user.email), bcc = Seq(user.email), subject = subject, message = message)
   }
 
   val editUserForm = Form(
@@ -140,11 +140,11 @@ object Admin extends Controller with Secured {
         val message: String = s"Password changed for ${contest.name} jury\n" +
           s" Please login to our jury tool $juryhome \nwith login: ${editedUser.email} and password: $password\n" +
           s"Regards, ${user.fullname}"
-         sendMail.sendMail(from = (user.fullname, user.email), to = Seq(user.email), bcc = Seq(user.email), subject = subject, message = message)
+        // sendMail.sendMail(from = (user.fullname, user.email), to = Seq(user.email), bcc = Seq(user.email), subject = subject, message = message)
 
         Redirect(routes.Admin.editUser(id)).flashing("password-reset" -> s"Password reset. New Password sent to ${editedUser.email}")
 
-  }, Set(User.ADMIN_ROLE))
+  }, User.ADMIN_ROLES)
 
 
 }

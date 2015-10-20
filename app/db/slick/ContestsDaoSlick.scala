@@ -67,5 +67,5 @@ class ContestsDaoSlick extends HasDatabaseConfig[JdbcProfile] with ContestJuryDa
              currentRound: Long,
              monumentIdTemplate: Option[String]): ContestJury = ???
 
-  override def batchInsert(contests: Seq[ContestJury]): Unit = ???
+  override def batchInsert(contests: Seq[ContestJury]): Seq[Int] = ???
 }

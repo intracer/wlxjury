@@ -10,11 +10,11 @@ case class Round(id: Option[Long],
                  name: Option[String],
                  contest: Long,
                  roles: Set[String] = Set("jury"),
-                 distribution: Int,
+                 distribution: Int = 0,
                  rates: Rates = Round.binaryRound,
-                 limitMin: Option[Int],
-                 limitMax: Option[Int],
-                 recommended: Option[Int],
+                 limitMin: Option[Int] = None,
+                 limitMax: Option[Int] = None,
+                 recommended: Option[Int] = None,
                  images: Seq[Page] = Seq.empty,
                  selected: Seq[Page] = Seq.empty,
                  createdAt: DateTime = DateTime.now,
@@ -43,11 +43,11 @@ object Round {
 
   val rates = Seq(binaryRound) ++ rateRounds
 
-  val ratesById = rates.groupBy(_.id)
+  val ratesById = rates.groupBy(_.id).mapValues(_.head)
 
   def applyEdit(id: Long, num: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
                 rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int]) =
-    new Round(Some(id), num, name, contest, Set(roles), distribution, ratesById(rates).head, limitMin, limitMax, recommended)
+    new Round(Some(id), num, name, contest, Set(roles), distribution, ratesById(rates), limitMin, limitMax, recommended)
 
   def unapplyEdit(round: Round): Option[(Long, Int, Option[String], Long, String, Int, Int, Option[Int], Option[Int], Option[Int])] = {
     Some(

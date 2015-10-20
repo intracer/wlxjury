@@ -28,6 +28,6 @@ trait ContestJuryDao {
              currentRound: Long,
              monumentIdTemplate: Option[String]): ContestJury
 
-  def batchInsert(contests: Seq[ContestJury])
+  def batchInsert(contests: Seq[ContestJury]): Seq[Int]
 
 }

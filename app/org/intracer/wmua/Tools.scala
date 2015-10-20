@@ -21,32 +21,30 @@ object Tools {
   //  db.default.password="***REMOVED***"
 
   val regions = Set(
-//    "01", // Crimea
-//    "05", // Vinnitsa
-//    "07", // Volyn
-//    "12", // Dnipro
-//    "18", // Dnipro
-//    "23", // Zaporizzia
-//     "26", // IF
-//     "32",  // Kyivska
-//    "35",  // Kirovohradska,
-//    "48", // Mykolaivska
-//    "53", // Poltavska
-//    "56", // RIvnenska
-//    "61", //Ternopilska
-//      "65", //Khersonska
-//    "71", //Khersonska
-//    "85" //Sevastopol
-  "44"  // Luhanska
+    //    "01", // Crimea
+    //    "05", // Vinnitsa
+    //    "07", // Volyn
+    //    "12", // Dnipro
+    //    "18", // Dnipro
+    //    "23", // Zaporizzia
+    //     "26", // IF
+    //     "32",  // Kyivska
+    //    "35",  // Kirovohradska,
+    //    "48", // Mykolaivska
+    //    "53", // Poltavska
+    //    "56", // RIvnenska
+    //    "61", //Ternopilska
+    //      "65", //Khersonska
+    //    "71", //Khersonska
+    //    "85" //Sevastopol
+    "44" // Luhanska
   )
-
-
 
 
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
     ConnectionPool.singleton("jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury", "***REMOVED***", "***REMOVED***")
-//    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
+    //ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
@@ -59,31 +57,45 @@ object Tools {
       warningLogLevel = 'warn
     )
 
-     //users()
-    initImages()
-    val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
+    //users()
+
+//    GlobalRefactor.addContestCategories("Wiki Loves Monuments", 2015)
+    val contest = ContestJuryJdbc.find(70).get
+
+   // GlobalRefactor.rateByCategory("Category:Obviously ineligible submissions for WLM 2015 in Ukraine", 491, 89, -1)
+
+    val query = GlobalRefactor.commons.page(contest.images.get)
+    GlobalRefactor.updateMonuments(query, contest)
+    //GlobalRefactor.distributeByCategory("Category:WLM 2015 in Ukraine Round Zero", contest.get)
+    //addUsers(contest.get, 2)
+
+    //    val round = RoundJdbc.find(79)
+    //    ImageDistributor.distributeImages(contest.get, round.get)
+   // initImages()
+    //internationalRound()
+   // val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
     //wooden(wlmContest)
 
-//    GlobalRefactor.initLists(wlmContest)
-//    return
+    //    GlobalRefactor.initLists(wlmContest)
+    //    return
 
     //    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
-//    for (contest <- ContestJury.findAll()) {
-//
-//      if (contest.country == "Ghana") {
-//        println(contest)
+    //    for (contest <- ContestJury.findAll()) {
+    //
+    //      if (contest.country == "Ghana") {
+    //        println(contest)
 
-        //        controllers.GlobalRefactor.initContest("Category:Images from Wiki Loves Earth 2014 in " + contest.country,  contest)
+    //                controllers.GlobalRefactor.initContest("Category:Images from Wiki Loves Earth 2014 in " + contest.country,  contest)
 
-        //roundAndUsers(contest)
+    //roundAndUsers(contest)
 
-        //updateResolution(contest)
+    //updateResolution(contest)
 
-        //Admin.distributeImages(contest, Round.findByContest(contest.id).head)
-//        createNextRound()
-//      }
-//    }
+    //Admin.distributeImages(contest, Round.findByContest(contest.id).head)
+    //        createNextRound()
+    //      }
+    //    }
   }
 
   def roundAndUsers(contest: ContestJury) {
@@ -118,21 +130,21 @@ object Tools {
 
   def createNextRound(round: Round, jurors: Seq[User], prevRound: Round) = {
     val newImages = ImageJdbc.byRatingMerged(0, round.id.get)
-    if (true || newImages.isEmpty) {
+    if (newImages.isEmpty) {
 
       //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
       //
-      val images = //ImageJdbc.byRatingMerged(1, prevRound.id.toInt).toArray
-      ImageJdbc.byRoundMerged(prevRound.id.get).sortBy(-_.totalRate(prevRound))//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
-      .toArray.take(28)
+      val images = ImageJdbc.byRatingMerged(1, prevRound.id.get).toArray
+//        ImageJdbc.byRoundMerged(prevRound.id.get).sortBy(-_.totalRate(prevRound))//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
+//      .toArray.take(29)
 
       //      ImageJdbc.findAll().filter(_.region == Some("44"))
 
-      val imagesByJurors = images.filter {
+      val imagesByJurors = images/*.filter {
         iwr => iwr.selection.exists {
           s => jurors.exists(j => j.id.contains(s.juryId))
         }
-      }
+      }*/
       //
       val selection = jurors.flatMap { juror =>
         imagesByJurors.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
@@ -198,17 +210,17 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJuryJdbc.find(27L).get
+    val contest = ContestJuryJdbc.find(47L).get
 
-//    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
-//    GlobalRefactor.appendImages(category, contest)
+    //    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
+        GlobalRefactor.appendImages(contest.images.get, contest)
 
-    val prevRound = RoundJdbc.find(41L).get
-    val round = RoundJdbc.find(34L).get
+    val prevRound = RoundJdbc.find(83L).get
+    val round = RoundJdbc.find(103L).get
 
-//    val selection = Selection.byRound(22L)
+    //    val selection = Selection.byRound(22L)
 
-   // ImageDistributor.distributeImages(contest, round)
+       // ImageDistributor.distributeImages(contest, round)
 
     createNextRound(round, round.jurors, prevRound)
   }
@@ -229,6 +241,64 @@ object Tools {
     val contest = ContestJuryJdbc.find(20L).get
     GlobalRefactor.appendImages(category, contest, allIds)
 
+  }
+
+  def internationalRound() = {
+    //GlobalRefactor.commons.page("Commons:Wiki Loves Earth 2015/Winners").
+    val contest = ContestJuryJdbc.find(37L).get
+
+    GlobalRefactor.appendImages("Commons:Wiki Loves Earth 2015/Winners", contest)
+  }
+
+  def addUsers(contest: ContestJury, number: Int) = {
+    val country = contest.country.replaceAll("[ \\-\\&]", "")
+    val jurors = (1 to number).map(i => country + "Jury" + i)
+//      Seq("abassi.med.amine@gmail.com",
+//    "youssef.cherif@gmail.com",
+//    "habib.mhenni@gmail.com")
+
+
+    //val orgCom = Seq("arjan@arjandenboer.nl", "vandepas@wikimedia.nl", "meijer@wikimedia.nl")
+    val orgCom = Seq(country + "OrgCom")
+//
+    val logins = //Seq.empty
+     jurors ++ orgCom
+
+  //  (1 to number).map(i => country + "Jury" + i) ++ Seq(country + "OrgCom")
+    val passwords = logins.map(s => UserJdbc.randomString(8)) // !! i =>
+
+    logins.zip(passwords).foreach {
+      case (login, password) =>
+        UserJdbc.create(
+          login,
+          login, UserJdbc.sha1(contest.country + "/" + password),
+          if //(login.contains("Jury"))
+           (jurors.contains(login))
+            Set("jury") else Set("organizer"),
+          contest.id.get,
+          Some("en"))
+    }
+
+    val round = Round(None, 1, Some("Round 1"), contest.id.get, distribution = 2, active = true, rates = Round.ratesById(1))
+
+    val roundId = RoundJdbc.create(round).id
+    ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
+
+    val dbRound = round.copy(id = roundId)
+
+//        val dbRound = RoundJdbc.find(94).get
+
+    logins.zip(passwords).foreach {
+      case (login, password) =>
+        println(s"$login / $password")
+    }
+
+//    ImageDistributor.distributeImages(contest, dbRound)
+//
+//    logins.zip(passwords).foreach {
+//      case (login, password) =>
+//        println(s"$login / $password")
+//    }
   }
 
 }

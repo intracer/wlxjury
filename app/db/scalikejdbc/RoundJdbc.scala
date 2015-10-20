@@ -21,7 +21,7 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     number = rs.int(c.number),
     distribution = rs.int(c.distribution),
     contest = rs.long(c.contest),
-    rates = Round.ratesById(rs.int(c.rates)).head,
+    rates = Round.ratesById(rs.int(c.rates)),
     limitMin = rs.intOpt(c.limitMin),
     limitMax = rs.intOpt(c.limitMax),
     recommended = rs.intOpt(c.recommended),
@@ -81,9 +81,28 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     }.updateAndReturnGeneratedKey().apply()
 
     new Round(id = Some(id), name = name, number = number, contest = contest, roles = Set(roles), distribution = distribution,
-      rates = Round.ratesById(rates).head, limitMin = limitMin,
+      rates = Round.ratesById(rates), limitMin = limitMin,
       limitMax = limitMax, recommended = recommended, createdAt = createdAt)
   }
+
+  override def create(round: Round): Round = {
+    val id = withSQL {
+      insert.into(RoundJdbc).namedValues(
+        column.number -> round.number,
+        column.name -> round.name,
+        column.contest -> round.contest,
+        column.roles -> round.roles,
+        column.distribution -> round.distribution,
+        column.rates -> round.rates.id,
+        column.limitMin -> round.limitMin,
+        column.limitMax -> round.limitMax,
+        column.recommended -> round.recommended,
+        column.createdAt -> round.createdAt)
+    }.updateAndReturnGeneratedKey().apply()
+
+    round.copy(id = Some(id))
+  }
+
 
   override def updateRound(id: Long, round: Round): Unit = withSQL {
     update(RoundJdbc).set(

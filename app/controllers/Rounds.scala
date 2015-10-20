@@ -77,7 +77,7 @@ object Rounds extends Controller with Secured {
 
         val rounds = RoundJdbc.findByContest(user.contest)
         val contest = ContestJuryJdbc.byId(user.contest)
-        val currentRound = rounds.find(_.id == contest.currentRound).get
+        val currentRound = rounds.find(_.id.get == contest.currentRound).get
         val nextRound = rounds.find(_.number == currentRound.number + 1).get
 
         ContestJuryJdbc.setCurrentRound(user.contest, nextRound.id.get)

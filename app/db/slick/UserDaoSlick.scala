@@ -87,6 +87,8 @@ class UserDaoSlick extends HasDatabaseConfig[JdbcProfile] with UserDao {
     new User(fullname, email, id, roles, Option(password), contest, lang)
   }
 
+  override def create(user: User): User = ???
+
   override def countByEmail(id: Long, email: String): Long = ???
 }
 

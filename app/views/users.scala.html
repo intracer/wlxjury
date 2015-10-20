@@ -30,7 +30,11 @@
                         <td>@user.email </td>
                         <td>@user.roles.filterNot(_.startsWith("USER_ID")) </td>
                         <td>
-                            <a href="/users/edit/@user.id"><div class="btn"><i class="icon-edit"></i></div></a>
+                            <a href="/users/edit/@user.id">
+                                <button type="button" class="btn">
+                                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                                </button>
+                            </a>
                         </td>
                     </tr>
                 }

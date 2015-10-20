@@ -149,6 +149,12 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
       eq(column.round, round)
   }.update().apply()
 
+  def setRound(pageId: Long, oldRound: Long, newContest: Long, newRound: Long ): Unit = withSQL {
+    update(SelectionJdbc).set(column.round -> newRound).where.
+      eq(column.pageId, pageId).and.
+      eq(column.round, oldRound)
+  }.update().apply()
+
   import SQLSyntax.{count, distinct}
 
   def activeJurors(roundId: Long): Int =

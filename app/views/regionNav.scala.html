@@ -4,10 +4,10 @@
         byRegion: Map[String, Int]
         )(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@if(round == null || round.contest == 14 || round.contest == 16 || round.contest == 17 || round.contest == 20 || round.contest == 23) {
+@if(round == null || Set(14, 16, 17, 20, 23, 70).contains(round.contest.toInt))  {
     <div class="row" >
         <nav>
-        <div class="col-md-12 text-center"  style="margin-bottom : 5px ;">
+        <div class="col-md-12 text-center"  style="margin-bottom: 5px;">
             <ul class="pagination" id="regionnav" style="margin-top: 0px; margin-bottom: 0px;">
                 <li>
                     <a href="@regionToUrl("all")" @if("all" == region) {style="font-weight: bold"}>*</a>

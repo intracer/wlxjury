@@ -29,6 +29,8 @@ trait UserDao {
               createdAt: DateTime = DateTime.now
               ): User
 
+  def create(user: User): User
+
   def updateUser(id: Long, fullname: String, email: String, roles: Set[String], lang: Option[String]): Unit
 
   def updateHash(id: Long, hash:String): Unit

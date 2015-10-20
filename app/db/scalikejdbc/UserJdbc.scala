@@ -170,6 +170,21 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     User(id = Some(id), fullname = fullname, email = email, password = Some(password), contest = contest, createdAt = createdAt)
   }
 
+  override def create(user: User): User = {
+    val id = withSQL {
+      insert.into(UserJdbc).namedValues(
+        column.fullname -> user.fullname,
+        column.email -> user.email.trim.toLowerCase,
+        column.password -> user.password,
+        column.roles -> user.roles.head,
+        column.contest -> user.contest,
+        column.lang -> user.lang,
+        column.createdAt -> user.createdAt)
+    }.updateAndReturnGeneratedKey().apply()
+
+    user.copy(id = Some(id))
+  }
+
   override def updateUser(id: Long, fullname: String, email: String, roles: Set[String], lang: Option[String]): Unit = withSQL {
     update(UserJdbc).set(
       column.fullname -> fullname,

@@ -1,17 +1,14 @@
 package controllers
 
 import _root_.db.scalikejdbc.ContestJuryJdbc
-import org.scalawiki.MwBot
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import org.intracer.wmua._
+import org.scalawiki.MwBot
 import org.scalawiki.http.HttpClientImpl
 import play.Play
 import play.api._
 import play.api.libs.concurrent.Akka
 import scalikejdbc.{GlobalSettings, LoggingSQLAndTimeSettings}
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
 
 
 object Global {
@@ -69,7 +66,7 @@ object Global {
     KOATUU.load()
     contestImages()
 
-    Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
+    //Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
   }
 
 

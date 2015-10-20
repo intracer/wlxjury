@@ -33,7 +33,8 @@ object User {
   val JURY_ROLES = Set("jury")
   val ORG_COM_ROLES = Set("organizer")
   val ADMIN_ROLE = "admin"
-  val ADMIN_ROLES = Set(ADMIN_ROLE)
+  val ROOT_ROLE = "root"
+  val ADMIN_ROLES = Set(ADMIN_ROLE, ROOT_ROLE)
   val LANGS = Map("en" -> "English", "ru" -> "Русский", "uk"-> "Українська")
 
   def unapplyEdit(user: User): Option[(Long, String, String, Option[String], Option[String], Long, Option[String])] = {

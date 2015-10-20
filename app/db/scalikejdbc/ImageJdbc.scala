@@ -96,6 +96,12 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
       .orderBy(c.pageId)
   }.map(ImageJdbc(c)).list().apply()
 
+  def setMonumentId(pageId: Long, monumentId: String) = withSQL {
+    update(ImageJdbc).set(
+      column.monumentId -> monumentId
+    ).where.eq(column.pageId, pageId)
+  }.update().apply()
+
   def find(id: Long): Option[Image] = withSQL {
     select.from(ImageJdbc as c).where.eq(c.pageId, id) //.and.append(isNotDeleted)
   }.map(ImageJdbc(c)).single().apply()

@@ -15,6 +15,6 @@ object Contests extends Controller with Secured {
         val contests = ContestJuryJdbc.findAll()//.map(_.copy(messages = messages))
 
         Ok(views.html.contests(user, contests))
-  }, User.ORG_COM_ROLES)
+  }, User.ADMIN_ROLES)
 
 }

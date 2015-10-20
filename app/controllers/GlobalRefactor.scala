@@ -1,12 +1,16 @@
 package controllers
 
 import akka.actor.ActorSystem
-import db.scalikejdbc.{SelectionJdbc, ImageJdbc}
+import db.scalikejdbc._
 import org.intracer.wmua._
+import org.joda.time.DateTime
 import org.scalawiki.MwBot
-import org.scalawiki.dto.Page
+import org.scalawiki.dto.cmd.Action
+import org.scalawiki.dto.cmd.query.list.ListArgs
+import org.scalawiki.dto.cmd.query.{Generator, Query}
+import org.scalawiki.dto.{Namespace, Page}
 import org.scalawiki.http.HttpClientImpl
-import org.scalawiki.query.SinglePageQuery
+import org.scalawiki.query.{DslQuery, SinglePageQuery}
 import org.scalawiki.wikitext.TemplateParser
 import org.scalawiki.wlx.dto.Contest
 import org.scalawiki.wlx.query.MonumentQuery
@@ -44,22 +48,14 @@ object GlobalRefactor {
   }
 
   def createJury() {
-    //    val matt = User.findByEmail("***REMOVED***")
-    //
-    //    if (matt.isEmpty) {
-    //      for (user <- UkrainianJury.users) {
-    //        Admin.createNewUser(User.wmuaUser, user)
-    //      }
-    //    }
     val selection = SelectionJdbc.findAll()
     if (selection.isEmpty) {
-      //Admin.distributeImages(Contest.byId(14).get)
     }
   }
 
   def initLists(contest: Contest) = {
 
-    if (true || MonumentJdbc.findAll().isEmpty) {
+    if (MonumentJdbc.findAll().isEmpty) {
       val ukWiki = new MwBot(http, system, "uk.wikipedia.org", None)
 
       Await.result(ukWiki.login("***REMOVED***", "***REMOVED***"), http.timeout)
@@ -68,7 +64,12 @@ object GlobalRefactor {
       val monumentQuery = MonumentQuery.create(contest)
       val monuments = monumentQuery.byMonumentTemplate()
 
-      MonumentJdbc.batchInsert(monuments)
+      val fromDb = MonumentJdbc.findAll
+      val inDbIds = fromDb.map(_.id).toSet
+
+      val newMonuments = monuments.filterNot(m => inDbIds.contains(m.id))
+
+      MonumentJdbc.batchInsert(newMonuments)
     }
 
   }
@@ -80,16 +81,49 @@ object GlobalRefactor {
                               idsFilter: Set[String] = Set.empty): Future[Unit] = {
     val existingPageIds = existing.map(_.pageId).toSet
 
-    //bot.page("User:***REMOVED***/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
-    query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
+    //    val action = Action(Query(
+    //      TitlesParam(Seq("File:WolayerSee.jpg",
+    //        "File:Karsterscheinungen,_im_Hintergrund_die_Weiße_Wand.jpg",
+    //        "File:Wackelstein_bei_Schmerbach_02_2015-05_NDM_ZT-091.jpg",
+    //        "File:Winterlärche.jpg",
+    //        "File:D3S_2868.jpg",
+    //        "File:Mindener_Hütte_Gamskarlspitz.JPG",
+    //        "File:Falkenstein_8133.jpg",
+    //        "File:Steinbock_14962940265.jpg",
+    //        "File:Föhnsturm_am_Grossglockner.jpg",
+    //        "File:Kiebitz_auf_Futtersuche.jpg")),
+    //      Prop(ImageInfo(IiProp(
+    //        Timestamp,
+    //        org.scalawiki.dto.cmd.query.prop.iiprop.User,
+    //        Size,
+    //        Url
+    //      )))
+    //      //,Generator(Images())
+    //    ))
+
+    //    val future = new DslQuery(action, commons).run()
+
+    val future = query.imageInfoByGenerator("categorymembers", "cm",
+      props = Set("timestamp", "user", "size", "url"),
+      titlePrefix = None)
+
+
+    future.map {
+      //bot.page("User:***REMOVED***/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
+      //    query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
       filesInCategory =>
         val newImagesOrigIds: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId).filterNot(i => existingPageIds.contains(i.pageId))
 
-//        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
-//
-//        val newImages = newImagesOrigIds.map(p => p.copy(pageId = maxId + p.pageId))
+        //        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
+        //
+        val newImages = newImagesOrigIds //.map(p => p.copy(pageId = maxId + p.pageId))
 
-        contest.monumentIdTemplate.fold(saveNewImages(contest, newImagesOrigIds)) { monumentIdTemplate =>
+        val ids = newImages.map(_.pageId)
+        val maxId = ids.max
+        val minId = ids.min
+        println(s"${contest.country},  min $minId, max $maxId")
+
+        contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
 
           query.revisionsByGenerator("categorymembers", "cm",
             Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
@@ -103,6 +137,39 @@ object GlobalRefactor {
               }.filter(_.monumentId.forall(id => idsFilter.isEmpty || idsFilter.contains(id)))
               saveNewImages(contest, imagesWithIds)
           }
+        }
+    }
+  }
+
+  def updateMonuments(query: SinglePageQuery, contest: ContestJury) = {
+
+    val future = query.imageInfoByGenerator("categorymembers", "cm",
+      props = Set("timestamp", "user", "size", "url"),
+      titlePrefix = None)
+
+
+    future.map {
+      //bot.page("User:***REMOVED***/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
+      //    query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
+      filesInCategory =>
+        val newImagesOrigIds: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId)
+
+
+        query.revisionsByGenerator("categorymembers", "cm",
+          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
+          pages =>
+
+            val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
+            val ids: Seq[String] = monumentIds(pages, Set.empty, "Monument Ukraine")
+
+            val imagesWithIds = newImagesOrigIds.zip(ids).map {
+              case (image, id) => image.copy(monumentId = Some(id))
+            }.filter(_.monumentId.isDefined)
+
+            imagesWithIds.foreach{
+              image =>
+                ImageJdbc.setMonumentId(image.pageId, image.monumentId.get)
+            }
         }
     }
   }
@@ -122,7 +189,7 @@ object GlobalRefactor {
 
   def saveNewImages(contest: ContestJury, imagesWithIds: Seq[Image]) = {
     ImageJdbc.batchInsert(imagesWithIds)
-    createJury()
+    //createJury()
     //    initContestFiles(contest, imagesWithIds)
   }
 
@@ -151,5 +218,130 @@ object GlobalRefactor {
     KOATUU.load()
   }
 
+  def getCategories(parent: String): Future[Seq[Page]] = {
 
+    val action = Action(Query(
+      Generator(ListArgs.toDsl("categorymembers", Some(parent), None, Set(Namespace.CATEGORY), Some("max")))
+    ))
+    new DslQuery(action, commons).run()
+  }
+
+  def addContestCategories(contestName: String, year: Int) = {
+    val parent = s"Category:Images from $contestName $year"
+    getCategories(parent).map {
+      categories =>
+        val contests = categoriesToContests(contestName, year, parent, categories)
+        //        val ids = ContestJuryJdbc.batchInsert(contests)
+        //        val rounds =  ids.map (id => Round(None, 1, Some("Round 1"), id))
+        //
+        //        rounds.foreach {
+        //          round =>
+        //            val roundId = RoundJdbc.create(round).id
+        //            ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
+        //        }
+        // Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
+
+        contests.foreach {
+          contest =>
+            val dbContest = ContestJuryJdbc.byCountry(contest.country).filter(c => c.year == year && c.name == contestName).head
+            //GlobalRefactor.appendImages(contest.images.get, dbContest)
+            addAdmin(dbContest)
+        }
+    }
+  }
+
+  def rateByCategory(category: String, juryId: Long, roundId: Long, rate: Int) = {
+
+    val future = commons.page(category).imageInfoByGenerator("categorymembers", "cm",
+      props = Set("timestamp", "user", "size", "url"),
+      titlePrefix = None)
+
+    future.map {
+      filesInCategory =>
+
+        filesInCategory.foreach {
+          page =>
+            SelectionJdbc.rate(page.id.get, juryId, roundId, rate)
+        }
+    }
+  }
+
+  def distributeByCategory(parent: String, contest: ContestJury) = {
+
+    //    val round = Round(None, 1, Some("Round 1"), contest.id.get, distribution = 0, active = true)
+    //
+    //    val roundId = RoundJdbc.create(round).id
+    //    ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
+
+    val round = RoundJdbc.find(89).get
+
+    getCategories(parent).map {
+      categories =>
+
+        val jurors = categories.map("WLMUA2015_" + _.title.split("-")(1).trim.replaceAll(" ", "_"))
+        val logins = jurors ++ Seq(contest.name + "OrgCom")
+        val passwords = logins.map(s => UserJdbc.randomString(8)) // !! i =>
+      val users = logins.zip(passwords).map {
+          case (login, password) =>
+            UserJdbc.create(
+              login,
+              login, UserJdbc.sha1(contest.country + "/" + password),
+              if //(login.contains("Jury"))
+              (jurors.contains(login))
+                Set("jury")
+              else Set("organizer"),
+              contest.id.get,
+              Some("uk"))
+        }
+
+        logins.zip(passwords).foreach {
+          case (login, password) =>
+            println(s"$login / $password")
+        }
+
+        val jurorsDb = users.init
+
+        categories.zip(jurorsDb).map {
+          case (category, juror) =>
+
+            val future = commons.page(category.title).imageInfoByGenerator("categorymembers", "cm",
+              props = Set("timestamp", "user", "size", "url"),
+              titlePrefix = None)
+
+            future.map {
+              filesInCategory =>
+
+                val selection = filesInCategory.map(img => new Selection(0, img.id.get, 0, juror.id.get, round.id.get, DateTime.now))
+                SelectionJdbc.batchInsert(selection)
+            }
+        }
+    }
+  }
+
+  def addAdmin(contest: ContestJury): Unit = {
+    val shortContest = contest.name.split(" ").map(_.head).mkString("")
+    val shortCountry = contest.country.replaceFirst("the ", "").replaceFirst(" & Nagorno-Karabakh", "").split(" ").mkString("")
+
+    val name = shortContest + contest.year + shortCountry + "Admin"
+
+    val password = UserJdbc.randomString(8)
+    val hash = UserJdbc.sha1(contest.country + "/" + password)
+    val user = User(name, name, None, Set("admin"), Some(hash), contest.id.get, Some("en"))
+
+    println(s"admin user: $name / $password")
+    UserJdbc.create(user)
+  }
+
+
+  def categoriesToContests(contest: String, year: Int, parent: String, categories: Seq[Page]): Seq[ContestJury] = {
+
+    val imageCategories = categories.filter(_.title.startsWith(parent + " in "))
+    val contests = imageCategories.map {
+      imageCategory =>
+        val title = imageCategory.title
+        val country = title.replaceFirst(parent + " in ", "")
+        ContestJury(None, contest, year, country, Some(title), 0, None)
+    }
+    contests
+  }
 }
