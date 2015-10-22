@@ -44,7 +44,7 @@
                                 Show rounds dropdown
                             -->
                         @if(user.roles.contains("admin")) {
-                            <li role="presentation" class="brand" style="margin-left : 10 px">
+                            <li role="presentation" class="brand" style="margin-left : 10px">
                             @dropDownSelection(
                                 new UiSelectionDto[Int](
                                     routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, _, rate),
@@ -84,16 +84,18 @@
 
                                      @if(round.id == 34) { <li role="presentation"> <a class="brand" href="/chat">@Messages("chat") </a>}
 
+                                @defining(rounds.map(_.id).toSet.contains(round.id)){ isActive =>
                                 @if(user.roundFiles(round.id).count(_.rate == 0) > 0) {
-                                <li  role="presentation" class="@if(rate.contains(0)) {active}">
+                                <li  role="presentation" class="@if(rate.contains(0) && isActive) {active}">
                                     <a href="/gallery/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
                                         (@user.roundFiles(round.id).count(_.rate == 0))
                                     </a>
                                     }
-                                <li  role="presentation" class="@if(!rate.contains(0) && asUserId == user.id.toInt) {active}">
+                                <li  role="presentation" class="@if(!rate.contains(0) && isActive && asUserId == user.id.toInt) {active}">
                                 <a  href="/byrate/round/@round.id/user/@user.id/page/1">@Messages("rated")
                                     (@user.roundFiles(round.id).count(_.rate > 0))
                                 </a>
+                                }
 
                             @if(false) {
                             <li  role="presentation" class="@if(!rate.contains(0) && asUserId == 0) {active}">
