@@ -34,10 +34,36 @@ object ImageDistributor {
 //      val largeIds = filesInCategory.filter(_.images.headOption.exists(_.size.exists(_ > 1024 * 1024))).flatMap(_.id).toSet
       fromDb//.filter(i => largeIds.contains(i.pageId))
     } else {
-      val rounds = RoundJdbc.findByContest(contest.id.get)
-      (for (prevRound <- rounds.find(_.number == round.number - 1)) yield {
-        ImageJdbc.byRatingMerged(1, prevRound.id.get).map(_.image)
-      }).getOrElse(Seq.empty)
+      if (false) {
+        val rounds = RoundJdbc.findByContest(contest.id.get)
+        (for (prevRound <- rounds.find(_.number == round.number - 1)) yield {
+          ImageJdbc.byRatingMerged(1, prevRound.id.get).map(_.image)
+        }).getOrElse(Seq.empty)
+      } else {
+        val rounds = RoundJdbc.findByContest(contest.id.get)
+        val prevRound =  rounds.find(_.number == round.number - 1).get
+
+        val rate = Some(1)
+        val users = 3
+        val images = prevRound.allImages
+        val selection = SelectionJdbc.byRound(prevRound.id.get)
+        val ratedSelection = rate.fold(selection)(r => selection.filter(_.rate == r))
+
+        val byPageId = ratedSelection.groupBy(_.pageId).filter(_._2.size == users)
+
+        val imagesWithSelection = images.flatMap {
+          image =>
+            if (byPageId.contains(image.pageId)) {
+              Some(image.image)
+            } else {
+              None
+            }
+        }
+        imagesWithSelection
+      }
+
+
+
     }
 
     val allJurors = round.jurors

@@ -59,21 +59,21 @@ object Tools {
 
     //users()
 
-//    GlobalRefactor.addContestCategories("Wiki Loves Monuments", 2015)
-    val contest = ContestJuryJdbc.find(70).get
+    //    GlobalRefactor.addContestCategories("Wiki Loves Monuments", 2015)
+    val contest = ContestJuryJdbc.find(52).get
 
-   // GlobalRefactor.rateByCategory("Category:Obviously ineligible submissions for WLM 2015 in Ukraine", 491, 89, -1)
+    // GlobalRefactor.rateByCategory("Category:Obviously ineligible submissions for WLM 2015 in Ukraine", 491, 89, -1)
 
-    val query = GlobalRefactor.commons.page(contest.images.get)
-    GlobalRefactor.updateMonuments(query, contest)
+    //val query = GlobalRefactor.commons.page(contest.images.get)
+    //GlobalRefactor.updateMonuments(query, contest)
     //GlobalRefactor.distributeByCategory("Category:WLM 2015 in Ukraine Round Zero", contest.get)
-    //addUsers(contest.get, 2)
+//    addUsers(contest, 8)
 
-    //    val round = RoundJdbc.find(79)
-    //    ImageDistributor.distributeImages(contest.get, round.get)
-   // initImages()
+        val round = RoundJdbc.find(107)
+        ImageDistributor.distributeImages(contest, round.get)
+     //initImages()
     //internationalRound()
-   // val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
+    // val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
     //wooden(wlmContest)
 
     //    GlobalRefactor.initLists(wlmContest)
@@ -135,20 +135,20 @@ object Tools {
       //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
       //
       val images = ImageJdbc.byRatingMerged(1, prevRound.id.get).toArray
-//        ImageJdbc.byRoundMerged(prevRound.id.get).sortBy(-_.totalRate(prevRound))//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
-//      .toArray.take(29)
+      //        ImageJdbc.byRoundMerged(prevRound.id.get).sortBy(-_.totalRate(prevRound))//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
+      //      .toArray.take(29)
 
       //      ImageJdbc.findAll().filter(_.region == Some("44"))
 
-      val imagesByJurors = images/*.filter {
+      val imagesByJurors = images /*.filter {
         iwr => iwr.selection.exists {
           s => jurors.exists(j => j.id.contains(s.juryId))
         }
       }*/
       //
       val selection = jurors.flatMap { juror =>
-        imagesByJurors.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
-      }
+          imagesByJurors.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
+        }
 
       //      val images = ImageJdbc.byRoundMerged(prevRound.id.toInt).sortBy(-_.totalRate).take(21)
       //      val selection = images.flatMap(_.selection).map(_.copy(id = 0, round = round.id))
@@ -210,17 +210,17 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJuryJdbc.find(47L).get
+    val contest = ContestJuryJdbc.find(70L).get
 
     //    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
-        GlobalRefactor.appendImages(contest.images.get, contest)
+    GlobalRefactor.appendImages(contest.images.get, contest)
 
-    val prevRound = RoundJdbc.find(83L).get
-    val round = RoundJdbc.find(103L).get
+    val prevRound = RoundJdbc.find(89L).get
+    val round = RoundJdbc.find(104L).get
 
     //    val selection = Selection.byRound(22L)
 
-       // ImageDistributor.distributeImages(contest, round)
+    // ImageDistributor.distributeImages(contest, round)
 
     createNextRound(round, round.jurors, prevRound)
   }
@@ -252,19 +252,30 @@ object Tools {
 
   def addUsers(contest: ContestJury, number: Int) = {
     val country = contest.country.replaceAll("[ \\-\\&]", "")
-    val jurors = (1 to number).map(i => country + "Jury" + i)
-//      Seq("abassi.med.amine@gmail.com",
-//    "youssef.cherif@gmail.com",
-//    "habib.mhenni@gmail.com")
+    val jurors = (1 to number).map(i => country + "Round2_Jury" + i)
+//      Seq("tomasz@twkozlowski.com",
+//        "pocoapocowiki@gmail.com",
+//        "habib.mhenni@gmail.com",
+//        "zharkikh6@gmail.com",
+//        "Julie2393@gmail.com",
+//        "mik-kiev@yandex.ua",
+//        "alexprosecutor@hotmail.com",
+//        "***REMOVED***",
+//        "***REMOVED***",
+//        "dmytruk_v@ukr.net",
+//        "solochubay@gmail.com",
+//        "lshyamal@gmail.com",
+//        "UkraineJuror14"
+//      )
 
 
     //val orgCom = Seq("arjan@arjandenboer.nl", "vandepas@wikimedia.nl", "meijer@wikimedia.nl")
     val orgCom = Seq(country + "OrgCom")
-//
+    //
     val logins = //Seq.empty
-     jurors ++ orgCom
+      jurors //++ orgCom
 
-  //  (1 to number).map(i => country + "Jury" + i) ++ Seq(country + "OrgCom")
+    //  (1 to number).map(i => country + "Jury" + i) ++ Seq(country + "OrgCom")
     val passwords = logins.map(s => UserJdbc.randomString(8)) // !! i =>
 
     logins.zip(passwords).foreach {
@@ -273,32 +284,33 @@ object Tools {
           login,
           login, UserJdbc.sha1(contest.country + "/" + password),
           if //(login.contains("Jury"))
-           (jurors.contains(login))
-            Set("jury") else Set("organizer"),
+          (jurors.contains(login))
+            Set("jury")
+          else Set("organizer"),
           contest.id.get,
           Some("en"))
     }
 
-    val round = Round(None, 1, Some("Round 1"), contest.id.get, distribution = 2, active = true, rates = Round.ratesById(1))
+//    val round = Round(None, 1, Some("Round 1"), contest.id.get, distribution = 0, active = true, rates = Round.ratesById(10))
+//
+//    val roundId = RoundJdbc.create(round).id
+//    ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
+//
+//    val dbRound = round.copy(id = roundId)
 
-    val roundId = RoundJdbc.create(round).id
-    ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
-
-    val dbRound = round.copy(id = roundId)
-
-//        val dbRound = RoundJdbc.find(94).get
+    //        val dbRound = RoundJdbc.find(94).get
 
     logins.zip(passwords).foreach {
       case (login, password) =>
         println(s"$login / $password")
     }
 
-//    ImageDistributor.distributeImages(contest, dbRound)
-//
-//    logins.zip(passwords).foreach {
-//      case (login, password) =>
-//        println(s"$login / $password")
-//    }
+    //    ImageDistributor.distributeImages(contest, dbRound)
+    //
+    //    logins.zip(passwords).foreach {
+    //      case (login, password) =>
+    //        println(s"$login / $password")
+    //    }
   }
 
 }
