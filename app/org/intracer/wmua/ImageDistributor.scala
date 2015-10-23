@@ -34,7 +34,7 @@ object ImageDistributor {
 //      val largeIds = filesInCategory.filter(_.images.headOption.exists(_.size.exists(_ > 1024 * 1024))).flatMap(_.id).toSet
       fromDb//.filter(i => largeIds.contains(i.pageId))
     } else {
-      if (false) {
+      if (true) {
         val rounds = RoundJdbc.findByContest(contest.id.get)
         (for (prevRound <- rounds.find(_.number == round.number - 1)) yield {
           ImageJdbc.byRatingMerged(1, prevRound.id.get).map(_.image)
@@ -62,8 +62,6 @@ object ImageDistributor {
         imagesWithSelection
       }
 
-
-
     }
 
     val allJurors = round.jurors
@@ -78,8 +76,8 @@ object ImageDistributor {
         iwr.selection.map(s => s.juryId).toSet
     }
 
-    val images = allImages // allImages.filterNot(i => oldImageIds.contains(i.pageId))
-    val jurors = allJurors.filterNot(j => oldJurorIds.contains(j.id.get))
+    val images = allImages.filterNot(i => oldImageIds.contains(i.pageId))
+    val jurors = allJurors//.filterNot(j => oldJurorIds.contains(j.id.get))
 
     val selection: Seq[Selection] = round.distribution match {
       case 0 =>

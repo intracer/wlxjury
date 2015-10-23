@@ -12,6 +12,7 @@ import org.joda.time.DateTime
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
 
 import scala.concurrent.Await
+import scala.io.Source
 
 object Tools {
 
@@ -60,18 +61,19 @@ object Tools {
     //users()
 
     //    GlobalRefactor.addContestCategories("Wiki Loves Monuments", 2015)
-    val contest = ContestJuryJdbc.find(52).get
+    val contest = ContestJuryJdbc.find(43L).get
 
     // GlobalRefactor.rateByCategory("Category:Obviously ineligible submissions for WLM 2015 in Ukraine", 491, 89, -1)
 
     //val query = GlobalRefactor.commons.page(contest.images.get)
     //GlobalRefactor.updateMonuments(query, contest)
     //GlobalRefactor.distributeByCategory("Category:WLM 2015 in Ukraine Round Zero", contest.get)
-//    addUsers(contest, 8)
+    //addUsers(contest, 4)
 
-        val round = RoundJdbc.find(107)
-        ImageDistributor.distributeImages(contest, round.get)
-     //initImages()
+//        val round = RoundJdbc.find(107)
+//        ImageDistributor.distributeImages(contest, round.get)
+     initImages()
+    //verifySpain()
     //internationalRound()
     // val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
     //wooden(wlmContest)
@@ -130,17 +132,20 @@ object Tools {
 
   def createNextRound(round: Round, jurors: Seq[User], prevRound: Round) = {
     val newImages = ImageJdbc.byRatingMerged(0, round.id.get)
-    if (newImages.isEmpty) {
+    if (true || newImages.isEmpty) {
 
       //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
       //
-      val images = ImageJdbc.byRatingMerged(1, prevRound.id.get).toArray
+
+      val existingIds = newImages.map(_.pageId).toSet
+      val images = ImageJdbc.byRatingMerged(1, prevRound.id.get).toArray.filterNot(i => existingIds.contains(i.pageId))
       //        ImageJdbc.byRoundMerged(prevRound.id.get).sortBy(-_.totalRate(prevRound))//.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
       //      .toArray.take(29)
 
       //      ImageJdbc.findAll().filter(_.region == Some("44"))
-
-      val imagesByJurors = images /*.filter {
+       val selected = Seq("File:Torre de Hércules, La Coruña, España, 2015-09-25, DD 23-31 HDR.jpg")
+        //Source.fromFile("spain.txt")(scala.io.Codec.UTF8).getLines().map(_.replace(160.asInstanceOf[Char], ' ').trim).toSet
+      val imagesByJurors = images.filter(i => selected.contains(i.title)) /*.filter {
         iwr => iwr.selection.exists {
           s => jurors.exists(j => j.id.contains(s.juryId))
         }
@@ -210,17 +215,17 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJuryJdbc.find(70L).get
+    val contest = ContestJuryJdbc.find(66L).get
 
     //    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
-    GlobalRefactor.appendImages(contest.images.get, contest)
+    //GlobalRefactor.appendImages(contest.images.get, contest)
 
-    val prevRound = RoundJdbc.find(89L).get
-    val round = RoundJdbc.find(104L).get
+    val prevRound = RoundJdbc.find(84L).get
+    val round = RoundJdbc.find(112L).get
 
     //    val selection = Selection.byRound(22L)
 
-    // ImageDistributor.distributeImages(contest, round)
+     //ImageDistributor.distributeImages(contest, round)
 
     createNextRound(round, round.jurors, prevRound)
   }
@@ -252,7 +257,7 @@ object Tools {
 
   def addUsers(contest: ContestJury, number: Int) = {
     val country = contest.country.replaceAll("[ \\-\\&]", "")
-    val jurors = (1 to number).map(i => country + "Round2_Jury" + i)
+    val jurors = (1 to number).map(i => country + "WLM_Final" + i)
 //      Seq("tomasz@twkozlowski.com",
 //        "pocoapocowiki@gmail.com",
 //        "habib.mhenni@gmail.com",
@@ -291,7 +296,7 @@ object Tools {
           Some("en"))
     }
 
-//    val round = Round(None, 1, Some("Round 1"), contest.id.get, distribution = 0, active = true, rates = Round.ratesById(10))
+//    val round = Round(None, 1, Some("Round 1"), contest.id.get, distribution = 0, active = true, rates = Round.ratesById(1))
 //
 //    val roundId = RoundJdbc.create(round).id
 //    ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
@@ -305,12 +310,24 @@ object Tools {
         println(s"$login / $password")
     }
 
-    //    ImageDistributor.distributeImages(contest, dbRound)
+//        ImageDistributor.distributeImages(contest, dbRound)
     //
     //    logins.zip(passwords).foreach {
     //      case (login, password) =>
     //        println(s"$login / $password")
     //    }
+  }
+
+
+  def verifySpain(): Unit = {
+    val newImages = ImageJdbc.byRatingMerged(0, 112).map(_.title).toSet
+    val selected = Source.fromFile("spain.txt")(scala.io.Codec.UTF8).getLines().map(_.replace(160.asInstanceOf[Char], ' ').trim).toSet
+
+    val absent = selected -- newImages
+
+    absent.foreach(println)
+
+
   }
 
 }
