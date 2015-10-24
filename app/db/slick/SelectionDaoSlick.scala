@@ -60,7 +60,7 @@ class SelectionDaoSlick extends HasDatabaseConfig[JdbcProfile] with SelectionDao
 
   override def rate(pageId: Long, juryId: Long, round: Long, rate: Int): Unit = ???
 
-  override def create(pageId: Long, rate: Int, fileid: String, juryId: Int, round: Int, createdAt: DateTime): Selection = ???
+  override def create(pageId: Long, rate: Int, juryId: Long, roundId: Long, createdAt: DateTime): Selection = ???
 
   override def allJurors(roundId: Long): Int = ???
 
@@ -70,10 +70,10 @@ class SelectionDaoSlick extends HasDatabaseConfig[JdbcProfile] with SelectionDao
 object SelectionTable {
 
   def fromDb(t: (
-    Long, // fullname
-      Long, // email
+    Long,
+      Long,
       Int,
-      Long, // password
+      Long,
       Long
     ))
   =

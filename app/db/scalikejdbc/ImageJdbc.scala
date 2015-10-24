@@ -9,7 +9,11 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
 
   implicit def session: DBSession = autoSession
 
-  private val isNotDeleted = sqls.isNull(SelectionJdbc.s.deletedAt)
+  private def isNotDeleted = sqls.isNull(SelectionJdbc.s.deletedAt)
+
+  override val tableName = "images"
+
+  val c = ImageJdbc.syntax("c")
 
   def fromPage(page: Page, contest: ContestJury): Option[Image] = {
     try {
@@ -22,10 +26,6 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
         throw e
     }
   }
-
-  override val tableName = "images"
-
-  val c = ImageJdbc.syntax("c")
 
   def apply(c: SyntaxProvider[Image])(rs: WrappedResultSet): Image = apply(c.resultName)(rs)
 

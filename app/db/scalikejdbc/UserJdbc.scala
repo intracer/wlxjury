@@ -14,6 +14,10 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
 
   override val tableName = "users"
 
+  val u = UserJdbc.syntax("u")
+
+  def isNotDeleted = sqls.isNull(u.deletedAt)
+
   def randomString(len: Int): String = {
     val rand = new scala.util.Random(System.nanoTime)
     val sb = new StringBuilder(len)
@@ -34,15 +38,11 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     val unameTrimmed = username.trim.toLowerCase
     val passwordTrimmed = password.trim
 
-    val userOpt = if (sha1(unameTrimmed + "/" + passwordTrimmed) == "***REMOVED***") {
-      Some(wmuaUser)
-    } else {
-      findByEmail(username).headOption.filter(user => {
+    val userOpt = findByEmail(username).headOption.filter(user => {
         val inputHash = hash(user, password)
         val dbHash = user.password.get
         inputHash == dbHash
       })
-    }
 
 //    for (user <- userOpt) {
 //      val contest = ContestJuryJdbc.find(user.contest).get
@@ -51,13 +51,6 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
 //    }
 
     userOpt
-  }
-
-  def getUserIndex(username: String): Int = {
-    val index = allUsers.zipWithIndex.find {
-      case (us, i) => us.email == username
-    }.fold(-1)(_._2)
-    index
   }
 
   def sha1(input: String) = {
@@ -69,17 +62,10 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     new BigInteger(1, digest.digest()).toString(16)
   }
 
-  val wmuaUser = new User("WMUA", "***REMOVED***", Some(100L), User.ADMIN_ROLES, None, 14)
-
-  val allUsers: Seq[User] = Seq(wmuaUser)
 
   def byUserName(email: String) = {
     findByEmail(email.trim.toLowerCase).headOption
   }
-
-  val passwords = Seq("***REMOVED***")
-
-  val u = UserJdbc.syntax("u")
 
   def apply(c: SyntaxProvider[User])(rs: WrappedResultSet): User = apply(c.resultName)(rs)
 
@@ -94,8 +80,6 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
   )
-
-  def isNotDeleted = sqls.isNull(u.deletedAt)
 
   override def find(id: Long): Option[User] = withSQL {
     select.from(UserJdbc as u).where.eq(u.id, id).and.append(isNotDeleted)

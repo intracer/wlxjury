@@ -13,6 +13,8 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
 
   implicit def session: DBSession = autoSession
 
+  val c = ContestJuryJdbc.syntax("c")
+
   override def currentRound(id: Long): Option[Long] =
     find(id).map(_.currentRound)
 
@@ -34,8 +36,6 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
     monumentIdTemplate = rs.stringOpt(c.monumentIdTemplate)
     //, messages
   )
-
-  val c = ContestJuryJdbc.syntax("c")
 
   override def find(id: Long): Option[ContestJury] =
     withSQL {

@@ -13,10 +13,13 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
 
   val c = RoundJdbc.syntax("c")
 
+  //  private val autoSession = AutoSession
+  private def isNotDeleted = sqls.isNull(c.deletedAt)
+
   def apply(c: SyntaxProvider[Round])(rs: WrappedResultSet): Round = apply(c.resultName)(rs)
 
   def apply(c: ResultName[Round])(rs: WrappedResultSet): Round = new Round(
-    id = Some(rs.int(c.id)),
+    id = Some(rs.long(c.id)),
     name = Option(rs.string(c.name)),
     number = rs.int(c.number),
     distribution = rs.int(c.distribution),
@@ -31,10 +34,6 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     optionalRate = rs.booleanOpt(c.optionalRate).getOrElse(false),
     juryOrgView = rs.booleanOpt(c.juryOrgView).getOrElse(false)
   )
-
-
-  //  private val autoSession = AutoSession
-  private val isNotDeleted = sqls.isNull(c.deletedAt)
 
   override def activeRounds(contestId: Long): Seq[Round] = {
     ContestJuryJdbc.currentRound(contestId).flatMap(find).toSeq
@@ -97,12 +96,15 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
         column.limitMin -> round.limitMin,
         column.limitMax -> round.limitMax,
         column.recommended -> round.recommended,
-        column.createdAt -> round.createdAt)
+        column.createdAt -> round.createdAt,
+        column.active -> round.active,
+        column.optionalRate -> round.optionalRate,
+        column.juryOrgView -> round.juryOrgView
+      )
     }.updateAndReturnGeneratedKey().apply()
 
     round.copy(id = Some(id))
   }
-
 
   override def updateRound(id: Long, round: Round): Unit = withSQL {
     update(RoundJdbc).set(

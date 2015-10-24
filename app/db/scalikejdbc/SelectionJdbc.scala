@@ -11,6 +11,10 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
 
   override val tableName = "selection"
 
+  val s = SelectionJdbc.syntax("s")
+  // val autoSession = AutoSession
+  private def isNotDeleted = sqls.isNull(s.deletedAt)
+
   def byUser(user: User, roundId: Long): Seq[Selection] = withSQL {
     select.from(SelectionJdbc as s).where
       .eq(s.juryId, user.id).and
@@ -63,16 +67,11 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
     id = rs.int(c.id),
     pageId = rs.long(c.pageId),
     rate = rs.int(c.rate),
-    //    fileid = rs.string(c.fileid),
     juryId = rs.long(c.juryId),
     round = rs.long(c.round),
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
   )
-
-  val s = SelectionJdbc.syntax("s")
-  // val autoSession = AutoSession
-  private val isNotDeleted = sqls.isNull(s.deletedAt)
 
   def find(id: Long): Option[Selection] = withSQL {
     select.from(SelectionJdbc as s).where.eq(s.id, id).and.append(isNotDeleted)
@@ -98,18 +97,17 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
     select(sqls.count).from(SelectionJdbc as s).where.append(isNotDeleted).and.append(sqls"$where")
   }.map(_.long(1)).single().apply().get
 
-  def create(pageId: Long, rate: Int,
-             fileid: String, juryId: Int, round: Int, createdAt: DateTime = DateTime.now): Selection = {
+  override def create(pageId: Long, rate: Int, juryId: Long, roundId: Long, createdAt: DateTime = DateTime.now): Selection = {
     val id = withSQL {
       insert.into(SelectionJdbc).namedValues(
         column.pageId -> pageId,
         column.rate -> rate,
         column.juryId -> juryId,
-        column.round -> round,
+        column.round -> roundId,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
-    Selection(id = id, pageId = pageId, rate = rate, juryId = juryId, round = round, createdAt = createdAt)
+    Selection(id = id, pageId = pageId, rate = rate, juryId = juryId, round = roundId, createdAt = createdAt)
   }
 
   def batchInsert(selections: Seq[Selection]) {

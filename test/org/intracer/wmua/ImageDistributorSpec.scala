@@ -11,7 +11,7 @@ class ImageDistributorSpec extends Specification {
   "ImageDistributorTest" should {
     "createNextRound" in {
 
-      ImageDistributor.distributeImages(contest, round)
+      //ImageDistributor.distributeImages(contest, round)
       ok
     }
 

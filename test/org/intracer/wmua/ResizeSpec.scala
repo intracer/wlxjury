@@ -1,6 +1,5 @@
-package models
+package org.intracer.wmua
 
-import org.intracer.wmua.ImageUtil
 import org.specs2.mutable.Specification
 
 class ResizeSpec extends Specification {

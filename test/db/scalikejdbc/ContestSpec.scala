@@ -1,7 +1,6 @@
-package models
+package db.scalikejdbc
 
 import db.ContestJuryDao
-import db.scalikejdbc.ContestJuryJdbc
 import org.intracer.wmua.ContestJury
 import org.specs2.mutable.Specification
 import play.api.test.FakeApplication
@@ -42,7 +41,7 @@ class ContestSpec extends Specification {
 
     "create contests" in {
       inMemDbApp {
-        def images(contest: String, year:Int, country: String) =
+        def images(contest: String, year: Int, country: String) =
           Some(s"Category:Images from $contest $year in $country")
 
         val contests = Seq(
