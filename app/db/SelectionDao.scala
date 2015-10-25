@@ -19,15 +19,14 @@ trait SelectionDao {
 
   def find(id: Long): Option[Selection]
 
-  def findAll(): List[Selection]
+  def findAll(): Seq[Selection]
 
   def countAll(): Long
 
   def create(pageId: Long,
              rate: Int,
-             fileid: String,
-             juryId: Int,
-             round: Int,
+             juryId: Long,
+             round: Long,
              createdAt: DateTime = DateTime.now
               ): Selection
 

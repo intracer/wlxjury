@@ -16,6 +16,9 @@ class ImageSpec extends Specification {
     running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
   }
 
+  def contestImage(id: Long, contest: Long) =
+    Image(id, contest, s"File:Image$id.jpg", s"url$id", s"pageUrl$id", 640, 480, Some(s"12-345-$id"))
+
   "fresh database" should {
 
     "be empty" in {
@@ -42,6 +45,17 @@ class ImageSpec extends Specification {
       }
     }
 
-  }
+    "find by contest " in {
+      inMemDbApp {
+        val (contest1, contest2) = (10, 20)
+        val images1 = (11 to 19).map(id => contestImage(id, contest1))
+        val images2 = (21 to 29).map(id => contestImage(id, contest2))
 
+        imageDao.batchInsert(images1 ++ images2)
+
+        imageDao.findByContest(10) === images1
+        imageDao.findByContest(20) === images2
+      }
+    }
+  }
 }

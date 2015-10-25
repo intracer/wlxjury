@@ -143,8 +143,8 @@ object Tools {
       //      .toArray.take(29)
 
       //      ImageJdbc.findAll().filter(_.region == Some("44"))
-       val selected = Seq("File:Torre de Hércules, La Coruña, España, 2015-09-25, DD 23-31 HDR.jpg")
-        //Source.fromFile("spain.txt")(scala.io.Codec.UTF8).getLines().map(_.replace(160.asInstanceOf[Char], ' ').trim).toSet
+       val selected = //Seq("File:Torre de Hércules, La Coruña, España, 2015-09-25, DD 23-31 HDR.jpg")
+        Source.fromFile("wlm_ir_selection_round1.txt")(scala.io.Codec.UTF8).getLines().map(_.replace(160.asInstanceOf[Char], ' ').trim).toSet
       val imagesByJurors = images.filter(i => selected.contains(i.title)) /*.filter {
         iwr => iwr.selection.exists {
           s => jurors.exists(j => j.id.contains(s.juryId))
@@ -215,13 +215,13 @@ object Tools {
 
   def initImages(): Unit = {
 
-    val contest = ContestJuryJdbc.find(66L).get
+    val contest = ContestJuryJdbc.find(49L).get
 
     //    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
     //GlobalRefactor.appendImages(contest.images.get, contest)
 
-    val prevRound = RoundJdbc.find(84L).get
-    val round = RoundJdbc.find(112L).get
+    val prevRound = RoundJdbc.find(94L).get
+    val round = RoundJdbc.find(113L).get
 
     //    val selection = Selection.byRound(22L)
 

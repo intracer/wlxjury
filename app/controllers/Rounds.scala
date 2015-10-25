@@ -87,9 +87,8 @@ object Rounds extends Controller with Secured {
 
 
   def distributeImages(contest: ContestJury, round: Round) {
-    ImageDistributor.distributeImages(contest, round)
+    ImageDistributor.distributeImages(contest.id.get, round)
   }
-
 
   def setImages() = withAuth({
     user =>

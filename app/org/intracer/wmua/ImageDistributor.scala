@@ -5,10 +5,10 @@ import org.joda.time.DateTime
 
 object ImageDistributor {
 
-  def distributeImages(contest: ContestJury, round: Round) {
+  def distributeImages(contestId: Long, round: Round) {
 
     val allImages: Seq[Image] = if (round.number == 1) {
-      val fromDb = ImageJdbc.findByContest(contest.id.get)
+      val fromDb = ImageJdbc.findByContest(contestId)
 
 //      import scala.concurrent.duration._
 //
@@ -35,12 +35,12 @@ object ImageDistributor {
       fromDb//.filter(i => largeIds.contains(i.pageId))
     } else {
       if (true) {
-        val rounds = RoundJdbc.findByContest(contest.id.get)
+        val rounds = RoundJdbc.findByContest(contestId)
         (for (prevRound <- rounds.find(_.number == round.number - 1)) yield {
           ImageJdbc.byRatingMerged(1, prevRound.id.get).map(_.image)
         }).getOrElse(Seq.empty)
       } else {
-        val rounds = RoundJdbc.findByContest(contest.id.get)
+        val rounds = RoundJdbc.findByContest(contestId)
         val prevRound =  rounds.find(_.number == round.number - 1).get
 
         val rate = Some(1)
@@ -61,7 +61,6 @@ object ImageDistributor {
         }
         imagesWithSelection
       }
-
     }
 
     val allJurors = round.jurors

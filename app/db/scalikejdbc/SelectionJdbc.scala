@@ -77,7 +77,7 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
     select.from(SelectionJdbc as s).where.eq(s.id, id).and.append(isNotDeleted)
   }.map(SelectionJdbc(s)).single().apply()
 
-  def findAll(): List[Selection] = withSQL {
+  def findAll(): Seq[Selection] = withSQL {
     select.from(SelectionJdbc as s)
       .where.append(isNotDeleted)
       .orderBy(s.id)
