@@ -3,8 +3,9 @@
         user: org.intracer.wmua.User = null,
         asUserId: Int = 0,
         asUser: org.intracer.wmua.User = null,
+        selectedRound: org.intracer.wmua.Round,
         currentRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
-        rounds: Seq[org.intracer.wmua.Round] = Seq.empty,
+        allRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
         gallery: Boolean = false,
         rate: Option[Int] = None,
         region: String = "all",
@@ -48,7 +49,7 @@
                             @dropDownSelection(
                                 new UiSelectionDto[Int](
                                     routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, _, rate),
-                                    round.id.toInt,
+                                    selectedRound.id.toInt,
                                     SelectionItem(round.description),
                                     Round.findByContest(user.contest).filter(user.canViewOrgInfo).map {
                                         r => (r.id.toInt, SelectionItem(r.description, localized = false))
@@ -65,18 +66,21 @@
                                 If binary round show unrated, selected, rejected tabs
                             -->
                             @if(round.rates == Round.binaryRound) {
-                                <li role="presentation" class="@if(rate.contains(0)){active}">
+                                @defining(selectedRound.id == round.id){ isActive =>
+
+                                <li role="presentation" class="@if(rate.contains(0) && isActive){active}">
                                     <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(0))">
                                         @Messages("unrated") (@user.roundFiles(round.id).count(_.rate == 0))
                                     </a>
-                                <li role="presentation" class="@if(rate.contains(1)){active active-}selected">
+                                <li role="presentation" class="@if(rate.contains(1) && isActive){active active-}selected">
                                     <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(1))">
                                         @Messages("selected") (@user.roundFiles(round.id).count(_.rate == 1))
                                     </a>
-                                <li role="presentation" class="@if(rate.contains(-1)){active active-}rejected">
+                                <li role="presentation" class="@if(rate.contains(-1) && isActive){active active-}rejected">
                                     <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(-1))">
                                         @Messages("rejected") (@user.roundFiles(round.id).count(_.rate == -1))
                                     </a>
+                                }
                                 } else {
                                <!--
                                 Rating round
@@ -84,7 +88,7 @@
 
                                      @if(round.id == 34) { <li role="presentation"> <a class="brand" href="/chat">@Messages("chat") </a>}
 
-                                @defining(rounds.map(_.id).toSet.contains(round.id)){ isActive =>
+                                @defining(selectedRound.id == round.id){ isActive =>
                                 @if(user.roundFiles(round.id).count(_.rate == 0) > 0) {
                                 <li  role="presentation" class="@if(rate.contains(0) && isActive) {active}">
                                     <a href="/gallery/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
@@ -111,11 +115,11 @@
                         <li  role="presentation" class="brand" >
                         @dropDownSelection(
                             new UiSelectionDto[Int](
-                                {roundId: Int => routes.Gallery.query(module = if (rounds.find(_.id == roundId.toLong).get.rates.id == 1) "gallery" else "byrate",
+                                {roundId: Int => routes.Gallery.query(module = if (allRounds.find(_.id == roundId.toLong).get.rates.id == 1) "gallery" else "byrate",
                                     Some(asUserId), page = 1, region = region, roundId, rate)},
                                 round.id.toInt,
                                 SelectionItem(round.description),
-                                rounds.filter(user.canViewOrgInfo).map(r => (r.id.toInt, SelectionItem(r.description, localized = false))),
+                                allRounds.filter(user.canViewOrgInfo).map(r => (r.id.toInt, SelectionItem(r.description, localized = false))),
                                 defaultKey = round.id.toInt,
                                 default = false,
                                 id = 2

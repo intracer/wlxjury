@@ -39,16 +39,16 @@
                             </a>
                         }
                     </div>
-        @if(round.rates.id==1) { @count } else {
+        @if(round.rates.id == 1) { @count } else {
             @byUserRateCount.getOrElse(user.id, Map.empty).toSeq.collect({
-                case (x,y) if x > 0 => y
+                case (x, y) if rate > 0 && x > 0 || rate == 0 && x == 0 => y
             }).sum
 
         }
         }
     }
 
-    @main(Messages("statistics"), user, user.id.toInt, user, currentRounds = Seq(round), rounds = rounds, gallery = false) {
+    @main(Messages("statistics"), user, user.id.toInt, user, round, currentRounds = Seq(round), rounds, gallery = false) {
 
         @if(user.roles.intersect(Set("organizer", "admin", "jury")).nonEmpty) {
             <div class="row" >
@@ -81,24 +81,23 @@
                             Images
                         </th>
 
-                        @if(round.rates.id==1) {
-                            <th>
-                                @Messages("unrated")
-                            </th>
+                        @if(round.rates.id == 1) {
                             <th>
                                 @Messages("selected")
+                            </th>
+                            <th>
+                                @Messages("unrated")
                             </th>
                             <th>
                                 @Messages("rejected")
                             </th>
                         } else {
                             <th>
-                                @Messages("unrated")
-                            </th>
-                            <th>
                                 @Messages("rated")
                             </th>
-
+                            <th>
+                                @Messages("unrated")
+                            </th>
                         }
                     </tr>
                 </thead>
@@ -131,20 +130,20 @@
                         </td>
                         @if(round.rates.id==1) {
                             <td>
-                            @roundLinks(round, user, 0)
+                            @roundLinks(round, user, 1)
                             </td>
                             <td>
-                            @roundLinks(round, user, 1)
+                            @roundLinks(round, user, 0)
                             </td>
                             <td>
                             @roundLinks(round, user, -1)
                             </td>
                         } else {
                             <td>
-                                @roundLinks(round, user, 0)
+                                @roundLinks(round, user, 1)
                             </td>
                             <td>
-                                @roundLinks(round, user, 1)
+                                @roundLinks(round, user, 0)
                             </td>
                         }
                     </tr>

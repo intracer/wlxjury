@@ -7,11 +7,13 @@
                 <span class="glyphicon glyphicon-user"></span> <span class="caret"></span>
             </a>
         <ul class="dropdown-menu">
+            @if(user.email != "WLMUkraine15") {
             <li>
                 <a href="@routes.Admin.editUser(user.id.toString)">
                     <span class="glyphicon glyphicon-user"></span> @Messages("profile")
                 </a>
             </li>
+            }
             <li>
                 <a href="@routes.Application.logout()">
                     <span class="glyphicon glyphicon-off"></span> @Messages("logout")
