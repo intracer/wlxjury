@@ -26,7 +26,7 @@
                         <!-- <li role="presentation"><a class="brand" href="/admin/rounds">@Messages("rounds")</a> -->
                     }
 
-                    @for(round <- currentRounds) {
+                    @for(round <- if (user.roles.contains("jury")) currentRounds else Seq(selectedRound)) {
 
                         <li class="navbar-brand" style="margin-left: 10px">@Messages(round.description)</li>
 
@@ -111,7 +111,7 @@
                     }
 
                     @if(user.id != asUserId && user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
-                        @for(round <- currentRounds) {
+                        @for(round <- if (user.roles.contains("jury")) currentRounds else Seq(selectedRound)) {
                         <li  role="presentation" class="brand" >
                         @dropDownSelection(
                             new UiSelectionDto[Int](
