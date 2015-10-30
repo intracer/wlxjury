@@ -87,9 +87,15 @@
         }
     </div>
     } else {
-
         </div>
-        <div id="rate-image" style="margin-top:10px;"></div>
+    @if(round.id >= 124L && round.id <= 128L) {
+        <div id="rate-image1" style="margin-top:10px ;"></div>
+        <div id="rate-image2" style="margin-top:10px ;"></div>
+        <div id="rate-image3" style="margin-top:10px ;"></div>
+
+    } else {
+        <div id="rate-image" style="margin-top:10px ;"></div>
             <!-- <input type="text" id="scoretarget"/> -->
+    }
     }
 

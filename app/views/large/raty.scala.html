@@ -38,6 +38,76 @@
                     }
                 }
             });
+
+        $('#rate-image1').raty({
+            score: @score,
+            half: true,
+            cancel: true,
+            starHalf: 'star-half@sizeSuffix ',
+            starOff: 'star-off@sizeSuffix ',
+            starOn: 'star-on@sizeSuffix ',
+            cancelOff: 'cancel-off@sizeSuffix ',
+            cancelOn: 'cancel-on@sizeSuffix ',
+            number: @(round.rates.id / 2),
+            precision: false,
+            space: false,
+            hints:[ '', '', '', '', '', '', '', '', '', '' ],
+            @if(readOnly) {
+            readOnly : 'true'
+            } else {
+            click : function(score, evt) {
+                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&")';
+                return false;
+            }
+            }
+        });
+
+        $('#rate-image2').raty({
+            score: @score,
+            half: true,
+            cancel: true,
+            starHalf: 'star-half@sizeSuffix ',
+            starOff: 'star-off@sizeSuffix ',
+            starOn: 'star-on@sizeSuffix ',
+            cancelOff: 'cancel-off@sizeSuffix ',
+            cancelOn: 'cancel-on@sizeSuffix ',
+            number: @(round.rates.id / 2),
+            precision: false,
+            space: false,
+            hints:[ '', '', '', '', '', '', '', '', '', '' ],
+            @if(readOnly) {
+            readOnly : 'true'
+            } else {
+            click : function(score, evt) {
+                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&")';
+                return false;
+            }
+            }
+        });
+
+        $('#rate-image3').raty({
+            score: @score,
+            half: true,
+            cancel: true,
+            starHalf: 'star-half@sizeSuffix ',
+            starOff: 'star-off@sizeSuffix ',
+            starOn: 'star-on@sizeSuffix ',
+            cancelOff: 'cancel-off@sizeSuffix ',
+            cancelOn: 'cancel-on@sizeSuffix ',
+            number: @(round.rates.id / 2),
+            precision: false,
+            space: false,
+            hints:[ '', '', '', '', '', '', '', '', '', '' ],
+            @if(readOnly) {
+            readOnly : 'true'
+            } else {
+            click : function(score, evt) {
+                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&")';
+                return false;
+            }
+            }
+        });
+
         }
     })
     </script>

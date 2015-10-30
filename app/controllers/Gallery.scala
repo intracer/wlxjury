@@ -192,7 +192,7 @@ object Gallery extends Controller with Secured with Instrumented {
     files
   }
 
-  def selectByPageId(roundId: Int, pageId: Long, select: Int, region: String = "all", rate: Option[Int], module: String): EssentialAction  = withAuth {
+  def selectByPageId(roundId: Int, pageId: Long, select: Int, region: String = "all", rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction  = withAuth {
     user =>
       implicit request =>
 
@@ -304,7 +304,7 @@ object Gallery extends Controller with Secured with Instrumented {
     val right = Math.min(index + 3, files.size)
     val start = Math.max(0, left - extraLeft)
     val end = Math.min(files.size, right + extraRight)
-    val monument = files(index).image.monumentId.flatMap(MonumentJdbc.find)
+    val monument = files(index).image.monumentId.flatMap(id => if (id.trim.nonEmpty) MonumentJdbc.find(id) else None)
 
     val comments = CommentJdbc.findByRoundAndSubject(round.id.toInt, files(index).pageId)
 
