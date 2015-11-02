@@ -11,7 +11,8 @@ case class Selection(
                       juryId: Long,
                       round: Long,
                       createdAt: DateTime = DateTime.now,
-                      deletedAt: Option[DateTime] = None)
+                      deletedAt: Option[DateTime] = None,
+                      criteriaId: Option[Int] = None)
 {
 
   def destroy()(implicit session: DBSession = Selection.autoSession): Unit = Selection.destroy(pageId, juryId, round)(session)
@@ -53,6 +54,16 @@ object Selection extends SQLSyntaxSupport[Selection]{
       .orderBy(s.rate).desc
   }.map(rs => (Selection(Selection.s)(rs), User(User.u)(rs))).list().apply()
 
+  def byRoundImageAndJury(roundId: Long, juryId: Long, imageId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
+    select.from(Selection as s)
+      .where.eq(s.round, roundId).and
+      .eq(s.juryId, juryId).and
+      .eq(s.pageId, imageId).and
+      .gt(s.rate, 0).and
+      .append(isNotDeleted)
+      .orderBy(s.rate).desc
+  }.map(rs => Selection(Selection.s)(rs)).list().apply()
+
   def byRound(roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
     select.from(Selection as s).where
       .eq(s.round, roundId).and
@@ -70,14 +81,15 @@ object Selection extends SQLSyntaxSupport[Selection]{
 
   def apply(c: SyntaxProvider[Selection])(rs: WrappedResultSet): Selection = apply(c.resultName)(rs)
   def apply(c: ResultName[Selection])(rs: WrappedResultSet): Selection = new Selection(
-    id = rs.int(c.id),
+    id = rs.long(c.id),
     pageId = rs.long(c.pageId),
     rate = rs.int(c.rate),
 //    fileid = rs.string(c.fileid),
     juryId = rs.long(c.juryId),
     round = rs.long(c.round),
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
-    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
+    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime),
+    criteriaId = rs.intOpt(c.criteriaId)
   )
 
   val s = Selection.syntax("s")
@@ -86,6 +98,14 @@ object Selection extends SQLSyntaxSupport[Selection]{
 
   def find(id: Long)(implicit session: DBSession = autoSession): Option[Selection] = withSQL {
     select.from(Selection as s).where.eq(s.id, id).and.append(isNotDeleted)
+  }.map(Selection(s)).single().apply()
+
+  def findBy(pageId: Long, juryId: Long, round: Long)(implicit session: DBSession = autoSession): Option[Selection] = withSQL {
+    select.from(Selection as s).where
+      .eq(s.pageId, pageId).and
+      .eq(s.juryId, juryId).and
+      .eq(s.round, round).and
+      .append(isNotDeleted)
   }.map(Selection(s)).single().apply()
 
   def findAll()(implicit session: DBSession = autoSession): List[Selection] = withSQL {
@@ -116,7 +136,9 @@ object Selection extends SQLSyntaxSupport[Selection]{
         column.rate -> rate,
         column.juryId -> juryId,
         column.round -> round,
-        column.createdAt -> createdAt)
+        column.createdAt -> createdAt
+//,        column.criteria_id -> criteria
+      )
     }.updateAndReturnGeneratedKey().apply()
 
      Selection(id = id, pageId = pageId, rate = rate, juryId = juryId, round = round, createdAt = createdAt)
@@ -131,7 +153,8 @@ object Selection extends SQLSyntaxSupport[Selection]{
 //        i.fileid,
         i.juryId,
         i.round,
-        i.createdAt))
+        i.createdAt,
+        i.criteriaId))
       withSQL {
         insert.into(Selection).namedValues(
           column.pageId -> sqls.?,
@@ -139,7 +162,8 @@ object Selection extends SQLSyntaxSupport[Selection]{
 //          column.fileid -> sqls.?,
           column.juryId -> sqls.?,
           column.round -> sqls.?,
-          column.createdAt -> sqls.?
+          column.createdAt -> sqls.?,
+          column.criteriaId -> sqls.?
         )
       }.batch(batchParams: _*).apply()
     }
@@ -158,6 +182,23 @@ object Selection extends SQLSyntaxSupport[Selection]{
       eq(column.juryId, juryId).and.
       eq(column.round, round)
   }.update().apply()
+
+  def rateWithCriteria(pageId: Long, juryId: Long, round: Long, rate: Int = 1, criteriaId: Int)(implicit session: DBSession = autoSession): Unit = withSQL {
+    update(Selection).set(column.rate -> rate).where.
+      eq(column.pageId, pageId).and.
+      eq(column.juryId, juryId).and.
+      eq(column.round, round).and.
+      eq(column.criteriaId, criteriaId)
+  }.update().apply()
+
+//  def rateFromCriteria(pageId: Long, juryId: Long, round: Long )(implicit session: DBSession = autoSession): Unit = withSQL {
+//    update(Selection).set(column.rate -> rate).where.
+//      eq(column.pageId, pageId).and.
+//      eq(column.juryId, juryId).and.
+//      eq(column.round, round).and.
+//      eq(column.criteriaId, criteriaId)
+//  }.update().apply()
+//
 
   import SQLSyntax.{count, distinct}
   def activeJurors(roundId: Long)(implicit session: DBSession = autoSession): Int =
@@ -186,8 +227,8 @@ object Selection extends SQLSyntaxSupport[Selection]{
   }.map(_.int(1)).single().apply().get
 
 
-  //  def destroyAll(filename: String)(implicit session: DBSession = autoSession): Unit = withSQL {
-//    update(Selection).set(column.deletedAt -> DateTime.now).where.eq(column.filename, filename)
-//  }.update.apply()
+   def destroyAll(pageId: Long)(implicit session: DBSession = autoSession): Unit = withSQL {
+    update(Selection).set(column.deletedAt -> DateTime.now).where.eq(column.pageId, pageId)
+  }.update.apply()
 
 }

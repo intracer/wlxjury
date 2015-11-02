@@ -58,8 +58,10 @@ object Tools {
       warningLogLevel = 'warn
     )
 
+    removeIneligible()
      //users()
-    initImages()
+    //makeGuest()
+    //initImages()
     val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
     //wooden(wlmContest)
 
@@ -205,7 +207,7 @@ object Tools {
     //println(s"Distributing images")
    ImageDistributor.distributeImages(contest, round)
 
-//    createNextRound(round, round.jurors, prevRound)
+   // createNextRound(round, round.jurors, prevRound)
   }
 
   def wooden(wlmContest: Contest) = {
@@ -223,6 +225,49 @@ object Tools {
     val category = "Category:Images from Wiki Loves Monuments 2014 in Ukraine"
     val contest = ContestJury.find(20L).get
     GlobalRefactor.appendImages(category, contest, allIds)
+
+  }
+
+  def makeGuest() = {
+    val prevRound = Round.find(89).get
+    val currentRound = Round.find(104).get
+
+    val unrated = ImageJdbc.byRatingMerged(0, prevRound.id.toInt).toArray
+    val rejected = ImageJdbc.byRatingMerged(-1, prevRound.id.toInt).toArray
+    val all = unrated ++ rejected
+
+    val juror = User.find(581).get
+
+    val selection =
+      all.map(img => new Selection(0, img.pageId, 0, juror.id, currentRound.id, DateTime.now))
+
+    Selection.batchInsert(selection)
+  }
+
+  def removeIneligible() = {
+    val system = ActorSystem()
+    val http = new HttpClientImpl(system)
+
+    import system.dispatcher
+
+    val commons = new MwBot(http, system, controllers.Global.COMMONS_WIKIMEDIA_ORG, None)
+
+    import scala.concurrent.duration._
+
+    Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
+
+    val category = "Category:Obviously ineligible submissions for ESPC 2015 in Ukraine"
+    val query = GlobalRefactor.commons.page(category)
+
+    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
+      filesInCategory =>
+        val ids = filesInCategory.flatMap(_.id)
+
+        ids.foreach {
+          id => Selection.destroyAll(id)
+        }
+
+    }
 
   }
 

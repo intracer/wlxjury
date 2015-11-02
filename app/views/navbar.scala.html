@@ -28,7 +28,21 @@
 
                     @for(round <- if (user.roles.contains("jury")) currentRounds else Seq(selectedRound)) {
 
-                        <li class="navbar-brand" style="margin-left: 10px">@Messages(round.description)</li>
+                        @if(round.id >=124 && round.id <=128) {
+
+                            @defining(selectedRound.id == round.id){ isActive =>
+                                @if(user.roundFiles(round.id).count(_.rate == 0) > 0) {
+                                    <li  role="presentation"
+                                    class="@if(isActive) {active}">
+                                        <a href="/gallery/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages(round.description)
+                                            (@user.roundFiles(round.id).count(_.rate == 0))
+                                        </a>
+                                    </li>
+                                }
+                            }
+                        } else {
+                            <li class="navbar-brand" style="margin-left: 10px">@Messages(round.description)</li>
+                        }
 
                         <!--
                         Statistics item, if user has rights
@@ -85,8 +99,12 @@
                                <!--
                                 Rating round
                                 -->
+                                @if(round.id >=124 && round.id <=128) {
 
-                                     @if(round.id == 34) { <li role="presentation"> <a class="brand" href="/chat">@Messages("chat") </a>}
+                                } else {
+
+
+                                    @if(round.id == 34) { <li role="presentation"> <a class="brand" href="/chat">@Messages("chat") </a>}
 
                                 @defining(selectedRound.id == round.id){ isActive =>
                                 @if(user.roundFiles(round.id).count(_.rate == 0) > 0) {
@@ -107,6 +125,7 @@
                                     (@user.roundFiles(round.id).count(_.rate > 0))</a>
                                 }
                                 }
+                            }
                         }
                     }
 

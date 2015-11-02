@@ -24,14 +24,14 @@ object Gallery extends Controller with Secured with Instrumented {
 
 
   def query(module: String, asUserId: Option[Int], page: Int = 1, region: String = "all", roundId: Int = 0, rate: Option[Int]) = {
-    listGeneric(module, asUserId.getOrElse(0), pager => page, region, roundId, rate )
+    listGeneric(module, asUserId.getOrElse(0), pager => page, region, roundId, rate)
   }
 
   def list(asUserId: Int, page: Int = 1, region: String = "all", roundId: Int = 0, rate: Option[Int]) =
-    listGeneric("gallery", asUserId, pager => page, region, roundId, rate )
+    listGeneric("gallery", asUserId, pager => page, region, roundId, rate)
 
   def listAtId(asUserId: Int, pageId: Long, region: String = "all", roundId: Int = 0, rate: Option[Int]) =
-    listGeneric("gallery", asUserId, pager => pager.at(pageId), region, roundId, rate )
+    listGeneric("gallery", asUserId, pager => pager.at(pageId), region, roundId, rate)
 
   def listGeneric(module: String, asUserId: Int, pageFn: Pager => Int, region: String = "all", roundId: Int = 0, rate: Option[Int]) = withAuth {
     user =>
@@ -43,9 +43,9 @@ object Gallery extends Controller with Secured with Instrumented {
           val roundContest = round.contest
 
           if (userContest != roundContest && !ContestJury.byId(userContest).exists(_.currentRound == roundId)
-//            ||  // TODO fix (user.roles.intersect(Set("admin", "organizer")).isEmpty
-//              &&
-//              && !round.juryOrgView)
+          //            ||  // TODO fix (user.roles.intersect(Set("admin", "organizer")).isEmpty
+          //              &&
+          //              && !round.juryOrgView)
           ) {
             onUnAuthorized(user)
           } else {
@@ -75,20 +75,20 @@ object Gallery extends Controller with Secured with Instrumented {
               Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, round, rounds, region, byReg))
             } else
 
-            module match {
-              case "gallery" =>
-                Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, round, rounds, rate, region, byReg))
+              module match {
+                case "gallery" =>
+                  Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, round, rounds, rate, region, byReg))
 
-              case "filelist" =>
-                Ok(views.html.fileList(user, asUserId, asUser, files, files, page, round, rounds, rate, region, byReg, "wiki"))
+                case "filelist" =>
+                  Ok(views.html.fileList(user, asUserId, asUser, files, files, page, round, rounds, rate, region, byReg, "wiki"))
 
-              case "byrate" =>
-                if (round.rates.id != 1) {
-                  Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, page, round, rounds, region, byReg))
-                } else {
-                  Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, round, rounds, None, region, byReg))
-                }
-            }
+                case "byrate" =>
+                  if (round.rates.id != 1) {
+                    Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, page, round, rounds, region, byReg))
+                  } else {
+                    Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, round, rounds, None, region, byReg))
+                  }
+              }
           }
         }
   }
@@ -156,8 +156,7 @@ object Gallery extends Controller with Secured with Instrumented {
   def filesByUserId(asUserId: Int, rate: Option[Int], user: User, round: Round): (Seq[ImageWithRating], User) = {
     if (asUserId == 0) {
       (rate.fold(ImageJdbc.byRoundSummed(round.id))(r => ImageJdbc.byRatingMerged(r, round.id.toInt)), null)
-    } else
-    if (asUserId != user.id.toInt) {
+    } else if (asUserId != user.id.toInt) {
       val asUser: User = User.find(asUserId).get
       (userFiles(asUser, round.id), asUser)
     } else (userFiles(user, round.id), user)
@@ -183,7 +182,7 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def userFiles(user: User, roundId: Long): Seq[ImageWithRating] = {
-    val files = Cache.getOrElse(s"user/${user.id}/round/$roundId", 900){
+    val files = Cache.getOrElse(s"user/${user.id}/round/$roundId", 900) {
       ImageJdbc.byUserImageWithRating(user, roundId)
     }
     user.files.clear()
@@ -192,7 +191,7 @@ object Gallery extends Controller with Secured with Instrumented {
     files
   }
 
-  def selectByPageId(roundId: Int, pageId: Long, select: Int, region: String = "all", rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction  = withAuth {
+  def selectByPageId(roundId: Int, pageId: Long, select: Int, region: String = "all", rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth {
     user =>
       implicit request =>
 
@@ -208,9 +207,19 @@ object Gallery extends Controller with Secured with Instrumented {
 
           val index = files.indexWhere(_.pageId == pageId)
 
-          file.rate = select
+          if (criteria.isEmpty) {
+            file.rate = select
+            Selection.rate(pageId = file.pageId, juryId = user.id.toInt, round = round.id, rate = select)
+          } else {
 
-          Selection.rate(pageId = file.pageId, juryId = user.id.toInt, round = round.id, rate = select)
+            val selection = Selection.findBy(pageId, user.id, roundId).get
+
+            CriteriaRate.updateRate(selection.id, criteria.get, select)
+
+            //            val rates = CriteriaRate.getRates(selection.id)
+            //            val average =
+            ///            Selection.rateWithCriteria(pageId = file.pageId, juryId = user.id.toInt, round = round.id, rate = select, criteriaId = criteria.get)
+          }
 
           checkLargeIndex(user, rate, index, pageId, files, region, round.id.toInt, module)
         }
@@ -237,9 +246,9 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def checkLargeIndex(asUser: User, rate: Option[Int], index: Int, pageId: Long, files: Seq[ImageWithRating], region: String, roundId: Int, module: String): Result = {
-      val newIndex = if (index > files.size - 2)
-        files.size - 2
-      else index + 1
+    val newIndex = if (index > files.size - 2)
+      files.size - 2
+    else if (roundId < 124 || roundId > 128) index + 1 else index
 
     val newPageId = if (newIndex < 0)
       files.lastOption.fold(-1L)(_.pageId)
@@ -289,13 +298,23 @@ object Gallery extends Controller with Secured with Instrumented {
       index = files.indexWhere(_.pageId == newPageId)
       val page = index / (Pager.filesPerPage(files) + 1) + 1
 
-      show2(index, files, user, asUserId, rate, page, round, region, module, selection)
+      val byCriteria = if (roundId >= 124 && roundId <= 128) {
+        val criterias = {
+          val selection = Selection.findBy(pageId, user.id, roundId).get
+          CriteriaRate.getRates(selection.id)
+        }
+
+        criterias.map { c => c.criteria.toInt -> c.rate }.toMap
+      } else Map.empty[Int, Int]
+
+      show2(index, files, user, asUserId, rate, page, round, region, module, selection, byCriteria)
     }
   }
 
 
   def show2(index: Int, files: Seq[ImageWithRating], user: User, asUserId: Int, rate: Option[Int],
-            page: Int, round: Round, region: String, module: String, selection: Seq[(Selection, User)])
+            page: Int, round: Round, region: String, module: String, selection: Seq[(Selection, User)],
+            byCriteria: Map[Int, Int] = Map.empty)
            (implicit request: Request[Any]): Result = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
     val extraLeft = if (files.size < index + 3) index + 3 - files.size else 0
@@ -308,7 +327,8 @@ object Gallery extends Controller with Secured with Instrumented {
 
     val comments = CommentJdbc.findByRoundAndSubject(round.id.toInt, files(index).pageId)
 
-    Ok(views.html.large.large(user, asUserId, files, index, start, end, page, rate, region, round, monument, module, comments, selection))
+
+    Ok(views.html.large.large(user, asUserId, files, index, start, end, page, rate, region, round, monument, module, comments, selection, byCriteria))
   }
 
   val loginForm = Form(
