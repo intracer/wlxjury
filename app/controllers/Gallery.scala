@@ -246,9 +246,10 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def checkLargeIndex(asUser: User, rate: Option[Int], index: Int, pageId: Long, files: Seq[ImageWithRating], region: String, roundId: Int, module: String): Result = {
-    val newIndex = if (index > files.size - 2)
+    val newIndex = if (roundId >= 124 || roundId <= 128) index else
+    if (index > files.size - 2)
       files.size - 2
-    else if (roundId < 124 || roundId > 128) index + 1 else index
+    else index + 1
 
     val newPageId = if (newIndex < 0)
       files.lastOption.fold(-1L)(_.pageId)
