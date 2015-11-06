@@ -2,6 +2,7 @@ package org.intracer.wmua
 
 import org.joda.time.DateTime
 import scalikejdbc._
+import scalikejdbc.interpolation.SQLSyntax._
 
 case class Selection(
                       id: Long,
@@ -69,6 +70,27 @@ object Selection extends SQLSyntaxSupport[Selection]{
       .eq(s.round, roundId).and
       .append(isNotDeleted)
   }.map(Selection(s)).list().apply()
+
+  def byRoundWithCriteria(roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
+    select(sum(CriteriaRate.c.rate), count(CriteriaRate.c.rate), s.result.*).from(Selection as s)
+      .leftJoin(CriteriaRate as CriteriaRate.c).on(s.id, CriteriaRate.c.selection)
+      .where
+      .eq(s.round, roundId).and
+      .append(isNotDeleted).
+       groupBy(s.id)
+  }.map(rs => (Selection(s)(rs), rs.int(1), rs.int(2))).list().apply().map {
+    case (selection, sum, criterias) => if (criterias > 0) selection.copy(rate = sum / criterias) else selection
+  }
+
+
+    //  select(sum(Selection.s.rate), count(Selection.s.rate), c.result.*).from(ImageJdbc as c)
+//    .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+//    .where.eq(Selection.s.round, roundId)
+//    .and.gt(Selection.s.rate, 0)
+//    .and.append(isNotDeleted).groupBy(Selection.s.pageId)
+//}.map(rs => (ImageJdbc(c)(rs), rs.int(1), rs.int(2))).list().apply().map {
+//case (i, sum, count) => ImageWithRating(i, Seq(new Selection(0, i.pageId, sum, 0, roundId)), count)
+
 
   def byUserNotSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
     select.from(Selection as s).where

@@ -30,7 +30,7 @@ object Rounds extends Controller with Secured {
 
           val rounds = Round.findByContest(user.contest)
 
-          val selection = Selection.byRound(round.id)
+          val selection = Selection.byRoundWithCriteria(round.id)
 
           val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
           val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
@@ -59,7 +59,7 @@ object Rounds extends Controller with Secured {
         } else {
           val rounds = Round.findByContest(user.contest)
 
-          val selection = Selection.byRound(round.id)
+          val selection = Selection.byRoundWithCriteria(round.id)
 
           val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
           val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))

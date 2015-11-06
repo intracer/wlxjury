@@ -301,7 +301,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
       val byCriteria = if (roundId >= 124 && roundId <= 128) {
         val criterias = {
-          val selection = Selection.findBy(pageId, user.id, roundId).get
+          val selection = Selection.findBy(pageId, asUserId, roundId).get
           CriteriaRate.getRates(selection.id)
         }
 
