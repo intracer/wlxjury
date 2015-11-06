@@ -78,7 +78,7 @@ object Selection extends SQLSyntaxSupport[Selection]{
       .eq(s.round, roundId).and
       .append(isNotDeleted).
        groupBy(s.id)
-  }.map(rs => (Selection(s)(rs), rs.int(1), rs.int(2))).list().apply().map {
+  }.map(rs => (Selection(s)(rs), rs.intOpt(1).getOrElse(0), rs.intOpt(2).getOrElse(0))).list().apply().map {
     case (selection, sum, criterias) => if (criterias > 0) selection.copy(rate = sum / criterias) else selection
   }
 
