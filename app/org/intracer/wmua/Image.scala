@@ -145,66 +145,48 @@ object ImageJdbc extends SQLSyntaxSupport[Image] {
 
   def bySelection(round: Long)(implicit session: DBSession = autoSession): List[Image] = withSQL {
     select.from(ImageJdbc as c)
-      .where.exists(
-      select.from(Selection as Selection.s).where
-        .eq(Selection.s.round, round).and
-        .eq(Selection.s.pageId, c.pageId)
-    )
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.round, round)
   }.map(ImageJdbc(c)).list().apply()
-
 
   def bySelectionNotSelected(round: Long)(implicit session: DBSession = autoSession): List[Image] = withSQL {
     select.from(ImageJdbc as c)
-      .where.exists(
-      select.from(Selection as Selection.s).where
-        .eq(Selection.s.round, round).and
-        .eq(Selection.s.rate, 0).and
-        .eq(Selection.s.pageId, c.pageId)
-    )
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.round, round)
+      .and
+      .eq(Selection.s.rate, 0)
   }.map(ImageJdbc(c)).list().apply()
 
   def bySelectionSelected(round: Long)(implicit session: DBSession = autoSession): List[Image] = withSQL {
-    // .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
     select.from(ImageJdbc as c)
-      .where.exists(
-      select.from(Selection as Selection.s).where
-        .eq(Selection.s.round, round).and
-        .ne(Selection.s.rate, 0).and
-        .eq(Selection.s.pageId, c.pageId)
-    )
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.round, round).and
+      .ne(Selection.s.rate, 0)
   }.map(ImageJdbc(c)).list().apply()
 
   def byUser(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Image] = withSQL {
     select.from(ImageJdbc as c)
-      .where.exists(
-      select.from(Selection as Selection.s).where
-        .eq(Selection.s.round, roundId).and
-        .eq(Selection.s.juryId, user.id)
-        .eq(Selection.s.pageId, c.pageId)
-    ).and
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.juryId, user.id).and
+      .eq(Selection.s.round, roundId).and
       .append(isNotDeleted)
   }.map(ImageJdbc(c)).list().apply()
 
   def byUserSelected(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[Image] = withSQL {
     select.from(ImageJdbc as c)
-      .where.exists(
-      select.from(Selection as Selection.s).where
-        .eq(Selection.s.round, roundId).and
-        .eq(Selection.s.rate, 1).and
-        .eq(Selection.s.pageId, c.pageId)
-        .eq(Selection.s.juryId, user.id)
-    ).and
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(Selection.s.juryId, user.id).and
+      .eq(Selection.s.round, roundId).and
+      .ne(Selection.s.rate, 0).and
       .append(isNotDeleted)
   }.map(ImageJdbc(c)).list().apply()
 
   def findWithSelection(id: Long, roundId: Long)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
     select.from(ImageJdbc as c)
-      .where.exists(
-      select.from(Selection as Selection.s).where
-        .eq(Selection.s.round, roundId).and
-        .eq(Selection.s.pageId, c.pageId)
-    )
-  }.map(rs => (ImageJdbc(c)(rs), Selection(Selection.s)(rs))).list().apply().map { case (i, s) => ImageWithRating(i, Seq(s)) }
+      .innerJoin(Selection as Selection.s).on(c.pageId, Selection.s.pageId)
+      .where.eq(c.pageId, id).and
+      .eq(Selection.s.round, roundId)
+  }.map(rs => (ImageJdbc(c)(rs), Selection(Selection.s)(rs))).list().apply().map{case (i,s ) => ImageWithRating(i,Seq(s))}
 
   def byUserImageWithRating(user: User, roundId: Long)(implicit session: DBSession = autoSession): Seq[ImageWithRating] = withSQL {
     select.from(ImageJdbc as c)
