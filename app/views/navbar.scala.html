@@ -34,8 +34,8 @@
                                 @if(user.roundFiles(round.id).count(_.rate == 0) > 0) {
                                     <li  role="presentation"
                                     class="@if(isActive) {active}">
-                                        <a href="/gallery/round/@round.id/user/@asUserId/page/1@rateParam(Some(0))">@Messages(round.description)
-                                            (@user.roundFiles(round.id).count(_.rate == 0))
+                                        <a href="/byrate/round/@round.id/user/@user.id/page/1">@Messages(round.description)
+                                            (@user.roundFiles(round.id).size)
                                         </a>
                                     </li>
                                 }
