@@ -107,36 +107,53 @@ object GlobalRefactor {
       props = Set("timestamp", "user", "size", "url"),
       titlePrefix = None)
 
+    val categoryNot = "Category:Obviously ineligible submissions for ESPC 2015 in Ukraine"
+    val queryNot = GlobalRefactor.commons.page(categoryNot)
+
+//    queryNot.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
+//      filesInCategoryNot =>
+//        val idsNot = filesInCategoryNot.flatMap(_.id)
+
+
 
     future.map {
       //bot.page("User:***REMOVED***/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
       //    query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
       filesInCategory =>
-        val newImagesOrigIds: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId).filterNot(i => existingPageIds.contains(i.pageId))
+        queryNot.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
+          filesInCategoryNot =>
+            val idsNot = filesInCategoryNot.flatMap(_.id)
 
-        //        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
-        //
-        val newImages = newImagesOrigIds //.map(p => p.copy(pageId = maxId + p.pageId))
+            val newImagesOrigIds: Seq[Image] = filesInCategory
+              .flatMap(page => ImageJdbc.fromPage(page, contest))
+              .sortBy(_.pageId)
+              .filterNot(i => existingPageIds.contains(i.pageId) || idsNot.contains(i.pageId))
+            //.map(i => i.copy(pageId = i.pageId + 169704049331L))
 
-        val ids = newImages.map(_.pageId)
-        val maxId = ids.max
-        val minId = ids.min
-        println(s"${contest.country},  min $minId, max $maxId")
+            //        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
+            //
+            val newImages = newImagesOrigIds //.map(p => p.copy(pageId = maxId + p.pageId))
 
-        contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
+            val ids = newImages.map(_.pageId)
+            val maxId = ids.max
+            val minId = ids.min
+            println(s"${contest.country},  min $minId, max $maxId")
 
-          query.revisionsByGenerator("categorymembers", "cm",
-            Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
-            pages =>
+            contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
 
-              val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-              val ids: Seq[String] = monumentIds(pages, existingPageIds, monumentIdTemplate)
+              query.revisionsByGenerator("categorymembers", "cm",
+                Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
+                pages =>
 
-              val imagesWithIds = newImagesOrigIds.zip(ids).map {
-                case (image, id) => image.copy(monumentId = Some(id))
-              }.filter(_.monumentId.forall(id => idsFilter.isEmpty || idsFilter.contains(id)))
-              saveNewImages(contest, imagesWithIds)
-          }
+                  val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
+                  val ids: Seq[String] = monumentIds(pages, existingPageIds, monumentIdTemplate)
+
+                  val imagesWithIds = newImagesOrigIds.zip(ids).map {
+                    case (image, id) => image.copy(monumentId = Some(id))
+                  }.filter(_.monumentId.forall(id => idsFilter.isEmpty || idsFilter.contains(id)))
+                  saveNewImages(contest, imagesWithIds)
+              }
+            }
         }
     }
   }

@@ -1,7 +1,10 @@
 package org.intracer.wmua
 
+import controllers.GlobalRefactor
 import db.scalikejdbc.{ImageJdbc, RoundJdbc, SelectionJdbc}
 import org.joda.time.DateTime
+
+import scala.concurrent.Await
 
 object ImageDistributor {
 
@@ -10,29 +13,29 @@ object ImageDistributor {
     val allImages: Seq[Image] = if (round.number == 1) {
       val fromDb = ImageJdbc.findByContest(contestId)
 
-//      import scala.concurrent.duration._
-//
-//      Await.result(GlobalRefactor.commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
-//
-//      val query = GlobalRefactor.commons.page("Category:Images from Wiki Loves Earth 2015 in Tunisia")
-//      val future = query.imageInfoByGenerator("categorymembers", "cm",
-//        props = Set("timestamp", "user", "size", "url"),
-//        titlePrefix = None)
-//
-//      val filesInCategory = Await.result(future, 15.minutes)
-//
-//      val wleIds = filesInCategory.flatMap(_.id).toSet
-//      val fromDbIds = fromDb.map(_.pageId).toSet
-//
-//      val ids = wleIds intersect fromDbIds
-//
+      import scala.concurrent.duration._
+
+      Await.result(GlobalRefactor.commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
+
+      val query = GlobalRefactor.commons.page("Category:Non-photographic media from European Science Photo Competition 2015")
+      val future = query.imageInfoByGenerator("categorymembers", "cm",
+        props = Set("timestamp", "user", "size", "url"),
+        titlePrefix = None)
+
+      val filesInCategory = Await.result(future, 15.minutes)
+
+      val categoryIds = filesInCategory.flatMap(_.id).toSet
+      val fromDbIds = fromDb.map(_.pageId).toSet
+
+      val ids = categoryIds intersect fromDbIds
+
 //      ids.foreach{
 //        id =>
 //
 //          SelectionJdbc.setRound(id, round.id.get, 26, 40)
 //      }
 //      val largeIds = filesInCategory.filter(_.images.headOption.exists(_.size.exists(_ > 1024 * 1024))).flatMap(_.id).toSet
-      fromDb//.filter(i => largeIds.contains(i.pageId))
+      fromDb.filter(i => ids.contains(i.pageId))
     } else {
       if (true) {
         val rounds = RoundJdbc.findByContest(contestId)
@@ -135,6 +138,4 @@ object ImageDistributor {
 
     }
   }
-
-
 }
