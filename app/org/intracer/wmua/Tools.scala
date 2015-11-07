@@ -266,9 +266,7 @@ object Tools {
         ids.foreach {
           id => Selection.destroyAll(id)
         }
-
     }
-
   }
 
 }

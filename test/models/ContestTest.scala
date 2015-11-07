@@ -4,7 +4,7 @@ import org.intracer.wmua.ContestJury
 import org.specs2.mutable.Specification
 
 
-class ContestTest extends Specification with WithTestDatabase {
+class ContestTest extends Specification  {
 
   "fresh database" should {
 
