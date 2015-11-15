@@ -56,7 +56,7 @@ GET         /large/round/:round/user/:user/pageid/:pageid                       
 
 GET         /large/round/:round/user/:user/region/:region/pageid/:pageid            controllers.Gallery.large(user: Long, pageid: Long, region: String, round:Long, rate: Option[Int] ?= None, module: String ?= "gallery")
 
-POST        /comment/region/:region/pageid/:pageid                                  controllers.ImageDiscussion.addComment(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery", round: Option[Int] ?= None)
+POST        /comment/region/:region/pageid/:pageid                                  controllers.ImageDiscussion.addComment(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery", round: Option[Long] ?= None)
 
 GET         /large/round/:round/pageid/:pageId/select/:select                       controllers.Gallery.selectByPageId(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
 
