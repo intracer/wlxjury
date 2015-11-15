@@ -82,7 +82,7 @@ object ImageDistributor {
 //      .filter{
 //      i => i.monumentId.exists(id => id.startsWith("44") || id.startsWith("32") || id.startsWith("65") || id.startsWith("63"))
 //    }
-    val jurors = allJurors.filterNot(j => oldJurorIds.contains(j.id))
+    val jurors = allJurors.filterNot(j => oldJurorIds.contains(j.id.get))
 
     val selection: Seq[Selection] = round.distribution match {
       case 0 =>

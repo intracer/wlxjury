@@ -40,7 +40,7 @@
                         }
                     </div>
         @if(round.rates.id == 1) { @count } else {
-            @byUserRateCount.getOrElse(user.id, Map.empty).toSeq.collect({
+            @byUserRateCount.getOrElse(user.id.get, Map.empty).toSeq.collect({
                 case (x, y) if rate > 0 && x > 0 || rate == 0 && x == 0 => y
             }).sum
 
@@ -48,7 +48,7 @@
         }
     }
 
-    @main(Messages("statistics"), user, user.id.toInt, user, round, currentRounds = Seq(round), rounds, gallery = false) {
+    @main(Messages("statistics"), user, user.id.get, user, round, currentRounds = Seq(round), rounds, gallery = false) {
 
         @if(user.roles.intersect(Set("organizer", "admin", "jury")).nonEmpty) {
             <div class="row" >

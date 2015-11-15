@@ -12,7 +12,7 @@
     @import org.intracer.wmua.Round
     @import org.intracer.wmua.Selection
 
-    @main(Messages("rounds"), adminUser, adminUser.id.toInt, currentRounds = Seq(round)) {
+    @main(Messages("rounds"), adminUser, adminUser.id.get, currentRounds = Seq(round)) {
         <div class="row" >
             <h3>@Messages("Contest: " + ContestJuryJdbc.byId(adminUser.contest).name)</h3>
 

@@ -29,7 +29,7 @@ object ImageDiscussion extends Controller with Secured {
   //
   //  }
 
-  def addComment(pageId: Long, region: String = "all", rate: Option[Int], module: String, round: Option[Int]) = withAuth {
+  def addComment(pageId: Long, region: String = "all", rate: Option[Int], module: String, round: Option[Long]) = withAuth {
     user =>
       implicit request =>
         val roundId = round.getOrElse(RoundJdbc.current(user).id.get)

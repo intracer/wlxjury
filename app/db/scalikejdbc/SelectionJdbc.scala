@@ -1,9 +1,10 @@
 package db.scalikejdbc
 
 import db.SelectionDao
-import org.intracer.wmua.{Selection, User}
+import org.intracer.wmua.{CriteriaRate, Selection, User}
 import org.joda.time.DateTime
 import scalikejdbc._
+import scalikejdbc.interpolation.SQLSyntax._
 
 object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
 
@@ -77,6 +78,14 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
     select.from(SelectionJdbc as s).where.eq(s.id, id).and.append(isNotDeleted)
   }.map(SelectionJdbc(s)).single().apply()
 
+  def findBy(pageId: Long, juryId: Long, round: Long)(implicit session: DBSession = autoSession): Option[Selection] = withSQL {
+    select.from(SelectionJdbc as s).where
+      .eq(s.pageId, pageId).and
+      .eq(s.juryId, juryId).and
+      .eq(s.round, round).and
+      .append(isNotDeleted)
+  }.map(SelectionJdbc(s)).single().apply()
+
   def findAll(): Seq[Selection] = withSQL {
     select.from(SelectionJdbc as s)
       .where.append(isNotDeleted)
@@ -96,6 +105,17 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
   def countBy(where: SQLSyntax): Long = withSQL {
     select(sqls.count).from(SelectionJdbc as s).where.append(isNotDeleted).and.append(sqls"$where")
   }.map(_.long(1)).single().apply().get
+
+  def byRoundWithCriteria(roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
+    select(sum(CriteriaRate.c.rate), count(CriteriaRate.c.rate), s.result.*).from(SelectionJdbc as s)
+      .leftJoin(CriteriaRate as CriteriaRate.c).on(s.id, CriteriaRate.c.selection)
+      .where
+      .eq(s.round, roundId).and
+      .append(isNotDeleted).
+      groupBy(s.id)
+  }.map(rs => (SelectionJdbc(s)(rs), rs.intOpt(1).getOrElse(0), rs.intOpt(2).getOrElse(0))).list().apply().map {
+    case (selection, sum, criterias) => if (criterias > 0) selection.copy(rate = sum / criterias) else selection
+  }
 
   override def create(pageId: Long, rate: Int, juryId: Long, roundId: Long, createdAt: DateTime = DateTime.now): Selection = {
     val id = withSQL {
@@ -181,8 +201,8 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
   }.map(_.int(1)).single().apply().get
 
 
-  //  def destroyAll(filename: String): Unit = withSQL {
-  //    update(Selection).set(column.deletedAt -> DateTime.now).where.eq(column.filename, filename)
-  //  }.update.apply()
+  def destroyAll(pageId: Long)(implicit session: DBSession = autoSession): Unit = withSQL {
+    update(SelectionJdbc).set(column.deletedAt -> DateTime.now).where.eq(column.pageId, pageId)
+  }.update.apply()
 
 }

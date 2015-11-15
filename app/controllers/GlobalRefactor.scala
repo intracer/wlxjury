@@ -185,7 +185,7 @@ object GlobalRefactor {
 
             imagesWithIds.foreach{
               image =>
-                ImageJdbc.setMonumentId(image.pageId, image.monumentId.get)
+                ImageJdbc.updateMonumentId(image.pageId, image.monumentId.get)
             }
         }
     }

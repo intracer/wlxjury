@@ -347,19 +347,19 @@ object Tools {
   }
 
   def makeGuest() = {
-    val prevRound = Round.find(89).get
-    val currentRound = Round.find(104).get
+    val prevRound = RoundJdbc.find(89).get
+    val currentRound = RoundJdbc.find(104).get
 
-    val unrated = ImageJdbc.byRatingMerged(0, prevRound.id.toInt).toArray
-    val rejected = ImageJdbc.byRatingMerged(-1, prevRound.id.toInt).toArray
+    val unrated = ImageJdbc.byRatingMerged(0, prevRound.id.get).toArray
+    val rejected = ImageJdbc.byRatingMerged(-1, prevRound.id.get).toArray
     val all = unrated ++ rejected
 
-    val juror = User.find(581).get
+    val juror = UserJdbc.find(581).get
 
     val selection =
-      all.map(img => new Selection(0, img.pageId, 0, juror.id, currentRound.id, DateTime.now))
+      all.map(img => new Selection(0, img.pageId, 0, juror.id.get, currentRound.id.get, DateTime.now))
 
-    Selection.batchInsert(selection)
+    SelectionJdbc.batchInsert(selection)
   }
 
   def removeIneligible() = {
@@ -382,7 +382,7 @@ object Tools {
         val ids = filesInCategory.flatMap(_.id)
 
         ids.foreach {
-          id => Selection.destroyAll(id)
+          id => SelectionJdbc.destroyAll(id)
         }
     }
   }

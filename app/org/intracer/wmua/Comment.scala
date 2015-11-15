@@ -34,7 +34,7 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
     body = rs.string(c.body)
   )
 
-  def create(userId: Int, username: String, round: Long, room: Long, body: String, createdAt: String = DateTime.now.toString)(implicit session: DBSession = autoSession): Comment = {
+  def create(userId: Long, username: String, round: Long, room: Long, body: String, createdAt: String = DateTime.now.toString)(implicit session: DBSession = autoSession): Comment = {
     val id = withSQL {
       insert.into(CommentJdbc).namedValues(
         column.userId -> userId,

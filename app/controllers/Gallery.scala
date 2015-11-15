@@ -91,10 +91,10 @@ object Gallery extends Controller with Secured with Instrumented {
         }
   }
 
-  def byRate(asUserId: Int, page: Int = 1, region: String = "all", roundId: Int = 0) =
+  def byRate(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0) =
     listGeneric("byrate", asUserId, pager => page, region, roundId, None)
 
-  def byRateAt(asUserId: Int, pageId: Long, region: String = "all", roundId: Int = 0) =
+  def byRateAt(asUserId: Long, pageId: Long, region: String = "all", roundId: Long = 0) =
     listGeneric("byrate", asUserId, pager => pager.at(pageId), region, roundId, None)
 
   def filterByRate(round: Round, rate: Option[Int], uFiles: Seq[ImageWithRating]): Seq[ImageWithRating] = {
@@ -191,7 +191,8 @@ object Gallery extends Controller with Secured with Instrumented {
     files
   }
 
-  def selectByPageId(roundId: Int, pageId: Long, select: Int, region: String = "all", rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth {
+  def selectByPageId(roundId: Long, pageId: Long, select: Int, region: String = "all",
+                     rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth {
     user =>
       implicit request =>
 
@@ -212,7 +213,7 @@ object Gallery extends Controller with Secured with Instrumented {
             SelectionJdbc.rate(pageId = file.pageId, juryId = user.id.get, round = round.id.get, rate = select)
           } else {
 
-            val selection = SelectionJdbc.findBy(pageId, user.id, roundId).get
+            val selection = SelectionJdbc.findBy(pageId, user.id.get, roundId).get
 
             CriteriaRate.updateRate(selection.id, criteria.get, select)
 
@@ -245,7 +246,15 @@ object Gallery extends Controller with Secured with Instrumented {
     } + ("all" -> files.size)
   }
 
-  def checkLargeIndex(asUser: User, rate: Option[Int], index: Int, pageId: Long, files: Seq[ImageWithRating], region: String, roundId: Int, module: String): Result = {
+  def checkLargeIndex(
+                       asUser: User,
+                       rate: Option[Int],
+                       index: Int,
+                       pageId: Long,
+                       files: Seq[ImageWithRating],
+                       region: String,
+                       roundId: Long,
+                       module: String): Result = {
     val newIndex = if (roundId >= 124 || roundId <= 128) index else
     if (index > files.size - 2)
       files.size - 2
@@ -301,7 +310,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
       val byCriteria = if (roundId >= 124 && roundId <= 128) {
         val criterias = {
-          val selection = Selection.findBy(pageId, asUserId, roundId).get
+          val selection = SelectionJdbc.findBy(pageId, asUserId, roundId).get
           CriteriaRate.getRates(selection.id)
         }
 
@@ -313,8 +322,16 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
 
-  def show2(index: Int, files: Seq[ImageWithRating], user: User, asUserId: Int, rate: Option[Int],
-            page: Int, round: Round, region: String, module: String, selection: Seq[(Selection, User)],
+  def show2(index: Int,
+            files: Seq[ImageWithRating],
+            user: User,
+            asUserId: Long,
+            rate: Option[Int],
+            page: Int,
+            round: Round,
+            region: String,
+            module: String,
+            selection: Seq[(Selection, User)],
             byCriteria: Map[Int, Int] = Map.empty)
            (implicit request: Request[Any]): Result = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
@@ -329,7 +346,14 @@ object Gallery extends Controller with Secured with Instrumented {
     val comments = CommentJdbc.findByRoundAndSubject(round.id.get, files(index).pageId)
 
 
-    Ok(views.html.large.large(user, asUserId, files, index, start, end, page, rate, region, round, monument, module, comments, selection, byCriteria))
+    Ok(
+      views.html.large.large(
+        user, asUserId,
+      files, index, start, end, page, rate,
+      region, round, monument, module, comments, selection,
+      byCriteria
+      )
+    )
   }
 
 }

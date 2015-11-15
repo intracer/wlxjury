@@ -72,12 +72,12 @@ object Admin extends Controller with Secured {
               }
               Cache.remove(s"user/${user.email}")
 
-              val contest = ContestJury.find(user.contest).get
-              val round = Round.current(user)
+              val contest = ContestJuryJdbc.find(user.contest).get
+              val round = RoundJdbc.current(user)
 
-              ImageDistributor.distributeImages(contest, round)
+              ImageDistributor.distributeImages(contest.id.get, round)
 
-              val result = Redirect(routes.Admin.users)
+              val result = Redirect(routes.Admin.users())
               val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
 
               lang.fold(result)(l => result.withLang(Lang(l)))
