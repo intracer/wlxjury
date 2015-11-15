@@ -27,7 +27,7 @@
         </div>
     }
 
-@main("byrate", user, asUserId, asUser, Seq(round), rounds, true, None, region, pager(asUserId, regionFiles, page, None, round.id.get, region, "byrate"))  {
+@main("byrate", user, asUserId, asUser, round, org.intracer.wmua.RoundJdbc.activeRounds(user.contest),  rounds, true, None, region, pager(asUserId, regionFiles, page, None, round.id.toInt, region, "byrate"))  {
 
     @regionNav({region:String => s"/byrate/round/${round.id.get}/user/$asUserId/region/$region/page/1"}, round, region, byRegion)
 

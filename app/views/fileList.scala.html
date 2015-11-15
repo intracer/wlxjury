@@ -12,7 +12,7 @@
         byRegion: Map[String, Int],
         format1:String = "wiki")(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@main("filelist", user, asUserId, asUser, Seq(round), rounds, false, rate, region) {
+@main("filelist", user, asUserId, asUser, round, rounds, rounds, false, rate, region) {
 
     @regionNav({region:String => s"/filelist/round/${round.id.get}/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
 

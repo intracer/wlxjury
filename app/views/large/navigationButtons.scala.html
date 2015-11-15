@@ -87,9 +87,22 @@
         }
     </div>
     } else {
-
         </div>
-        <div id="rate-image" style="margin-top:10px;"></div>
+    @if(round.id >= 124L && round.id <= 128L) {
+        <div style="color: white">Науковість</div>
+        <div id="rate-image1" style="margin-top:10px ;"></div>
+
+        <div style="color: white">Підпис</div>
+        <div id="rate-image2" style="margin-top:10px ;"></div>
+
+        <div style="color: white">Корисність</div>
+        <div id="rate-image3" style="margin-top:10px ;"></div>
+
+        <div style="color: white">Естетика</div>
+        <div id="rate-image4" style="margin-top:10px ;"></div>
+    } else {
+        <div id="rate-image" style="margin-top:10px ;"></div>
             <!-- <input type="text" id="scoretarget"/> -->
+    }
     }
 

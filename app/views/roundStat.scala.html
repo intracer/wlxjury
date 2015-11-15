@@ -12,7 +12,7 @@
     @roundLinks(round: org.intracer.wmua.Round, user: org.intracer.wmua.User, rate: Int)= {
         @defining(byUserRateCount.getOrElse(user.id.get, Map.empty).getOrElse(rate, 0)) { count =>
                     <div class="btn-group">
-                        @if(round.rates.id==1) {
+                        @if(round.rates.id == 1 || rate == 0) {
                             <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
                                 <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
                                     <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
@@ -25,7 +25,7 @@
                                 </button>
                             </a>
                         }
-                        @if(round.rates.id==1) {
+                        @if(round.rates.id == 1 || rate == 0) {
                             <a href="/filelist/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
                                 <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
                                     <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
@@ -40,15 +40,15 @@
                         }
                     </div>
         @if(round.rates.id == 1) { @count } else {
-            @byUserRateCount.getOrElse(user.id.get, Map.empty).toSeq.collect({
-                case (x,y) if x > 0 => y
+            @byUserRateCount.getOrElse(user.id, Map.empty).toSeq.collect({
+                case (x, y) if rate > 0 && x > 0 || rate == 0 && x == 0 => y
             }).sum
 
         }
         }
     }
 
-    @main(Messages("statistics"), user, user.id.get, user, Seq.empty, Seq.empty, gallery = false) {
+    @main(Messages("statistics"), user, user.id.toInt, user, round, currentRounds = Seq(round), rounds, gallery = false) {
 
         @if(user.roles.intersect(Set("organizer", "admin", "jury")).nonEmpty) {
             <div class="row" >
@@ -81,7 +81,7 @@
                             Images
                         </th>
 
-                        @if(round.rates.id==1) {
+                        @if(round.rates.id == 1) {
                             <th>
                                 @Messages("selected")
                             </th>
@@ -93,7 +93,10 @@
                             </th>
                         } else {
                             <th>
-                                Rating
+                                @Messages("rated")
+                            </th>
+                            <th>
+                                @Messages("unrated")
                             </th>
                         }
                     </tr>
@@ -125,7 +128,7 @@
                                 @count
                             }
                         </td>
-                        @if(round.rates.id==1) {
+                        @if(round.rates.id == 1) {
                             <td>
                             @roundLinks(round, user, 1)
                             </td>
@@ -138,6 +141,9 @@
                         } else {
                             <td>
                                 @roundLinks(round, user, 1)
+                            </td>
+                            <td>
+                                @roundLinks(round, user, 0)
                             </td>
                         }
                     </tr>
@@ -163,6 +169,10 @@
                         }
                             @total
                         </th>
+                        @if(round.rates.id != 1) {
+                            <th>
+                            </th>
+                        }
                         <th>
                             <div class="btn-group">
                             @if(round.rates.id == 1) {
@@ -189,13 +199,13 @@
                                 </a>
                             }
                             </div>
-                            @if(round.rates.id==1) {
+                            @if(round.rates.id == 1) {
                                 @totalByRate.getOrElse(1, 0)
                             }
                         </th>
-                        <th colspan="2" style="text-align: center">
+                        <th style="text-align: center">
                             <!-- <a href="/gallery/user/0/rate/0/page/1"> -->
-                            @if(round.rates.id==1) {
+                            @if(round.rates.id == 1) {
                                 @{total - totalByRate.getOrElse(1, 0)}
                             }
                             <!-- </a> -->

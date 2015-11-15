@@ -49,8 +49,11 @@ object Tools {
 
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
-    ConnectionPool.singleton("jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury", "***REMOVED***", "***REMOVED***")
-    //ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
+    val url: String = "jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
+    println(s"URL:" + url)
+
+    ConnectionPool.singleton(url, "***REMOVED***", "***REMOVED***")
+//    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
@@ -187,14 +190,12 @@ object Tools {
   }
 
   def insertMonumentsWLM() = {
-
     val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
 
     val monumentQuery = MonumentQuery.create(wlmContest)
     val allMonuments = monumentQuery.byMonumentTemplate(wlmContest.listTemplate)
     println(allMonuments.size)
   }
-
 
   def updateResolution(contest: ContestJury) = {
 
@@ -343,6 +344,47 @@ object Tools {
     val mapped = images.map(i => i.copy(pageId = i.pageId + 169660173900L))
 
     ImageJdbc.batchInsert(mapped)
+  }
+
+  def makeGuest() = {
+    val prevRound = Round.find(89).get
+    val currentRound = Round.find(104).get
+
+    val unrated = ImageJdbc.byRatingMerged(0, prevRound.id.toInt).toArray
+    val rejected = ImageJdbc.byRatingMerged(-1, prevRound.id.toInt).toArray
+    val all = unrated ++ rejected
+
+    val juror = User.find(581).get
+
+    val selection =
+      all.map(img => new Selection(0, img.pageId, 0, juror.id, currentRound.id, DateTime.now))
+
+    Selection.batchInsert(selection)
+  }
+
+  def removeIneligible() = {
+    val system = ActorSystem()
+    val http = new HttpClientImpl(system)
+
+    import system.dispatcher
+
+    val commons = new MwBot(http, system, controllers.Global.COMMONS_WIKIMEDIA_ORG, None)
+
+    import scala.concurrent.duration._
+
+    Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
+
+    val category = "Category:Obviously ineligible submissions for ESPC 2015 in Ukraine"
+    val query = GlobalRefactor.commons.page(category)
+
+    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
+      filesInCategory =>
+        val ids = filesInCategory.flatMap(_.id)
+
+        ids.foreach {
+          id => Selection.destroyAll(id)
+        }
+    }
   }
 
 }

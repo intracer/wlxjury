@@ -12,7 +12,8 @@
         monument: Option[org.scalawiki.wlx.dto.Monument],
         module : String = "gallery",
         comments: Seq[org.intracer.wmua.Comment],
-        selection: Seq[(org.intracer.wmua.Selection, org.intracer.wmua.User)])(
+        selection: Seq[(org.intracer.wmua.Selection, org.intracer.wmua.User)],
+        byCriteria: Map[Int, Int] = Map.empty)(
         implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
 
     @main_large(module,
@@ -28,7 +29,8 @@
     round = round,
     rate = rate,
     module = module,
-    preload = files.view.slice(start, end)) {
+    preload = files.view.slice(start, end),
+        byCriteria = byCriteria) {
         <div class="container-fluid" style="padding-left:5px; margin-left:0px; margin-right:0px">
             <div class="row">
                 <div class="col-xs-1" style="margin-left:0px; min-width: 220px">

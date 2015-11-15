@@ -7,7 +7,7 @@
 @import helper._
 @import org.intracer.wmua.ContestJury
 
-@main(Messages("users"), adminUser, adminUser.id.get) {
+@main(Messages("users"), adminUser, adminUser.id.get, currentRounds = Seq(round)) {
     <div class="row" >
         <h3>@Messages("Contest: " + ContestJuryJdbc.byId(adminUser.contest).name)</h3>
 
@@ -15,10 +15,10 @@
 
             <thead>
                 <tr>
-                    <th>@Messages("Name")</th>
-                    <th>@Messages("Email")</th>
-                    <th>@Messages("Role")</th>
-                    <th>@Messages("Edit")</th>
+                    <th>@Messages("name")</th>
+                    <th>@Messages("email")</th>
+                    <th>@Messages("role")</th>
+                    <th>@Messages("edit")</th>
                 </tr>
             </thead>
 
@@ -28,10 +28,10 @@
                     <tr>
                         <td>@user.fullname </td>
                         <td>@user.email </td>
-                        <td>@user.roles.filterNot(_.startsWith("USER_ID")) </td>
+                        <td>@user.roles.filterNot(_.startsWith("USER_ID")).mkString(", ") </td>
                         <td>
                             <a href="/users/edit/@user.id">
-                                <button type="button" class="btn">
+                                <button type="button" class="btn btn-default btn-xs">
                                     <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                                 </button>
                             </a>

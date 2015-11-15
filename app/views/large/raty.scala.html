@@ -3,7 +3,9 @@
         readOnly: Boolean = false,
         round: org.intracer.wmua.Round,
         rate: Option[Int],
-        module: String = "byrate")(implicit lang: Lang, messages: Messages)
+        module: String = "byrate",
+        byCriteria: Map[Int, Int] = Map.empty
+)(implicit lang: Lang, messages: Messages)
 
 @if(round.rates.id > 1) {
 
@@ -38,6 +40,100 @@
                     }
                 }
             });
+
+        $('#rate-image1').raty({
+            score: @{byCriteria.getOrElse(1, 0)/2.0},
+            half: true,
+            cancel: true,
+            starHalf: 'star-half@sizeSuffix ',
+            starOff: 'star-off@sizeSuffix ',
+            starOn: 'star-on@sizeSuffix ',
+            cancelOff: 'cancel-off@sizeSuffix ',
+            cancelOn: 'cancel-on@sizeSuffix ',
+            number: @(round.rates.id / 2),
+            precision: false,
+            space: false,
+            hints:[ '', '', '', '', '', '', '', '', '', '' ],
+            @if(readOnly) {
+            readOnly : 'true'
+            } else {
+            click : function(score, evt) {
+                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&", Some(1))';
+                return false;
+            }
+            }
+        });
+
+        $('#rate-image2').raty({
+            score: @{byCriteria.getOrElse(2, 0)/2.0},
+            half: true,
+            cancel: true,
+            starHalf: 'star-half@sizeSuffix ',
+            starOff: 'star-off@sizeSuffix ',
+            starOn: 'star-on@sizeSuffix ',
+            cancelOff: 'cancel-off@sizeSuffix ',
+            cancelOn: 'cancel-on@sizeSuffix ',
+            number: @(round.rates.id / 2),
+            precision: false,
+            space: false,
+            hints:[ '', '', '', '', '', '', '', '', '', '' ],
+            @if(readOnly) {
+            readOnly : 'true'
+            } else {
+            click : function(score, evt) {
+                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&", Some(2))';
+                return false;
+            }
+            }
+        });
+
+        $('#rate-image3').raty({
+            score: @{byCriteria.getOrElse(3, 0)/2.0},
+            half: true,
+            cancel: true,
+            starHalf: 'star-half@sizeSuffix ',
+            starOff: 'star-off@sizeSuffix ',
+            starOn: 'star-on@sizeSuffix ',
+            cancelOff: 'cancel-off@sizeSuffix ',
+            cancelOn: 'cancel-on@sizeSuffix ',
+            number: @(round.rates.id / 2),
+            precision: false,
+            space: false,
+            hints:[ '', '', '', '', '', '', '', '', '', '' ],
+            @if(readOnly) {
+            readOnly : 'true'
+            } else {
+            click : function(score, evt) {
+                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&", Some(3))';
+                return false;
+            }
+            }
+        });
+
+        $('#rate-image4').raty({
+            score: @{byCriteria.getOrElse(4, 0)/2.0},
+            half: true,
+            cancel: true,
+            starHalf: 'star-half@sizeSuffix ',
+            starOff: 'star-off@sizeSuffix ',
+            starOn: 'star-on@sizeSuffix ',
+            cancelOff: 'cancel-off@sizeSuffix ',
+            cancelOn: 'cancel-on@sizeSuffix ',
+            number: @(round.rates.id / 2),
+            precision: false,
+            space: false,
+            hints:[ '', '', '', '', '', '', '', '', '', '' ],
+            @if(readOnly) {
+            readOnly : 'true'
+            } else {
+            click : function(score, evt) {
+                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&", Some(4))';
+                return false;
+            }
+            }
+        });
+
+
         }
     })
     </script>

@@ -12,8 +12,8 @@
         region: String = "all",
         round: org.intracer.wmua.Round,
         module: String = "byrate",
-        preload: Iterable[org.intracer.wmua.ImageWithRating] = Seq.empty
-        )(content: Html)(implicit lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
+        preload: Iterable[org.intracer.wmua.ImageWithRating] = Seq.empty,
+        byCriteria: Map[Int, Int] = Map.empty)(content: Html)(implicit lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
 
 <!DOCTYPE html>
 
@@ -40,7 +40,7 @@
       <![endif]-->
 
 
-        @raty(score, url, readOnly, round, rate, module)
+        @raty(score, url, readOnly, round, rate, module, byCriteria)
         @keyboardNav(user, asUserId, files, index, page, rate, region, round, module)
 
         @preloadImages(preload)

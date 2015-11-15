@@ -196,6 +196,12 @@ object GlobalRefactor {
 
   def monumentIds(pages: Seq[Page], existingPageIds: Set[Long], monumentIdTemplate: String): Seq[String] = {
 
+    //    pages.flatMap {
+    //      page =>
+    //        page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
+    //          .map(id => page.id.get -> (if (id.length < 100) id else id.substring(0, 100)))
+    //    }.toMap
+
     pages.sortBy(_.id).filterNot(i => existingPageIds.contains(i.id.get)).map {
       page =>
         page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
@@ -205,33 +211,14 @@ object GlobalRefactor {
   }
 
   def saveNewImages(contest: ContestJury, imagesWithIds: Seq[Image]) = {
+    println("saving images: " + imagesWithIds.size)
     ImageJdbc.batchInsert(imagesWithIds)
-    //createJury()
+    println("saved images")
+    createJury()
     //    initContestFiles(contest, imagesWithIds)
   }
 
   def initUrls() {
-
-    //    val galleryUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/galleryUrls${i}.txt"))
-    //    val largeUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/largeUrls${i}.txt"))
-    //    val thumbsUrlsFiles = (1 to 10).map(i => new File(s"${projectRoot.getAbsolutePath}/conf/urls/thumbUrls${i}.txt"))
-    //
-    //    Logger.info("galleryUrlsFiles" + galleryUrlsFiles)
-    //    Logger.info("largeUrlsFiles" + largeUrlsFiles)
-    //    Logger.info("thumbsUrlsFiles" + thumbsUrlsFiles)
-    //
-    //    galleryUrls = galleryUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
-    //    largeUrls = largeUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
-    //    thumbUrls = thumbsUrlsFiles.map(loadFileCache).fold(Map[String, String]())(_ ++ _)
-
-    //files = SortedSet[String](galleryUrls.keySet.toSeq:_*).toSeq.slice(0, 1500)
-
-    //    for (file <- files) {
-    //      thumbUrls.put(file, w.getImageUrl(file, 150, 120))
-    //      galleryUrls.put(file, w.getImageUrl(file, 300, 200))
-    //      largeUrls.put(file, w.getImageUrl(file, 1280, 1024))
-    //    }
-
     KOATUU.load()
   }
 

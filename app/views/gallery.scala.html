@@ -11,7 +11,7 @@
         region: String = "all",
         byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang, messages: Messages)
 
-    @main("gallery", user, asUserId, asUser, Seq(round), rounds, gallery = true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.get, region))  {
+    @main("gallery", user, asUserId, asUser, round, org.intracer.wmua.RoundJdbc.activeRounds(user.contest),  rounds, gallery = true, rate, region, pager(asUserId, regionFiles, page, rate, round.id.get, region))  {
 
     @regionNav({region:String => s"/gallery/round/${round.id.get}/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
 

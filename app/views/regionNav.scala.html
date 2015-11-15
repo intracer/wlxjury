@@ -4,17 +4,17 @@
         byRegion: Map[String, Int]
         )(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@if(round == null || Set(14, 16, 17, 20, 23, 70).contains(round.contest.toInt))  {
+@if(round == null || Set(14, 16, 17, 20, 23, 70).contains(round.contest.toInt)) {
     <div class="row" >
         <nav>
         <div class="col-md-12 text-center"  style="margin-bottom: 5px;">
             <ul class="pagination" id="regionnav" style="margin-top: 0px; margin-bottom: 0px;">
-                <li>
-                    <a href="@regionToUrl("all")" @if("all" == region) {style="font-weight: bold"}>*</a>
+                <li @if("all" == region) {style="font-weight: bold"}>
+                    <a href="@regionToUrl("all")" >*</a>
                 </li>
                 @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id, 0) > 0) {
-                    <li>
-                        <a href="@regionToUrl(id)" @if(id == region) {style="font-weight: bold"}>
+                    <li @if(id == region) {style="font-weight: bold"}>
+                        <a href="@regionToUrl(id)" >
                             @Messages(id) (@byRegion(id))
                         </a>
                     </li>

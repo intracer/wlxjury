@@ -121,7 +121,7 @@ object Rounds extends Controller with Secured {
 
           val rounds = RoundJdbc.findByContest(user.contest)
 
-          val selection = SelectionJdbc.byRound(round.id.get)
+          val selection = SelectionJdbc.byRoundWithCriteria(round.id)
 
           val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
           val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
@@ -150,7 +150,7 @@ object Rounds extends Controller with Secured {
         } else {
           val rounds = RoundJdbc.findByContest(user.contest)
 
-          val selection = SelectionJdbc.byRound(round.id.get)
+          val selection = SelectionJdbc.byRoundWithCriteria(round.id.get)
 
           val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
           val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))

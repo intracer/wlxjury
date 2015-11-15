@@ -34,7 +34,7 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
     body = rs.string(c.body)
   )
 
-  def create(userId: Long, username: String, round: Long, room: Long, body: String, createdAt: String = DateTime.now.toString)(implicit session: DBSession = autoSession): Comment = {
+  def create(userId: Int, username: String, round: Long, room: Long, body: String, createdAt: String = DateTime.now.toString)(implicit session: DBSession = autoSession): Comment = {
     val id = withSQL {
       insert.into(CommentJdbc).namedValues(
         column.userId -> userId,
@@ -71,5 +71,12 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
       .orderBy(c.id)
   }.map(CommentJdbc(c)).list().apply()
 
+  def findBySubject(subject: Long)(implicit session: DBSession = autoSession): List[Comment] = withSQL {
+    select.from(CommentJdbc as c)
+      .where //.append(isNotDeleted)
+      // .and
+      .eq(c.room, subject)
+      .orderBy(c.id)
+  }.map(CommentJdbc(c)).list().apply()
 
 }

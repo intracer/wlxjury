@@ -64,7 +64,7 @@ object Global {
 //    contestByCountry =
 
     KOATUU.load()
-    contestImages()
+    //contestImages()
 
     //Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
   }
@@ -130,11 +130,17 @@ object Global {
     val url = info.url
     if (px < w || isPdf || isTif) {
       val lastSlash = url.lastIndexOf("/")
+      val utf8Size = info.title.getBytes("UTF8").length
+      val thumbStr = if (utf8Size > 165) {
+        "thumbnail.jpg"
+      } else {
+        url.substring(lastSlash + 1)
+      }
       url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" +
         (if (isPdf) "page1-" else
         if (isTif) "lossy-page1-" else
           "") +
-        px + "px-" + url.substring(lastSlash + 1) + (if (isPdf || isTif) ".jpg" else "")
+        px + "px-" + thumbStr + (if (isPdf || isTif) ".jpg" else "")
     } else {
       url
     }

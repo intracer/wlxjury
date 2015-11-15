@@ -71,15 +71,18 @@ object ImageDistributor {
     val currentSelection = ImageJdbc.byRoundMerged(round.id.get)
     //      Selection.
 
-    val oldImagesSelection = currentSelection.filter(iwr => iwr.selection.nonEmpty)
-    val oldImageIds = oldImagesSelection.map(iwr => iwr.pageId)
-    val oldJurorIds: Set[Long] = oldImagesSelection.toSet.flatMap{
-      iwr:ImageWithRating =>
+    val oldImagesSelection = currentSelection.filter(iwr => iwr.selection.nonEmpty).toSet
+    val oldImageIds = oldImagesSelection.map(iwr => iwr.pageId).toSeq
+    val oldJurorIds: Set[Long] = oldImagesSelection.toSet.flatMap {
+      iwr: ImageWithRating =>
         iwr.selection.map(s => s.juryId).toSet
     }
 
     val images = allImages.filterNot(i => oldImageIds.contains(i.pageId))
-    val jurors = allJurors//.filterNot(j => oldJurorIds.contains(j.id.get))
+//      .filter{
+//      i => i.monumentId.exists(id => id.startsWith("44") || id.startsWith("32") || id.startsWith("65") || id.startsWith("63"))
+//    }
+    val jurors = allJurors.filterNot(j => oldJurorIds.contains(j.id))
 
     val selection: Seq[Selection] = round.distribution match {
       case 0 =>
@@ -113,7 +116,10 @@ object ImageDistributor {
       //            imagesTwice.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
       //          }
     }
+    println("saving selection: " + selection.size)
     SelectionJdbc.batchInsert(selection)
+    println(s"saved selection")
+
   }
 
   def createNextRound(round: Round, jurors: Seq[User], prevRound: Round) = {

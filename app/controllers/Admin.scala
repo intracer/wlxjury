@@ -69,10 +69,14 @@ object Admin extends Controller with Secured {
                   val hash = UserJdbc.hash(formUser, password)
                   UserJdbc.updateHash(userId, hash)
                 }
-
-
               }
               Cache.remove(s"user/${user.email}")
+
+              val contest = ContestJury.find(user.contest).get
+              val round = Round.current(user)
+
+              ImageDistributor.distributeImages(contest, round)
+
               val result = Redirect(routes.Admin.users)
               val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
 
