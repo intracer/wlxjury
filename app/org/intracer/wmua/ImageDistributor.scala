@@ -13,21 +13,12 @@ object ImageDistributor {
     val allImages: Seq[Image] = if (round.number == 1) {
       val fromDb = ImageJdbc.findByContest(contestId)
 
-      import scala.concurrent.duration._
-
-      Await.result(GlobalRefactor.commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
-
-      val query = GlobalRefactor.commons.page("Category:Non-photographic media from European Science Photo Competition 2015")
-      val future = query.imageInfoByGenerator("categorymembers", "cm",
-        props = Set("timestamp", "user", "size", "url"),
-        titlePrefix = None)
-
-      val filesInCategory = Await.result(future, 15.minutes)
-
-      val categoryIds = filesInCategory.flatMap(_.id).toSet
+/*
+      val categoryIds: Set[Long] = fromCategory
+*/
       val fromDbIds = fromDb.map(_.pageId).toSet
 
-      val ids = categoryIds intersect fromDbIds
+      val ids = fromDbIds //intersect categoryIds
 
 //      ids.foreach{
 //        id =>
@@ -120,6 +111,22 @@ object ImageDistributor {
     SelectionJdbc.batchInsert(selection)
     println(s"saved selection")
 
+  }
+
+  def fromCategory: Set[Long] = {
+    import scala.concurrent.duration._
+
+    Await.result(GlobalRefactor.commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
+
+    val query = GlobalRefactor.commons.page("Category:Non-photographic media from European Science Photo Competition 2015")
+    val future = query.imageInfoByGenerator("categorymembers", "cm",
+      props = Set("timestamp", "user", "size", "url"),
+      titlePrefix = None)
+
+    val filesInCategory = Await.result(future, 15.minutes)
+
+    val categoryIds = filesInCategory.flatMap(_.id).toSet
+    categoryIds
   }
 
   def createNextRound(round: Round, jurors: Seq[User], prevRound: Round) = {

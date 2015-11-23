@@ -1,8 +1,7 @@
 package org.intracer.wmua
 
-import db.{RoundDao, UserDao, SelectionDao, ImageDao}
-import db.scalikejdbc.{RoundJdbc, UserJdbc, SelectionJdbc, ImageJdbc}
-import org.joda.time.DateTime
+import db.scalikejdbc.{ImageJdbc, RoundJdbc, SelectionJdbc, UserJdbc}
+import db.{ImageDao, RoundDao, SelectionDao, UserDao}
 import org.specs2.mutable.Specification
 import play.api.test.FakeApplication
 import play.api.test.Helpers._
@@ -36,7 +35,7 @@ class ImageDistributorSpec extends Specification {
                     otherContest: Option[Long] = Some(20)) = {
 
     val jurors = (1 to jurorsNum).map(i => contestUser(contest, "jury"))
-    val dbJurors = jurors.map(userDao.create).map(u => u.copy(roles = u.roles + s"USER_ID_${u.id.get}"))
+    val dbJurors = jurors.map(userDao.create)
 
     val preJurors = (1 to jurorsNum).map(i => contestUser(contest, "prejury"))
     preJurors.foreach(userDao.create)
@@ -59,7 +58,7 @@ class ImageDistributorSpec extends Specification {
     images1
   }
 
-  "ImageDistributorTest" should {
+  "ImageDistributor" should {
     "create first round 1 juror to image" in {
       inMemDbApp {
         val distribution = 1
