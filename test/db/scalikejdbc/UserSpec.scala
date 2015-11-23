@@ -34,7 +34,8 @@ class UserSpec extends Specification {
 
         val id = created.id
 
-        created === user.copy(id = id)
+        val expected = user.copy(id = id, roles = user.roles ++ Set("USER_ID_" + id.get))
+        created === expected
 
         val found = userDao.find(id.get)
         found === Some(created)

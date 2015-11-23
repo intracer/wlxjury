@@ -151,7 +151,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
-    User(id = Some(id), fullname = fullname, email = email, password = Some(password), contest = contest, createdAt = createdAt)
+    User(id = Some(id), fullname = fullname, email = email, password = Some(password), roles = roles ++ Set("USER_ID_"+ id), contest = contest, createdAt = createdAt)
   }
 
   override def create(user: User): User = {
@@ -166,7 +166,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
         column.createdAt -> user.createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
-    user.copy(id = Some(id))
+    user.copy(id = Some(id), roles = user.roles ++ Set("USER_ID_"+ id))
   }
 
   override def updateUser(id: Long, fullname: String, email: String, roles: Set[String], lang: Option[String]): Unit = withSQL {
