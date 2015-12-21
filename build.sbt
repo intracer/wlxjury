@@ -38,8 +38,8 @@ version := "1.0-SNAPSHOT"
 
 scalaVersion := "2.11.7"
 
-val scalikejdbcVersion = "2.2.8"
-val scalikejdbcPlayVersion = "2.4.2"
+val scalikejdbcVersion = "2.2.9"
+val scalikejdbcPlayVersion = "2.4.3"
 
 resolvers += Resolver.url("Edulify Repository", url("http://edulify.github.io/modules/releases/"))(Resolver.ivyStylePatterns)
 
@@ -57,8 +57,8 @@ libraryDependencies ++= Seq(
   "com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24",
   //  "com.edulify" %% "play-hikaricp" % "2.0.5",
   "mysql" % "mysql-connector-java" % "5.1.35",
-  "com.typesafe.slick" %% "slick" % "3.1.0-RC3",
-  "com.typesafe.play" %% "play-slick" % "1.1.0-RC2",
+  "com.typesafe.slick" %% "slick" % "3.1.1",
+  "com.typesafe.play" %% "play-slick" % "1.1.1",
   "com.github.tototoshi" %% "slick-joda-mapper" % "2.0.0",
   "org.scalikejdbc" %% "scalikejdbc" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % scalikejdbcVersion,
@@ -70,8 +70,9 @@ libraryDependencies ++= Seq(
   "org.scalawiki" %% "scalawiki" % "0.4-M2",
  // "org.webjars" % "angularjs" % "1.1.5-1",
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
-  jdbc, cache, filters, evolutions, specs2 % Test
-
+  jdbc, cache, filters, evolutions,
+  specs2 % Test,
+  "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
 )
 
 lazy val root = (project in file (".") ).enablePlugins (PlayScala)
