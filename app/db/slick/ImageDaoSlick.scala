@@ -35,7 +35,9 @@ class ImageDaoSlick extends HasDatabaseConfig[JdbcProfile] with ImageDao {
 
     def monumentId = column[Option[String]]("monument_id")
 
-    def * = (pageId, contest, title, url, pageUrl, width, height, monumentId) <>(Image.tupled, Image.unapply)
+    def description = column[Option[String]]("description")
+
+    def * = (pageId, contest, title, url, pageUrl, width, height, monumentId, description) <>(Image.tupled, Image.unapply)
 
   }
 

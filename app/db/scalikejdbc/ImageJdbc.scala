@@ -37,7 +37,8 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
     pageUrl = rs.string(c.pageUrl),
     width = rs.int(c.width),
     height = rs.int(c.height),
-    monumentId = rs.stringOpt(c.monumentId)
+    monumentId = rs.stringOpt(c.monumentId),
+    description = rs.stringOpt(c.description)
   )
 
   def batchInsert(images: Seq[Image]) {
@@ -51,7 +52,8 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
         i.pageUrl,
         i.width,
         i.height,
-        i.monumentId
+        i.monumentId,
+        i.description
       ))
       withSQL {
         insert.into(ImageJdbc).namedValues(
@@ -62,7 +64,8 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
           column.pageUrl -> sqls.?,
           column.width -> sqls.?,
           column.height -> sqls.?,
-          column.monumentId -> sqls.?
+          column.monumentId -> sqls.?,
+          column.description -> sqls.?
         )
       }.batch(batchParams: _*).apply()
     }
