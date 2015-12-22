@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import controllers.GlobalRefactor
 import db.scalikejdbc._
 import org.joda.time.DateTime
-import org.scalawiki.MwBot
+import org.scalawiki.{MwBot, MwBotImpl}
 import org.scalawiki.dto.Namespace
 import org.scalawiki.http.HttpClientImpl
 import org.scalawiki.wlx.dto.{Contest, SpecialNomination}
@@ -16,36 +16,7 @@ import scala.io.Source
 
 object Tools {
 
-  //  db.default.driver=com.mysql.jdbc.Driver
-  //  db.default.url="jdbc:mysql://localhost/wlxjury"
-  //  db.default.user="***REMOVED***"
-  //  db.default.password="***REMOVED***"
-
   val regions = Set("44")
-
-/*    Set(
-    //    "01", // Crimea
-     //   "05", // Vinnitsa
-    //    "07", // Volyn
-    //    "12", // Dnipro
-    //    "18", // Dnipro
-//        "23", // Zaporizzia
-    //     "26", // IF
-    //     "32",  // Kyivska
-    //    "35",  // Kirovohradska,
-   // "44", // Luhanska
-        "48", // Mykolaivska
-        "53", // Poltavska
-        "56", // RIvnenska
-    "59", // Sumska
-    //    "61", //Ternopilska
-    "63" //Khar
-    //      "65", //Khersonska
-    //    "71", //Khersonska
-    //    "85", //Sevastopol
- // "74"
-  )
-*/
 
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
@@ -69,19 +40,20 @@ object Tools {
     //users()
 
     //    GlobalRefactor.addContestCategories("Wiki Loves Monuments", 2015)
-    val contest = ContestJuryJdbc.find(70L).get
+    val contest = ContestJuryJdbc.find(77L).get
 
     // GlobalRefactor.rateByCategory("Category:Obviously ineligible submissions for WLM 2015 in Ukraine", 491, 89, -1)
 
     //val query = GlobalRefactor.commons.page(contest.images.get)
     //GlobalRefactor.updateMonuments(query, contest)
     //GlobalRefactor.distributeByCategory("Category:WLM 2015 in Ukraine Round Zero", contest.get)
-   // addUsers(contest, 5)
+//    addUsers(contest, 5)
 
 //    addItalyR3()
 
 //        val round = RoundJdbc.find(116)
 //        ImageDistributor.distributeImages(contest.id.get, round.get)
+//    fixRound()
      initImages()
     //verifySpain()
     //internationalRound()
@@ -100,7 +72,7 @@ object Tools {
 
     //                controllers.GlobalRefactor.initContest("Category:Images from Wiki Loves Earth 2014 in " + contest.country,  contest)
 
-    //roundAndUsers(contest)
+//    roundAndUsers(contest)
 
     //updateResolution(contest)
 
@@ -152,12 +124,58 @@ object Tools {
 //
 //      val selectedIds = Set(42857615L, 43794877)
 
-      val ids = Set(43851006L, 43493278L, 43852452L, 43866154L, 43852906L)
+      val selection1 = Seq.empty
+
+//        Set("File:เศียรพระพุทธรูปในรากโพธิ์.jpg",
+//          "File:Leuchtturm in Westerheversand.jpg",
+//          "File:Німецький Народний дім.jpg",
+//          "File:Neues Rathaus Hannover, Innenansicht.jpg",
+//          "File:Château de Chambord - 19-08-2015 - Arnaud Scherer.jpg",
+//          "File:Vakil mosque Panorama.jpg",
+//          "File:Jinnah Mausoleum.JPG",
+//          "File:Samaan Monastery.jpg",
+//          "File:44 Apollo in bosquet Fächer, gardens of Schönbrunn 03.jpg",
+//          "File:Мереживо Пассажу.jpg",
+//          "File:Biserica Calvaria de la Cluj-Mănăștur, vedere sud-vestică, 2014.JPG",
+//          "File:Shah(Emam ) Mosque , Isfahan.jpg",
+//          "File:Соловецкий монастырь.jpg",
+//          "File:La Sacra ammantata dalla neve.jpg",
+//          "File:Ayuntamiento, La Coruña, España, 2015-09-25, DD 141-143 HDR.jpg",
+//          "File:Museu da inconfidencia.JPG",
+//          "File:Monumento a Duque de Caxias.jpg",
+//          "File:Wat phra mahathat woramahawihan nakhon si thammarat.jpg",
+//          "File:Ghare Kelisa.jpg",
+//          "File:Amphithéâtre d'El Jem.jpg",
+//          "File:مسجد الرفاعى والسلطان حسن ومدفع رمضان بقلعه صلاح الدين.jpg",
+//          "File:วัดศรีชุม20.JPG",
+//          "File:Lord Bishnu-Shesh Narayan.JPG",
+//          "File:Munkholmen fra Talerøret Trondheim.jpg",
+//          "File:Ermita de la Virgen de la Peña, LIC Sierras de Santo Domingo y Caballera, Aniés, Huesca, España, 2015-01-06, DD 06-07 PAN.JPG",
+//          "File:วัดมหาธาตุ 001.jpg",
+//          "File:Kamianiec Podilsky Stary Zamek DSC 0829 68-104-9007.jpg",
+//          "File:Opernpassage Panorama.jpg",
+//          "File:Olympiastadion Berlin Innenansicht.jpg",
+//          "File:Hook Head MG 0606 - Version 2.jpg",
+//          "File:Замок \"Ласточкино гнездо\", Ялта, АР Крым.jpg",
+//          "File:U995Steuerbordbug.JPG",
+//          "File:Azadi Tower.jpg",
+//          "File:Kilcrea Abbey.jpg",
+//          "File:Clarion Hotel Post 2015 01.jpg",
+//          "File:Nasir-al molk -1.jpg",
+//          "File:Geghard...3.jpg")
+
+      //val filtered = fromDb
+
+
+    //  val ids = Set(43851006L, 43493278L, 43852452L, 43866154L, 43852906L)
       val existingIds = newImages.map(_.pageId).toSet
 
-      val imagesAll = ImageJdbc.byRoundMerged(prevRound.id.get).toArray.filter(i => ids.contains(i.image.pageId))//ImageJdbc.byRatingMerged(1, prevRound.id.get).toArray
-      val inRegion = imagesAll.filter(_.image.region.exists(regions.contains))
-      val images = inRegion.filterNot(i => existingIds.contains(i.pageId))
+      val imagesAll = ImageJdbc.byRoundMerged(prevRound.id.get).toArray.sortBy(-_.totalRate(prevRound)).take(39).filter(i => selection1.contains(i.image.title))
+
+      //.filter(i => ids.contains(i.image.pageId))
+      // ImageJdbc.byRatingMerged(1, prevRound.id.get).toArray
+//      val inRegion = imagesAll.filter(_.image.region.exists(regions.contains))
+      val images = imagesAll//.filterNot(i => existingIds.contains(i.pageId))
 
       //.filter(_.rateSum >= 2)
       //.filter(i => selectedIds.contains(i.image.pageId))
@@ -193,7 +211,7 @@ object Tools {
     val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
 
     val monumentQuery = MonumentQuery.create(wlmContest)
-    val allMonuments = monumentQuery.byMonumentTemplate(wlmContest.listTemplate)
+    val allMonuments = monumentQuery.byMonumentTemplate(wlmContest.listTemplate.getOrElse(""), None)
     println(allMonuments.size)
   }
 
@@ -204,7 +222,7 @@ object Tools {
 
     import system.dispatcher
 
-    val commons = new MwBot(http, system, controllers.Global.COMMONS_WIKIMEDIA_ORG, None)
+    val commons = new MwBotImpl(http, system, controllers.Global.COMMONS_WIKIMEDIA_ORG, None)
 
     import scala.concurrent.duration._
 
@@ -238,22 +256,28 @@ object Tools {
 
   }
 
+  def globalRefactor = {
+    val commons = MwBot.get(MwBot.commons)
+    new GlobalRefactor(commons)
+  }
+
   def initImages(): Unit = {
 
-    val contest = ContestJuryJdbc.find(70L).get
+    val contest = ContestJuryJdbc.find(77L).get
+
 
     //    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
-//    GlobalRefactor.appendImages(contest.images.get, contest)
+    globalRefactor.appendImages(contest.images.get, contest)
 
-    val prevRound = RoundJdbc.find(114L).get
-    val round = RoundJdbc.find(129L).get
+    val prevRouTond = RoundJdbc.find(133L).get
+    val round = RoundJdbc.find(133L).get
 
     //    val selection = Selection.byRound(22L)
 
-//     ImageDistributor.distributeImages(contest.id.get, round)
+    ImageDistributor.distributeImages(contest.id.get, round)
 
-    val jurors = round.jurors//.filterNot(j => j.id.get == 483 || j.id.get == 581)
-    createNextRound(round, jurors, prevRound)
+//    val jurors = round.jurors.filter(j => j.id.get == 626)
+//    createNextRound(round, jurors, prevRound)
   }
 
   def wooden(wlmContest: Contest) = {
@@ -270,7 +294,7 @@ object Tools {
 
     val category = "Category:Images from Wiki Loves Monuments 2014 in Ukraine"
     val contest = ContestJuryJdbc.find(20L).get
-    GlobalRefactor.appendImages(category, contest, allIds)
+    globalRefactor.appendImages(category, contest, allIds)
 
   }
 
@@ -278,14 +302,14 @@ object Tools {
     //GlobalRefactor.commons.page("Commons:Wiki Loves Earth 2015/Winners").
     val contest = ContestJuryJdbc.find(37L).get
 
-    GlobalRefactor.appendImages("Commons:Wiki Loves Earth 2015/Winners", contest)
+    globalRefactor.appendImages("Commons:Wiki Loves Earth 2015/Winners", contest)
   }
 
   def addUsers(contest: ContestJury, number: Int) = {
     val country = contest.country.replaceAll("[ \\-\\&]", "")
-    val jurors = (1 to number).map(i => "ESPC" +  country + "2015_Jury" + i)
+    val jurors = (1 to number).map(i => country + "ESPCJuror"  + i)
 
-    val orgCom = Seq("ESPC" + country + "2015_OrgCom")
+    val orgCom = (1 to 1).map(i => country + "ESPCOrgCom" )
     //
     val logins = //Seq.empty
       jurors ++ orgCom
@@ -313,14 +337,14 @@ object Tools {
 //
 //    val dbRound = round.copy(id = roundId)
 
-    //        val dbRound = RoundJdbc.find(94).get
+       //     val dbRound = RoundJdbc.find().get
 
     logins.zip(passwords).foreach {
       case (login, password) =>
         println(s"$login / $password")
     }
 
-//        ImageDistributor.distributeImages(contest, dbRound)
+     //   ImageDistributor.distributeImages(contest, dbRound)
     //
     //    logins.zip(passwords).foreach {
     //      case (login, password) =>
@@ -364,18 +388,10 @@ object Tools {
 
   def removeIneligible() = {
     val system = ActorSystem()
-    val http = new HttpClientImpl(system)
-
     import system.dispatcher
 
-    val commons = new MwBot(http, system, controllers.Global.COMMONS_WIKIMEDIA_ORG, None)
-
-    import scala.concurrent.duration._
-
-    Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
-
     val category = "Category:Obviously ineligible submissions for ESPC 2015 in Ukraine"
-    val query = GlobalRefactor.commons.page(category)
+    val query = globalRefactor.commons.page(category)
 
     query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
       filesInCategory =>
@@ -386,5 +402,27 @@ object Tools {
         }
     }
   }
+
+  def fixRound() = {
+    val system = ActorSystem()
+    import system.dispatcher
+
+    val category = "Category:Non-photographic media from European Science Photo Competition 2015"
+    val query = globalRefactor.commons.page(category)
+
+    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
+      filesInCategory =>
+        val ids = filesInCategory.flatMap(_.id).toSet
+
+        val thisCountry = ImageJdbc.findByContest(77L).map(_.pageId).toSet
+
+        val intersection = thisCountry intersect ids
+
+        intersection.foreach {
+          id => SelectionJdbc.setRound(id, 133L, 77L, 138L)
+        }
+    }
+  }
+
 
 }

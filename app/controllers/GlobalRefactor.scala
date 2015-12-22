@@ -1,6 +1,5 @@
 package controllers
 
-import akka.actor.ActorSystem
 import db.scalikejdbc._
 import org.intracer.wmua._
 import org.joda.time.DateTime
@@ -9,23 +8,18 @@ import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.list.ListArgs
 import org.scalawiki.dto.cmd.query.{Generator, Query}
 import org.scalawiki.dto.{Namespace, Page}
-import org.scalawiki.http.HttpClientImpl
 import org.scalawiki.query.{DslQuery, SinglePageQuery}
 import org.scalawiki.wikitext.TemplateParser
 import org.scalawiki.wlx.dto.Contest
 import org.scalawiki.wlx.query.MonumentQuery
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
-object GlobalRefactor {
+class GlobalRefactor(val commons: MwBot) {
 
-  val system = ActorSystem()
+//  val commons = MwBot.get(MwBot.commons)
 
-  val http = new HttpClientImpl(system)
-
-  val commons = MwBot.get(MwBot.commons)
-
-  import controllers.GlobalRefactor.system.dispatcher
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   def initContest(category: String, contest: ContestJury): Any = {
     val images = ImageJdbc.findByContest(contest.id.get)
@@ -56,9 +50,8 @@ object GlobalRefactor {
   def initLists(contest: Contest) = {
 
     if (MonumentJdbc.findAll().isEmpty) {
-      val ukWiki = new MwBot(http, system, "uk.wikipedia.org", None)
+      val ukWiki = MwBot.get("uk.wikipedia.org")
 
-      Await.result(ukWiki.login("***REMOVED***", "***REMOVED***"), http.timeout)
       //    listsNew(system, http, ukWiki)
 
       val monumentQuery = MonumentQuery.create(contest)
@@ -103,12 +96,12 @@ object GlobalRefactor {
 
     //    val future = new DslQuery(action, commons).run()
 
-    val future = query.imageInfoByGenerator("categorymembers", "cm",
+    val future = query.imageInfoByGenerator("categorymembers", "cm", namespaces = Set(Namespace.FILE),
       props = Set("timestamp", "user", "size", "url"),
       titlePrefix = None)
 
-    val categoryNot = "Category:Obviously ineligible submissions for ESPC 2015 in Ukraine"
-    val queryNot = GlobalRefactor.commons.page(categoryNot)
+//    val categoryNot = "Category:Obviously ineligible submissions for ESPC 2015 in Ukraine"
+//    val queryNot = GlobalRefactor.commons.page(categoryNot)
 
 //    queryNot.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
 //      filesInCategoryNot =>
@@ -120,9 +113,10 @@ object GlobalRefactor {
       //bot.page("User:***REMOVED***/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
       //    query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
       filesInCategory =>
-        queryNot.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
-          filesInCategoryNot =>
-            val idsNot = filesInCategoryNot.flatMap(_.id)
+//        queryNot.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
+//          filesInCategoryNot =>
+            val idsNot = Set.empty[Long]
+              //filesInCategoryNot.flatMap(_.id)
 
             val newImagesOrigIds: Seq[Image] = filesInCategory
               .flatMap(page => ImageJdbc.fromPage(page, contest))
@@ -134,12 +128,14 @@ object GlobalRefactor {
             //
             val newImages = newImagesOrigIds //.map(p => p.copy(pageId = maxId + p.pageId))
 
-            val ids = newImages.map(_.pageId)
-            val maxId = ids.max
-            val minId = ids.min
-            println(s"${contest.country},  min $minId, max $maxId")
+            val ids = newImages.map(_.pageId).toSet
+//            val maxId = ids.max
+//            val minId = ids.min
+//            println(s"${contest.country},  min $minId, max $maxId")
 
-            contest.monumentIdTemplate.fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
+        val skipped = filesInCategory.filterNot(i => ids.contains(i.id.get)).toBuffer
+
+            contest.monumentIdTemplate.orElse(Some("None")).fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
 
               query.revisionsByGenerator("categorymembers", "cm",
                 Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
@@ -148,12 +144,22 @@ object GlobalRefactor {
                   val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
                   val ids: Seq[String] = monumentIds(pages, existingPageIds, monumentIdTemplate)
 
+//                  val descrs: Seq[String] = descriptions(pages, existingPageIds)
+
+
                   val imagesWithIds = newImagesOrigIds.zip(ids).map {
                     case (image, id) => image.copy(monumentId = Some(id))
                   }.filter(_.monumentId.forall(id => idsFilter.isEmpty || idsFilter.contains(id)))
+
+//                                    val imagesWithDescr = newImagesOrigIds.zip(descrs).map {
+//                                      case (image, descr) => image.copy(description = Some(descr))
+//                                    }
+
+                 // val nonEmpty = imagesWithDescr.filterNot(_.description.isEmpty).toBuffer
+
                   saveNewImages(contest, imagesWithIds)
               }
-            }
+//            }
         }
     }
   }
@@ -194,6 +200,9 @@ object GlobalRefactor {
   def defaultParam(text: String, templateName: String): Option[String] =
     TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt("1"))
 
+  def namedParam(text: String, templateName: String, paramName: String): Option[String] =
+    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt(paramName))
+
   def monumentIds(pages: Seq[Page], existingPageIds: Set[Long], monumentIdTemplate: String): Seq[String] = {
 
     //    pages.flatMap {
@@ -210,11 +219,27 @@ object GlobalRefactor {
     }
   }
 
+  def descriptions(pages: Seq[Page], existingPageIds: Set[Long]): Seq[String] = {
+
+    //    pages.flatMap {
+    //      page =>
+    //        page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
+    //          .map(id => page.id.get -> (if (id.length < 100) id else id.substring(0, 100)))
+    //    }.toMap
+
+    pages.sortBy(_.id).filterNot(i => existingPageIds.contains(i.id.get)).map {
+      page =>
+        page.text.flatMap(text => namedParam(text, "Information", "description")).getOrElse("")
+
+    }
+  }
+
+
   def saveNewImages(contest: ContestJury, imagesWithIds: Seq[Image]) = {
     println("saving images: " + imagesWithIds.size)
     ImageJdbc.batchInsert(imagesWithIds)
     println("saved images")
-    createJury()
+    //createJury()
     //    initContestFiles(contest, imagesWithIds)
   }
 

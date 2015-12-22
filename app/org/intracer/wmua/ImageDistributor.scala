@@ -1,8 +1,8 @@
 package org.intracer.wmua
 
-import controllers.GlobalRefactor
 import db.scalikejdbc.{ImageJdbc, RoundJdbc, SelectionJdbc}
 import org.joda.time.DateTime
+import org.scalawiki.MwBot
 
 import scala.concurrent.Await
 
@@ -10,52 +10,7 @@ object ImageDistributor {
 
   def distributeImages(contestId: Long, round: Round) {
 
-    val allImages: Seq[Image] = if (round.number == 1) {
-      val fromDb = ImageJdbc.findByContest(contestId)
-
-/*
-      val categoryIds: Set[Long] = fromCategory
-*/
-      val fromDbIds = fromDb.map(_.pageId).toSet
-
-      val ids = fromDbIds //intersect categoryIds
-
-//      ids.foreach{
-//        id =>
-//
-//          SelectionJdbc.setRound(id, round.id.get, 26, 40)
-//      }
-//      val largeIds = filesInCategory.filter(_.images.headOption.exists(_.size.exists(_ > 1024 * 1024))).flatMap(_.id).toSet
-      fromDb.filter(i => ids.contains(i.pageId))
-    } else {
-      if (true) {
-        val rounds = RoundJdbc.findByContest(contestId)
-        (for (prevRound <- rounds.find(_.number == round.number - 1)) yield {
-          ImageJdbc.byRatingMerged(1, prevRound.id.get).map(_.image)
-        }).getOrElse(Seq.empty)
-      } else {
-        val rounds = RoundJdbc.findByContest(contestId)
-        val prevRound =  rounds.find(_.number == round.number - 1).get
-
-        val rate = Some(1)
-        val users = 3
-        val images = prevRound.allImages
-        val selection = SelectionJdbc.byRound(prevRound.id.get)
-        val ratedSelection = rate.fold(selection)(r => selection.filter(_.rate == r))
-
-        val byPageId = ratedSelection.groupBy(_.pageId).filter(_._2.size == users)
-
-        val imagesWithSelection = images.flatMap {
-          image =>
-            if (byPageId.contains(image.pageId)) {
-              Some(image.image)
-            } else {
-              None
-            }
-        }
-        imagesWithSelection
-      }
-    }
+    val allImages: Seq[Image] = getImages(contestId, round)
 
     val allJurors = round.jurors
 
@@ -113,12 +68,66 @@ object ImageDistributor {
 
   }
 
+  def getImages(contestId: Long, round: Round): Seq[Image] = {
+    val allImages: Seq[Image] = if (round.number == 1) {
+      val fromDb = ImageJdbc.findByContest(contestId)
+
+//      val selection =
+
+      val filtered = fromDb//.filter(i => selection.contains(i.title))
+
+      /*
+      val categoryIds: Set[Long] = fromCategory
+*/
+      val fromDbIds = filtered.map(_.pageId).toSet
+
+      val ids = fromDbIds //intersect categoryIds
+
+      //      ids.foreach{
+      //        id =>
+      //
+      //          SelectionJdbc.setRound(id, round.id.get, 26, 40)
+      //      }
+      //      val largeIds = filesInCategory.filter(_.images.headOption.exists(_.size.exists(_ > 1024 * 1024))).flatMap(_.id).toSet
+      fromDb.filter(i => ids.contains(i.pageId))
+    } else {
+      if (true) {
+        val rounds = RoundJdbc.findByContest(contestId)
+        (for (prevRound <- rounds.find(_.number == round.number - 1)) yield {
+          ImageJdbc.byRatingMerged(1, prevRound.id.get).map(_.image)
+        }).getOrElse(Seq.empty)
+      } else {
+        val rounds = RoundJdbc.findByContest(contestId)
+        val prevRound = rounds.find(_.number == round.number - 1).get
+
+        val rate = Some(1)
+        val users = 3
+        val images = prevRound.allImages
+        val selection = SelectionJdbc.byRound(prevRound.id.get)
+        val ratedSelection = rate.fold(selection)(r => selection.filter(_.rate == r))
+
+        val byPageId = ratedSelection.groupBy(_.pageId).filter(_._2.size == users)
+
+        val imagesWithSelection = images.flatMap {
+          image =>
+            if (byPageId.contains(image.pageId)) {
+              Some(image.image)
+            } else {
+              None
+            }
+        }
+        imagesWithSelection
+      }
+    }
+    allImages
+  }
+
   def fromCategory: Set[Long] = {
     import scala.concurrent.duration._
 
-    Await.result(GlobalRefactor.commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
+    val commons = MwBot.get(MwBot.commons)
 
-    val query = GlobalRefactor.commons.page("Category:Non-photographic media from European Science Photo Competition 2015")
+    val query = commons.page("Category:Non-photographic media from European Science Photo Competition 2015")
     val future = query.imageInfoByGenerator("categorymembers", "cm",
       props = Set("timestamp", "user", "size", "url"),
       titlePrefix = None)

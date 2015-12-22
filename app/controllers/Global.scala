@@ -3,7 +3,7 @@ package controllers
 import _root_.db.scalikejdbc.ContestJuryJdbc
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import org.intracer.wmua._
-import org.scalawiki.MwBot
+import org.scalawiki.{MwBotImpl, MwBot}
 import org.scalawiki.http.HttpClientImpl
 import play.Play
 import play.api._
@@ -37,7 +37,7 @@ object Global {
 
   val http = new HttpClientImpl(Akka.system)
 
-  val commons = new MwBot(http, Akka.system, COMMONS_WIKIMEDIA_ORG, None)
+  val commons = new MwBotImpl(http, Akka.system, COMMONS_WIKIMEDIA_ORG, None)
 
 //  var contestByCountry: Map[String, Seq[ContestJury]] = Map.empty
 
@@ -100,10 +100,14 @@ object Global {
     val contestOpt = ContestJuryJdbc.byCountry.get(country).flatMap(_.headOption)
 
     for (contest <- contestOpt) {
-      GlobalRefactor.initContest(category, contest)
+      globalRefactor.initContest(category, contest)
     }
   }
 
+  def globalRefactor = {
+    val commons = MwBot.get(MwBot.commons)
+    new GlobalRefactor(commons)
+  }
 
   def initContestFiles(filesInCategory: Seq[Image]) {
 

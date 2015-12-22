@@ -67,7 +67,7 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % scalikejdbcPlayVersion,
   "org.slf4j" % "slf4j-simple" % "[1.7,)",
   "org.apache.commons" % "commons-email" % "1.3.2",
-  "org.scalawiki" %% "scalawiki" % "0.4-M2",
+  "org.scalawiki" %% "scalawiki" % "0.4-M3",
  // "org.webjars" % "angularjs" % "1.1.5-1",
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
   jdbc, cache, filters, evolutions,
