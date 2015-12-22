@@ -63,15 +63,50 @@ class GlobalRefactorSpec extends Specification with Mockito {
       }
     }
 
-    "get images one image with monumentId" in {
+    "get images one image with text" in {
+      inMemDbApp {
+        val category = "Category:Category Name"
+        val contestId = 13
+        val imageId = 11
+        val images = Seq(contestImage(imageId, contestId).copy(description = Some("descr"), monumentId = Some("")))
+        val imageInfos = Seq(imageInfo(imageId))
+        val revisions = Seq(revision(imageId, "{{Information|description=descr}}"))
+
+        val query = mock[SinglePageQuery]
+
+        query.imageInfoByGenerator(
+          "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
+        ) returns Future.successful(imageInfos)
+
+        query.revisionsByGenerator("categorymembers", "cm",
+          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+        ) returns Future.successful(revisions)
+
+        val commons = mock[MwBot]
+        commons.page(category) returns query
+
+        val g = new GlobalRefactor(commons)
+
+        val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category), 0, None)
+
+        g.appendImages(category, contest)
+
+        eventually {
+          imageDao.findByContest(contestId) === images
+        }
+      }
+    }
+
+    "get images one image with descr and monumentId" in {
       inMemDbApp {
         val category = "Category:Category Name"
         val idTemplate = "monumentId"
         val contestId = 13
         val imageId = 11
-        val images = Seq(contestImage(imageId, contestId))
+        val descr = s"descr. {{$idTemplate|12-345-$imageId}}"
+        val images = Seq(contestImage(imageId, contestId).copy(description = Some(descr)))
         val imageInfos = Seq(imageInfo(imageId))
-        val revisions = Seq(revision(imageId, s"{{$idTemplate|12-345-$imageId}}"))
+        val revisions = Seq(revision(imageId, s"{{Information|description=$descr}}"))
 
         val query = mock[SinglePageQuery]
 
@@ -97,6 +132,8 @@ class GlobalRefactorSpec extends Specification with Mockito {
         }
       }
     }
+
+
 
   }
 }

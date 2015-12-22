@@ -17,7 +17,7 @@ import scala.concurrent.Future
 
 class GlobalRefactor(val commons: MwBot) {
 
-//  val commons = MwBot.get(MwBot.commons)
+  //  val commons = MwBot.get(MwBot.commons)
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -100,66 +100,63 @@ class GlobalRefactor(val commons: MwBot) {
       props = Set("timestamp", "user", "size", "url"),
       titlePrefix = None)
 
-//    val categoryNot = "Category:Obviously ineligible submissions for ESPC 2015 in Ukraine"
-//    val queryNot = GlobalRefactor.commons.page(categoryNot)
+    //    val categoryNot = "Category:Obviously ineligible submissions for ESPC 2015 in Ukraine"
+    //    val queryNot = GlobalRefactor.commons.page(categoryNot)
 
-//    queryNot.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
-//      filesInCategoryNot =>
-//        val idsNot = filesInCategoryNot.flatMap(_.id)
-
+    //    queryNot.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
+    //      filesInCategoryNot =>
+    //        val idsNot = filesInCategoryNot.flatMap(_.id)
 
 
     future.map {
       //bot.page("User:***REMOVED***/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
       //    query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
       filesInCategory =>
-//        queryNot.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
-//          filesInCategoryNot =>
-            val idsNot = Set.empty[Long]
-              //filesInCategoryNot.flatMap(_.id)
+        //        queryNot.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
+        //          filesInCategoryNot =>
+        val idsNot = Set.empty[Long]
+        //filesInCategoryNot.flatMap(_.id)
 
-            val newImagesOrigIds: Seq[Image] = filesInCategory
-              .flatMap(page => ImageJdbc.fromPage(page, contest))
-              .sortBy(_.pageId)
-              .filterNot(i => existingPageIds.contains(i.pageId) || idsNot.contains(i.pageId))
-            //.map(i => i.copy(pageId = i.pageId + 169704049331L))
+        val newImagesOrigIds: Seq[Image] = filesInCategory
+          .flatMap(page => ImageJdbc.fromPage(page, contest))
+          .sortBy(_.pageId)
+          .filterNot(i => existingPageIds.contains(i.pageId) || idsNot.contains(i.pageId))
+        //.map(i => i.copy(pageId = i.pageId + 169704049331L))
 
-            //        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
-            //
-            val newImages = newImagesOrigIds //.map(p => p.copy(pageId = maxId + p.pageId))
+        //        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
+        //
+        val newImages = newImagesOrigIds //.map(p => p.copy(pageId = maxId + p.pageId))
 
-            val ids = newImages.map(_.pageId).toSet
-//            val maxId = ids.max
-//            val minId = ids.min
-//            println(s"${contest.country},  min $minId, max $maxId")
+        val ids = newImages.map(_.pageId).toSet
+        //            val maxId = ids.max
+        //            val minId = ids.min
+        //            println(s"${contest.country},  min $minId, max $maxId")
 
         val skipped = filesInCategory.filterNot(i => ids.contains(i.id.get)).toBuffer
 
-            contest.monumentIdTemplate.orElse(Some("None")).fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
+        contest.monumentIdTemplate.orElse(Some("None")).fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
 
-              query.revisionsByGenerator("categorymembers", "cm",
-                Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
-                pages =>
+          query.revisionsByGenerator("categorymembers", "cm",
+            Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
+            pages =>
 
-                  val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-                  val ids: Seq[String] = monumentIds(pages, existingPageIds, monumentIdTemplate)
+              val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
+              val ids: Seq[String] = monumentIds(pages, existingPageIds, monumentIdTemplate)
 
-//                  val descrs: Seq[String] = descriptions(pages, existingPageIds)
+              val descrs: Seq[String] = descriptions(pages, existingPageIds)
 
+              val imagesWithIds = newImagesOrigIds.zip(ids).map {
+                case (image, id) => image.copy(monumentId = Some(id))
+              }.filter(_.monumentId.forall(id => idsFilter.isEmpty || idsFilter.contains(id)))
 
-                  val imagesWithIds = newImagesOrigIds.zip(ids).map {
-                    case (image, id) => image.copy(monumentId = Some(id))
-                  }.filter(_.monumentId.forall(id => idsFilter.isEmpty || idsFilter.contains(id)))
-
-//                                    val imagesWithDescr = newImagesOrigIds.zip(descrs).map {
-//                                      case (image, descr) => image.copy(description = Some(descr))
-//                                    }
-
-                 // val nonEmpty = imagesWithDescr.filterNot(_.description.isEmpty).toBuffer
-
-                  saveNewImages(contest, imagesWithIds)
+              val imagesWithDescr = imagesWithIds.zip(descrs).map {
+                case (image, descr) => image.copy(description = Some(descr))
               }
-//            }
+
+
+              saveNewImages(contest, imagesWithDescr)
+          }
+          //            }
         }
     }
   }
@@ -189,7 +186,7 @@ class GlobalRefactor(val commons: MwBot) {
               case (image, id) => image.copy(monumentId = Some(id))
             }.filter(_.monumentId.isDefined)
 
-            imagesWithIds.foreach{
+            imagesWithIds.foreach {
               image =>
                 ImageJdbc.updateMonumentId(image.pageId, image.monumentId.get)
             }
