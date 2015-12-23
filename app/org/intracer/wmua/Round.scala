@@ -7,7 +7,7 @@ import org.scalawiki.dto.Page
 
 case class Round(id: Option[Long],
                  number: Int,
-                 name: Option[String],
+                 name: Option[String] = None,
                  contest: Long,
                  roles: Set[String] = Set("jury"),
                  distribution: Int = 0,

@@ -24,7 +24,7 @@ object Tools {
     println(s"URL:" + url)
 
     ConnectionPool.singleton(url, "***REMOVED***", "***REMOVED***")
-//    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
+    //    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
@@ -47,14 +47,14 @@ object Tools {
     //val query = GlobalRefactor.commons.page(contest.images.get)
     //GlobalRefactor.updateMonuments(query, contest)
     //GlobalRefactor.distributeByCategory("Category:WLM 2015 in Ukraine Round Zero", contest.get)
-//    addUsers(contest, 5)
+    //    addUsers(contest, 5)
 
-//    addItalyR3()
+    //    addItalyR3()
 
-//        val round = RoundJdbc.find(116)
-//        ImageDistributor.distributeImages(contest.id.get, round.get)
-//    fixRound()
-     initImages()
+    //        val round = RoundJdbc.find(116)
+    //        ImageDistributor.distributeImages(contest.id.get, round.get)
+    //    fixRound()
+    initImages()
     //verifySpain()
     //internationalRound()
     // val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
@@ -72,7 +72,7 @@ object Tools {
 
     //                controllers.GlobalRefactor.initContest("Category:Images from Wiki Loves Earth 2014 in " + contest.country,  contest)
 
-//    roundAndUsers(contest)
+    //    roundAndUsers(contest)
 
     //updateResolution(contest)
 
@@ -112,99 +112,49 @@ object Tools {
     createNextRound(round, jurors, rounds.find(_.number == newRoundNum - 1).get)
   }
 
-  def createNextRound(round: Round, jurors: Seq[User], prevRound: Round) = {
-    val newImages = ImageJdbc.byRatingMerged(0, round.id.get)
-    if (true || newImages.isEmpty) {
+  def createNextRound(
+                       round: Round,
+                       jurors: Seq[User],
+                       prevRound: Round,
+                       includeRegionIds: Set[String] = Set.empty,
+                       excludeRegionIds: Set[String] = Set.empty,
+                       includePageIds: Set[Long] = Set.empty,
+                       excludePageIds: Set[Long] = Set.empty,
+                       includeTitles: Set[String] = Set.empty,
+                       excludeTitles: Set[String] = Set.empty,
+                       selectTopByRating: Option[Int] = None,
+                       selectedAtLeast: Option[Int] = None,
+                       includeJurorId: Set[Long] = Set.empty,
+                       excludeJurorId: Set[Long] = Set.empty
+                     ) = {
+    val existingImages = ImageJdbc.byRatingMerged(0, round.id.get)
 
-      //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
-      //
-//      val nofop = Set(43865979L, 43554164L, 43392817L, 43263295L, 43491572L
-//      //  43229769L, 43229778L, 43229790L, 43229767L
-//      )
-//
-//      val selectedIds = Set(42857615L, 43794877)
+    val existingIds = existingImages.map(_.pageId).toSet
 
-      val selection1 = Seq.empty
+    val imagesAll = ImageJdbc.byRoundMerged(prevRound.id.get)
 
-//        Set("File:เศียรพระพุทธรูปในรากโพธิ์.jpg",
-//          "File:Leuchtturm in Westerheversand.jpg",
-//          "File:Німецький Народний дім.jpg",
-//          "File:Neues Rathaus Hannover, Innenansicht.jpg",
-//          "File:Château de Chambord - 19-08-2015 - Arnaud Scherer.jpg",
-//          "File:Vakil mosque Panorama.jpg",
-//          "File:Jinnah Mausoleum.JPG",
-//          "File:Samaan Monastery.jpg",
-//          "File:44 Apollo in bosquet Fächer, gardens of Schönbrunn 03.jpg",
-//          "File:Мереживо Пассажу.jpg",
-//          "File:Biserica Calvaria de la Cluj-Mănăștur, vedere sud-vestică, 2014.JPG",
-//          "File:Shah(Emam ) Mosque , Isfahan.jpg",
-//          "File:Соловецкий монастырь.jpg",
-//          "File:La Sacra ammantata dalla neve.jpg",
-//          "File:Ayuntamiento, La Coruña, España, 2015-09-25, DD 141-143 HDR.jpg",
-//          "File:Museu da inconfidencia.JPG",
-//          "File:Monumento a Duque de Caxias.jpg",
-//          "File:Wat phra mahathat woramahawihan nakhon si thammarat.jpg",
-//          "File:Ghare Kelisa.jpg",
-//          "File:Amphithéâtre d'El Jem.jpg",
-//          "File:مسجد الرفاعى والسلطان حسن ومدفع رمضان بقلعه صلاح الدين.jpg",
-//          "File:วัดศรีชุม20.JPG",
-//          "File:Lord Bishnu-Shesh Narayan.JPG",
-//          "File:Munkholmen fra Talerøret Trondheim.jpg",
-//          "File:Ermita de la Virgen de la Peña, LIC Sierras de Santo Domingo y Caballera, Aniés, Huesca, España, 2015-01-06, DD 06-07 PAN.JPG",
-//          "File:วัดมหาธาตุ 001.jpg",
-//          "File:Kamianiec Podilsky Stary Zamek DSC 0829 68-104-9007.jpg",
-//          "File:Opernpassage Panorama.jpg",
-//          "File:Olympiastadion Berlin Innenansicht.jpg",
-//          "File:Hook Head MG 0606 - Version 2.jpg",
-//          "File:Замок \"Ласточкино гнездо\", Ялта, АР Крым.jpg",
-//          "File:U995Steuerbordbug.JPG",
-//          "File:Azadi Tower.jpg",
-//          "File:Kilcrea Abbey.jpg",
-//          "File:Clarion Hotel Post 2015 01.jpg",
-//          "File:Nasir-al molk -1.jpg",
-//          "File:Geghard...3.jpg")
+    val funGens = ImageWithRatingSeqFilter.funGenerators(prevRound,
+      includeRegionIds = includeRegionIds,
+      excludeRegionIds = excludeRegionIds,
+      includePageIds = includePageIds,
+      excludePageIds = excludePageIds ++ existingIds,
+      includeTitles = includeTitles,
+      excludeTitles = excludeTitles,
+      includeJurorId = includeJurorId,
+      excludeJurorId = excludeJurorId,
+      selectTopByRating = selectTopByRating,
+      selectedAtLeast = selectedAtLeast
+    )
 
-      //val filtered = fromDb
+    val filterChain = ImageWithRatingSeqFilter.makeFunChain(funGens)
 
+    val images = filterChain(imagesAll)
 
-    //  val ids = Set(43851006L, 43493278L, 43852452L, 43866154L, 43852906L)
-      val existingIds = newImages.map(_.pageId).toSet
-
-      val imagesAll = ImageJdbc.byRoundMerged(prevRound.id.get).toArray.sortBy(-_.totalRate(prevRound)).take(39).filter(i => selection1.contains(i.image.title))
-
-      //.filter(i => ids.contains(i.image.pageId))
-      // ImageJdbc.byRatingMerged(1, prevRound.id.get).toArray
-//      val inRegion = imagesAll.filter(_.image.region.exists(regions.contains))
-      val images = imagesAll//.filterNot(i => existingIds.contains(i.pageId))
-
-      //.filter(_.rateSum >= 2)
-      //.filter(i => selectedIds.contains(i.image.pageId))
-      //.filterNot(i => nofop.contains(i.image.pageId))
-      //.filter(_.selection.head.juryId == 581L)
-      //.filterNot(_.selection.head.juryId == 581L)
-      //.filterNot(i => existingIds.contains(i.pageId))
-            //  ImageJdbc.byRoundMerged(prevRound.id.get).sortBy(-_.totalRate(prevRound)).toArray.take(130)
-      //.filter(_.image.region.exists(regions.contains)).sortBy(-_.totalRate)
-      //      .toArray.take(29)
-
-      //      ImageJdbc.findAll().filter(_.region == Some("44"))
-//       val selected = //Seq("File:Torre de Hércules, La Coruña, España, 2015-09-25, DD 23-31 HDR.jpg")
-//        Source.fromFile("porota 2 kolo najlepsie hodnotenie 6.0.txt")(scala.io.Codec.UTF8).getLines().map(_.replace(160.asInstanceOf[Char], ' ').trim).toSet
-      val imagesByJurors = images//.filter(i => selected.contains(i.title)) /* .filter {
-/*        iwr => iwr.selection.exists {
-          s => jurors.exists(j => j.id.contains(s.juryId))
-        }
-      }*/
-      //
-      val selection = jurors.flatMap { juror =>
-          imagesByJurors.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
-        }
-
-      //      val images = ImageJdbc.byRoundMerged(prevRound.id.toInt).sortBy(-_.totalRate).take(21)
-      //      val selection = images.flatMap(_.selection).map(_.copy(id = 0, round = round.id))
-
-      SelectionJdbc.batchInsert(selection)
+    val selection = jurors.flatMap { juror =>
+      images.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
     }
+
+    SelectionJdbc.batchInsert(selection)
   }
 
   def insertMonumentsWLM() = {
@@ -276,8 +226,8 @@ object Tools {
 
     ImageDistributor.distributeImages(contest.id.get, round)
 
-//    val jurors = round.jurors.filter(j => j.id.get == 626)
-//    createNextRound(round, jurors, prevRound)
+    //    val jurors = round.jurors.filter(j => j.id.get == 626)
+    //    createNextRound(round, jurors, prevRound)
   }
 
   def wooden(wlmContest: Contest) = {
@@ -307,9 +257,9 @@ object Tools {
 
   def addUsers(contest: ContestJury, number: Int) = {
     val country = contest.country.replaceAll("[ \\-\\&]", "")
-    val jurors = (1 to number).map(i => country + "ESPCJuror"  + i)
+    val jurors = (1 to number).map(i => country + "ESPCJuror" + i)
 
-    val orgCom = (1 to 1).map(i => country + "ESPCOrgCom" )
+    val orgCom = (1 to 1).map(i => country + "ESPCOrgCom")
     //
     val logins = //Seq.empty
       jurors ++ orgCom
@@ -330,21 +280,21 @@ object Tools {
           Some("en"))
     }
 
-//    val round = Round(None, 1, Some("Round 1"), contest.id.get, distribution = 0, active = true, rates = Round.ratesById(1))
-//
-//    val roundId = RoundJdbc.create(round).id
-//    ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
-//
-//    val dbRound = round.copy(id = roundId)
+    //    val round = Round(None, 1, Some("Round 1"), contest.id.get, distribution = 0, active = true, rates = Round.ratesById(1))
+    //
+    //    val roundId = RoundJdbc.create(round).id
+    //    ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
+    //
+    //    val dbRound = round.copy(id = roundId)
 
-       //     val dbRound = RoundJdbc.find().get
+    //     val dbRound = RoundJdbc.find().get
 
     logins.zip(passwords).foreach {
       case (login, password) =>
         println(s"$login / $password")
     }
 
-     //   ImageDistributor.distributeImages(contest, dbRound)
+    //   ImageDistributor.distributeImages(contest, dbRound)
     //
     //    logins.zip(passwords).foreach {
     //      case (login, password) =>

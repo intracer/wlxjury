@@ -217,17 +217,9 @@ class GlobalRefactor(val commons: MwBot) {
   }
 
   def descriptions(pages: Seq[Page], existingPageIds: Set[Long]): Seq[String] = {
-
-    //    pages.flatMap {
-    //      page =>
-    //        page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
-    //          .map(id => page.id.get -> (if (id.length < 100) id else id.substring(0, 100)))
-    //    }.toMap
-
     pages.sortBy(_.id).filterNot(i => existingPageIds.contains(i.id.get)).map {
       page =>
         page.text.flatMap(text => namedParam(text, "Information", "description")).getOrElse("")
-
     }
   }
 
