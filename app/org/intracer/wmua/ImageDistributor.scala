@@ -15,19 +15,12 @@ object ImageDistributor {
     val allJurors = round.jurors
 
     val currentSelection = ImageJdbc.byRoundMerged(round.id.get)
-    //      Selection.
 
     val oldImagesSelection = currentSelection.filter(iwr => iwr.selection.nonEmpty).toSet
-    val oldImageIds = oldImagesSelection.map(iwr => iwr.pageId).toSeq
-    val oldJurorIds: Set[Long] = oldImagesSelection.toSet.flatMap {
-      iwr: ImageWithRating =>
-        iwr.selection.map(s => s.juryId).toSet
-    }
+    val oldImageIds = oldImagesSelection.map(iwr => iwr.pageId)
+    val oldJurorIds = oldImagesSelection.flatMap(iwr => iwr.jurors)
 
     val images = allImages.filterNot(i => oldImageIds.contains(i.pageId))
-//      .filter{
-//      i => i.monumentId.exists(id => id.startsWith("44") || id.startsWith("32") || id.startsWith("65") || id.startsWith("63"))
-//    }
     val jurors = allJurors.filterNot(j => oldJurorIds.contains(j.id.get))
 
     val selection: Seq[Selection] = round.distribution match {
@@ -72,52 +65,18 @@ object ImageDistributor {
     val allImages: Seq[Image] = if (round.number == 1) {
       val fromDb = ImageJdbc.findByContest(contestId)
 
-//      val selection =
 
-      val filtered = fromDb//.filter(i => selection.contains(i.title))
+      val filtered = fromDb
 
-      /*
-      val categoryIds: Set[Long] = fromCategory
-*/
       val fromDbIds = filtered.map(_.pageId).toSet
 
-      val ids = fromDbIds //intersect categoryIds
-
-      //      ids.foreach{
-      //        id =>
-      //
-      //          SelectionJdbc.setRound(id, round.id.get, 26, 40)
-      //      }
-      //      val largeIds = filesInCategory.filter(_.images.headOption.exists(_.size.exists(_ > 1024 * 1024))).flatMap(_.id).toSet
+      val ids = fromDbIds
       fromDb.filter(i => ids.contains(i.pageId))
     } else {
-      if (true) {
         val rounds = RoundJdbc.findByContest(contestId)
         (for (prevRound <- rounds.find(_.number == round.number - 1)) yield {
           ImageJdbc.byRatingMerged(1, prevRound.id.get).map(_.image)
         }).getOrElse(Seq.empty)
-      } else {
-        val rounds = RoundJdbc.findByContest(contestId)
-        val prevRound = rounds.find(_.number == round.number - 1).get
-
-        val rate = Some(1)
-        val users = 3
-        val images = prevRound.allImages
-        val selection = SelectionJdbc.byRound(prevRound.id.get)
-        val ratedSelection = rate.fold(selection)(r => selection.filter(_.rate == r))
-
-        val byPageId = ratedSelection.groupBy(_.pageId).filter(_._2.size == users)
-
-        val imagesWithSelection = images.flatMap {
-          image =>
-            if (byPageId.contains(image.pageId)) {
-              Some(image.image)
-            } else {
-              None
-            }
-        }
-        imagesWithSelection
-      }
     }
     allImages
   }
@@ -142,9 +101,6 @@ object ImageDistributor {
     val newImages = ImageJdbc.byRatingMerged(1, round.id.get)
     if (false && newImages.isEmpty) {
 
-
-      //      val selectedRegions = Set("01", "07", "14", "21", "26", "44", "48", "74")
-      //
       val images =
       //ImageJdbc.byRoundMerged(prevRound.id.toInt).filter(_.image.region.exists(r => !selectedRegions.contains(r))) ++
         ImageJdbc.findAll().filter(_.region.contains("44"))
@@ -152,9 +108,6 @@ object ImageDistributor {
       val selection = jurors.flatMap { juror =>
         images.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
       }
-
-      //      val images = ImageJdbc.byRoundMerged(prevRound.id.toInt).sortBy(-_.totalRate).take(21)
-      //      val selection = images.flatMap(_.selection).map(_.copy(id = 0, round = round.id))
 
       SelectionJdbc.batchInsert(selection)
 

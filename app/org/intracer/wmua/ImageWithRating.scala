@@ -36,6 +36,8 @@ case class ImageWithRating(image: Image, selection: Seq[Selection], countFromDb:
 
   def rateSum = selection.foldLeft(0)( _ + _.rate)
 
+  def jurors = selection.map(s => s.juryId).toSet
+
   def ratedJurors(round: Round):Int =
    if (round.rates.id == 1) {
      round._allJurors

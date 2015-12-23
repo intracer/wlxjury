@@ -22,7 +22,9 @@ case class Image(pageId: Long,
 
   def resolutionStr = s"$width x $height"
 
-  def mpxStr = ImageUtil.fmt.format(width * height / 1000000.0)
+  def mpxStr = ImageUtil.fmt.format(mpx)
+
+  def mpx = width * height / 1000000.0
 
 }
 
