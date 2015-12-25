@@ -6,10 +6,18 @@ trait ImageFilterGen extends (() => Seq[ImageWithRating] => Seq[ImageWithRating]
   type ImageSeqFilter = Seq[ImageWithRating] => Seq[ImageWithRating]
 
   def imageFilter(p: Image => Boolean): ImageSeqFilter =
-    (images: Seq[ImageWithRating]) => images.filter(i => p(i.image))
+    (images: Seq[ImageWithRating]) => {
+      val result = images.filter(i => p(i.image))
+      println(s"imageFilter: ${toString()}\n images before: ${images.size}, images after: ${result.size}")
+      result
+    }
 
   def imageRatingFilter(p: ImageWithRating => Boolean): ImageSeqFilter =
-    (images: Seq[ImageWithRating]) => images.filter(p)
+    (images: Seq[ImageWithRating]) => {
+      val result = images.filter(p)
+      println(s"imageRatingFilter: ${toString()}\n images before: ${images.size}, images after: ${result.size}")
+      result
+    }
 
 }
 
@@ -94,72 +102,3 @@ object ImageWithRatingSeqFilter {
   def makeFunChain(gens: Seq[ImageFilterGen]): (Seq[ImageWithRating] => Seq[ImageWithRating]) =
     Function.chain(gens.map(_.apply))
 }
-
-
-object ImageWithRatingSeqFilter1 {
-
-  type ImageSeqFilter = Seq[ImageWithRating] => Seq[ImageWithRating]
-
-  def imageFilter(p: Image => Boolean): ImageSeqFilter =
-    (images: Seq[ImageWithRating]) => images.filter(i => p(i.image))
-
-  def imageRatingFilter(p: ImageWithRating => Boolean): ImageSeqFilter =
-    (images: Seq[ImageWithRating]) => images.filter(p)
-
-  def includeRegionIds(regionIds: Set[String]) = imageFilter(_.region.exists(regionIds.contains))
-
-  def excludeRegionIds(regionIds: Set[String]) = imageFilter(!_.region.exists(regionIds.contains))
-
-  def includePageIds(pageIds: Set[Long]) = imageFilter(i => pageIds.contains(i.pageId))
-
-  def excludePageIds(pageIds: Set[Long]) = imageFilter(i => !pageIds.contains(i.pageId))
-
-  def includeTitles(titles: Set[String]) = imageFilter(i => titles.contains(i.title))
-
-  def excludeTitles(titles: Set[String]) = imageFilter(i => !titles.contains(i.title))
-
-  def includeJurorId(jurors: Set[Long]) = imageRatingFilter(i => i.selection.map(_.juryId).toSet.intersect(jurors).nonEmpty)
-
-  def excludeJurorId(jurors: Set[Long]) = imageRatingFilter(i => i.selection.map(_.juryId).toSet.intersect(jurors).isEmpty)
-
-  def selectTopByRating(topN: Int, round: Round) =
-    (images: Seq[ImageWithRating]) => images.sortBy(-_.totalRate(round)).take(topN)
-
-  def selectedAtLeast(by: Int) = imageRatingFilter(i => i.selection.count(_.rate > 0) >= by)
-
-  def chain(round: Round,
-            includeRegionIds: Set[String] = Set.empty,
-            excludeRegionIds: Set[String] = Set.empty,
-            includePageIds: Set[Long] = Set.empty,
-            excludePageIds: Set[Long] = Set.empty,
-            includeTitles: Set[String] = Set.empty,
-            excludeTitles: Set[String] = Set.empty,
-            includeJurorId: Set[Long] = Set.empty,
-            excludeJurorId: Set[Long] = Set.empty,
-            selectTopByRating: Option[Int] = None,
-            selectedAtLeast: Option[Int] = None
-           ): Seq[ImageWithRating] => Seq[ImageWithRating] = {
-
-    val setMap = Map(
-      includeRegionIds -> this.includeRegionIds(includeRegionIds),
-      excludeRegionIds -> this.excludeRegionIds(excludeRegionIds),
-      includePageIds -> this.includePageIds(includePageIds),
-      excludePageIds -> this.excludePageIds(excludePageIds),
-      includeTitles -> this.includeTitles(includeTitles),
-      excludeTitles -> this.excludeTitles(excludeTitles),
-      includeJurorId -> this.includeJurorId(includeJurorId),
-      excludeJurorId -> this.excludeJurorId(excludeJurorId)
-    )
-
-    val optionMap = Map(
-      selectTopByRating -> selectTopByRating.map(top => this.selectTopByRating(top, round)),
-      selectedAtLeast -> selectedAtLeast.map(n => this.selectedAtLeast(n))
-    )
-
-    val fns = (setMap.filterKeys(_.nonEmpty).values ++ optionMap.values.flatten).toSeq
-
-    Function.chain(fns)
-  }
-
-}
-

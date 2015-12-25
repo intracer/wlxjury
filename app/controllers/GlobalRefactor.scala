@@ -76,14 +76,6 @@ class GlobalRefactor(val commons: MwBot) {
 
     //    val action = Action(Query(
     //      TitlesParam(Seq("File:WolayerSee.jpg",
-    //        "File:Karsterscheinungen,_im_Hintergrund_die_Weiße_Wand.jpg",
-    //        "File:Wackelstein_bei_Schmerbach_02_2015-05_NDM_ZT-091.jpg",
-    //        "File:Winterlärche.jpg",
-    //        "File:D3S_2868.jpg",
-    //        "File:Mindener_Hütte_Gamskarlspitz.JPG",
-    //        "File:Falkenstein_8133.jpg",
-    //        "File:Steinbock_14962940265.jpg",
-    //        "File:Föhnsturm_am_Grossglockner.jpg",
     //        "File:Kiebitz_auf_Futtersuche.jpg")),
     //      Prop(ImageInfo(IiProp(
     //        Timestamp,

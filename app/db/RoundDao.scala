@@ -30,6 +30,8 @@ trait RoundDao {
 
   def updateRound(id: Long, round: Round)
 
+  def setActive(id: Long, active: Boolean)
+
   def countByContest(contest: Long): Int
 
 }

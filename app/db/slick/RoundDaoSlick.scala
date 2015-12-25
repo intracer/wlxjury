@@ -66,6 +66,7 @@ class RoundDaoSlick extends HasDatabaseConfig[JdbcProfile] with RoundDao {
 
   override def create(round: Round): Round = ???
 
+  override def setActive(id: Long, active: Boolean): Unit = ???
 }
 
 object RoundsTable {

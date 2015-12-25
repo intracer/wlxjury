@@ -3,6 +3,7 @@ package org.intracer.wmua
 import akka.actor.ActorSystem
 import controllers.GlobalRefactor
 import db.scalikejdbc._
+import org.intracer.wmua.cmd.DistributeImages
 import org.joda.time.DateTime
 import org.scalawiki.{MwBot, MwBotImpl}
 import org.scalawiki.dto.Namespace
@@ -82,37 +83,7 @@ object Tools {
     //    }
   }
 
-  def roundAndUsers(contest: ContestJury) {
-    val rounds = RoundJdbc.findByContest(contest.id.get)
-    val newRoundNum = 2
-    val round = if (rounds.size < newRoundNum) {
-      val r = RoundJdbc.create(newRoundNum, Some(""), contest.id.get, "jury", 0, 10, Some(1), Some(1), None)
-      ContestJuryJdbc.setCurrentRound(contest.id.get, r.id.get)
-      r
-    } else {
-      rounds.find(_.number == newRoundNum).head
-    }
-
-    if (round.jurors.isEmpty) {
-      for (i <- 1 to 10) {
-        val login = contest.country.replaceAll("[ \\-\\&]", "")
-        UserJdbc.create(
-          "Test user " + contest.country + i,
-          login + i + "@test", UserJdbc.sha1(contest.country + "/" + "123"),
-          Set("jury"),
-          contest.id.get,
-          Some("en"))
-      }
-    }
-
-    val jurors = round.jurors
-
-    ContestJuryJdbc.setCurrentRound(contest.id.get, round.id.get)
-
-    createNextRound(round, jurors, rounds.find(_.number == newRoundNum - 1).get)
-  }
-
-  def createNextRound(
+  def distributeImages(
                        round: Round,
                        jurors: Seq[User],
                        prevRound: Round,
@@ -127,34 +98,34 @@ object Tools {
                        includeJurorId: Set[Long] = Set.empty,
                        excludeJurorId: Set[Long] = Set.empty
                      ) = {
-    val existingImages = ImageJdbc.byRatingMerged(0, round.id.get)
-
-    val existingIds = existingImages.map(_.pageId).toSet
+    val currentSelection = ImageJdbc.byRoundMerged(round.id.get).filter(iwr => iwr.selection.nonEmpty).toSet
+    val existingImageIds = currentSelection.map(_.pageId)
+    val existingJurorIds = currentSelection.flatMap(_.jurors)
 
     val imagesAll = ImageJdbc.byRoundMerged(prevRound.id.get)
+    println("Total images: " + imagesAll.size)
 
     val funGens = ImageWithRatingSeqFilter.funGenerators(prevRound,
       includeRegionIds = includeRegionIds,
       excludeRegionIds = excludeRegionIds,
       includePageIds = includePageIds,
-      excludePageIds = excludePageIds ++ existingIds,
+      excludePageIds = excludePageIds ++ existingImageIds,
       includeTitles = includeTitles,
       excludeTitles = excludeTitles,
       includeJurorId = includeJurorId,
-      excludeJurorId = excludeJurorId,
+      excludeJurorId = excludeJurorId ++ existingJurorIds,
       selectTopByRating = selectTopByRating,
       selectedAtLeast = selectedAtLeast
     )
 
+    println("Image filters:")
+    funGens.foreach(println)
     val filterChain = ImageWithRatingSeqFilter.makeFunChain(funGens)
 
-    val images = filterChain(imagesAll)
+    val images = filterChain(imagesAll).map(_.image)
+    println("Images after filtering: " + images.size)
 
-    val selection = jurors.flatMap { juror =>
-      images.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
-    }
-
-    SelectionJdbc.batchInsert(selection)
+    DistributeImages(round, images, jurors).apply()
   }
 
   def insertMonumentsWLM() = {
@@ -193,17 +164,6 @@ object Tools {
           ImageJdbc.updateResolution(i1.pageId, i2.width, i2.height)
         }
     }
-  }
-
-  def users() = {
-    for (i <- 1 to 12) {
-      val password = UserJdbc.randomString(8)
-      val hash = UserJdbc.sha1("Ukraine/" + password)
-
-      println(s"pw: $password, hash: $hash")
-
-    }
-
   }
 
   def globalRefactor = {
@@ -280,26 +240,12 @@ object Tools {
           Some("en"))
     }
 
-    //    val round = Round(None, 1, Some("Round 1"), contest.id.get, distribution = 0, active = true, rates = Round.ratesById(1))
-    //
-    //    val roundId = RoundJdbc.create(round).id
-    //    ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
-    //
-    //    val dbRound = round.copy(id = roundId)
-
-    //     val dbRound = RoundJdbc.find().get
 
     logins.zip(passwords).foreach {
       case (login, password) =>
         println(s"$login / $password")
     }
 
-    //   ImageDistributor.distributeImages(contest, dbRound)
-    //
-    //    logins.zip(passwords).foreach {
-    //      case (login, password) =>
-    //        println(s"$login / $password")
-    //    }
   }
 
 
