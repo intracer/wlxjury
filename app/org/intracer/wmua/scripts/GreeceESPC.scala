@@ -3,12 +3,12 @@ package org.intracer.wmua.scripts
 import org.intracer.wmua.Tools
 import org.intracer.wmua.cmd._
 
-object WikiLovesAfrica {
+object GreeceESPC {
 
-  def juror(country: String, n: Int) = "WLAJuror" + n
+  def juror(country: String, n: Int) = "GreeceESPCJuror" + n
 
   def main(args: Array[String]) {
-    val contestId = 76L
+    val contestId = 78L
 
     val cmds = Seq(
       ConnectDb(),
