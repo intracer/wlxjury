@@ -84,25 +84,32 @@ object Tools {
   }
 
   def distributeImages(
-                       round: Round,
-                       jurors: Seq[User],
-                       prevRound: Round,
-                       includeRegionIds: Set[String] = Set.empty,
-                       excludeRegionIds: Set[String] = Set.empty,
-                       includePageIds: Set[Long] = Set.empty,
-                       excludePageIds: Set[Long] = Set.empty,
-                       includeTitles: Set[String] = Set.empty,
-                       excludeTitles: Set[String] = Set.empty,
-                       selectTopByRating: Option[Int] = None,
-                       selectedAtLeast: Option[Int] = None,
-                       includeJurorId: Set[Long] = Set.empty,
-                       excludeJurorId: Set[Long] = Set.empty
-                     ) = {
+                        round: Round,
+                        jurors: Seq[User],
+                        prevRound: Option[Round],
+                        includeRegionIds: Set[String] = Set.empty,
+                        excludeRegionIds: Set[String] = Set.empty,
+                        includePageIds: Set[Long] = Set.empty,
+                        excludePageIds: Set[Long] = Set.empty,
+                        includeTitles: Set[String] = Set.empty,
+                        excludeTitles: Set[String] = Set.empty,
+                        selectTopByRating: Option[Int] = None,
+                        selectedAtLeast: Option[Int] = None,
+                        includeJurorId: Set[Long] = Set.empty,
+                        excludeJurorId: Set[Long] = Set.empty
+                      ) = {
     val currentSelection = ImageJdbc.byRoundMerged(round.id.get).filter(iwr => iwr.selection.nonEmpty).toSet
     val existingImageIds = currentSelection.map(_.pageId)
     val existingJurorIds = currentSelection.flatMap(_.jurors)
 
-    val imagesAll = ImageJdbc.byRoundMerged(prevRound.id.get)
+    val contestId = round.contest
+    val imagesAll = prevRound.fold[Seq[ImageWithRating]](
+      ImageJdbc.findByContest(contestId).map(i =>
+        new ImageWithRating(i, Seq.empty)
+      ).toSeq
+    )(r =>
+      ImageJdbc.byRoundMerged(r.id.get)
+    )
     println("Total images: " + imagesAll.size)
 
     val funGens = ImageWithRatingSeqFilter.funGenerators(prevRound,

@@ -67,7 +67,7 @@ case class MegaPixelsAtLeast(mpx: Int) extends ImageFilterGen {
 }
 
 object ImageWithRatingSeqFilter {
-  def funGenerators(round: Round,
+  def funGenerators(round: Option[Round],
                     includeRegionIds: Set[String] = Set.empty,
                     excludeRegionIds: Set[String] = Set.empty,
                     includePageIds: Set[Long] = Set.empty,
@@ -92,7 +92,7 @@ object ImageWithRatingSeqFilter {
     )
 
     val optionMap = Map(
-      selectTopByRating -> selectTopByRating.map(top => SelectTopByRating(top, round)),
+      selectTopByRating -> selectTopByRating.map(top => SelectTopByRating(top, round.get)),
       selectedAtLeast -> selectedAtLeast.map(n => SelectedAtLeast(n))
     )
 
