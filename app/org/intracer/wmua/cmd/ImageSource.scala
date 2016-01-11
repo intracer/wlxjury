@@ -1,85 +1,31 @@
 package org.intracer.wmua.cmd
 
-import db.scalikejdbc.ImageJdbc
-import org.intracer.wmua.{Image, ContestJury}
-import org.scalawiki.MwBot
-import org.scalawiki.dto.{Page, Namespace}
-import org.scalawiki.wikitext.TemplateParser
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.intracer.wmua.Image
+
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class ImageSource {
 
 }
 
-case class ImageInfoFromCategory(category: String, contest: ContestJury, commons: MwBot) {
-  def apply(): Future[Seq[Image]] = {
-    val query = commons.page(category)
+object ImageEnricher {
 
-    val future = query.imageInfoByGenerator("categorymembers", "cm", namespaces = Set(Namespace.FILE),
-      props = Set("timestamp", "user", "size", "url"),
-      titlePrefix = None)
+  def zip(images: Seq[Image],
+          extraData: Seq[Image],
+          extraFun: (Image, Image) => Image) =
+    images.zip(extraData).map(extraFun.tupled)
 
-    future.map {
-      pages =>
-        pages.flatMap(page => ImageJdbc.fromPage(page, contest))
-    }
-  }
+  def zipWithRevData(images: Seq[Image],
+                     revData: Seq[Image]): Seq[Image] =
+    zip(images, revData,
+      (i, r) => i.copy(monumentId = r.monumentId, description = r.description)
+    )
 
-}
-
-case class ImageTextFromCategory(category: String, contest: ContestJury, monumentIdTemplate: Option[String], commons: MwBot) {
-
-  def apply(): Future[Seq[Image]] = {
-    val query = commons.page(category)
-
-    val future = query.revisionsByGenerator("categorymembers", "cm",
-      Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None)
-
-    future.map {
-      pages =>
-
-        val images = pages.map(
-          page =>
-            new Image(page.id.get, contest.id.get, page.title, "", "", 0, 0, None, None)
-        )
-
-        val ids: Seq[String] = monumentIdTemplate.fold(Array.fill(pages.size)("").toSeq)(t => monumentIds(pages, t))
-
-        val descrs: Seq[String] = descriptions(pages)
-
-        val imagesWithIds = images.zip(ids).map {
-          case (image, id) => image.copy(monumentId = Some(id))
-        }
-
-        val imagesWithDescr = imagesWithIds.zip(descrs).map {
-          case (image, descr) => image.copy(description = Some(descr))
-        }
-
-        imagesWithDescr
-    }
-  }
-
-  def monumentIds(pages: Seq[Page], monumentIdTemplate: String): Seq[String] = {
-    pages.sortBy(_.id).map {
-      page =>
-        page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
-          .map(id => if (id.length < 100) id else id.substring(0, 100)).getOrElse("")
-    }
-  }
-
-  def descriptions(pages: Seq[Page]): Seq[String] = {
-    pages.sortBy(_.id).map {
-      page =>
-        page.text.flatMap(text => namedParam(text, "Information", "description")).getOrElse("")
-    }
-  }
-
-  def defaultParam(text: String, templateName: String): Option[String] =
-    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt("1"))
-
-  def namedParam(text: String, templateName: String, paramName: String): Option[String] =
-    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt(paramName))
+  def zipWithRevData(images: Future[Seq[Image]],
+                     revData: Future[Seq[Image]]): Future[Seq[Image]] =
+    for (i <- images; r <- revData)
+      yield zipWithRevData(i, r)
 
 }
 

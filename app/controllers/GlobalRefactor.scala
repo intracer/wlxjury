@@ -2,6 +2,7 @@ package controllers
 
 import db.scalikejdbc._
 import org.intracer.wmua._
+import org.intracer.wmua.cmd.{ImageEnricher, ImageTextFromCategory, ImageInfoFromCategory}
 import org.joda.time.DateTime
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
@@ -25,9 +26,7 @@ class GlobalRefactor(val commons: MwBot) {
     val images = ImageJdbc.findByContest(contest.id.get)
 
     if (images.isEmpty) {
-      val query = commons.page(category)
-      //PageQuery.byId(category.pageid)
-      initImagesFromCategory(contest, query, Seq.empty)
+      initImagesFromCategory(contest, category, Seq.empty)
     } else {
       //        initContestFiles(contest, images)
       //createJury()
@@ -37,8 +36,7 @@ class GlobalRefactor(val commons: MwBot) {
   def appendImages(category: String, contest: ContestJury, idsFilter: Set[String] = Set.empty): Any = {
     val images = ImageJdbc.findByContest(contest.id.get)
 
-    val query = commons.page(category)
-    initImagesFromCategory(contest, query, images, idsFilter)
+    initImagesFromCategory(contest, category, images, idsFilter)
   }
 
   def createJury() {
@@ -69,87 +67,16 @@ class GlobalRefactor(val commons: MwBot) {
 
   def initImagesFromCategory(
                               contest: ContestJury,
-                              query: SinglePageQuery,
+                              category: String,
                               existing: Seq[Image],
-                              idsFilter: Set[String] = Set.empty): Future[Unit] = {
+                              idsFilter: Set[String] = Set.empty) = {
     val existingPageIds = existing.map(_.pageId).toSet
 
-    //    val action = Action(Query(
-    //      TitlesParam(Seq("File:WolayerSee.jpg",
-    //        "File:Kiebitz_auf_Futtersuche.jpg")),
-    //      Prop(ImageInfo(IiProp(
-    //        Timestamp,
-    //        org.scalawiki.dto.cmd.query.prop.iiprop.User,
-    //        Size,
-    //        Url
-    //      )))
-    //      //,Generator(Images())
-    //    ))
+    val imageInfos = ImageInfoFromCategory(category, contest, commons).apply()
+    val revInfo = ImageTextFromCategory(category, contest, contest.monumentIdTemplate, commons).apply()
 
-    //    val future = new DslQuery(action, commons).run()
-
-    val future = query.imageInfoByGenerator("categorymembers", "cm", namespaces = Set(Namespace.FILE),
-      props = Set("timestamp", "user", "size", "url"),
-      titlePrefix = None)
-
-    //    val categoryNot = "Category:Obviously ineligible submissions for ESPC 2015 in Ukraine"
-    //    val queryNot = GlobalRefactor.commons.page(categoryNot)
-
-    //    queryNot.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
-    //      filesInCategoryNot =>
-    //        val idsNot = filesInCategoryNot.flatMap(_.id)
-
-
-    future.map {
-      //bot.page("User:***REMOVED***/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
-      //    query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
-      filesInCategory =>
-        //        queryNot.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
-        //          filesInCategoryNot =>
-        val idsNot = Set.empty[Long]
-        //filesInCategoryNot.flatMap(_.id)
-
-        val newImagesOrigIds: Seq[Image] = filesInCategory
-          .flatMap(page => ImageJdbc.fromPage(page, contest))
-          .sortBy(_.pageId)
-          .filterNot(i => existingPageIds.contains(i.pageId) || idsNot.contains(i.pageId))
-        //.map(i => i.copy(pageId = i.pageId + 169704049331L))
-
-        //        val maxId = newImagesOrigIds.map(_.pageId).max * 4024
-        //
-        val newImages = newImagesOrigIds //.map(p => p.copy(pageId = maxId + p.pageId))
-
-        val ids = newImages.map(_.pageId).toSet
-        //            val maxId = ids.max
-        //            val minId = ids.min
-        //            println(s"${contest.country},  min $minId, max $maxId")
-
-        val skipped = filesInCategory.filterNot(i => ids.contains(i.id.get)).toBuffer
-
-        contest.monumentIdTemplate.orElse(Some("None")).fold(saveNewImages(contest, newImages)) { monumentIdTemplate =>
-
-          query.revisionsByGenerator("categorymembers", "cm",
-            Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
-            pages =>
-
-              val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-              val ids: Seq[String] = monumentIds(pages, existingPageIds, monumentIdTemplate)
-
-              val descrs: Seq[String] = descriptions(pages, existingPageIds)
-
-              val imagesWithIds = newImagesOrigIds.zip(ids).map {
-                case (image, id) => image.copy(monumentId = Some(id))
-              }.filter(_.monumentId.forall(id => idsFilter.isEmpty || idsFilter.contains(id)))
-
-              val imagesWithDescr = imagesWithIds.zip(descrs).map {
-                case (image, descr) => image.copy(description = Some(descr))
-              }
-
-
-              saveNewImages(contest, imagesWithDescr)
-          }
-          //            }
-        }
+    for (images <- ImageEnricher.zipWithRevData(imageInfos, revInfo)) {
+      saveNewImages(contest, images)
     }
   }
 

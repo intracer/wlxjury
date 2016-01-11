@@ -50,6 +50,10 @@ class GlobalRefactorSpec extends Specification with Mockito {
           "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
         ) returns Future.successful(imageInfos)
 
+        query.revisionsByGenerator("categorymembers", "cm",
+          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+        ) returns Future.successful(imageInfos)
+
         val commons = mock[MwBot]
         commons.page(category) returns query
 
