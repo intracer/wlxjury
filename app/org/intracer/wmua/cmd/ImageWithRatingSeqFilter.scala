@@ -1,5 +1,6 @@
-package org.intracer.wmua
+package org.intracer.wmua.cmd
 
+import org.intracer.wmua.{Round, Image, ImageWithRating}
 
 trait ImageFilterGen extends (() => Seq[ImageWithRating] => Seq[ImageWithRating]) {
 
@@ -67,7 +68,7 @@ case class MegaPixelsAtLeast(mpx: Int) extends ImageFilterGen {
 }
 
 object ImageWithRatingSeqFilter {
-  def funGenerators(round: Option[Round],
+  def funGenerators(round: Option[Round] = None,
                     includeRegionIds: Set[String] = Set.empty,
                     excludeRegionIds: Set[String] = Set.empty,
                     includePageIds: Set[Long] = Set.empty,

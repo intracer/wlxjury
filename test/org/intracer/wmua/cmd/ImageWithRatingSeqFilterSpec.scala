@@ -1,10 +1,11 @@
-package org.intracer.wmua
+package org.intracer.wmua.cmd
 
+import org.intracer.wmua.Round
 import org.specs2.mutable.Specification
 
 class ImageWithRatingSeqFilterSpec extends Specification {
 
-  val round = Round(Some(5), 1, Some("Round"), 3)
+  val round = Some(Round(Some(5), 1, Some("Round"), 3))
   import ImageWithRatingSeqFilter._
 
   "ImageWithRatingSeqFilter" should {
@@ -22,7 +23,7 @@ class ImageWithRatingSeqFilterSpec extends Specification {
       funGenerators(round, includeJurorId = Set(3)) === Seq(IncludeJurorId(Set(3)))
       funGenerators(round, excludeJurorId = Set(4)) === Seq(ExcludeJurorId(Set(4)))
 
-      funGenerators(round, selectTopByRating = Some(10)) === Seq(SelectTopByRating(10, round))
+      funGenerators(round, selectTopByRating = Some(10)) === Seq(SelectTopByRating(10, round.get))
       funGenerators(round, selectedAtLeast = Some(2)) === Seq(SelectedAtLeast(2))
     }
 

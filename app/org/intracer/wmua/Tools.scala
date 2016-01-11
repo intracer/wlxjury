@@ -3,13 +3,13 @@ package org.intracer.wmua
 import akka.actor.ActorSystem
 import controllers.GlobalRefactor
 import db.scalikejdbc._
-import org.intracer.wmua.cmd.DistributeImages
+import org.intracer.wmua.cmd.{ImageWithRatingSeqFilter, DistributeImages}
 import org.joda.time.DateTime
-import org.scalawiki.{MwBot, MwBotImpl}
 import org.scalawiki.dto.Namespace
 import org.scalawiki.http.HttpClientImpl
 import org.scalawiki.wlx.dto.{Contest, SpecialNomination}
 import org.scalawiki.wlx.query.MonumentQuery
+import org.scalawiki.{MwBot, MwBotImpl}
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
 
 import scala.concurrent.Await
@@ -181,7 +181,6 @@ object Tools {
   def initImages(): Unit = {
 
     val contest = ContestJuryJdbc.find(77L).get
-
 
     //    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
     globalRefactor.appendImages(contest.images.get, contest)
