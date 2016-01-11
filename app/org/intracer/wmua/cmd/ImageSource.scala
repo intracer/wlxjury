@@ -39,9 +39,12 @@ case class ImageTextFromCategory(category: String, contest: ContestJury, monumen
     future.map {
       pages =>
 
-        val images = pages.flatMap(page => ImageJdbc.fromPage(page, contest))
+        val images = pages.map(
+          page =>
+            new Image(page.id.get, contest.id.get, page.title, "", "", 0, 0, None, None)
+        )
 
-        val ids: Seq[String] = monumentIdTemplate.fold(Seq.empty[String])(t => monumentIds(pages, t))
+        val ids: Seq[String] = monumentIdTemplate.fold(Array.fill(pages.size)("").toSeq)(t => monumentIds(pages, t))
 
         val descrs: Seq[String] = descriptions(pages)
 

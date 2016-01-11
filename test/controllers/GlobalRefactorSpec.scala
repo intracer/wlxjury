@@ -133,7 +133,5 @@ class GlobalRefactorSpec extends Specification with Mockito {
       }
     }
 
-
-
   }
 }
