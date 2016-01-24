@@ -42,6 +42,15 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
       select.from(ContestJuryJdbc as c).where.eq(c.id, id)
     }.map(ContestJuryJdbc(c)).single().apply()
 
+  override def find(name: String, country: String, year: Int): Option[ContestJury]  = {
+    withSQL {
+      select.from(ContestJuryJdbc as c).where
+        .eq(c.name, name).and
+        .eq(c.country, country).and
+        .eq(c.year, year)
+    }.map(ContestJuryJdbc(c)).single().apply()
+  }
+
   override def findAll(): List[ContestJury] =
     withSQL {
       select.from(ContestJuryJdbc as c)

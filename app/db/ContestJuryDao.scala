@@ -27,6 +27,8 @@ trait ContestJuryDao {
     */
   def find(id: Long): Option[ContestJury]
 
+  def find(name: String, country: String, year: Int): Option[ContestJury]
+
   /** @return all contests */
   def findAll(): Seq[ContestJury]
 

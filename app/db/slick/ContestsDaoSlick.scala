@@ -53,6 +53,8 @@ class ContestsDaoSlick extends HasDatabaseConfig[JdbcProfile] with ContestJuryDa
   override def find(id: Long): Option[ContestJury] =
     db.run(Contests.filter(_.id === id).result.headOption).await
 
+  override def find(name: String, country: String, year: Int): Option[ContestJury] = ???
+
   override def setCurrentRound(id: Long, round: Long): Int =
     db.run(Contests.filter(_.id === id).map(_.currentRound).update(round)).await
 

@@ -1,26 +1,33 @@
 package org.intracer.wmua.scripts
 
+import db.scalikejdbc.ContestJuryJdbc
 import org.intracer.wmua.Tools
 import org.intracer.wmua.cmd._
 
 object WikiLovesAfrica {
 
+  val contestType = "Wiki Loves Africa"
+  val country = "Africa"
+  val year = 2015
+
   def juror(country: String, n: Int) = "WLAJuror" + n
 
   def main(args: Array[String]) {
-    val contestId = 76L
+    for (contest <- ContestJuryJdbc.find(contestType, country, year)) {
+      val contestId = contest.id.get
 
-    val cmds = Seq(
-      ConnectDb(),
-      AddUsers(contestId, "jury", 10, juror)
-    )
+      val cmds = Seq(
+        ConnectDb(),
+        AddUsers(contestId, "jury", 10, juror)
+      )
 
-    cmds.foreach(_.apply())
+      cmds.foreach(_.apply())
 
-    val (prevRound, round) = AddNextRound(contestId, roundNumber = 2, distribution = 0, rates = 10).apply()
+      val (prevRound, round) = AddNextRound(contestId, roundNumber = 2, distribution = 0, rates = 10).apply()
 
-    Tools.distributeImages(round, round.jurors, Some(prevRound), selectedAtLeast = Some(1))
+      Tools.distributeImages(round, round.jurors, Some(prevRound), selectedAtLeast = Some(1))
 
-    SetCurrentRound(contestId, Some(prevRound), round).apply()
+      SetCurrentRound(contestId, Some(prevRound), round).apply()
+    }
   }
 }
