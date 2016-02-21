@@ -2,7 +2,12 @@ package org.intracer.wmua.cmd
 
 import db.scalikejdbc.{ContestJuryJdbc, UserJdbc}
 
-case class AddUsers(contestId: Long, role: String, toNumber: Int, usernameFun: (String, Int) => String) extends (() => Unit) {
+case class AddUsers(
+                     contestId: Long,
+                     role: String,
+                     toNumber: Int,
+                     usernameFun: (String, Int) => String)
+  extends (() => Unit) {
 
 
   def apply() = {
@@ -10,13 +15,13 @@ case class AddUsers(contestId: Long, role: String, toNumber: Int, usernameFun: (
 
     val country = contest.country.replaceAll("[ \\-\\&]", "")
 
-    val existing = UserJdbc.findByContest(contestId).filter(_.roles.contains(role))
+    val existingUsers = UserJdbc.findByContest(contestId).filter(_.roles.contains(role))
 
-    val start = existing.size + 1
+    val start = existingUsers.size + 1
     val range = start to toNumber
 
     println(s"Contest with id $contestId, name ${contest.name}, country ${contest.country}, year ${contest.year}" )
-    println(s"Users with role $role in contest $contest. Existing: $existing, going to create: ${range.size} to have $toNumber")
+    println(s"Users with role $role in contest $contest. Existing: $existingUsers, going to create: ${range.size} to have $toNumber")
 
     val logins = range.map(i => usernameFun(country, i))
 

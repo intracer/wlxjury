@@ -15,7 +15,7 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
       case x if x > 0 =>
         images.zipWithIndex.flatMap {
           case (img, i) =>
-            (0 to x - 1).map(j =>
+            (0 until x).map(j =>
               new Selection(0, img.pageId, 0, jurors((i + j) % jurors.size).id.get, round.id.get, DateTime.now)
           )
         }

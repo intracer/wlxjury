@@ -13,13 +13,15 @@ case class ImageInfoFromCategory(category: String, contest: ContestJury, commons
   def apply(): Future[Seq[Image]] = {
     val query = commons.page(category)
 
-    val future = query.imageInfoByGenerator("categorymembers", "cm", namespaces = Set(Namespace.FILE),
+    val imageInfoQuery = query.imageInfoByGenerator(
+      "categorymembers", "cm",
+      namespaces = Set(Namespace.FILE),
       props = Set("timestamp", "user", "size", "url"),
-      titlePrefix = None)
+      titlePrefix = None
+    )
 
-    future.map {
-      pages =>
-        pages.flatMap(page => ImageJdbc.fromPage(page, contest))
-    }
+    for (pages <- imageInfoQuery) yield
+      pages.flatMap(page => ImageJdbc.fromPage(page, contest))
+
   }
 }
