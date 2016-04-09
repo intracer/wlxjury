@@ -29,7 +29,7 @@ class UserDaoSlick extends HasDatabaseConfig[JdbcProfile] with UserDao {
 
     def password = column[Option[String]]("password")
 
-    def contest = column[Long]("contest")
+    def contest = column[Option[Long]]("contest")
 
     def lang = column[Option[String]]("lang")
 
@@ -77,7 +77,7 @@ class UserDaoSlick extends HasDatabaseConfig[JdbcProfile] with UserDao {
                        email: String,
                        password: String,
                        roles: Set[String],
-                       contest: Long,
+                       contest: Option[Long],
                        lang: Option[String],
                        createdAt: DateTime) = {
     val id = db.run(
@@ -101,7 +101,7 @@ object UserTable {
       Option[Long], // id
       String, // roles
       Option[String], // password
-      Long, // contest
+      Option[Long], // contest
       Option[String] // lang
     ))
   =

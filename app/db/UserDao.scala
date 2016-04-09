@@ -24,7 +24,7 @@ trait UserDao {
               email: String,
               password: String,
               roles: Set[String],
-              contest: Long,
+              contest: Option[Long],
               lang: Option[String] = None,
               createdAt: DateTime = DateTime.now
               ): User

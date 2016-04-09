@@ -18,7 +18,7 @@ object Admin extends Controller with Secured {
   def users() = withAuth({
     user =>
       implicit request =>
-        val users = UserJdbc.findByContest(user.contest)
+        val users = UserJdbc.findByContest(user.currentContest)
 
         Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), RoundJdbc.current(user)))
   }, User.ADMIN_ROLES)
@@ -72,7 +72,7 @@ object Admin extends Controller with Secured {
               }
               Cache.remove(s"user/${user.email}")
 
-              val contest = ContestJuryJdbc.find(user.contest).get
+              val contest = ContestJuryJdbc.find(user.currentContest).get
               val round = RoundJdbc.current(user)
 
               ImageDistributor.distributeImages(contest.id.get, round)
@@ -87,7 +87,7 @@ object Admin extends Controller with Secured {
   })
 
   def createNewUser(user: User, formUser: User): Unit = {
-    val contest: ContestJury = ContestJuryJdbc.byId(formUser.contest)
+    val contest: ContestJury = ContestJuryJdbc.byId(formUser.currentContest)
     createUser(user, formUser, contest)
   }
 
@@ -104,13 +104,13 @@ object Admin extends Controller with Secured {
 
   val editUserForm = Form(
     mapping(
-      "id" -> longNumber(),
-      "fullname" -> nonEmptyText(),
+      "id" -> longNumber,
+      "fullname" -> nonEmptyText,
       "email" -> email,
-      "password" -> optional(text()),
-      "roles" -> optional(text()),
-      "contest" -> longNumber,
-      "lang" -> optional(text())
+      "password" -> optional(text),
+      "roles" -> optional(text),
+      "contest" -> optional(longNumber),
+      "lang" -> optional(text)
     )(User.applyEdit)(User.unapplyEdit)
   )
 
@@ -133,7 +133,7 @@ object Admin extends Controller with Secured {
         val editedUser = UserJdbc.find(id.toLong).get
 
         val password = UserJdbc.randomString(8)
-        val contest: ContestJury = ContestJuryJdbc.byId(editedUser.contest)
+        val contest: ContestJury = ContestJuryJdbc.byId(editedUser.currentContest)
         val hash = UserJdbc.hash(editedUser, password)
 
         UserJdbc.updateHash(editedUser.id.get, hash)

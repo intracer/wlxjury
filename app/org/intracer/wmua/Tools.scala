@@ -3,13 +3,12 @@ package org.intracer.wmua
 import akka.actor.ActorSystem
 import controllers.GlobalRefactor
 import db.scalikejdbc._
-import org.intracer.wmua.cmd.{ImageWithRatingSeqFilter, DistributeImages}
+import org.intracer.wmua.cmd.{DistributeImages, ImageWithRatingSeqFilter}
 import org.joda.time.DateTime
+import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
-import org.scalawiki.http.HttpClientImpl
 import org.scalawiki.wlx.dto.{Contest, SpecialNomination}
 import org.scalawiki.wlx.query.MonumentQuery
-import org.scalawiki.{MwBot, MwBotImpl}
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
 
 import scala.concurrent.Await
@@ -146,11 +145,10 @@ object Tools {
   def updateResolution(contest: ContestJury) = {
 
     val system = ActorSystem()
-    val http = new HttpClientImpl(system)
 
     import system.dispatcher
 
-    val commons = new MwBotImpl(http, system, controllers.Global.COMMONS_WIKIMEDIA_ORG, None)
+    val commons = MwBot.get(controllers.Global.COMMONS_WIKIMEDIA_ORG)
 
     import scala.concurrent.duration._
 
@@ -242,7 +240,7 @@ object Tools {
           (jurors.contains(login))
             Set("jury")
           else Set("organizer"),
-          contest.id.get,
+          contest.id,
           Some("en"))
     }
 
@@ -325,6 +323,4 @@ object Tools {
         }
     }
   }
-
-
 }

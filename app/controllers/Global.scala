@@ -3,11 +3,9 @@ package controllers
 import _root_.db.scalikejdbc.ContestJuryJdbc
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import org.intracer.wmua._
-import org.scalawiki.{MwBotImpl, MwBot}
-import org.scalawiki.http.HttpClientImpl
+import org.scalawiki.MwBot
 import play.Play
 import play.api._
-import play.api.libs.concurrent.Akka
 import scalikejdbc.{GlobalSettings, LoggingSQLAndTimeSettings}
 
 
@@ -31,21 +29,10 @@ object Global {
 
   val projectRoot = Play.application().path()
 
-  //  initUrls()
-
-  import play.api.Play.current
-
-  val http = new HttpClientImpl(Akka.system)
-
-  val commons = new MwBotImpl(http, Akka.system, COMMONS_WIKIMEDIA_ORG, None)
-
-//  var contestByCountry: Map[String, Seq[ContestJury]] = Map.empty
-
+  val commons = MwBot.get(COMMONS_WIKIMEDIA_ORG)
 
   def onStart(app: Application) {
     Logger.info("Application has started")
-
-//    ChatActors
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
@@ -61,36 +48,7 @@ object Global {
     val reporter = JmxReporter.forRegistry(metrics).build()
     reporter.start()
 
-//    contestByCountry =
-
     KOATUU.load()
-    //contestImages()
-
-    //Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
-  }
-
-
-  def contestImages() {
-    //Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
-
-    // Global.initContestFiles(ImageJdbc.findAll())
-
-//    commons.categoryMembers(PageQuery.byTitle("Category:Images from Wiki Loves Earth 2014"), Set(Namespace.CATEGORY)) flatMap {
-//      categories =>
-//        val filtered = categories.filter(c => c.title.startsWith("Category:Images from Wiki Loves Earth 2014 in "))
-//        Future.traverse(filtered) {
-//          category =>
-//
-//            if (category.title.contains("Ukraine"))
-//              initUkraine("Category:WLE 2014 in Ukraine Round One", Some("Ukraine"))
-//            else
-//              initUkraine(category.title)
-//
-//            //    initLists()
-//
-//            Future(1)
-//        }
-//    }
   }
 
   def initCountry(category: String, countryOpt: Option[String]) = {

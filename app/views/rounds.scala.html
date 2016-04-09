@@ -14,7 +14,7 @@
 
     @main(Messages("rounds"), adminUser, adminUser.id.get, currentRounds = Seq(round)) {
         <div class="row" >
-            <h3>@Messages("Contest: " + ContestJuryJdbc.byId(adminUser.contest).name)</h3>
+            <h3>@Messages("Contest: " + ContestJuryJdbc.byId(adminUser.currentContest).name)</h3>
 
             @form(routes.Rounds.setImages(), 'class -> "form-vertical", 'id -> "set-images") {
                 <table>

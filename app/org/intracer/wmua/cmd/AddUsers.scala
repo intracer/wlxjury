@@ -36,7 +36,7 @@ case class AddUsers(
           login,
           UserJdbc.sha1(contest.country + "/" + password),
           Set(role),
-          contest.id.get,
+          contest.id,
           Some("en")
         )
     }

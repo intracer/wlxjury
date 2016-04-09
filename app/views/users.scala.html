@@ -9,7 +9,7 @@
 
 @main(Messages("users"), adminUser, adminUser.id.get, currentRounds = Seq(round)) {
     <div class="row" >
-        <h3>@Messages("Contest: " + ContestJuryJdbc.byId(adminUser.contest).name)</h3>
+        <h3>@Messages("Contest: " + ContestJuryJdbc.byId(adminUser.currentContest).name)</h3>
 
         <table class="table table-striped table-condensed" style="background-color : #CCCCCC ;">
 

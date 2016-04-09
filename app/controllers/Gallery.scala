@@ -38,7 +38,7 @@ object Gallery extends Controller with Secured with Instrumented {
         timerList.time {
           val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId).get
 
-          val userContest = user.contest
+          val userContest = user.currentContest
           val roundContest = round.contest
 
           if (userContest != roundContest ||
@@ -110,7 +110,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
         val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId).get
-        val rounds = RoundJdbc.findByContest(user.contest.toLong)
+        val rounds = RoundJdbc.findByContest(user.currentContest)
 
         val images = round.allImages
         val selection = SelectionJdbc.byRound(round.id.get)
@@ -139,7 +139,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
         val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId).get
-        val rounds = RoundJdbc.findByContest(user.contest.toLong)
+        val rounds = RoundJdbc.findByContest(user.currentContest)
         val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
 
         val ratedFiles = rate.fold(uFiles)(r => uFiles.filter(_.rate == r))
@@ -196,7 +196,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
 
-        val rounds = RoundJdbc.activeRounds(user.contest)
+        val rounds = RoundJdbc.activeRounds(user.currentContest)
 
         val roundOption = rounds.find(_.id.exists(_ == roundId)).filter(_.active)
 

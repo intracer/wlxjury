@@ -10,13 +10,15 @@ case class User(fullname: String,
                 id: Option[Long],
                 roles: Set[String] = Set.empty,
                 password: Option[String] = None,
-                contest: Long,
+                contest: Option[Long],
                 lang: Option[String] = None,
                 files: mutable.Buffer[ImageWithRating] = mutable.Buffer.empty,
                 createdAt: DateTime = DateTime.now,
                 deletedAt: Option[DateTime] = None) {
 
   def emailLo = email.trim.toLowerCase
+
+  def currentContest = contest.getOrElse(0L)
 
   def roundFiles(roundId: Long) = Gallery.userFiles(this, roundId)
 
@@ -37,11 +39,11 @@ object User {
   val ADMIN_ROLES = Set(ADMIN_ROLE, ROOT_ROLE)
   val LANGS = Map("en" -> "English", "ru" -> "Русский", "uk"-> "Українська")
 
-  def unapplyEdit(user: User): Option[(Long, String, String, Option[String], Option[String], Long, Option[String])] = {
+  def unapplyEdit(user: User): Option[(Long, String, String, Option[String], Option[String], Option[Long], Option[String])] = {
     Some((user.id.get, user.fullname, user.email, None, Some(user.roles.toSeq.head), user.contest, user.lang))
   }
 
-  def applyEdit(id: Long, fullname: String, email: String, password: Option[String], roles: Option[String], contest: Long, lang: Option[String]): User = {
+  def applyEdit(id: Long, fullname: String, email: String, password: Option[String], roles: Option[String], contest: Option[Long], lang: Option[String]): User = {
     new User(fullname, email.trim.toLowerCase, Some(id), roles.fold(Set.empty[String])(Set(_)), password, contest, lang)
   }
 }

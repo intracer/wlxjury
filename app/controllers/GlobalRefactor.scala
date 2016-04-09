@@ -227,7 +227,7 @@ class GlobalRefactor(val commons: MwBot) {
               (jurors.contains(login))
                 Set("jury")
               else Set("organizer"),
-              contest.id.get,
+              contest.id,
               Some("uk"))
         }
 
@@ -263,7 +263,7 @@ class GlobalRefactor(val commons: MwBot) {
 
     val password = UserJdbc.randomString(8)
     val hash = UserJdbc.sha1(contest.country + "/" + password)
-    val user = User(name, name, None, Set("admin"), Some(hash), contest.id.get, Some("en"))
+    val user = User(name, name, None, Set("admin"), Some(hash), contest.id, Some("en"))
 
     println(s"admin user: $name / $password")
     UserJdbc.create(user)

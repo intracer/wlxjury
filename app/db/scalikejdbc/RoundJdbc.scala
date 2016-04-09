@@ -42,7 +42,7 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
   //ContestJuryJdbc.currentRound(contestId).map { roundId => find(roundId) }
 
   override def current(user: User): Round = {
-    val contest: ContestJury = ContestJuryJdbc.byId(user.contest)
+    val contest: ContestJury = ContestJuryJdbc.byId(user.currentContest)
     find(contest.currentRound).getOrElse(new Round(Some(0), 0, None, 14, Set("jury"), 1, Round.binaryRound, Some(1), Some(1), None))
   }
 

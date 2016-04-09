@@ -28,8 +28,10 @@
         </div>
     }
 
-@main("byrate", user, asUserId, asUser, round, RoundJdbc.activeRounds(user.contest),
-    rounds, true, None, region, pager(asUserId, regionFiles, page, None, round.id.get, region, "byrate"))  {
+@main("byrate", user, asUserId, asUser, round, RoundJdbc.activeRounds(user.currentContest),
+    rounds, true, None, region,
+    pager(asUserId, regionFiles, page, None, round.id.get, region, "byrate")
+)  {
 
     @regionNav({region:String => s"/byrate/round/${round.id.get}/user/$asUserId/region/$region/page/1"}, round, region, byRegion)
 

@@ -29,7 +29,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
   }
 
   def hash(user: User, password: String): String = {
-    val contest: ContestJury = ContestJuryJdbc.byId(user.contest)
+    val contest: ContestJury = ContestJuryJdbc.byId(user.currentContest)
     sha1(contest.country + "/" + password)
   }
 
@@ -74,7 +74,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
     roles = Set(rs.string(c.roles), "USER_ID_"+ rs.int(c.id)),
-    contest = rs.int(c.contest),
+    contest = rs.longOpt(c.contest),
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
@@ -136,7 +136,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
               email: String,
               password: String,
               roles: Set[String],
-              contest: Long,
+              contest: Option[Long],
               lang: Option[String] = None,
               createdAt: DateTime = DateTime.now
               ): User = {

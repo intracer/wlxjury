@@ -13,8 +13,8 @@ object Rounds extends Controller with Secured {
   def rounds() = withAuth({
     user =>
       implicit request =>
-        val rounds = RoundJdbc.findByContest(user.contest)
-        val contest = ContestJuryJdbc.byId(user.contest)
+        val rounds = RoundJdbc.findByContest(user.currentContest)
+        val contest = ContestJuryJdbc.byId(user.currentContest)
 
         Ok(views.html.rounds(user, rounds, editRoundForm,
           imagesForm.fill(Some(contest.getImages)),
@@ -66,7 +66,7 @@ object Rounds extends Controller with Secured {
       implicit request =>
         val newRound = selectRoundForm.bindFromRequest.get
 
-        ContestJuryJdbc.setCurrentRound(user.contest, newRound.toInt)
+        ContestJuryJdbc.setCurrentRound(user.currentContest, newRound.toInt)
 
         Redirect(routes.Rounds.rounds())
   }, Set(User.ADMIN_ROLE))
@@ -75,12 +75,12 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
 
-        val rounds = RoundJdbc.findByContest(user.contest)
-        val contest = ContestJuryJdbc.byId(user.contest)
+        val rounds = RoundJdbc.findByContest(user.currentContest)
+        val contest = ContestJuryJdbc.byId(user.currentContest)
         val currentRound = rounds.find(_.id.get == contest.currentRound).get
         val nextRound = rounds.find(_.number == currentRound.number + 1).get
 
-        ContestJuryJdbc.setCurrentRound(user.contest, nextRound.id.get)
+        ContestJuryJdbc.setCurrentRound(user.currentContest, nextRound.id.get)
 
         Redirect(routes.Rounds.rounds())
   }, Set(User.ADMIN_ROLE))
@@ -94,7 +94,7 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
-        val contest = ContestJuryJdbc.byId(user.contest)
+        val contest = ContestJuryJdbc.byId(user.currentContest)
         ContestJuryJdbc.updateImages(contest.id.get, imagesSource)
 
         //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
@@ -119,7 +119,7 @@ object Rounds extends Controller with Secured {
           onUnAuthorized(user)
         } else {
 
-          val rounds = RoundJdbc.findByContest(user.contest)
+          val rounds = RoundJdbc.findByContest(user.currentContest)
 
           val selection = SelectionJdbc.byRoundWithCriteria(round.id.get)
 
@@ -148,7 +148,7 @@ object Rounds extends Controller with Secured {
         if (user.roles.contains("jury") && !round.juryOrgView) {
           onUnAuthorized(user)
         } else {
-          val rounds = RoundJdbc.findByContest(user.contest)
+          val rounds = RoundJdbc.findByContest(user.currentContest)
 
           val selection = SelectionJdbc.byRoundWithCriteria(round.id.get)
 
