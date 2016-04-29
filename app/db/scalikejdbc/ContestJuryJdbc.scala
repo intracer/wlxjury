@@ -16,13 +16,13 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
   val c = ContestJuryJdbc.syntax("c")
 
   override def currentRound(id: Long): Option[Long] =
-    find(id).map(_.currentRound)
+    find(id).flatMap(_.currentRound)
 
   override def byCountry = findAll().groupBy(_.country)
 
   //findAll().map(_.groupBy(_.country))
 
-  override def byId(id: Long) = find(id).get
+  override def byId(id: Long) = find(id)
 
   def apply(c: SyntaxProvider[ContestJury])(rs: WrappedResultSet): ContestJury = apply(c.resultName)(rs)
 
@@ -32,7 +32,7 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
     year = rs.int(c.year),
     country = rs.string(c.country),
     images = rs.stringOpt(c.images),
-    currentRound = rs.int(c.currentRound),
+    currentRound = rs.longOpt(c.currentRound),
     monumentIdTemplate = rs.stringOpt(c.monumentIdTemplate)
     //, messages
   )
@@ -68,7 +68,7 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
     ).where.eq(column.id, id)
   }.update().apply()
 
-  override def setCurrentRound(id: Long, round: Long): Int = withSQL {
+  override def setCurrentRound(id: Long, round: Option[Long]): Int = withSQL {
     update(ContestJuryJdbc).set(
       column.currentRound -> round
     ).where.eq(column.id, id)
@@ -79,7 +79,7 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
                       year: Int,
                       country: String,
                       images: Option[String],
-                      currentRound: Long,
+                      currentRound: Option[Long],
                       monumentIdTemplate: Option[String]): ContestJury = {
     val dbId = withSQL {
       insert.into(ContestJuryJdbc).namedValues(

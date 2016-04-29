@@ -36,20 +36,21 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
         timerList.time {
-          val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId).get
+          val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
 
-          val userContest = user.currentContest
-          val roundContest = round.contest
+          val userContest = user.currentContest.getOrElse(0L)
+          val roundContest = maybeRound.map(_.contest).getOrElse(0L)
 
-          if (userContest != roundContest ||
+          if (maybeRound.isEmpty || userContest != roundContest ||
             (user.roles.intersect(Set("admin", "organizer")).isEmpty
               && !ContestJuryJdbc.find(userContest).exists(_.currentRound == roundId)
-              && !round.juryOrgView)) {
+              && !maybeRound.exists(_.juryOrgView))) {
             onUnAuthorized(user)
           } else {
+            val round = maybeRound.get
 
             val rounds = RoundJdbc.findByContest(userContest.toLong)
-            val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
+            val (uFiles, asUser) = filesByUserId(asUserId, rate, user, maybeRound)
 
             val ratedFiles = rate.fold(
               uFiles.filter(_.selection.nonEmpty).sortBy(-_.totalRate(round))
@@ -70,21 +71,21 @@ object Gallery extends Controller with Secured with Instrumented {
                   countFromDb = file.countFromDb
                 )
               }
-              Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, round, rounds, region, byReg))
+              Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, maybeRound, rounds, region, byReg))
             } else
 
               module match {
                 case "gallery" =>
-                  Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, round, rounds, rate, region, byReg))
+                  Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, maybeRound, rounds, rate, region, byReg))
 
                 case "filelist" =>
-                  Ok(views.html.fileList(user, asUserId, asUser, files, files, page, round, rounds, rate, region, byReg, "wiki"))
+                  Ok(views.html.fileList(user, asUserId, asUser, files, files, page, maybeRound, rounds, rate, region, byReg, "wiki"))
 
                 case "byrate" =>
                   if (round.rates.id != 1) {
-                    Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, page, round, rounds, region, byReg))
+                    Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, page, maybeRound, rounds, region, byReg))
                   } else {
-                    Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, round, rounds, None, region, byReg))
+                    Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, maybeRound, rounds, None, region, byReg))
                   }
               }
           }
@@ -109,11 +110,11 @@ object Gallery extends Controller with Secured with Instrumented {
   def listByNumber(users: Int, page: Int = 1, region: String = "all", roundId: Long = 0, rate: Option[Int]) = withAuth {
     user =>
       implicit request =>
-        val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId).get
-        val rounds = RoundJdbc.findByContest(user.currentContest)
+        val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
+        val rounds = RoundJdbc.findByContest(user.currentContest.getOrElse(0L))
 
-        val images = round.allImages
-        val selection = SelectionJdbc.byRound(round.id.get)
+        val images = round.fold(Seq.empty[ImageWithRating])(_.allImages)
+        val selection = round.fold(Seq.empty[Selection])(r => SelectionJdbc.byRound(r.id.get))
         val ratedSelection = rate.fold(selection)(r => selection.filter(_.rate == r))
 
         val byPageId = ratedSelection.groupBy(_.pageId).filter(_._2.size == users)
@@ -138,8 +139,8 @@ object Gallery extends Controller with Secured with Instrumented {
   def fileList(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0, format: String = "wiki", rate: Option[Int]) = withAuth {
     user =>
       implicit request =>
-        val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId).get
-        val rounds = RoundJdbc.findByContest(user.currentContest)
+        val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
+        val rounds = RoundJdbc.findByContest(user.currentContest.getOrElse(0L))
         val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
 
         val ratedFiles = rate.fold(uFiles)(r => uFiles.filter(_.rate == r))
@@ -151,14 +152,16 @@ object Gallery extends Controller with Secured with Instrumented {
         Ok(views.html.fileList(user, asUserId, asUser, files, files, page, round, rounds, rate, region, byReg, format))
   }
 
-  def filesByUserId(asUserId: Long, rate: Option[Int], user: User, round: Round): (Seq[ImageWithRating], User) = {
-    if (asUserId == 0) {
-      (rate.fold(ImageJdbc.byRoundSummedWithCriteria(round.id.get))(r => ImageJdbc.byRatingWithCriteriaMerged(r, round.id.get)), null)
-    } else
-    if (asUserId != user.id.get) {
-      val asUser: User = UserJdbc.find(asUserId).get
-      (userFiles(asUser, round.id.get), asUser)
-    } else (userFiles(user, round.id.get), user)
+  def filesByUserId(asUserId: Long, rate: Option[Int], user: User, round: Option[Round]): (Seq[ImageWithRating], User) = {
+    val maybeRoundId = round.flatMap(_.id)
+    maybeRoundId.fold((Seq.empty[ImageWithRating], user)) { roundId =>
+      if (asUserId == 0) {
+        (rate.fold(ImageJdbc.byRoundSummedWithCriteria(roundId))(r => ImageJdbc.byRatingWithCriteriaMerged(r, roundId)), null)
+      } else if (asUserId != user.id.get) {
+        val asUser: User = UserJdbc.find(asUserId).get
+        (userFiles(asUser, roundId), asUser)
+      } else (userFiles(user, roundId), user)
+    }
   }
 
   def listCurrent(page: Int = 1, region: String = "all", rate: Option[Int]) = withAuth {
@@ -196,7 +199,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
 
-        val rounds = RoundJdbc.activeRounds(user.currentContest)
+        val rounds = RoundJdbc.activeRounds(user.currentContest.getOrElse(0L))
 
         val roundOption = rounds.find(_.id.exists(_ == roundId)).filter(_.active)
 
@@ -255,8 +258,8 @@ object Gallery extends Controller with Secured with Instrumented {
                        region: String,
                        roundId: Long,
                        module: String): Result = {
-    val newIndex = if (roundId >= 124 || roundId <= 128) index else
-    if (index > files.size - 2)
+    val newIndex = if (roundId >= 124 || roundId <= 128) index
+    else if (index > files.size - 2)
       files.size - 2
     else index + 1
 
@@ -278,9 +281,11 @@ object Gallery extends Controller with Secured with Instrumented {
 
   def show(pageId: Long, user: User, asUserId: Long, rate: Option[Int], region: String, roundId: Long, module: String)(implicit request: Request[Any]): Result = {
     timerShow.time {
-      val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId).get
+      val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
 
-      val (allFiles, asUser) = filesByUserId(asUserId, rate, user, round)
+      val round = maybeRound.get
+
+      val (allFiles, asUser) = filesByUserId(asUserId, rate, user, maybeRound)
 
       val sorted = if (module == "byrate") allFiles.sortBy(-_.totalRate(round)) else allFiles
 
@@ -349,9 +354,9 @@ object Gallery extends Controller with Secured with Instrumented {
     Ok(
       views.html.large.large(
         user, asUserId,
-      files, index, start, end, page, rate,
-      region, round, monument, module, comments, selection,
-      byCriteria
+        files, index, start, end, page, rate,
+        region, round, monument, module, comments, selection,
+        byCriteria
       )
     )
   }

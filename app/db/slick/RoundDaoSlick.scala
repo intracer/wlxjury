@@ -60,7 +60,7 @@ class RoundDaoSlick extends HasDatabaseConfig[JdbcProfile] with RoundDao {
 
   override def find(id: Long): Option[Round] = ???
 
-  override def current(user: User): Round = ???
+  override def current(user: User): Option[Round] = ???
 
   override def create(number: Int, name: Option[String], contest: Long, roles: String, distribution: Int, rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int], createdAt: DateTime): Round = ???
 

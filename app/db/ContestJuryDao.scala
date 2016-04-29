@@ -18,9 +18,9 @@ trait ContestJuryDao {
   def byCountry: Map[String, Seq[ContestJury]]
 
   /** @param id contest Id
-    * @return contest by id, exception if not found
+    * @return optional contest by id
     */
-  def byId(id: Long): ContestJury
+  def byId(id: Long): Option[ContestJury]
 
   /** @param id contest Id
     * @return optional contest by id
@@ -37,14 +37,14 @@ trait ContestJuryDao {
 
   def updateImages(id: Long, images: Option[String]): Int
 
-  def setCurrentRound(id: Long, round: Long): Int
+  def setCurrentRound(id: Long, round: Option[Long]): Int
 
   def create(id: Option[Long],
              name: String,
              year: Int,
              country: String,
              images: Option[String],
-             currentRound: Long,
+             currentRound: Option[Long],
              monumentIdTemplate: Option[String]): ContestJury
 
   def batchInsert(contests: Seq[ContestJury]): Seq[Int]

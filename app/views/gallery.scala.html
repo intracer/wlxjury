@@ -6,17 +6,19 @@
         pageFiles: Seq[org.intracer.wmua.ImageWithRating],
         regionFiles: Seq[org.intracer.wmua.ImageWithRating],
         page: Int,
-        round: org.intracer.wmua.Round,
+        round: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
         rate: Option[Int],
         region: String = "all",
         byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang, messages: Messages)
 
-    @main("gallery", user, asUserId, asUser, round, RoundJdbc.activeRounds(user.currentContest),  rounds, gallery = true, rate, region,
-            pager(asUserId, regionFiles, page, rate, round.id.get, region)
+    @main("gallery", user, asUserId, asUser, round, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),  rounds, gallery = true, rate, region,
+            pager(asUserId, regionFiles, page, rate, round.flatMap(_.id), region)
     )  {
 
-    @regionNav({region:String => s"/gallery/round/${round.id.get}/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
+@defining( round.flatMap(_.id).getOrElse(0L) ) { roundId =>
+
+    @regionNav({region:String => s"/gallery/round/$roundId/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
 
 
     <div class="row" >
@@ -28,7 +30,7 @@
                     <h1 id="@file.pageId" style="display: inline; width: 1px; height: 1px"></h1>
 
                     <div class="thumb">
-                        <a href="/large/round/@round.id/user/@asUserId/region/@region/pageid/@file.pageId@rateParam(rate)" >
+                        <a href="/large/round/@roundId/user/@asUserId/region/@region/pageid/@file.pageId@rateParam(rate)" >
                             <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)">
                         </a>
                     </div>
@@ -40,3 +42,4 @@
 
     </div>
     }
+}

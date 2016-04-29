@@ -1,10 +1,10 @@
 @(      regionToUrl: String => String,
-        round: org.intracer.wmua.Round,
+        round: Option[org.intracer.wmua.Round],
         region: String = "all",
         byRegion: Map[String, Int]
         )(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@if(round == null || Set(14, 16, 17, 20, 23, 70).contains(round.contest.toInt)) {
+@if(byRegion.nonEmpty) {
     <div class="row" >
         <nav>
         <div class="col-md-12 text-center"  style="margin-bottom: 5px;">

@@ -18,7 +18,7 @@ case class User(fullname: String,
 
   def emailLo = email.trim.toLowerCase
 
-  def currentContest = contest.getOrElse(0L)
+  def currentContest = contest
 
   def roundFiles(roundId: Long) = Gallery.userFiles(this, roundId)
 

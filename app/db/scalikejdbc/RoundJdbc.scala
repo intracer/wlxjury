@@ -41,9 +41,11 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
 
   //ContestJuryJdbc.currentRound(contestId).map { roundId => find(roundId) }
 
-  override def current(user: User): Round = {
-    val contest: ContestJury = ContestJuryJdbc.byId(user.currentContest)
-    find(contest.currentRound).getOrElse(new Round(Some(0), 0, None, 14, Set("jury"), 1, Round.binaryRound, Some(1), Some(1), None))
+  override def current(user: User): Option[Round] = {
+    for (contest <- user.currentContest.flatMap(ContestJuryJdbc.byId);
+         roundId <- contest.currentRound;
+         round <- find(roundId))
+      yield round
   }
 
   override def findAll(): List[Round] = withSQL {
@@ -63,8 +65,8 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
   }.map(RoundJdbc(c)).single().apply()
 
   override def create(number: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
-             rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int],
-             createdAt: DateTime = DateTime.now): Round = {
+                      rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int],
+                      createdAt: DateTime = DateTime.now): Round = {
     val id = withSQL {
       insert.into(RoundJdbc).namedValues(
         column.number -> number,

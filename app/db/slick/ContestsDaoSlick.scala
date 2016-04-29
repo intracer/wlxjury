@@ -28,7 +28,7 @@ class ContestsDaoSlick extends HasDatabaseConfig[JdbcProfile] with ContestJuryDa
 
     def images = column[Option[String]]("images") // commonscat realy
 
-    def currentRound = column[Long]("current_round")
+    def currentRound = column[Option[Long]]("current_round")
 
     def monumentIdTemplate = column[Option[String]]("monument_id_template")
 
@@ -40,9 +40,9 @@ class ContestsDaoSlick extends HasDatabaseConfig[JdbcProfile] with ContestJuryDa
 
   def insert(cat: ContestJury): Int = db.run(Contests += cat).await
 
-  override def currentRound(id: Long): Option[Long] = find(id).map(_.currentRound)
+  override def currentRound(id: Long): Option[Long] = find(id).flatMap(_.currentRound)
 
-  override def byId(id: Long): ContestJury = find(id).get
+  override def byId(id: Long): Option[ContestJury] = find(id)
 
   override def countAll(): Long =
     db.run(Contests.length.result).await
@@ -55,7 +55,7 @@ class ContestsDaoSlick extends HasDatabaseConfig[JdbcProfile] with ContestJuryDa
 
   override def find(name: String, country: String, year: Int): Option[ContestJury] = ???
 
-  override def setCurrentRound(id: Long, round: Long): Int =
+  override def setCurrentRound(id: Long, round: Option[Long]): Int =
     db.run(Contests.filter(_.id === id).map(_.currentRound).update(round)).await
 
   override def updateImages(id: Long, images: Option[String]): Int =
@@ -66,7 +66,7 @@ class ContestsDaoSlick extends HasDatabaseConfig[JdbcProfile] with ContestJuryDa
              year: Int,
              country: String,
              images: Option[String],
-             currentRound: Long,
+             currentRound: Option[Long],
              monumentIdTemplate: Option[String]): ContestJury = ???
 
   override def batchInsert(contests: Seq[ContestJury]): Seq[Int] = ???

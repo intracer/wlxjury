@@ -6,12 +6,15 @@
         pageFiles: Seq[org.intracer.wmua.ImageWithRating],
         regionFiles: Seq[org.intracer.wmua.ImageWithRating],
         page: Int,
-        round: org.intracer.wmua.Round,
+        maybeRound: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
         region: String = "all",
         byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang, messages: Messages)
 
+
     @showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
+    @defining( maybeRound.get) { round =>
+
        <div style="margin-bottom: 10px; color: #ffffff;"> <b>@index. </b>
        <span style="margin-left: 5px; margin-right: 10px;">
            @if(round.rates.id != 2) {
@@ -27,13 +30,17 @@
         </span>
         </div>
     }
+    }
 
-@main("byrate", user, asUserId, asUser, round, RoundJdbc.activeRounds(user.currentContest),
+@main("byrate", user, asUserId, asUser, maybeRound, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),
     rounds, true, None, region,
-    pager(asUserId, regionFiles, page, None, round.id.get, region, "byrate")
+    pager(asUserId, regionFiles, page, None, maybeRound.flatMap(_.id), region, "byrate")
 )  {
 
-    @regionNav({region:String => s"/byrate/round/${round.id.get}/user/$asUserId/region/$region/page/1"}, round, region, byRegion)
+@defining( maybeRound.get) { round =>
+@defining( round.id ) { roundId =>
+
+    @regionNav({region:String => s"/byrate/round/$roundId/user/$asUserId/region/$region/page/1"}, maybeRound, region, byRegion)
 
     <div class="row" >
 
@@ -46,9 +53,7 @@
                     <div class="thumb">
                         <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.get, None, "byrate")" >
                             <img class="cropped" alt="@file.title"
-                            src="@controllers.Global.resizeTo(file.image,
-                                controllers.Global.gallerySizeX,
-                                controllers.Global.gallerySizeY)">
+                            src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)">
                         </a>
                     </div>
 
@@ -61,3 +66,5 @@
         </ul>
     </div>
     }
+}
+}

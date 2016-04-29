@@ -6,7 +6,7 @@ case class ContestJury(
                         year: Int,
                         country: String,
                         images: Option[String],
-                        currentRound: Long,
+                        currentRound: Option[Long],
                         monumentIdTemplate: Option[String]) {
   //def localName = Messages("wiki.loves.earth." + country, year)(messages)
 

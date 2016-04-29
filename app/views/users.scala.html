@@ -3,13 +3,13 @@
         adminUser: org.intracer.wmua.User,
         users: Seq[org.intracer.wmua.User],
         editUserForm: Form[org.intracer.wmua.User],
-        round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang, messages: Messages)
+        round: Option[org.intracer.wmua.Round])(implicit flash: Flash, lang: Lang, messages: Messages)
 @import helper._
 @import org.intracer.wmua.ContestJury
 
-@main(Messages("users"), adminUser, adminUser.id.get, currentRounds = Seq(round)) {
+@main(Messages("users"), adminUser, adminUser.id.get, currentRounds = round.toSeq) {
     <div class="row" >
-        <h3>@Messages("Contest: " + ContestJuryJdbc.byId(adminUser.currentContest).name)</h3>
+        <h3>@Messages("Contest: " + adminUser.currentContest.flatMap(ContestJuryJdbc.byId).fold("")(_.name))</h3>
 
         <table class="table table-striped table-condensed" style="background-color : #CCCCCC ;">
 

@@ -24,7 +24,6 @@ object Tools {
     println(s"URL:" + url)
 
     ConnectionPool.singleton(url, "***REMOVED***", "***REMOVED***")
-    //    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
@@ -63,7 +62,6 @@ object Tools {
     //    GlobalRefactor.initLists(wlmContest)
     //    return
 
-    //    ConnectionPool.singleton("jdbc:mysql://localhost/wlxjury", "***REMOVED***", "***REMOVED***")
 
     //    for (contest <- ContestJury.findAll()) {
     //

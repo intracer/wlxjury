@@ -4,7 +4,7 @@
         user: org.intracer.wmua.User = null,
         asUserId: Long = 0,
         asUser: org.intracer.wmua.User = null,
-        selectedRound: org.intracer.wmua.Round,
+        selectedRound: Option[org.intracer.wmua.Round],
         currentRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
         allRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
         gallery: Boolean = false,
@@ -27,11 +27,11 @@
                         <!-- <li role="presentation"><a class="brand" href="/admin/rounds">@Messages("rounds")</a> -->
                     }
 
-                    @for(round <- if (user.roles.contains("jury")) currentRounds else Seq(selectedRound)) {
+                    @for(round <- if (user.roles.contains("jury")) currentRounds else selectedRound.toSeq) {
 
                         @if(round.id.get >= 124 && round.id.get <= 128) {
 
-                            @defining(selectedRound.id == round.id){ isActive =>
+                            @defining(selectedRound.map(_.id) == round.id){ isActive =>
                                 @if(user.roundFiles(round.id.get).count(_.rate == 0) > 0) {
                                     <li  role="presentation"
                                     class="@if(isActive) {active}">
@@ -64,9 +64,9 @@
                             @dropDownSelection(
                                 new UiSelectionDto[Long](
                                     routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, _, rate),
-                                    selectedRound.id.get,
+                                    selectedRound.flatMap(_.id).get,
                                     SelectionItem(round.description),
-                                    RoundJdbc.findByContest(user.currentContest).filter(user.canViewOrgInfo).map {
+                                    RoundJdbc.findByContest(user.currentContest.getOrElse(0L)).filter(user.canViewOrgInfo).map {
                                         r => (r.id.get, SelectionItem(r.description, localized = false))
                                     },
                                     defaultKey = round.id.get,
@@ -81,7 +81,7 @@
                                 If binary round show unrated, selected, rejected tabs
                             -->
                             @if(round.rates == Round.binaryRound) {
-                                @defining(selectedRound.id == round.id){ isActive =>
+                                @defining(selectedRound.flatMap(_.id) == round.id){ isActive =>
 
                                 <li role="presentation" class="@if(rate.contains(0) && isActive){active}">
                                     <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(0))">
@@ -107,7 +107,7 @@
 
                                     @if(round.id.get == 34) { <li role="presentation"> <a class="brand" href="/chat">@Messages("chat") </a>}
 
-                                @defining(selectedRound.id == round.id){ isActive =>
+                                @defining(selectedRound.flatMap(_.id) == round.id){ isActive =>
                                 @if(user.roundFiles(round.id.get).count(_.rate == 0) > 0) {
                                 <li  role="presentation" class="@if(rate.contains(0) && isActive) {active}">
                                     <a href="/gallery/round/@round.id.get/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
@@ -131,7 +131,7 @@
                     }
 
                     @if(user.id.get != asUserId && user.roles.intersect(Set("organizer", "admin")).nonEmpty) {
-                        @for(round <- if (user.roles.contains("jury")) currentRounds else Seq(selectedRound)) {
+                        @for(round <- if (user.roles.contains("jury")) currentRounds else selectedRound.toSeq) {
                                 <li role="presentation" class="brand" >
                                 @dropDownSelection(
                                     new UiSelectionDto[Long](

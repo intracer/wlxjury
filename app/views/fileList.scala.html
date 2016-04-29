@@ -1,75 +1,82 @@
 @(
-        user: org.intracer.wmua.User,
-        asUserId: Long,
-        asUser: org.intracer.wmua.User,
-        pageFiles: Seq[org.intracer.wmua.ImageWithRating],
-        regionFiles: Seq[org.intracer.wmua.ImageWithRating],
-        page: Int,
-        round: org.intracer.wmua.Round,
-        rounds: Seq[org.intracer.wmua.Round],
-        rate: Option[Int],
-        region: String = "all",
-        byRegion: Map[String, Int],
-        format1:String = "wiki")(implicit flash: Flash, lang: Lang, messages: Messages)
+user: org.intracer.wmua.User,
+asUserId: Long,
+asUser: org.intracer.wmua.User,
+pageFiles: Seq[org.intracer.wmua.ImageWithRating],
+regionFiles: Seq[org.intracer.wmua.ImageWithRating],
+page: Int,
+round: Option[org.intracer.wmua.Round],
+rounds: Seq[org.intracer.wmua.Round],
+rate: Option[Int],
+region: String = "all",
+byRegion: Map[String, Int],
+format1:String = "wiki")(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @main("filelist", user, asUserId, asUser, round, rounds, rounds, false, rate, region) {
 
-    @regionNav({region:String => s"/filelist/round/${round.id.get}/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
+@defining( round.flatMap(_.id).getOrElse(0L)) { roundId =>
 
-    <div class="row" >
+@regionNav({region:String => s"/filelist/round/$roundId/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
 
-        @if(round.rates.id==1) {
-            <div contenteditable="true">
-                @defining(s"<!-- Wiki Loves Eath 2014, " +
-                        s"Round ${round.description}, " +
+<div class="row">
+
+    @if(round.map(_.rates.id) == Some(1)) {
+    <div contenteditable="true">
+        @defining(s"<!-- Wiki Loves Eath 2014, " +
+                        s"Round ${round.fold("None")(_.description)}, " +
                         s"Juror: ${Option(asUser).fold("All")(u => u.fullname)} " +
                         s"${KOATUU.regions.get(region).fold("")(name => s", Region: $name")}. --> ") { t => @t <br/>}
-                @for(file <- pageFiles) {
-                    @format1 match {
-                        case "wiki" => {
-                            <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
-                        }
-                        case "html" => {
-                            @defining(
-                                s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)}"></a>""" ) {str => @str <br/> }
-                        }
-                    }
-                    }
-            </div>
-        } else {
-            @defining(s"Wiki Loves Eath 2014, " +
-                    s"Round ${round.description}, " +
-                    s"Juror: ${Option(asUser).fold("All")(u => u.fullname)} " +
-                    s"${KOATUU.regions.get(region).fold("")(name => s", Region: $name")}.") { t => @t <br/>}
-
-            <table>
-                <thead>
-                    <th>
-                        File
-                    </th>
-                    <th>
-                        Rating
-                    </th>
-                </thead>
-                <tbody>
-            @for(file <- pageFiles.sortBy(-_.totalRate(round))) {
-                <tr>
-                    <td>
-                @format1 match {
-                    case "wiki" => {
-                        <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
-                    }
-                    case "html" => {
-                        @defining( s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)}"></a>""") { str => @str <br/>}
-                    }
-                }
-                    </td>
-                    <td>@file.rateString(round)</td>
-                </tr>
-            }
-                </tbody>
-            </table>
-
+        @for(file <- pageFiles) {
+        @format1 match {
+        case "wiki" => {
+        <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
+        }
+        case "html" => {
+        @defining(
+        s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img
+            src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)}"></a>"""
+        ) {str => @str <br/> }
+        }
+        }
         }
     </div>
+    } else {
+    @defining(s"Wiki Loves Eath 2014, " +
+    s"Round ${round.fold("None")(_.description)}, " +
+    s"Juror: ${Option(asUser).fold("All")(u => u.fullname)} " +
+    s"${KOATUU.regions.get(region).fold("")(name => s", Region: $name")}.") { t => @t <br/>}
+
+    <table>
+        <thead>
+        <th>
+            File
+        </th>
+        <th>
+            Rating
+        </th>
+        </thead>
+        <tbody>
+        @for(file <- pageFiles.sortBy(-_.totalRate(round.get))) {
+        <tr>
+            <td>
+                @format1 match {
+                case "wiki" => {
+                <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
+                }
+                case "html" => {
+                @defining(
+                s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)}"></a>"""
+                ) { str => @str <br/>}
+                }
+                }
+            </td>
+            <td>@file.rateString(round.get)</td>
+        </tr>
+        }
+        </tbody>
+    </table>
+
+    }
+</div>
+}
 }

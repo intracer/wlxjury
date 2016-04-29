@@ -27,31 +27,33 @@ object ChatApplication extends Controller with Secured {
       implicit request =>
         val round = RoundJdbc.current(user)
 
-//        cache(round.id) {
-//          Concurrent.broadcast[JsValue]
-//        }
+        //        cache(round.id) {
+        //          Concurrent.broadcast[JsValue]
+        //        }
 
         implicit val commentFormat = Json.format[Comment]
 
-        val messages = CommentJdbc.findByRound(round.id.get).map(m => Json.toJson(m))
-        Ok(views.html.chat("Chat", user, user.id.get, user, messages, Seq(round), gallery = true))
+        val messages = round.flatMap(_.id).fold(Seq.empty[JsValue]) { roundId =>
+          CommentJdbc.findByRound(roundId).map(m => Json.toJson(m))
+        }
+        Ok(views.html.chat("Chat", user, user.id.get, user, messages, round.toSeq, gallery = true))
   }
 
   /** Controller action for POSTing chat messages */
   def postMessage =
-    withAuthBP(parse.json) ({
+    withAuthBP(parse.json)({
       user =>
         req =>
           val body: JsValue = req.body.asInstanceOf[JsObject]
 
           val round = RoundJdbc.current(user)
 
-//          cache(round.id) {
-//            Concurrent.broadcast[JsValue]
-//          }.map {
-//            case (_, chatChannel) =>
-              chatChannel.push(body)
-//          }
+          //          cache(round.id) {
+          //            Concurrent.broadcast[JsValue]
+          //          }.map {
+          //            case (_, chatChannel) =>
+          chatChannel.push(body)
+          //          }
 
           val userId = (body \ "userId").asInstanceOf[JsNumber].value.toInt
           val text = (body \ "body").asInstanceOf[JsString].value
@@ -59,18 +61,18 @@ object ChatApplication extends Controller with Secured {
           val at = DateTime.now.toString
           val room = (body \ "room").asInstanceOf[JsString].value.toInt
 
-          CommentJdbc.create(userId, username, round.id.get, room, text, at)
+          CommentJdbc.create(userId, username, round.flatMap(_.id).get, room, text, at)
 
           Ok
     }, roles = Set(User.ADMIN_ROLE, "jury"))
 
 
   /** Enumeratee for filtering messages based on room */
-  def filter(room: String) = Enumeratee.filter[JsValue] { json: JsValue => (json \ "room").as[String] == room}
+  def filter(room: String) = Enumeratee.filter[JsValue] { json: JsValue => (json \ "room").as[String] == room }
 
   /** Enumeratee for detecting disconnect of SSE stream */
   def connDeathWatch(addr: String): Enumeratee[JsValue, JsValue] =
-    Enumeratee.onIterateeDone { () => println(addr + " - SSE disconnected")}
+    Enumeratee.onIterateeDone { () => println(addr + " - SSE disconnected") }
 
   /** Controller action serving activity based on room */
   def chatFeed(round: String) = withAuth {
@@ -79,21 +81,21 @@ object ChatApplication extends Controller with Secured {
 
         val round = RoundJdbc.current(user)
 
-//        val future: Future[Result] = cache(round) {
-//          Concurrent.broadcast[JsValue]
-//        }.map {
-//          case (chatOut, _) =>
+        //        val future: Future[Result] = cache(round) {
+        //          Concurrent.broadcast[JsValue]
+        //        }.map {
+        //          case (chatOut, _) =>
 
-            println(req.remoteAddress + " - SSE connected")
-            Ok.feed(chatOut
-              //              &> filter(room)
-              &> Concurrent.buffer(50)
-              &> connDeathWatch(req.remoteAddress)
-              &> EventSource()
-            ).as("text/event-stream")
-//        }
-//
-//        AsyncResult(future)
+        println(req.remoteAddress + " - SSE connected")
+        Ok.feed(chatOut
+          //              &> filter(room)
+          &> Concurrent.buffer(50)
+          &> connDeathWatch(req.remoteAddress)
+          &> EventSource()
+        ).as("text/event-stream")
+    //        }
+    //
+    //        AsyncResult(future)
   }
 
 }

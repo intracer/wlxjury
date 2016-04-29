@@ -47,7 +47,7 @@ pager: Html = Html(""))(implicit lang: Lang, playMsgs: Messages)
     </head>
     <body ng-app="sseChat" @if(gallery) {class="gallery"}>
 
-       @navbar(title, user, asUserId, asUser, currentRounds.head, currentRounds, currentRounds, gallery, rate, region, pager)
+       @navbar(title, user, asUserId, asUser, currentRounds.headOption, currentRounds, currentRounds, gallery, rate, region, pager)
 
        <div class="container-fluid" style="margin-left : 0px ; margin-right : 0px">
 

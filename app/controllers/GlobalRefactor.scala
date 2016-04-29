@@ -176,7 +176,6 @@ class GlobalRefactor(val commons: MwBot) {
         //            val roundId = RoundJdbc.create(round).id
         //            ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
         //        }
-        // Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
 
         contests.foreach {
           contest =>
@@ -277,7 +276,7 @@ class GlobalRefactor(val commons: MwBot) {
       imageCategory =>
         val title = imageCategory.title
         val country = title.replaceFirst(parent + " in ", "")
-        ContestJury(None, contest, year, country, Some(title), 0, None)
+        ContestJury(None, contest, year, country, Some(title), None, None)
     }
     contests
   }

@@ -2,12 +2,13 @@
         currentFiles: Seq[org.intracer.wmua.ImageWithRating] = Seq.empty,
         page: Int = 0,
         rate: Option[Int] = None,
-        roundId: Long,
+        maybeRoundId: Option[Long],
         region: String = "all",
         module: String = "gallery"
         )(implicit messages: Messages)
 
 @if(page!=0 && Pager.pages(currentFiles) > 1) {
+@defining( maybeRoundId.getOrElse(0L) ) { roundId =>
     <li>
     <div  class="col-md-12 text-center" >
         <ul class="pagination"  id="pagenav" style="margin-top: 10px; margin-bottom: 0px;">
@@ -31,4 +32,5 @@
         </ul>
     </div>
     </li>
+}
 }

@@ -13,12 +13,14 @@ object Rounds extends Controller with Secured {
   def rounds() = withAuth({
     user =>
       implicit request =>
-        val rounds = RoundJdbc.findByContest(user.currentContest)
-        val contest = ContestJuryJdbc.byId(user.currentContest)
+        val contestId: Option[Long] = user.currentContest
+        val rounds = contestId.fold(Seq.empty[Round])(RoundJdbc.findByContest)
+        val contest = contestId.flatMap(ContestJuryJdbc.byId)
+        val images = contest.flatMap(_.images)
 
         Ok(views.html.rounds(user, rounds, editRoundForm,
-          imagesForm.fill(Some(contest.getImages)),
-          selectRoundForm.fill(contest.currentRound.toString),
+          imagesForm.fill(images),
+          selectRoundForm.fill(contest.map(_.currentRound.toString)),
           RoundJdbc.current(user)))
   }, Set(User.ADMIN_ROLE))
 
@@ -66,7 +68,9 @@ object Rounds extends Controller with Secured {
       implicit request =>
         val newRound = selectRoundForm.bindFromRequest.get
 
-        ContestJuryJdbc.setCurrentRound(user.currentContest, newRound.toInt)
+        user.currentContest.foreach { c =>
+          ContestJuryJdbc.setCurrentRound(c, newRound.map(_.toLong))
+        }
 
         Redirect(routes.Rounds.rounds())
   }, Set(User.ADMIN_ROLE))
@@ -75,12 +79,15 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
 
-        val rounds = RoundJdbc.findByContest(user.currentContest)
-        val contest = ContestJuryJdbc.byId(user.currentContest)
-        val currentRound = rounds.find(_.id.get == contest.currentRound).get
-        val nextRound = rounds.find(_.number == currentRound.number + 1).get
+        for (contestId <- user.currentContest;
+             contest <- ContestJuryJdbc.byId(contestId)) {
+          val rounds = RoundJdbc.findByContest(contestId)
 
-        ContestJuryJdbc.setCurrentRound(user.currentContest, nextRound.id.get)
+          for (currentRound <- rounds.find(_.id == contest.currentRound);
+               nextRound <- rounds.find(_.number == currentRound.number + 1)) {
+            ContestJuryJdbc.setCurrentRound(contestId, nextRound.id)
+          }
+        }
 
         Redirect(routes.Rounds.rounds())
   }, Set(User.ADMIN_ROLE))
@@ -94,15 +101,17 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
-        val contest = ContestJuryJdbc.byId(user.currentContest)
-        ContestJuryJdbc.updateImages(contest.id.get, imagesSource)
+        for (contest <- user.currentContest.flatMap(ContestJuryJdbc.byId)) {
+          ContestJuryJdbc.updateImages(contest.id.get, imagesSource)
 
-        //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
+          //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 
-        val round: Round = RoundJdbc.find(ContestJuryJdbc.currentRound(contest.id.get).get).get
-        distributeImages(contest, round)
-
-        //        Round.up
+          for (contestId <- contest.id;
+               currentRoundId <- ContestJuryJdbc.currentRound(contestId);
+               round <- RoundJdbc.find(currentRoundId)) {
+            distributeImages(contest, round)
+          }
+        }
 
         Redirect(routes.Rounds.rounds())
 
@@ -113,13 +122,13 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         //        val rounds = Round.findByContest(user.contest)
-        val round: Round = RoundJdbc.current(user)
+        val round: Round = RoundJdbc.current(user).get
 
         if (user.roles.contains("jury") && !round.juryOrgView) {
           onUnAuthorized(user)
         } else {
 
-          val rounds = RoundJdbc.findByContest(user.currentContest)
+          val rounds = RoundJdbc.findByContest(user.currentContest.getOrElse(0L))
 
           val selection = SelectionJdbc.byRoundWithCriteria(round.id.get)
 
@@ -148,7 +157,7 @@ object Rounds extends Controller with Secured {
         if (user.roles.contains("jury") && !round.juryOrgView) {
           onUnAuthorized(user)
         } else {
-          val rounds = RoundJdbc.findByContest(user.currentContest)
+          val rounds = RoundJdbc.findByContest(user.currentContest.getOrElse(0L))
 
           val selection = SelectionJdbc.byRoundWithCriteria(round.id.get)
 
@@ -164,28 +173,28 @@ object Rounds extends Controller with Secured {
         }
   }, Set(User.ADMIN_ROLE, "jury") ++ User.ORG_COM_ROLES)
 
-//  def byRate(roundId: Int) = withAuth({
-//    user =>
-//      implicit request =>
-//        val round: Round = Round.find(roundId.toLong).get
-//        val rounds = Round.findByContest(user.contest)
-//
-//        val images = Image.byRoundMerged(round.id.toInt)
-//
-////        val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
-////        val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
-////
-////        val totalCount = selection.map(_.pageId).toSet.size
-////        val totalByRateCount = selection.groupBy(_.rate).mapValues(_.map(_.pageId).toSet.size)
-//
-//        val imagesByRate = images.sortBy(-_.totalRate)
-//
-////        Ok(views.html.galleryByRate(user, round, imagesByRate))
-//  })
+  //  def byRate(roundId: Int) = withAuth({
+  //    user =>
+  //      implicit request =>
+  //        val round: Round = Round.find(roundId.toLong).get
+  //        val rounds = Round.findByContest(user.contest)
+  //
+  //        val images = Image.byRoundMerged(round.id.toInt)
+  //
+  ////        val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
+  ////        val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
+  ////
+  ////        val totalCount = selection.map(_.pageId).toSet.size
+  ////        val totalByRateCount = selection.groupBy(_.rate).mapValues(_.map(_.pageId).toSet.size)
+  //
+  //        val imagesByRate = images.sortBy(-_.totalRate)
+  //
+  ////        Ok(views.html.galleryByRate(user, round, imagesByRate))
+  //  })
 
-  val imagesForm = Form("images" -> optional(text()))
+  val imagesForm = Form("images" -> optional(text))
 
-  val selectRoundForm = Form("currentRound" -> text())
+  val selectRoundForm = Form("currentRound" -> optional(text))
 
   val editRoundForm = Form(
     mapping(

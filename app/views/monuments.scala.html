@@ -3,7 +3,7 @@
   region: String = "all")(implicit flash: Flash, lang: Lang, messages: Messages)
 @import org.scalawiki.wlx.dto.Monument
 
-@main("gallery", null, 0, null, null, Seq.empty, Seq.empty, gallery = false, None, region, pager(0, Seq.empty, 1, None, 0, region))  {
+@main("gallery", null, 0, null, null, Seq.empty, Seq.empty, gallery = false, None, region, pager(0, Seq.empty, 1, None, None, region))  {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/bootstrap-multiselect.js")"></script>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/bootstrap-multiselect.css")" type="text/css"/>

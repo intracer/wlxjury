@@ -29,8 +29,10 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
   }
 
   def hash(user: User, password: String): String = {
-    val contest: ContestJury = ContestJuryJdbc.byId(user.currentContest)
-    sha1(contest.country + "/" + password)
+    val text = user.currentContest.flatMap(ContestJuryJdbc.byId).fold(password) {
+      _.country + "/" + password
+    }
+    sha1(text)
   }
 
   def login(username: String, password: String): Option[User] = {
@@ -39,16 +41,16 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     val passwordTrimmed = password.trim
 
     val userOpt = findByEmail(username).headOption.filter(user => {
-        val inputHash = hash(user, password)
-        val dbHash = user.password.get
-        inputHash == dbHash
-      })
+      val inputHash = hash(user, password)
+      val dbHash = user.password.get
+      inputHash == dbHash
+    })
 
-//    for (user <- userOpt) {
-//      val contest = ContestJuryJdbc.find(user.contest).get
-//      Cache.set(s"contest/${contest.id}", contest)
-//      Cache.set(s"user/${user.email}", user)
-//    }
+    //    for (user <- userOpt) {
+    //      val contest = ContestJuryJdbc.find(user.contest).get
+    //      Cache.set(s"contest/${contest.id}", contest)
+    //      Cache.set(s"user/${user.email}", user)
+    //    }
 
     userOpt
   }
@@ -73,7 +75,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     id = Some(rs.int(c.id)),
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
-    roles = Set(rs.string(c.roles), "USER_ID_"+ rs.int(c.id)),
+    roles = Set(rs.string(c.roles), "USER_ID_" + rs.int(c.id)),
     contest = rs.longOpt(c.contest),
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
@@ -132,14 +134,14 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
   }.map(_.long(1)).single().apply().get
 
   override def create(
-              fullname: String,
-              email: String,
-              password: String,
-              roles: Set[String],
-              contest: Option[Long],
-              lang: Option[String] = None,
-              createdAt: DateTime = DateTime.now
-              ): User = {
+                       fullname: String,
+                       email: String,
+                       password: String,
+                       roles: Set[String],
+                       contest: Option[Long],
+                       lang: Option[String] = None,
+                       createdAt: DateTime = DateTime.now
+                     ): User = {
     val id = withSQL {
       insert.into(UserJdbc).namedValues(
         column.fullname -> fullname,
@@ -151,7 +153,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
-    User(id = Some(id), fullname = fullname, email = email, password = Some(password), roles = roles ++ Set("USER_ID_"+ id), contest = contest, createdAt = createdAt)
+    User(id = Some(id), fullname = fullname, email = email, password = Some(password), roles = roles ++ Set("USER_ID_" + id), contest = contest, createdAt = createdAt)
   }
 
   override def create(user: User): User = {
@@ -166,7 +168,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
         column.createdAt -> user.createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
-    user.copy(id = Some(id), roles = user.roles ++ Set("USER_ID_"+ id))
+    user.copy(id = Some(id), roles = user.roles ++ Set("USER_ID_" + id))
   }
 
   override def updateUser(id: Long, fullname: String, email: String, roles: Set[String], lang: Option[String]): Unit = withSQL {
@@ -178,7 +180,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     ).where.eq(column.id, id)
   }.update().apply()
 
-  override def updateHash(id: Long, hash:String): Unit = withSQL {
+  override def updateHash(id: Long, hash: String): Unit = withSQL {
     update(UserJdbc).set(
       column.password -> hash
     ).where.eq(column.id, id)

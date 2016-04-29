@@ -1,4 +1,6 @@
-@(user: org.intracer.wmua.User, editUserForm: Form[org.intracer.wmua.User],round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang, messages: Messages)
+@(user: org.intracer.wmua.User,
+editUserForm: Form[org.intracer.wmua.User],
+round: Option[org.intracer.wmua.Round])(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @import helper._
 @import org.intracer.wmua.User

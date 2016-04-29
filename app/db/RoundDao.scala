@@ -7,7 +7,7 @@ trait RoundDao {
 
   def activeRounds(contestId: Long): Seq[Round]
 
-  def current(user: User): Round
+  def current(user: User): Option[Round]
 
   def findAll(): Seq[Round]
 

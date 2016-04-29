@@ -5,16 +5,16 @@
         rounds: Seq[org.intracer.wmua.Round],
         editRoundForm: Form[org.intracer.wmua.Round],
         editImagesForm: Form[Option[String]],
-        selectRoundForm: Form[String],
-        round: org.intracer.wmua.Round)(implicit flash: Flash, lang: Lang, messages: Messages)
+        selectRoundForm: Form[Option[String]],
+        round: Option[org.intracer.wmua.Round])(implicit flash: Flash, lang: Lang, messages: Messages)
     @import helper._
     @import org.intracer.wmua.ContestJury
     @import org.intracer.wmua.Round
     @import org.intracer.wmua.Selection
 
-    @main(Messages("rounds"), adminUser, adminUser.id.get, currentRounds = Seq(round)) {
+    @main(Messages("rounds"), adminUser, adminUser.id.get, currentRounds = round.toSeq) {
         <div class="row" >
-            <h3>@Messages("Contest: " + ContestJuryJdbc.byId(adminUser.currentContest).name)</h3>
+            <h3>@Messages("Contest: " + adminUser.currentContest.flatMap(ContestJuryJdbc.byId).fold("")(_.name))</h3>
 
             @form(routes.Rounds.setImages(), 'class -> "form-vertical", 'id -> "set-images") {
                 <table>

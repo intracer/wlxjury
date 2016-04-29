@@ -3,7 +3,7 @@
         user: org.intracer.wmua.User = null,
         asUserId: Long = 0,
         asUser: org.intracer.wmua.User = null,
-        selectedRound: org.intracer.wmua.Round = null,
+        selectedRound: Option[org.intracer.wmua.Round] = None,
         currentRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
         allRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
         gallery: Boolean = false,

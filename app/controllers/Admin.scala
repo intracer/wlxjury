@@ -18,7 +18,7 @@ object Admin extends Controller with Secured {
   def users() = withAuth({
     user =>
       implicit request =>
-        val users = UserJdbc.findByContest(user.currentContest)
+        val users = user.currentContest.fold(Seq.empty[User])(UserJdbc.findByContest)
 
         Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), RoundJdbc.current(user)))
   }, User.ADMIN_ROLES)
@@ -72,10 +72,10 @@ object Admin extends Controller with Secured {
               }
               Cache.remove(s"user/${user.email}")
 
-              val contest = ContestJuryJdbc.find(user.currentContest).get
-              val round = RoundJdbc.current(user)
-
-              ImageDistributor.distributeImages(contest.id.get, round)
+              for (contest <- user.currentContest.flatMap(ContestJuryJdbc.find);
+                   round <- RoundJdbc.current(user)) {
+                ImageDistributor.distributeImages(contest.id.get, round)
+              }
 
               val result = Redirect(routes.Admin.users())
               val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
@@ -87,18 +87,22 @@ object Admin extends Controller with Secured {
   })
 
   def createNewUser(user: User, formUser: User): Unit = {
-    val contest: ContestJury = ContestJuryJdbc.byId(formUser.currentContest)
+    val contest: Option[ContestJury] = formUser.currentContest.flatMap(ContestJuryJdbc.byId)
     createUser(user, formUser, contest)
   }
 
-  def createUser(user: User, formUser: User, contest: ContestJury) {
+  def createUser(user: User, formUser: User, contest: Option[ContestJury]) {
     val password = UserJdbc.randomString(8)
     val hash = UserJdbc.hash(formUser, password)
-    val juryhome = "http://wlxjury.wikimedia.in.ua"
     UserJdbc.create(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest, formUser.lang)
-    implicit val lang = formUser.lang.fold(Lang("en"))(Lang.apply)
-    val subject: String = Messages("welcome.subject", Messages(contest.name))
-    val message: String = Messages("welcome.messsage", Messages(contest.name), juryhome, formUser.email, password, user.fullname)
+  }
+
+  def sendMail(user: User, contest: Option[ContestJury], password: String) = {
+    val juryhome = "http://wlxjury.wikimedia.in.ua"
+    implicit val lang = user.lang.fold(Lang("en"))(Lang.apply)
+    val contestName = contest.fold("")(c => Messages(c.name))
+    val subject = Messages("welcome.subject", contestName)
+    val message = Messages("welcome.messsage", contestName, juryhome, user.email, password, user.fullname)
     //sendMail.sendMail(from = (user.fullname, user.email), to = Seq(user.email), bcc = Seq(user.email), subject = subject, message = message)
   }
 
@@ -114,17 +118,17 @@ object Admin extends Controller with Secured {
     )(User.applyEdit)(User.unapplyEdit)
   )
 
-//  def rounds() = withAuth({
-//    user =>
-//      implicit request =>
-//        val rounds = Round.findByContest(user.contest)
-//        val contest = ContestJury.byId(user.contest).get
-//
-//        Ok(views.html.rounds(user, rounds, editRoundForm,
-//          imagesForm.fill(Some(contest.getImages)),
-//          selectRoundForm.fill(contest.currentRound.toString),
-//          Round.current(user)))
-//  }, Set(User.ADMIN_ROLE))
+  //  def rounds() = withAuth({
+  //    user =>
+  //      implicit request =>
+  //        val rounds = Round.findByContest(user.contest)
+  //        val contest = ContestJury.byId(user.contest).get
+  //
+  //        Ok(views.html.rounds(user, rounds, editRoundForm,
+  //          imagesForm.fill(Some(contest.getImages)),
+  //          selectRoundForm.fill(contest.currentRound.toString),
+  //          Round.current(user)))
+  //  }, Set(User.ADMIN_ROLE))
 
 
   def resetPassword(id: String) = withAuth({
@@ -133,15 +137,16 @@ object Admin extends Controller with Secured {
         val editedUser = UserJdbc.find(id.toLong).get
 
         val password = UserJdbc.randomString(8)
-        val contest: ContestJury = ContestJuryJdbc.byId(editedUser.currentContest)
+        val contest: Option[ContestJury] = editedUser.currentContest.flatMap(ContestJuryJdbc.byId)
+        val contestName = contest.fold("")(_.name)
         val hash = UserJdbc.hash(editedUser, password)
 
         UserJdbc.updateHash(editedUser.id.get, hash)
 
         val juryhome = "http://localhost:9000"
         //        User.updateUser(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest)
-        val subject: String = s"Password changed for ${contest.name} jury"
-        val message: String = s"Password changed for ${contest.name} jury\n" +
+        val subject: String = s"Password changed for $contestName jury"
+        val message: String = s"Password changed for $contestName jury\n" +
           s" Please login to our jury tool $juryhome \nwith login: ${editedUser.email} and password: $password\n" +
           s"Regards, ${user.fullname}"
         // sendMail.sendMail(from = (user.fullname, user.email), to = Seq(user.email), bcc = Seq(user.email), subject = subject, message = message)
