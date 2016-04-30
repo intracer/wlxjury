@@ -75,7 +75,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     id = Some(rs.int(c.id)),
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
-    roles = Set(rs.string(c.roles), "USER_ID_" + rs.int(c.id)),
+    roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
     contest = rs.longOpt(c.contest),
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),

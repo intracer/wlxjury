@@ -22,13 +22,12 @@ case class User(fullname: String,
 
   def roundFiles(roundId: Long) = Gallery.userFiles(this, roundId)
 
-  //    def withFiles(files: Seq[ImageWithRating]) = this.copy(files = files)
+  def hasRole(role: String) = roles.contains(role)
 
-  //def roles = Seq("jury")
+  def hasAnyRole(otherRoles: Set[String]) = roles.intersect(otherRoles).nonEmpty
 
   def canViewOrgInfo(round: Round) =
-    roles.intersect(Set("organizer", "admin")).nonEmpty || (roles.contains("jury") && round.juryOrgView)
-
+    hasAnyRole(Set("organizer", "admin")) || (roles.contains("jury") && round.juryOrgView)
 }
 
 object User {

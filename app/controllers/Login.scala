@@ -19,16 +19,18 @@ object Login extends Controller with Secured {
   }
 
   def indexRedirect(user: User): Result = {
-    if (user.roles.contains(User.ORG_COM_ROLES.head)) {
+    if (user.hasAnyRole(User.ORG_COM_ROLES)) {
       Redirect(routes.Rounds.currentRoundStat())
-    } else if (user.roles.contains(User.JURY_ROLES.head)) {
+    } else if (user.hasAnyRole(User.JURY_ROLES)) {
       val round = RoundJdbc.current(user).get
       if (round.rates == Round.binaryRound) {
         Redirect(routes.Gallery.list(user.id.get, 0, "all", round.id.get))
       } else {
         Redirect(routes.Gallery.byRate(user.id.get, 0, "all", 0))
       }
-    } else if (User.ADMIN_ROLES.intersect(user.roles).nonEmpty){
+    } else if (user.hasRole(User.ROOT_ROLE)) {
+      Redirect(routes.Contests.list())
+    } else if (user.hasAnyRole(User.ADMIN_ROLES)) {
       Redirect(routes.Admin.users())
     } else {
       Redirect(
@@ -63,7 +65,6 @@ object Login extends Controller with Secured {
    * @return Index page
    */
   def logout = Action {
-    //      session.data = Map()
     Redirect(routes.Login.login()).withNewSession
   }
 
