@@ -10,10 +10,10 @@ import play.api.i18n.Messages.Implicits._
 
 object Rounds extends Controller with Secured {
 
-  def rounds() = withAuth({
+  def rounds(contestIdParam: Option[Long] = None) = withAuth({
     user =>
       implicit request =>
-        val contestId: Option[Long] = user.currentContest
+        val contestId: Option[Long] = user.currentContest.orElse(contestIdParam)
         val rounds = contestId.fold(Seq.empty[Round])(RoundJdbc.findByContest)
         val contest = contestId.flatMap(ContestJuryJdbc.byId)
         val images = contest.flatMap(_.images)
@@ -22,7 +22,7 @@ object Rounds extends Controller with Secured {
           imagesForm.fill(images),
           selectRoundForm.fill(contest.map(_.currentRound.toString)),
           RoundJdbc.current(user)))
-  }, Set(User.ADMIN_ROLE))
+  }, User.ADMIN_ROLES)
 
   def editRound(id: String) = withAuth({
     user =>
@@ -32,7 +32,7 @@ object Rounds extends Controller with Secured {
         val filledRound = editRoundForm.fill(round)
 
         Ok(views.html.editRound(user, filledRound, RoundJdbc.current(user)))
-  }, Set(User.ADMIN_ROLE))
+  }, User.ADMIN_ROLES)
 
   def saveRound() = withAuth({
     user =>
@@ -50,7 +50,7 @@ object Rounds extends Controller with Secured {
             Redirect(routes.Rounds.rounds())
           }
         )
-  }, Set(User.ADMIN_ROLE))
+  }, User.ADMIN_ROLES)
 
   def createNewRound(user: User, round: Round): Round = {
 
@@ -73,7 +73,7 @@ object Rounds extends Controller with Secured {
         }
 
         Redirect(routes.Rounds.rounds())
-  }, Set(User.ADMIN_ROLE))
+  }, User.ADMIN_ROLES)
 
   def startRound() = withAuth({
     user =>
@@ -90,7 +90,7 @@ object Rounds extends Controller with Secured {
         }
 
         Redirect(routes.Rounds.rounds())
-  }, Set(User.ADMIN_ROLE))
+  }, User.ADMIN_ROLES)
 
 
   def distributeImages(contest: ContestJury, round: Round) {
@@ -115,7 +115,7 @@ object Rounds extends Controller with Secured {
 
         Redirect(routes.Rounds.rounds())
 
-  }, Set(User.ADMIN_ROLE))
+  }, User.ADMIN_ROLES)
 
 
   def currentRoundStat() = withAuth({

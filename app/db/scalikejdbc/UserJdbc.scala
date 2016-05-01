@@ -64,7 +64,6 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     new BigInteger(1, digest.digest()).toString(16)
   }
 
-
   def byUserName(email: String) = {
     findByEmail(email.trim.toLowerCase).headOption
   }

@@ -7,7 +7,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.Messages.Implicits._
 import play.api.i18n.{Lang, Messages}
-import play.api.mvc.Controller
+import play.api.mvc.{Controller, Result}
 import play.api.mvc.Results._
 import play.cache.Cache
 
@@ -15,22 +15,34 @@ object Admin extends Controller with Secured {
 
   val sendMail = new SendMail
 
-  def users() = withAuth({
+  def users(contestId: Option[Long] = None) = withAuth({
     user =>
       implicit request =>
-        val users = user.currentContest.fold(Seq.empty[User])(UserJdbc.findByContest)
+        val users = user.currentContest.orElse(contestId).fold(Seq.empty[User])(UserJdbc.findByContest)
 
         Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), RoundJdbc.current(user)))
   }, User.ADMIN_ROLES)
 
+  def havingEditRights(currentUser: User, otherUser: User)(block: => Result): Result = {
+    if (!currentUser.canEdit(otherUser)) {
+      Redirect(routes.Login.index()) // TODO message
+    } else {
+      block
+    }
+  }
+
   def editUser(id: String) = withAuth({
     user =>
       implicit request =>
+
         val editedUser = UserJdbc.find(id.toLong).get
 
-        val filledForm = editUserForm.fill(editedUser)
+        havingEditRights(user, editedUser) {
 
-        Ok(views.html.editUser(user, filledForm, RoundJdbc.current(user)))
+          val filledForm = editUserForm.fill(editedUser)
+
+          Ok(views.html.editUser(user, filledForm, RoundJdbc.current(user)))
+        }
   }, Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$id"))
 
   def saveUser() = withAuth({
@@ -41,46 +53,45 @@ object Admin extends Controller with Secured {
           formWithErrors => // binding failure, you retrieve the form containing errors,
             BadRequest(views.html.editUser(user, formWithErrors, RoundJdbc.current(user))),
           formUser => {
-            val userId = formUser.id.get
-            if (!(user.roles.contains(User.ADMIN_ROLE) || user.id == formUser.id)) {
-              Redirect(routes.Login.index())
-            }
+            havingEditRights(user, formUser) {
 
-            val count: Long = UserJdbc.countByEmail(userId, formUser.email)
-            if (count > 0) {
-              BadRequest(
-                views.html.editUser(
-                  user,
-                  editUserForm.fill(formUser).withError("email", "email should be unique"),
-                  RoundJdbc.current(user)
+              val userId = formUser.id.get
+              val count: Long = UserJdbc.countByEmail(userId, formUser.email)
+              if (count > 0) {
+                BadRequest(
+                  views.html.editUser(
+                    user,
+                    editUserForm.fill(formUser).withError("email", "email should be unique"),
+                    RoundJdbc.current(user)
+                  )
                 )
-              )
-            } else {
-              if (userId == 0) {
-                createNewUser(user, formUser)
               } else {
-                if (!user.roles.contains(User.ADMIN_ROLE)) {
-                  val origUser = UserJdbc.find(formUser.id.get).get
-                  UserJdbc.updateUser(userId, formUser.fullname, formUser.email, origUser.roles, formUser.lang)
+                if (userId == 0) {
+                  createNewUser(user, formUser)
                 } else {
-                  UserJdbc.updateUser(userId, formUser.fullname, formUser.email, formUser.roles, formUser.lang)
+
+                  // only admin can update roles
+                  val newRoles = if (user.hasAnyRole(User.ADMIN_ROLES)) {
+                    formUser.roles
+                  } else {
+                    val origUser = UserJdbc.find(formUser.id.get).get
+                    origUser.roles
+                  }
+
+                  UserJdbc.updateUser(userId, formUser.fullname, formUser.email, newRoles, formUser.lang)
+
+                  for (password <- formUser.password) {
+                    val hash = UserJdbc.hash(formUser, password)
+                    UserJdbc.updateHash(userId, hash)
+                  }
                 }
-                for (password <- formUser.password) {
-                  val hash = UserJdbc.hash(formUser, password)
-                  UserJdbc.updateHash(userId, hash)
-                }
+                Cache.remove(s"user/${user.email}")
+
+                val result = Redirect(routes.Admin.users(user.contest))
+                val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
+
+                lang.fold(result)(l => result.withLang(Lang(l)))
               }
-              Cache.remove(s"user/${user.email}")
-
-              for (contest <- user.currentContest.flatMap(ContestJuryJdbc.find);
-                   round <- RoundJdbc.current(user)) {
-                ImageDistributor.distributeImages(contest.id.get, round)
-              }
-
-              val result = Redirect(routes.Admin.users())
-              val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
-
-              lang.fold(result)(l => result.withLang(Lang(l)))
             }
           }
         )

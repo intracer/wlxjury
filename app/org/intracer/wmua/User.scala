@@ -26,6 +26,15 @@ case class User(fullname: String,
 
   def hasAnyRole(otherRoles: Set[String]) = roles.intersect(otherRoles).nonEmpty
 
+  def sameContest(other: User): Boolean =
+    (for (c <- contest; oc <- other.contest) yield c == oc)
+      .getOrElse(false)
+
+  def canEdit(otherUser: User) =
+    hasRole(User.ADMIN_ROLE) && sameContest(otherUser) ||
+    id == otherUser.id ||
+    hasRole(User.ROOT_ROLE)
+
   def canViewOrgInfo(round: Round) =
     hasAnyRole(Set("organizer", "admin")) || (roles.contains("jury") && round.juryOrgView)
 }
