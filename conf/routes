@@ -110,6 +110,7 @@ GET         /contests                                                           
 
 POST        /contests/save                                                          controllers.Contests.saveContest()
 
+POST        /contests/import                                                        controllers.Contests.importContests()
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)
 

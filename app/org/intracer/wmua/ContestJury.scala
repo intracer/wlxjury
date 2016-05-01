@@ -6,8 +6,8 @@ case class ContestJury(
                         year: Int,
                         country: String,
                         images: Option[String],
-                        currentRound: Option[Long],
-                        monumentIdTemplate: Option[String]) {
+                        currentRound: Option[Long] = None,
+                        monumentIdTemplate: Option[String] = None) {
   //def localName = Messages("wiki.loves.earth." + country, year)(messages)
 
   def getImages = images.getOrElse("Category:Images from " + name)

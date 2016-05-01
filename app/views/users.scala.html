@@ -7,7 +7,7 @@
 @import helper._
 @import org.intracer.wmua.ContestJury
 
-@main(Messages("users"), adminUser, adminUser.id.get, currentRounds = round.toSeq) {
+@mainAdmin(Messages("users"), adminUser, adminUser.id.get, currentRounds = round.toSeq) {
     <div class="row" >
         <h3>@Messages("Contest: " + adminUser.currentContest.flatMap(ContestJuryJdbc.byId).fold("")(_.name))</h3>
 

@@ -2,12 +2,23 @@
 @(
         user: org.intracer.wmua.User,
         contests: Seq[org.intracer.wmua.ContestJury],
-        editContestForm: Form[org.intracer.wmua.ContestJury]
+        editContestForm: Form[org.intracer.wmua.ContestJury],
+        importForm: Form[String]
         )(implicit flash: Flash, lang: Lang, messages: Messages)
 @import helper._
 @import org.intracer.wmua.ContestJury
 
-@main(Messages("contests"), user, user.id.get) {
+@mainAdmin(Messages("contests"), user, user.id.get) {
+    <div class="row" >
+        <h3>@Messages("Import from list page/images category")</h3>
+        @form(routes.Contests.importContests, 'id -> "import-contests") {
+            @inputText(importForm("source"), 'placeholder -> Messages("source"), '_label -> null, '_help -> "")
+
+            <div class="btn btn-primary" onClick="document.forms['import-contests'].submit();">
+                @Messages("import")
+            </div>
+        }
+    </div>
     <div class="row" >
         <h3>@Messages("contests")</h3>
 
@@ -19,9 +30,7 @@
                     <th>@Messages("country")</th>
                     <th>@Messages("year")</th>
                     <th>@Messages("images")</th>
-                        <!--                    <th>@Messages("objects")</th>
-                    <th>@Messages("users")</th> -->
-                    <th>@Messages("jurors")</th>
+                    <th>@Messages("users")</th>
                     <th>@Messages("current.round")</th>
                     <th>@Messages("id.template")</th>
                 </tr>
@@ -75,10 +84,23 @@
                     <td>@Messages(contest.country)</td>
                     <td>@contest.year</td>
                     <td>@contest.images</td>
-                    <td></td>
-                    <td>@contest.currentRound</td>
+                    <td>
+                        <a href="@routes.Admin.users()">
+                            <button type="button" class="btn btn-default btn-xs">
+                                <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                            </button>
+                        </a>
+                    </td>
+                    <td>@contest.currentRound
+                    <a href="@routes.Rounds.rounds()">
+                        <button type="button" class="btn btn-default btn-xs">
+                            <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                        </button>
+                    </a>
+                    </td>
                     <td>@contest.monumentIdTemplate.getOrElse("")</td>
-                    <td></td>
+                    <td>
+                    </td>
                 </tr>
             }
             </tbody>
