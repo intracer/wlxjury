@@ -1,11 +1,13 @@
+@import org.intracer.wmua.User
 @(
-        adminUser: org.intracer.wmua.User,
-        contests: Seq[org.intracer.wmua.ContestJury]
+        user: org.intracer.wmua.User,
+        contests: Seq[org.intracer.wmua.ContestJury],
+        editContestForm: Form[org.intracer.wmua.ContestJury]
         )(implicit flash: Flash, lang: Lang, messages: Messages)
 @import helper._
 @import org.intracer.wmua.ContestJury
 
-@main(Messages("contests"), adminUser, adminUser.id.get) {
+@main(Messages("contests"), user, user.id.get) {
     <div class="row" >
         <h3>@Messages("contests")</h3>
 
@@ -20,23 +22,63 @@
                         <!--                    <th>@Messages("objects")</th>
                     <th>@Messages("users")</th> -->
                     <th>@Messages("jurors")</th>
+                    <th>@Messages("current.round")</th>
                     <th>@Messages("id.template")</th>
                 </tr>
             </thead>
 
             <tbody>
 
+                @if(user.hasRole(User.ROOT_ROLE)) {
+                @form(routes.Contests.saveContest, 'class -> "form-vertical", 'id -> "add-contest") {
+                    <tr>
+                        @if(editContestForm.hasGlobalErrors) {
+                            <p class="error">
+                                <span class="label important">@Messages(editContestForm.errors.head.message)</span>
+                            </p>
+                        }
+
+                        <td>
+                            <input type="hidden" name="id" id="id" value="0" />
+                            @inputText(editContestForm("name"), 'placeholder -> Messages("Name"), '_label -> null, '_help -> "")
+                        </td>
+                        <td>
+                            @inputText(editContestForm("country"), 'placeholder -> Messages("country"), '_label -> null, '_help -> "")
+                        </td>
+                        <td>
+                            @inputText(editContestForm("year"), 'placeholder -> Messages("year"), '_label -> null, '_help -> "")
+                        </td>
+                        <td>
+                            @inputText(editContestForm("images"), 'placeholder -> Messages("images"), '_label -> null, '_help -> "")
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                            @inputText(editContestForm("currentRound"), 'placeholder -> Messages("currentRound"), '_label -> null, '_help -> "")
+                        </td>
+                        <td>
+                            @inputText(editContestForm("monumentIdTemplate"), 'placeholder -> Messages("id.template"), '_label -> null, '_help -> "")
+                        </td>
+                        <td>
+                            <div class="btn btn-primary" onClick="document.forms['add-contest'].submit();">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/5a/Farm-Fresh_group_add.png">
+                            </div>
+                        </td>
+                    </tr>
+                }
+                }
+
+
             @for(contest <- contests) {
                 <tr>
                     <td>@Messages(contest.name)</td>
                     <td>@Messages(contest.country)</td>
                     <td>@contest.year</td>
+                    <td>@contest.images</td>
                     <td></td>
-                    <td></td>
-                    <td></td><!--                        <td></td>
-                        <td></td> -->
-                    <td></td>
+                    <td>@contest.currentRound</td>
                     <td>@contest.monumentIdTemplate.getOrElse("")</td>
+                    <td></td>
                 </tr>
             }
             </tbody>

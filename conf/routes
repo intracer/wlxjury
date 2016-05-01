@@ -108,6 +108,8 @@ POST        /chat                                                               
 
 GET         /contests                                                               controllers.Contests.list()
 
+POST        /contests/save                                                          controllers.Contests.saveContest()
+
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)
 

@@ -24,7 +24,8 @@ trait Secured {
     }
   }
 
-  def withAuthBP[A](bodyParser: BodyParser[A])(f: => User => Request[A] => Result, roles: Set[String] = Set(User.ADMIN_ROLE, "jury", "organizer")) = {
+  def withAuthBP[A](bodyParser: BodyParser[A])(f: => User => Request[A] => Result,
+                                               roles: Set[String] = Set(User.ADMIN_ROLE, "jury", "organizer")) = {
     Security.Authenticated(user, onUnAuthenticated) { user =>
       if (roles.intersect(user.roles).nonEmpty)
         Action(bodyParser)(request => f(user)(request))
@@ -32,7 +33,6 @@ trait Secured {
         Action(bodyParser)(request => onUnAuthorized(user))
     }
   }
-
 
   /**
    * This method shows how you could wrap the withAuth method to also fetch your user
