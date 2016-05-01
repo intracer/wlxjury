@@ -9,7 +9,6 @@ import play.api.i18n.Messages.Implicits._
 import play.api.i18n.{Lang, Messages}
 import play.api.mvc.{Controller, Result}
 import play.api.mvc.Results._
-import play.cache.Cache
 
 object Admin extends Controller with Secured {
 
@@ -88,9 +87,8 @@ object Admin extends Controller with Secured {
                     UserJdbc.updateHash(userId, hash)
                   }
                 }
-                Cache.remove(s"user/${user.email}")
 
-                val result = Redirect(routes.Admin.users(user.contest))
+                val result = Redirect(routes.Admin.users(formUser.contest))
                 val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
 
                 lang.fold(result)(l => result.withLang(Lang(l)))
