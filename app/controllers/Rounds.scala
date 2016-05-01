@@ -13,15 +13,18 @@ object Rounds extends Controller with Secured {
   def rounds(contestIdParam: Option[Long] = None) = withAuth({
     user =>
       implicit request =>
-        val contestId: Option[Long] = user.currentContest.orElse(contestIdParam)
-        val rounds = contestId.fold(Seq.empty[Round])(RoundJdbc.findByContest)
-        val contest = contestId.flatMap(ContestJuryJdbc.byId)
-        val images = contest.flatMap(_.images)
+        val roundsView = for (contestId <- user.currentContest.orElse(contestIdParam);
+                              contest <- ContestJuryJdbc.byId(contestId)) yield {
+          val rounds = RoundJdbc.findByContest(contestId)
+          val images = contest.images
 
-        Ok(views.html.rounds(user, rounds, editRoundForm,
-          imagesForm.fill(images),
-          selectRoundForm.fill(contest.map(_.currentRound.toString)),
-          RoundJdbc.current(user)))
+          Ok(views.html.rounds(user, rounds, editRoundForm,
+            imagesForm.fill(images),
+            selectRoundForm.fill(contest.currentRound.map(_.toString)),
+            RoundJdbc.current(user), contest)
+          )
+        }
+        roundsView.getOrElse(Redirect(routes.Login.index())) // TODO message
   }, User.ADMIN_ROLES)
 
   def editRound(id: String) = withAuth({

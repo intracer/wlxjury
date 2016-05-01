@@ -18,10 +18,12 @@ object Admin extends Controller with Secured {
   def users(contestIdParam: Option[Long] = None) = withAuth({
     user =>
       implicit request =>
-        val contestId = user.currentContest.orElse(contestIdParam)
-        val users = contestId.fold(Seq.empty[User])(UserJdbc.findByContest)
-
-        Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), contestId.flatMap(ContestJuryJdbc.byId)))
+        val usersView = for (contestId <- user.currentContest.orElse(contestIdParam);
+                             contest <- ContestJuryJdbc.byId(contestId)) yield {
+          val users = UserJdbc.findByContest(contestId)
+          Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), contest))
+        }
+        usersView.getOrElse(Redirect(routes.Login.index())) // TODO message
   }, User.ADMIN_ROLES)
 
   def havingEditRights(currentUser: User, otherUser: User)(block: => Result): Result = {
