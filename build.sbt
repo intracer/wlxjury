@@ -41,8 +41,6 @@ scalaVersion := "2.11.7"
 val scalikejdbcVersion = "2.2.9"
 val scalikejdbcPlayVersion = "2.4.3"
 
-resolvers += Resolver.url("Edulify Repository", url("http://edulify.github.io/modules/releases/"))(Resolver.ivyStylePatterns)
-
 //resolvers += Resolver.url("Intracer bintray", url("http://dl.bintray.com/intracer/maven"))
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
@@ -52,14 +50,9 @@ resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 //routesGenerator := InjectedRoutesGenerator
 
 libraryDependencies ++= Seq(
-  // "com.mohiva" %% "play-silhouette" % "1.0",
   "org.webjars" %% "webjars-play" % "2.4.0",
   "com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24",
-  //  "com.edulify" %% "play-hikaricp" % "2.0.5",
   "mysql" % "mysql-connector-java" % "5.1.35",
-  "com.typesafe.slick" %% "slick" % "3.1.1",
-  "com.typesafe.play" %% "play-slick" % "1.1.1",
-  "com.github.tototoshi" %% "slick-joda-mapper" % "2.0.0",
   "org.scalikejdbc" %% "scalikejdbc" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % scalikejdbcPlayVersion,
@@ -69,7 +62,6 @@ libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-email" % "1.3.2",
   "org.scalawiki" %% "scalawiki-core" % "0.4",
   "org.scalawiki" %% "scalawiki-wlx" % "0.4",
- // "org.webjars" % "angularjs" % "1.1.5-1",
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
   jdbc, cache, filters, evolutions,
   specs2 % Test,
