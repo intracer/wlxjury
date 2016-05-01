@@ -15,12 +15,13 @@ object Admin extends Controller with Secured {
 
   val sendMail = new SendMail
 
-  def users(contestId: Option[Long] = None) = withAuth({
+  def users(contestIdParam: Option[Long] = None) = withAuth({
     user =>
       implicit request =>
-        val users = user.currentContest.orElse(contestId).fold(Seq.empty[User])(UserJdbc.findByContest)
+        val contestId = user.currentContest.orElse(contestIdParam)
+        val users = contestId.fold(Seq.empty[User])(UserJdbc.findByContest)
 
-        Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), RoundJdbc.current(user)))
+        Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), contestId.flatMap(ContestJuryJdbc.byId)))
   }, User.ADMIN_ROLES)
 
   def havingEditRights(currentUser: User, otherUser: User)(block: => Result): Result = {

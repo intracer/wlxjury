@@ -85,14 +85,14 @@
                     <td>@contest.year</td>
                     <td>@contest.images</td>
                     <td>
-                        <a href="@routes.Admin.users()">
+                        <a href="@routes.Admin.users(contest.id)">
                             <button type="button" class="btn btn-default btn-xs">
                                 <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                             </button>
                         </a>
                     </td>
                     <td>@contest.currentRound
-                    <a href="@routes.Rounds.rounds()">
+                    <a href="@routes.Rounds.rounds(contest.id)">
                         <button type="button" class="btn btn-default btn-xs">
                             <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                         </button>
