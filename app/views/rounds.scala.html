@@ -2,7 +2,7 @@
 @(
         adminUser: org.intracer.wmua.User,
         rounds: Seq[org.intracer.wmua.Round],
-        editRoundForm: Form[org.intracer.wmua.Round],
+        editRoundForm: Form[controllers.EditRound],
         editImagesForm: Form[Option[String]],
         selectRoundForm: Form[Option[String]],
         round: Option[org.intracer.wmua.Round],
@@ -16,45 +16,6 @@
         <div class="row" >
             <h3>@Messages("Contest: " + contest.fullName)</h3>
 
-            @form(routes.Rounds.setImages(), 'class -> "form-vertical", 'id -> "set-images") {
-                <table>
-                    <tr>
-                        <td>
-                        @inputText(editImagesForm("images"), 'placeholder -> Messages("Commons category or gallery"),
-                            '_label -> "Category or gallery with images on commons", '_help -> "", 'class -> "input-xxlarge", 'readonly -> "")
-                        </td>
-<!--                        <td>
-                            <div class="control-group">
-                                <input type="submit" class="btn" value="@Messages("Set images")">
-                            </div>
-                        </td> -->
-
-                    </tr>
-                </table>
-            }
-
-            @form(routes.Rounds.setRound(), 'class -> "form-vertical", 'id -> "set-round") {
-                <table>
-                    <tr>
-                        <td>
-                        @select(selectRoundForm("currentRound"), rounds.map(r => (r.id.toString, r.description)),
-                            '_label -> "Current round", '_help -> "")
-                        </td>
-                        <td>
-                            <div class="control-group">
-                                <input type="submit" class="btn" value="@Messages("Set current round")">
-                            </div>
-                        </td>
-
-                    </tr>
-                </table>
-            }
-
-        @form(routes.Rounds.startRound(), 'class -> "form-vertical", 'id -> "start-round") {
-                        <div class="control-group">
-                            <input type="submit" class="btn" value="@Messages("Start round")">
-                        </div>
-        }
 
          <table class="table table-striped table-condensed" style="background-color : #CCCCCC ;">
 
@@ -91,6 +52,8 @@
                     }
 
                     @form(routes.Rounds.saveRound, 'class -> "form-vertical", 'id -> "add-round") {
+                        <input type="hidden" name="returnTo" id="returnTo" value="roundList" />
+
                         <tr>
                             @if(editRoundForm.hasGlobalErrors) {
                                 <p class="error">

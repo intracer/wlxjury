@@ -31,8 +31,9 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         val round = RoundJdbc.find(id.toLong).get
+        val editRound = EditRound(round, None)
 
-        val filledRound = editRoundForm.fill(round)
+        val filledRound = editRoundForm.fill(editRound)
 
         Ok(views.html.editRound(user, filledRound, RoundJdbc.current(user)))
   }, User.ADMIN_ROLES)
@@ -44,7 +45,8 @@ object Rounds extends Controller with Secured {
         editRoundForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
             BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user))),
-          round => {
+          editForm => {
+            val round = editForm.round
             if (round.id.contains(0)) {
               createNewRound(user, round)
             } else {
@@ -210,7 +212,23 @@ object Rounds extends Controller with Secured {
       "rates" -> number,
       "limitMin" -> optional(number),
       "limitMax" -> optional(number),
-      "recommended" -> optional(number)
-    )(Round.applyEdit)(Round.unapplyEdit)
+      "recommended" -> optional(number),
+      "returnTo" -> optional(text)
+    )(applyEdit)(unapplyEdit)
   )
+
+  def applyEdit(id: Long, num: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
+                rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int], returnTo: Option[String]): EditRound = {
+    val round = new Round(Some(id), num, name, contest, Set(roles), distribution, Round.ratesById(rates), limitMin, limitMax, recommended)
+    EditRound(round, returnTo)
+  }
+
+  def unapplyEdit(editRound: EditRound): Option[(Long, Int, Option[String], Long, String, Int, Int, Option[Int], Option[Int], Option[Int], Option[String])] = {
+    val round = editRound.round
+    Some(
+      (round.id.get, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
+        round.limitMin, round.limitMax, round.recommended, editRound.returnTo))
+  }
 }
+
+case class EditRound(round: Round, returnTo: Option[String])

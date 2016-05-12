@@ -1,4 +1,4 @@
-@(user: org.intracer.wmua.User, editRoundForm: Form[org.intracer.wmua.Round], round: Option[org.intracer.wmua.Round])(implicit flash: Flash, lang: Lang, messages: Messages)
+@(user: org.intracer.wmua.User, editRoundForm: Form[controllers.EditRound], round: Option[org.intracer.wmua.Round])(implicit flash: Flash, lang: Lang, messages: Messages)
 @import org.intracer.wmua.Selection
 
 @import helper._
@@ -8,7 +8,7 @@
 @main(Messages("edit round"), user, user.id.get) {
     <div class="row" >
 
-        @if(editRoundForm("id").value != Some("0")) {
+        @if(!editRoundForm("id").value.contains("0")) {
             <h3>@Messages("Edit round")</h3>
         } else {
             <h3>@Messages("Create round")</h3>

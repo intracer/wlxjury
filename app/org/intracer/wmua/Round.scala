@@ -45,15 +45,6 @@ object Round {
 
   val ratesById = rates.groupBy(_.id).mapValues(_.head)
 
-  def applyEdit(id: Long, num: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
-                rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int]) =
-    new Round(Some(id), num, name, contest, Set(roles), distribution, ratesById(rates), limitMin, limitMax, recommended)
-
-  def unapplyEdit(round: Round): Option[(Long, Int, Option[String], Long, String, Int, Int, Option[Int], Option[Int], Option[Int])] = {
-    Some(
-      (round.id.get, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
-        round.limitMin, round.limitMax, round.recommended))
-  }
 }
 
 
