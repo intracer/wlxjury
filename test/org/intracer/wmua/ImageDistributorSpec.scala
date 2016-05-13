@@ -25,7 +25,7 @@ class ImageDistributorSpec extends Specification {
     Image(id, contest, s"File:Image$id.jpg", s"url$id", s"pageUrl$id", 640, 480, Some(s"12-345-$id"))
 
   def contestUser(contest: Long, role: String) =
-    User("fullname", "email", None, Set(role), Some("password hash"), contest, Some("en"))
+    User("fullname", "email", None, Set(role), Some("password hash"), Some(contest), Some("en"))
 
   def createJurors(
                     contest: Long,

@@ -36,7 +36,7 @@ class ImageTextFromCategorySpec extends Specification with Mockito {
         val commons = mock[MwBot]
         commons.page(category) returns query
 
-        val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category), 0, None)
+        val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category))
 
         ImageTextFromCategory(category, contest, None, commons).apply() must be_==(images).await
     }

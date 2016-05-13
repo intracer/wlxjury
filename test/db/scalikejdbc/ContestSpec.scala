@@ -28,7 +28,7 @@ class ContestSpec extends Specification {
     "create contest" in {
       inMemDbApp {
         val images = Some("Category:Images from Wiki Loves Earth 2015 in Ukraine")
-        val contest = contestDao.create(None, "WLE", 2015, "Ukraine", images, 0, None)
+        val contest = contestDao.create(None, "WLE", 2015, "Ukraine", images, None, None)
         (contest.name, contest.year, contest.country, contest.images) ===("WLE", 2015, "Ukraine", images)
 
         val dbC = contestDao.find(contest.id.get)
@@ -45,9 +45,9 @@ class ContestSpec extends Specification {
           Some(s"Category:Images from $contest $year in $country")
 
         val contests = Seq(
-          ContestJury(None, "WLE", 2015, "Ukraine", images("WLE", 2015, "Ukraine"), 0, None),
-          ContestJury(None, "WLM", 2015, "Ukraine", images("WLM", 2015, "Ukraine"), 0, None),
-          ContestJury(None, "WLM", 2015, "Russia", images("WLM", 2015, "Russia"), 0, None)
+          ContestJury(None, "WLE", 2015, "Ukraine", images("WLE", 2015, "Ukraine")),
+          ContestJury(None, "WLM", 2015, "Ukraine", images("WLM", 2015, "Ukraine")),
+          ContestJury(None, "WLM", 2015, "Russia", images("WLM", 2015, "Russia"))
         )
         contestDao.batchInsert(contests)
 

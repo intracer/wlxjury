@@ -46,7 +46,7 @@ class RoundSpec extends Specification {
     }
 
     def contestUser(contest: Long, role: String) =
-      User("fullname", "email", None, Set(role), Some("password hash"), contest, Some("en"))
+      User("fullname", "email", None, Set(role), Some("password hash"), Some(contest), Some("en"))
 
     "jurors" in {
       inMemDbApp {

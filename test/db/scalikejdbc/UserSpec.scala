@@ -28,7 +28,7 @@ class UserSpec extends Specification {
     "insert user" in {
       inMemDbApp {
 
-        val user = User("fullname", "email", None, Set("jury"), Some("password hash"), 10, Some("en"))
+        val user = User("fullname", "email", None, Set("jury"), Some("password hash"), Some(10), Some("en"))
 
         val created = userDao.create(user)
 
