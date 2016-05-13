@@ -71,7 +71,7 @@ round: Option[org.intracer.wmua.Round])(implicit flash: Flash, lang: Lang, messa
 }
 
         <div style="display:none;">
-        @form(routes.Admin.resetPassword(editUserForm("id").value.get), 'class -> "form-vertical", 'id -> "reset-password" ) {
+        @form(routes.Admin.resetPassword(editUserForm("id").value.map(_.toLong).get), 'class -> "form-vertical", 'id -> "reset-password" ) {
                 <input type="submit" class="btn" value="@Messages("Reset password")">
         }
         </div>

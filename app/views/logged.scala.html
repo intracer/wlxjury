@@ -9,7 +9,7 @@
         <ul class="dropdown-menu">
             @if(user.email != "WLMUkraine15") {
             <li>
-                <a href="@routes.Admin.editUser(user.id.toString)">
+                <a href="@routes.Admin.editUser(user.id.get)">
                     <span class="glyphicon glyphicon-user"></span> @Messages("profile")
                 </a>
             </li>

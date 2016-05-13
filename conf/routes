@@ -72,11 +72,11 @@ GET         /large/region/:region/pageid/:pageid                                
 
 GET         /admin/users                                                            controllers.Admin.users(contestId: Option[Long] ?= None)
 
-GET         /users/edit/:id                                                         controllers.Admin.editUser(id: String)
+GET         /users/edit/:id                                                         controllers.Admin.editUser(id: Long)
 
 POST        /users/save                                                             controllers.Admin.saveUser()
 
-POST        /users/resetpasswd/:id                                                  controllers.Admin.resetPassword(id: String)
+POST        /users/resetpasswd/:id                                                  controllers.Admin.resetPassword(id: Long)
 
 GET         /admin/rounds                                                           controllers.Rounds.rounds(contestId: Option[Long] ?= None)
 
