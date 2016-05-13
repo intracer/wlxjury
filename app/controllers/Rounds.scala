@@ -44,7 +44,7 @@ object Rounds extends Controller with Secured {
 
         editRoundForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user))),
+              BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user))),
           editForm => {
             val round = editForm.round
             if (round.id.contains(0)) {
@@ -52,7 +52,7 @@ object Rounds extends Controller with Secured {
             } else {
               RoundJdbc.updateRound(round.id.get, round)
             }
-            Redirect(routes.Rounds.rounds())
+            Redirect(routes.Rounds.rounds(Some(round.contest)))
           }
         )
   }, User.ADMIN_ROLES)

@@ -53,6 +53,7 @@
 
                     @form(routes.Rounds.saveRound, 'class -> "form-vertical", 'id -> "add-round") {
                         <input type="hidden" name="returnTo" id="returnTo" value="roundList" />
+                        <input type="hidden" name="contest" id="contest" value="@contest.id.get" />
 
                         <tr>
                             @if(editRoundForm.hasGlobalErrors) {

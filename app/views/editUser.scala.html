@@ -47,7 +47,7 @@ round: Option[org.intracer.wmua.Round])(implicit flash: Flash, lang: Lang, messa
         @select(editUserForm("lang"), Seq("en", "ru", "uk" ).map(x => (x, User.LANGS(x))),
             '_label -> Messages("Language"), '_help -> "" )
 
-        @if(editUserForm("id").value.contains(user.id.toString)) {
+        @if(true || editUserForm("id").value.contains(user.id.toString)) {
             <div class="form-group">
                 <label for="password" class="control-label">@Messages("Password")</label>
                 <input type="password" class="form-control" id="password" name="password" placeholder="Password" value="">
