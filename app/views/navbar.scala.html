@@ -31,7 +31,7 @@
 
                         @if(round.id.get >= 124 && round.id.get <= 128) {
 
-                            @defining(selectedRound.map(_.id) == round.id){ isActive =>
+                            @defining(selectedRound.flatMap(_.id) == round.id){ isActive =>
                                 @if(user.roundFiles(round.id.get).count(_.rate == 0) > 0) {
                                     <li  role="presentation"
                                     class="@if(isActive) {active}">
