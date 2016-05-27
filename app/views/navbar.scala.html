@@ -1,4 +1,5 @@
 @import db.scalikejdbc.RoundJdbc
+@import org.intracer.wmua.ContestJury
 @(
         title: String,
         user: org.intracer.wmua.User = null,
@@ -11,7 +12,8 @@
         rate: Option[Int] = None,
         region: String = "all",
         //        menu: Html = Html.empty,
-        pager: Html = Html(""))(implicit lang: Lang, messages: Messages)
+        pager: Html = Html(""),
+        contest: Option[ContestJury] = None)(implicit lang: Lang, messages: Messages)
 @import org.intracer.wmua.Round
 
 <nav class="navbar navbar-inverse" role="navigation" style="margin-bottom: 10px;">
@@ -24,7 +26,7 @@
                     -->
                     @if(user.roles.contains("admin")) {
                         <li role="presentation"><a class="brand" href="/admin/users">@Messages("users")</a>
-                        <!-- <li role="presentation"><a class="brand" href="/admin/rounds">@Messages("rounds")</a> -->
+                        <li role="presentation"><a class="brand" href="@routes.Rounds.rounds(contest.flatMap(_.id))">@Messages("rounds")</a>
                     }
 
                     @for(round <- if (user.roles.contains("jury")) currentRounds else selectedRound.toSeq) {

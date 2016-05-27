@@ -6,7 +6,7 @@
         contest: ContestJury)(implicit flash: Flash, lang: Lang, messages: Messages)
 @import helper._
 
-@mainAdmin(Messages("users"), adminUser, adminUser.id.get) {
+@mainAdmin(Messages("users"), adminUser, adminUser.id.get, contest = Some(contest)) {
     <div class="row" >
         <h3>@Messages("Contest: " + contest.fullName)</h3>
 

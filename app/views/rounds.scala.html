@@ -12,7 +12,7 @@
     @import org.intracer.wmua.Round
     @import db.scalikejdbc.SelectionJdbc
 
-    @mainAdmin(Messages("rounds"), adminUser, adminUser.id.get, currentRounds = round.toSeq) {
+    @mainAdmin(Messages("rounds"), adminUser, adminUser.id.get, currentRounds = round.toSeq, contest = Some(contest)) {
         <div class="row" >
             <h3>@Messages("Contest: " + contest.fullName)</h3>
 
