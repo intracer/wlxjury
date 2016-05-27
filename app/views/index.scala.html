@@ -1,6 +1,6 @@
 @(loginForm: Form[(String, String)])(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@main(Messages("application.name")) {
+@mainAdmin(Messages("application.name")) {
     
     <div class="col-md-8">
         @login(loginForm)
