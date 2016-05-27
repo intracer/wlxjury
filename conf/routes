@@ -112,6 +112,9 @@ POST        /contests/save                                                      
 
 POST        /contests/import                                                        controllers.Contests.importContests()
 
+GET         /contest/:id/images                                                     controllers.Contests.images(id: Long)
+
+
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)
 
 #GET         /largeRound/:round/:region/:pageid                    controllers.Gallery.largeRound2(region: String, pageid:Int, round:Int)

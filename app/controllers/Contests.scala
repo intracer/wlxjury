@@ -81,6 +81,14 @@ object Contests extends Controller with Secured {
     )
   }
 
+  def images(contestId: Long) = withAuth({
+    user =>
+      implicit request =>
+        val contest = ContestJuryJdbc.byId(contestId).get
+
+        Ok(views.html.contest_images(contest, user))
+  }, User.ADMIN_ROLES)
+
   val editContestForm = Form(
     mapping(
       "id" -> optional(longNumber),

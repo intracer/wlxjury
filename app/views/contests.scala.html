@@ -83,7 +83,9 @@
                     <td>@Messages(contest.name)</td>
                     <td>@Messages(contest.country)</td>
                     <td>@contest.year</td>
-                    <td>@contest.images</td>
+                    <td>
+                        <a href="@routes.Contests.images(contest.id.get)">@contest.images </a>
+                    </td>
                     <td>
                         <a href="@routes.Admin.users(contest.id)">
                             <button type="button" class="btn btn-default btn-xs">
