@@ -1,7 +1,8 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, RoundJdbc}
-import org.intracer.wmua.{ContestJury, User}
+import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
+import org.intracer.wmua.cmd.ImageInfoFromCategory
+import org.intracer.wmua.{ContestJury, Image, User}
 import org.scalawiki.wlx.CountryParser
 import play.api.Play.current
 import play.api.data.Form
@@ -86,7 +87,15 @@ object Contests extends Controller with Secured {
       implicit request =>
         val contest = ContestJuryJdbc.byId(contestId).get
 
-        Ok(views.html.contest_images(contest, user))
+        val imageInfo = ImageInfoFromCategory(contest.images.get, contest, Global.commons)
+
+        val sourceImageNum = imageInfo.numberOfImages.await
+        val dbImagesNum = ImageJdbc.countByContest(contestId)
+
+        val imageInfos = Seq.empty[Image] //imageInfo.apply().await
+
+
+        Ok(views.html.contest_images(contest, user, sourceImageNum, dbImagesNum))
   }, User.ADMIN_ROLES)
 
   val editContestForm = Form(

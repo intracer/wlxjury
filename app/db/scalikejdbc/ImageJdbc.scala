@@ -103,6 +103,12 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
       .orderBy(i.pageId)
   }.map(ImageJdbc(i)).list().apply()
 
+  def countByContest(contest: Long): Int = withSQL {
+    select(count(distinct(ImageJdbc.i.pageId))).from(ImageJdbc as i)
+      .where
+      .eq(i.contest, contest)
+  }.map(_.int(1)).single().apply().getOrElse(0)
+
   def findByMonumentId(monumentId: String): List[Image] = withSQL {
     select.from(ImageJdbc as i)
       .where

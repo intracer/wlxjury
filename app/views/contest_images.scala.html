@@ -1,9 +1,16 @@
-@(contest: org.intracer.wmua.ContestJury, user: org.intracer.wmua.User)(implicit flash: Flash, lang: Lang, messages: Messages)
+@(
+        contest: org.intracer.wmua.ContestJury,
+        user: org.intracer.wmua.User,
+        sourceImages: Long,
+        dbImages: Int
+)(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@import helper._
-@import org.intracer.wmua.User
 
 
 @mainAdmin(Messages("contest images"), user, user.id.get) {
+
+    Images on commons: @sourceImages
+    <br>
+    Images in DB: @dbImages
 
 }
