@@ -55,7 +55,7 @@ object Contests extends Controller with Secured {
           formContest => {
             val wiki = Global.commons.pageText(formContest).await
             val imported = CountryParser.parse(wiki)
-            imported.foreach{
+            imported.foreach {
               contest =>
                 val contestJury = new ContestJury(
                   id = None,
@@ -94,8 +94,19 @@ object Contests extends Controller with Secured {
 
         val imageInfos = Seq.empty[Image] //imageInfo.apply().await
 
-
         Ok(views.html.contest_images(contest, user, sourceImageNum, dbImagesNum))
+  }, User.ADMIN_ROLES)
+
+  def importImages(contestId: Long) = withAuth({ user =>
+    implicit request =>
+      val contest = ContestJuryJdbc.byId(contestId).get
+
+      new GlobalRefactor(Global.commons).appendImages(
+        contest.images.get,
+        contest
+      )
+
+      Redirect(routes.Contests.images(contestId))
   }, User.ADMIN_ROLES)
 
   val editContestForm = Form(

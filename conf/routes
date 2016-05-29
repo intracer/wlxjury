@@ -114,6 +114,7 @@ POST        /contests/import                                                    
 
 GET         /contest/:id/images                                                     controllers.Contests.images(id: Long)
 
+POST        /contest/:id/importimages                                              controllers.Contests.importImages(id: Long)
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)
 

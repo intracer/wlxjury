@@ -4,7 +4,7 @@
         sourceImages: Long,
         dbImages: Int
 )(implicit flash: Flash, lang: Lang, messages: Messages)
-
+@import helper._
 
 
 @mainAdmin(Messages("contest images"), user, user.id.get) {
@@ -13,4 +13,9 @@
     <br>
     Images in DB: @dbImages
 
+    @form(routes.Contests.importImages(contest.id.get), 'class -> "form-vertical", 'id -> "import-images") {
+        <div class="btn btn-primary" onClick="document.forms['import-images'].submit();">
+            @Messages("import")
+        </div>
+    }
 }

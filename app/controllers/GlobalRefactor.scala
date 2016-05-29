@@ -75,7 +75,9 @@ class GlobalRefactor(val commons: MwBot) {
     val imageInfos = ImageInfoFromCategory(category, contest, commons).apply()
     val revInfo = ImageTextFromCategory(category, contest, contest.monumentIdTemplate, commons).apply()
 
-    for (images <- ImageEnricher.zipWithRevData(imageInfos, revInfo)) {
+    for (images <- ImageEnricher.zipWithRevData(imageInfos, revInfo)
+      .map(_.filter(image => !existingPageIds.contains(image.pageId)))
+    ) {
       saveNewImages(contest, images)
     }
   }
@@ -141,7 +143,6 @@ class GlobalRefactor(val commons: MwBot) {
         page.text.flatMap(text => namedParam(text, "Information", "description")).getOrElse("")
     }
   }
-
 
   def saveNewImages(contest: ContestJury, imagesWithIds: Seq[Image]) = {
     println("saving images: " + imagesWithIds.size)
