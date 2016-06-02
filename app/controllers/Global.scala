@@ -29,6 +29,8 @@ object Global {
 
   val projectRoot = Play.application().path()
 
+  var progressController: Option[ProgressController] = None
+
   val commons = MwBot.get(COMMONS_WIKIMEDIA_ORG)
 
   def onStart(app: Application) {

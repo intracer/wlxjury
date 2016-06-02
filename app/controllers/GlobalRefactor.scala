@@ -1,15 +1,16 @@
 package controllers
 
+import akka.actor.{Actor, ActorRef, Props}
 import db.scalikejdbc._
 import org.intracer.wmua._
-import org.intracer.wmua.cmd.{ImageEnricher, ImageTextFromCategory, ImageInfoFromCategory}
+import org.intracer.wmua.cmd.{ImageEnricher, ImageInfoFromCategory, ImageTextFromCategory}
 import org.joda.time.DateTime
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.list.ListArgs
 import org.scalawiki.dto.cmd.query.{Generator, Query}
 import org.scalawiki.dto.{Namespace, Page}
-import org.scalawiki.query.{DslQuery, SinglePageQuery}
+import org.scalawiki.query.{DslQuery, QueryProgress, SinglePageQuery}
 import org.scalawiki.wikitext.TemplateParser
 import org.scalawiki.wlx.dto.Contest
 import org.scalawiki.wlx.query.MonumentQuery
@@ -21,6 +22,8 @@ class GlobalRefactor(val commons: MwBot) {
   //  val commons = MwBot.get(MwBot.commons)
 
   import scala.concurrent.ExecutionContext.Implicits.global
+
+  val progressListener: ActorRef = commons.system.actorOf(Props(classOf[ProgressListener]))
 
   def initContest(category: String, contest: ContestJury): Any = {
     val images = ImageJdbc.findByContest(contest.id.get)
@@ -65,6 +68,7 @@ class GlobalRefactor(val commons: MwBot) {
 
   }
 
+
   def initImagesFromCategory(
                               contest: ContestJury,
                               category: String,
@@ -74,6 +78,8 @@ class GlobalRefactor(val commons: MwBot) {
 
     val imageInfos = ImageInfoFromCategory(category, contest, commons).apply()
     val revInfo = ImageTextFromCategory(category, contest, contest.monumentIdTemplate, commons).apply()
+
+    Global.commons.system.eventStream.subscribe(progressListener, classOf[QueryProgress])
 
     for (images <- ImageEnricher.zipWithRevData(imageInfos, revInfo)
       .map(_.filter(image => !existingPageIds.contains(image.pageId)))
@@ -280,5 +286,12 @@ class GlobalRefactor(val commons: MwBot) {
         ContestJury(None, contest, year, country, Some(title), None, None)
     }
     contests
+  }
+}
+
+class ProgressListener extends Actor {
+  def receive = {
+    case progress: QueryProgress =>
+      Global.progressController.foreach(_.progress(progress.pages.toInt))
   }
 }

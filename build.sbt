@@ -60,9 +60,10 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % scalikejdbcPlayVersion,
   "org.slf4j" % "slf4j-simple" % "[1.7,)",
   "org.apache.commons" % "commons-email" % "1.3.2",
-  "org.scalawiki" %% "scalawiki-core" % "0.4",
-  "org.scalawiki" %% "scalawiki-wlx" % "0.4",
+  "org.scalawiki" %% "scalawiki-core" % "0.4.1",
+  "org.scalawiki" %% "scalawiki-wlx" % "0.4.1",
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
+  "org.atmosphere" % "atmosphere-play" % "2.2.0",
   jdbc, cache, filters, evolutions,
   specs2 % Test,
   "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
