@@ -26,7 +26,7 @@ trait UserDao {
               roles: Set[String],
               contest: Option[Long],
               lang: Option[String] = None,
-              createdAt: DateTime = DateTime.now
+              createdAt: Option[DateTime] = Some(DateTime.now)
               ): User
 
   def create(user: User): User

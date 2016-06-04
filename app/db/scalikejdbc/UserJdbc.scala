@@ -78,7 +78,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     contest = rs.longOpt(c.contest),
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
-    createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
+    createdAt = rs.timestampOpt(c.createdAt).map(_.toJodaDateTime),
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
   )
 
@@ -137,9 +137,9 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
                        email: String,
                        password: String,
                        roles: Set[String],
-                       contest: Option[Long],
+                       contest: Option[Long] = None,
                        lang: Option[String] = None,
-                       createdAt: DateTime = DateTime.now
+                       createdAt: Option[DateTime] = Some(DateTime.now)
                      ): User = {
     val id = withSQL {
       insert.into(UserJdbc).namedValues(
