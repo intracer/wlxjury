@@ -71,7 +71,7 @@ class UserSpec extends Specification {
       }
     }
 
-    "parse names and emails" in {
+    "parse names and emails commas" in {
       val strings = Seq(
         "Name1 Surname1 <email1@server.com>",
         "Name2 Surname2 <email2@server.com>"
@@ -81,8 +81,30 @@ class UserSpec extends Specification {
         User(id = None, contest = None, fullname = "Name1 Surname1", email = "email1@server.com"),
         User(id = None, contest = None, fullname = "Name2 Surname2", email = "email2@server.com")
       )
+    }
 
+    "parse names and emails newlines" in {
+      val strings = Seq(
+        "Name1 Surname1 <email1@server.com>",
+        "Name2 Surname2 <email2@server.com>"
+      )
+
+      User.parseList(strings.mkString("\n")) === Seq(
+        User(id = None, contest = None, fullname = "Name1 Surname1", email = "email1@server.com"),
+        User(id = None, contest = None, fullname = "Name2 Surname2", email = "email2@server.com")
+      )
+    }
+
+    "parse names and emails newlines and commas" in {
+      val strings = Seq(
+        "Name1 Surname1 <email1@server.com>",
+        "Name2 Surname2 <email2@server.com>"
+      )
+
+      User.parseList(strings.mkString(",\n")) === Seq(
+        User(id = None, contest = None, fullname = "Name1 Surname1", email = "email1@server.com"),
+        User(id = None, contest = None, fullname = "Name2 Surname2", email = "email2@server.com")
+      )
     }
   }
-
 }

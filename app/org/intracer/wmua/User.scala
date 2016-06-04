@@ -58,7 +58,7 @@ object User {
   }
 
   def parseList(usersText: String): Seq[User] = {
-    InternetAddress.parse(usersText, false).map { address =>
+    InternetAddress.parse(usersText.replaceAll("\n", ","), false).map { address =>
       User(id = None, contest = None, fullname = Option(address.getPersonal).getOrElse(""), email = address.getAddress)
     }
   }
