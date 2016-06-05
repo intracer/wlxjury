@@ -64,6 +64,7 @@ libraryDependencies ++= Seq(
   "org.scalawiki" %% "scalawiki-wlx" % "0.4.1",
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
   "org.atmosphere" % "atmosphere-play" % "2.2.0",
+  "com.typesafe.play" %% "play-mailer" % "4.0.0",
   jdbc, cache, filters, evolutions,
   specs2 % Test,
   "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"

@@ -220,7 +220,8 @@ object Admin extends Controller with Secured {
     val subject = Messages("welcome.subject", contest.name)
     val message = fillGreeting(greeting.text.get, contest, creator, recipient)
     sendMail.sendMail(
-      from = (creator.fullname, creator.email),
+      fromName = creator.fullname,
+      fromEmail =  creator.email,
       to = Seq(recipient.email),
       bcc = Seq(creator.email),
       subject = subject,
