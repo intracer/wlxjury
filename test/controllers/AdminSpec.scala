@@ -20,7 +20,7 @@ class AdminSpec extends Specification {
         val template = "Organizing committee of {{ContestType}} {{ContestYear}} {{ContestCountry}} is glad to welcome you as a jury member\n" +
           "Please visit {{JuryToolLink}}\n" +
           "Regards, {{AdminName}}"
-        val filled = Admin.fillGreeting(template, contest, sender)
+        val filled = Admin.fillGreeting(template, contest, sender, sender)
         filled === "Organizing committee of Wiki Loves Earth 2016 Ukraine is glad to welcome you as a jury member\n" +
           "Please visit http://jury.wikilovesearth.org.ua/\n" +
           "Regards, Admin User"

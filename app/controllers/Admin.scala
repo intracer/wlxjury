@@ -7,11 +7,11 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.Messages.Implicits._
 import play.api.i18n.{Lang, Messages}
-import play.api.mvc.{Controller, Result}
 import play.api.mvc.Results._
+import play.api.mvc.{Controller, Result}
 
 import scala.collection.immutable.ListMap
-import scala.collection.mutable
+import scala.util.Try
 
 object Admin extends Controller with Secured {
 
@@ -127,6 +127,14 @@ object Admin extends Controller with Secured {
           formWithErrors => // binding failure, you retrieve the form containing errors,
             BadRequest(views.html.importUsers(user, importUsersForm, contestId)),
           formUsers => {
+            val contest = ContestJuryJdbc.byId(contestId)
+            val parsed = User.parseList(formUsers)
+              .map(_.copy(
+                lang = user.lang,
+                contest = Some(contestId)
+              ))
+
+            val results = parsed.map(pu => Try(createUser(user, pu, contest)))
 
             Redirect(routes.Admin.users(Some(contestId)))
           })
@@ -203,16 +211,17 @@ object Admin extends Controller with Secured {
     createUser(user, formUser, contest)
   }
 
-  def createUser(creator: User, formUser: User, contestOpt: Option[ContestJury]) {
+  def createUser(creator: User, formUser: User, contestOpt: Option[ContestJury]) = {
     val password = UserJdbc.randomString(12)
     val hash = UserJdbc.hash(formUser, password)
-    UserJdbc.create(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest, formUser.lang)
+    val createdUser = UserJdbc.create(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest, formUser.lang)
 
     contestOpt.foreach { contest =>
       if (contest.greeting.use) {
-        sendMail(creator, formUser, contest, password)
+        sendMail(creator, createdUser, contest, password)
       }
     }
+    createdUser
   }
 
   def sendMail(creator: User, recipient: User, contest: ContestJury, password: String): String = {
