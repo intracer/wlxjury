@@ -2,6 +2,8 @@
 editUserForm: Form[org.intracer.wmua.User],
 round: Option[org.intracer.wmua.Round], contestId: Option[Long] = None)(implicit flash: Flash, lang: Lang, messages: Messages)
 
+@import views.html.bootstrap._
+
 @import helper._
 @import org.intracer.wmua.User
 
@@ -29,19 +31,17 @@ round: Option[org.intracer.wmua.Round], contestId: Option[Long] = None)(implicit
         <input type="hidden" id="id" name="id" value='@editUserForm("id").value' />
         <input type="hidden" name="contest" id="contest" value='@editUserForm("contest").value' />
 
-        <div class="form-group">
-            <label for="fullname" class="control-label">@Messages("Name")</label>
-            <input type="text" class="form-control" id="fullname" name="fullname" placeholder="@Messages("Name")" value="@editUserForm("fullname").value">
-        </div>
-        <div class="form-group">
-            <label for="email" class="control-label">@Messages("Email")</label>
-            <input type="text" class="form-control" id="email" name="email" placeholder="@Messages("Email")" value="@editUserForm("email").value">
-        </div>
+        @text(editUserForm("fullname"))
 
-        @if(user.roles.contains("admin")) {
-            @select(editUserForm("roles"), Seq("no", "jury", "organizer", "admin").map(x => (x, x)),
-                Seq('_label -> Messages("Role"), '_help -> "") ++
-                        (if(!user.roles.contains("admin")) Seq('disabled -> "true") else Seq.empty): _*)
+        @text(editUserForm("email"))
+
+        @if(user.hasAnyRole(User.ADMIN_ROLES)) {
+            @select(editUserForm("roles"),
+                (Seq("no", "jury", "organizer", "admin") ++ (
+                        if (user.hasRole("root")) Seq("root") else Seq.empty)
+                        ).map(x => (x, x)),
+                Seq('_label -> Messages("Role"), '_help -> "", 'class -> "form-control") ++
+                        (if(!user.hasAnyRole(User.ADMIN_ROLES)) Seq('disabled -> "true") else Seq.empty): _*)
         }
 
         @select(editUserForm("lang"), Seq("en", "ru", "uk" ).map(x => (x, User.LANGS(x))),

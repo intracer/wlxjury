@@ -171,3 +171,4 @@ select.image = Select image
 reject.image = Reject image
 up.key = Up
 down.key = Down
+format.boolean=

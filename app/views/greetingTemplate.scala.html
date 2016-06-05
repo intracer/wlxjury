@@ -1,7 +1,7 @@
 @(
         adminUser: org.intracer.wmua.User,
-        importUserForm: Form[String],
-        contestId: Long)(implicit flash: Flash, lang: Lang, messages: Messages)
+        importUserForm: Form[Greeting],
+        contestId: Long, variables: Map[String, String])(implicit flash: Flash, lang: Lang, messages: Messages)
 @import helper._
 
 @mainAdmin(Messages("users"), adminUser, adminUser.id.get, contestId = Some(contestId)) {
@@ -9,12 +9,32 @@
 
         <h3>Edit greeting template options</h3>
 
+        <table class="table table-striped table-condensed">
+            <caption>Variables</caption>
+            <thead>
+                <tr>
+                    <th>Variable</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for((k, v) <- variables) {
+                 <tr>
+                     <td>@k</td>
+                     <td>@v</td>
+                 </tr>
+                }
+            </tbody>
+        </table>
+
         @form(routes.Admin.saveGreeting(Some(contestId)), 'id -> "greeting-template") {
             <div class="form-group">
 
                 @textarea(field = importUserForm("greetingtemplate"),
                     args = 'rows -> 15, 'cols -> 50, 'class -> "form-control", 'id -> "greeting-template", '_label -> "Greeting template"
                 )
+
+                @checkbox(field = importUserForm("use"))
 
                 <div class="form-actions">
                     <input type="submit" class="btn btn-default btn-primary" value="@Messages("Save")">

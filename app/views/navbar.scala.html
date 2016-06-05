@@ -1,4 +1,5 @@
 @import db.scalikejdbc.RoundJdbc
+@import org.intracer.wmua.User
 @(
         title: String,
         user: org.intracer.wmua.User = null,
@@ -23,7 +24,7 @@
                     <!--
                         Admin items: users and rounds setup
                     -->
-                    @if(user.roles.contains("admin")) {
+                    @if(user.hasAnyRole(User.ADMIN_ROLES)) {
                         <li role="presentation"><a class="brand" href="/admin/users">@Messages("users")</a>
                         <li role="presentation"><a class="brand" href="@routes.Rounds.rounds(contestId)">@Messages("rounds")</a>
                     }

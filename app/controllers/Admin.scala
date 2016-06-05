@@ -10,6 +10,9 @@ import play.api.i18n.{Lang, Messages}
 import play.api.mvc.{Controller, Result}
 import play.api.mvc.Results._
 
+import scala.collection.immutable.ListMap
+import scala.collection.mutable
+
 object Admin extends Controller with Secured {
 
   val sendMail = new SendMail
@@ -51,52 +54,60 @@ object Admin extends Controller with Secured {
     user =>
       implicit request =>
 
-        editUserForm.bindFromRequest.fold(
-          formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(views.html.editUser(user, formWithErrors, RoundJdbc.current(user))),
-          formUser => {
-            havingEditRights(user, formUser) {
+          editUserForm.bindFromRequest.fold(
+            formWithErrors => // binding failure, you retrieve the form containing errors,
+              BadRequest(views.html.editUser(user, formWithErrors, RoundJdbc.current(user))),
+            formUser => {
+              havingEditRights(user, formUser) {
 
-              val userId = formUser.id.get
-              val count: Long = UserJdbc.countByEmail(userId, formUser.email)
-              if (count > 0) {
-                BadRequest(
-                  views.html.editUser(
-                    user,
-                    editUserForm.fill(formUser).withError("email", "email should be unique"),
-                    RoundJdbc.current(user)
+                val userId = formUser.id.get
+                val count: Long = UserJdbc.countByEmail(userId, formUser.email)
+                if (count > 0) {
+                  BadRequest(
+                    views.html.editUser(
+                      user,
+                      editUserForm.fill(formUser).withError("email", "email should be unique"),
+                      RoundJdbc.current(user)
+                    )
                   )
-                )
-              } else {
-                if (userId == 0) {
-                  createNewUser(user, formUser)
                 } else {
-
-                  // only admin can update roles
-                  val newRoles = if (user.hasAnyRole(User.ADMIN_ROLES)) {
-                    formUser.roles
+                  if (userId == 0) {
+                    createNewUser(user, formUser)
                   } else {
-                    val origUser = UserJdbc.find(formUser.id.get).get
-                    origUser.roles
+
+                    // only admin can update roles
+                    val newRoles = if (user.hasAnyRole(User.ADMIN_ROLES)) {
+                      if (!user.hasRole(User.ROOT_ROLE) && formUser.roles.contains(User.ROOT_ROLE)) {
+                        originalRoles(formUser)
+                      } else {
+                        formUser.roles
+                      }
+                    } else {
+                      originalRoles(formUser)
+                    }
+
+                    UserJdbc.updateUser(userId, formUser.fullname, formUser.email, newRoles, formUser.lang)
+
+                    for (password <- formUser.password) {
+                      val hash = UserJdbc.hash(formUser, password)
+                      UserJdbc.updateHash(userId, hash)
+                    }
                   }
 
-                  UserJdbc.updateUser(userId, formUser.fullname, formUser.email, newRoles, formUser.lang)
+                  val result = Redirect(routes.Admin.users(formUser.contest))
+                  val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
 
-                  for (password <- formUser.password) {
-                    val hash = UserJdbc.hash(formUser, password)
-                    UserJdbc.updateHash(userId, hash)
-                  }
+                  lang.fold(result)(l => result.withLang(Lang(l)))
                 }
-
-                val result = Redirect(routes.Admin.users(formUser.contest))
-                val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
-
-                lang.fold(result)(l => result.withLang(Lang(l)))
               }
             }
-          }
-        )
+          )
   })
+
+  def originalRoles(formUser: User): Set[String] = {
+    val origUser = UserJdbc.find(formUser.id.get).get
+    origUser.roles
+  }
 
   def showImportUsers(contestIdParam: Option[Long]) = withAuth({
     user =>
@@ -122,23 +133,44 @@ object Admin extends Controller with Secured {
 
   }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
 
+  def appConfig = play.Play.application.configuration
+
   def editGreeting(contestIdParam: Option[Long]) = withAuth({
     user =>
       implicit request =>
 
         val contestId = contestIdParam.orElse(user.currentContest).get
 
-        val greeting = play.Play.application.configuration.getString("greeting.default")
+        val greeting = appConfig.getString("wlxjury.greeting")
 
-        Ok(views.html.greetingTemplate(user, greetingTemplateForm.fill(greeting), contestId))
+        val contest = ContestJuryJdbc.byId(contestId).get
+
+        Ok(views.html.greetingTemplate(
+          user, greetingTemplateForm.fill(Greeting(greeting, true)), contestId, variables(contest, user)
+        ))
 
   }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
 
+
   def fillGreeting(template: String, contest: ContestJury, sender: User) = {
-    template
-      .replace("{{ContestType}}", contest.name)
-      .replace("{{ContestYear}}", contest.year.toString)
-      .replace("{{ContestCountry}}", contest.country)
+
+    variables(contest, sender).foldLeft(template) {
+      case (s, (k, v)) =>
+        s.replace(k, v)
+    }
+  }
+
+  def variables(contest: ContestJury, sender: User): Map[String, String] = {
+    val host = appConfig.getString("wlxjury.host")
+
+    ListMap(
+      "{{ContestType}}" -> contest.name,
+      "{{ContestYear}}" -> contest.year.toString,
+      "{{ContestCountry}}" -> contest.country,
+      "{{ContestCountry}}" -> contest.country,
+      "{{JuryToolLink}}" -> host,
+      "{{AdminName}}" -> sender.fullname
+    )
   }
 
   def saveGreeting(contestIdParam: Option[Long] = None) = withAuth({
@@ -196,9 +228,10 @@ object Admin extends Controller with Secured {
   )
 
   val greetingTemplateForm = Form(
-    single(
-      "greetingtemplate" -> nonEmptyText
-    )
+    mapping(
+      "greetingtemplate" -> nonEmptyText,
+      "use" -> boolean
+    )(Greeting.apply)(Greeting.unapply)
   )
 
   def resetPassword(id: Long) = withAuth({
@@ -227,3 +260,5 @@ object Admin extends Controller with Secured {
 
 
 }
+
+case class Greeting(text: String, use: Boolean)
