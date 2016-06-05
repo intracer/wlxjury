@@ -1,6 +1,7 @@
 package db.scalikejdbc
 
 import _root_.play.api.i18n.Messages
+import controllers.Greeting
 import db.ContestJuryDao
 import org.intracer.wmua.ContestJury
 import scalikejdbc._
@@ -33,7 +34,11 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
     country = rs.string(c.country),
     images = rs.stringOpt(c.images),
     currentRound = rs.longOpt(c.currentRound),
-    monumentIdTemplate = rs.stringOpt(c.monumentIdTemplate)
+    monumentIdTemplate = rs.stringOpt(c.monumentIdTemplate),
+    greeting = Greeting(
+      rs.stringOpt(c.column("greeting")),
+      rs.booleanOpt(c.column("use_greeting")).getOrElse(true)
+    )
     //, messages
   )
 
@@ -68,6 +73,13 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
     ).where.eq(column.id, id)
   }.update().apply()
 
+  def updateGreeting(id: Long, greeting: Greeting): Int = withSQL {
+    update(ContestJuryJdbc).set(
+      column.c("greeting") -> greeting.text,
+      column.c("use_greeting") -> greeting.use
+    ).where.eq(column.id, id)
+  }.update().apply()
+
   override def setCurrentRound(id: Long, round: Option[Long]): Int = withSQL {
     update(ContestJuryJdbc).set(
       column.currentRound -> round
@@ -98,7 +110,8 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
       country = country,
       images = images,
       currentRound = currentRound,
-      monumentIdTemplate = monumentIdTemplate)
+      monumentIdTemplate = monumentIdTemplate,
+      greeting = Greeting(None, true))
   }
 
   override def batchInsert(contests: Seq[ContestJury]): Seq[Int] = {

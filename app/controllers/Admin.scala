@@ -141,19 +141,20 @@ object Admin extends Controller with Secured {
 
         val contestId = contestIdParam.orElse(user.currentContest).get
 
-        val greeting = appConfig.getString("wlxjury.greeting")
+        val defaultGreeting = appConfig.getString("wlxjury.greeting")
 
         val contest = ContestJuryJdbc.byId(contestId).get
 
+        val greeting = contest.greeting.text.fold(contest.greeting.copy(text = Some(defaultGreeting)))(_ => contest.greeting)
+
         Ok(views.html.greetingTemplate(
-          user, greetingTemplateForm.fill(Greeting(greeting, true)), contestId, variables(contest, user)
+          user, greetingTemplateForm.fill(greeting), contestId, variables(contest, user)
         ))
 
   }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
 
 
   def fillGreeting(template: String, contest: ContestJury, sender: User) = {
-
     variables(contest, sender).foldLeft(template) {
       case (s, (k, v)) =>
         s.replace(k, v)
@@ -178,11 +179,12 @@ object Admin extends Controller with Secured {
       implicit request =>
         val contestId = contestIdParam.orElse(user.currentContest).get
 
-        importUsersForm.bindFromRequest.fold(
+        greetingTemplateForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
             BadRequest(views.html.importUsers(user, importUsersForm, contestId)),
-          formUsers => {
+          formGreeting => {
 
+            ContestJuryJdbc.updateGreeting(contestId, formGreeting)
             Redirect(routes.Admin.users(Some(contestId)))
           })
 
@@ -229,7 +231,7 @@ object Admin extends Controller with Secured {
 
   val greetingTemplateForm = Form(
     mapping(
-      "greetingtemplate" -> nonEmptyText,
+      "greetingtemplate" -> optional(text),
       "use" -> boolean
     )(Greeting.apply)(Greeting.unapply)
   )
@@ -261,4 +263,4 @@ object Admin extends Controller with Secured {
 
 }
 
-case class Greeting(text: String, use: Boolean)
+case class Greeting(text: Option[String], use: Boolean)

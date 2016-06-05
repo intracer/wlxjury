@@ -125,8 +125,14 @@ object Contests extends Controller with Secured {
       "country" -> nonEmptyText,
       "images" -> optional(text),
       "currentRound" -> optional(longNumber),
-      "monumentIdTemplate" -> optional(text)
-    )(ContestJury.apply)(ContestJury.unapply)
+      "monumentIdTemplate" -> optional(text),
+      "greetingText" -> optional(text),
+      "useGreeting" -> boolean
+    )(
+      (id, name, year, country, images, currentRound, monumentIdTemplate, greetingText, useGreeting) =>
+        ContestJury(id, name, year, country, images, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting)))
+    ((c: ContestJury) =>
+      Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use))
   )
 
   val importForm = Form(
