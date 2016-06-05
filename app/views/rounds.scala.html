@@ -41,7 +41,7 @@
                             <td> <a href="/admin/rounds/edit/@round.id">@round.number</a> </td>
                             <td> @round.name </td>
                             <td>@round.roles.mkString(",") </td>
-                            <td>@Seq("Each image to all jurors", "Each image to 1 juror", "Each image to 2 jurors")(round.distribution) </td>
+                            <td>@((Seq("Each image to all jurors") ++ (1 to 4).map(i => s"Each image to $i juror(s)")).apply(round.distribution)) </td>
                             <td>@round.rates.name </td>
 <!--                            <td>@round.limitMin </td>
                             <td>@round.limitMax </td>
@@ -79,8 +79,13 @@
                             </td>
                             <td>
                             @select(editRoundForm("distribution"),
-                                (0 to 2).map(x => (x.toString,
-                                        Seq("Each image to all jurors", "Each image to 1 juror", "Each image to 2 jurors")(x))),
+                                (0 to 4).map(x => (x.toString,
+                                        Seq(
+                                            "Each image to all jurors",
+                                            "Each image to 1 juror",
+                                            "Each image to 2 jurors",
+                                            "Each image to 3 jurors",
+                                            "Each image to 4 jurors")(x))),
                                 '_label -> "", '_help -> "")
                             </td>
                             <td>
