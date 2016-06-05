@@ -7,7 +7,8 @@
 @import helper._
 
 
-@mainAdmin(Messages("contest images"), user, user.id.get) {
+@mainAdmin(Messages("contest images"), user, user.id.get, contestId = contest.id)  {
+    <h3>@Messages("Contest: " + contest.fullName)</h3>
 
     Images on commons: <a href="https://commons.wikimedia.org/wiki/@contest.images.get">@sourceImages</a>
     <br>
