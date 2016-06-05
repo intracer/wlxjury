@@ -5,12 +5,10 @@ import play.api.libs.mailer.{Email, MailerPlugin}
 
 class SendMail {
 
-
   /**
-   *  Sends an email
+    * Sends an email
     *
-    *  @return Whether sending the email was a success
-   */
+    */
   def sendMail(fromName: String,
                fromEmail: String,
                to: Seq[String],
@@ -29,6 +27,6 @@ class SendMail {
     )
 
     MailerPlugin.send(email)(play.api.Play.current)
-}
+  }
 
 }
