@@ -98,6 +98,65 @@ object Admin extends Controller with Secured {
         )
   })
 
+  def showImportUsers(contestIdParam: Option[Long]) = withAuth({
+    user =>
+      implicit request =>
+
+        val contestId = contestIdParam.orElse(user.currentContest).get
+        Ok(views.html.importUsers(user, importUsersForm, contestId))
+
+  }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
+
+  def importUsers(contestIdParam: Option[Long] = None) = withAuth({
+    user =>
+      implicit request =>
+        val contestId = contestIdParam.orElse(user.currentContest).get
+
+        importUsersForm.bindFromRequest.fold(
+          formWithErrors => // binding failure, you retrieve the form containing errors,
+            BadRequest(views.html.importUsers(user, importUsersForm, contestId)),
+          formUsers => {
+
+            Redirect(routes.Admin.users(Some(contestId)))
+          })
+
+  }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
+
+  def editGreeting(contestIdParam: Option[Long]) = withAuth({
+    user =>
+      implicit request =>
+
+        val contestId = contestIdParam.orElse(user.currentContest).get
+
+        val greeting = play.Play.application.configuration.getString("greeting.default")
+
+        Ok(views.html.greetingTemplate(user, greetingTemplateForm.fill(greeting), contestId))
+
+  }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
+
+  def fillGreeting(template: String, contest: ContestJury, sender: User) = {
+    template
+      .replace("{{ContestType}}", contest.name)
+      .replace("{{ContestYear}}", contest.year.toString)
+      .replace("{{ContestCountry}}", contest.country)
+  }
+
+  def saveGreeting(contestIdParam: Option[Long] = None) = withAuth({
+    user =>
+      implicit request =>
+        val contestId = contestIdParam.orElse(user.currentContest).get
+
+        importUsersForm.bindFromRequest.fold(
+          formWithErrors => // binding failure, you retrieve the form containing errors,
+            BadRequest(views.html.importUsers(user, importUsersForm, contestId)),
+          formUsers => {
+
+            Redirect(routes.Admin.users(Some(contestId)))
+          })
+
+  }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
+
+
   def createNewUser(user: User, formUser: User): Unit = {
     val contest: Option[ContestJury] = formUser.currentContest.flatMap(ContestJuryJdbc.byId)
     createUser(user, formUser, contest)
@@ -130,18 +189,17 @@ object Admin extends Controller with Secured {
     )(User.applyEdit)(User.unapplyEdit)
   )
 
-  //  def rounds() = withAuth({
-  //    user =>
-  //      implicit request =>
-  //        val rounds = Round.findByContest(user.contest)
-  //        val contest = ContestJury.byId(user.contest).get
-  //
-  //        Ok(views.html.rounds(user, rounds, editRoundForm,
-  //          imagesForm.fill(Some(contest.getImages)),
-  //          selectRoundForm.fill(contest.currentRound.toString),
-  //          Round.current(user)))
-  //  }, Set(User.ADMIN_ROLE))
+  val importUsersForm = Form(
+    single(
+      "userstoimport" -> nonEmptyText
+    )
+  )
 
+  val greetingTemplateForm = Form(
+    single(
+      "greetingtemplate" -> nonEmptyText
+    )
+  )
 
   def resetPassword(id: Long) = withAuth({
     user =>

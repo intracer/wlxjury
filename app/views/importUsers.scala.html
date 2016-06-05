@@ -1,0 +1,36 @@
+@(
+        adminUser: org.intracer.wmua.User,
+        importUserForm: Form[String],
+        contestId: Long)(implicit flash: Flash, lang: Lang, messages: Messages)
+@import helper._
+
+@mainAdmin(Messages("users"), adminUser, adminUser.id.get, contestId = Some(contestId)) {
+    <div class="row" >
+
+
+        <h3>Import</h3>
+
+        <div>
+            Separate mails with commas/newline or both.
+            Examples:
+            <pre>mail1@@server.com, mail2@@server.com</pre>
+            <pre>Name1 Surname1 &lt;mail1@@server.com&gt;,
+Name2 Surname2 &lt;mail2@@server.com&gt;</pre>
+        </div>
+
+        @form(routes.Admin.importUsers(Some(contestId)), 'id -> "import-users") {
+            <div class="form-group">
+
+                @textarea(field = importUserForm("userstoimport"),
+                    args = 'rows -> 7, 'cols -> 50, 'class -> "form-control", 'id -> "userstoimport", '_label -> "mails to import"
+                )
+
+                <div class="form-actions">
+                    <input type="submit" class="btn btn-default btn-primary" value="@Messages("Import users")">
+                    <a href="@routes.Admin.users(Some(contestId))" class="btn btn-default">@Messages("Cancel")</a>
+                </div>
+
+            </div>
+        }
+    </div>
+}

@@ -72,6 +72,14 @@ GET         /large/region/:region/pageid/:pageid                                
 
 GET         /admin/users                                                            controllers.Admin.users(contestId: Option[Long] ?= None)
 
+GET         /admin/importusers                                                      controllers.Admin.showImportUsers(contestId: Option[Long] ?= None)
+
+POST         /admin/importusers                                                     controllers.Admin.importUsers(contestId: Option[Long] ?= None)
+
+GET         /admin/greeting                                                         controllers.Admin.editGreeting(contestId: Option[Long] ?= None)
+
+POST         /admin/greeting                                                        controllers.Admin.saveGreeting(contestId: Option[Long] ?= None)
+
 GET         /users/edit/:id                                                         controllers.Admin.editUser(id: Long)
 
 POST        /users/save                                                             controllers.Admin.saveUser()

@@ -29,10 +29,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
   }
 
   def hash(user: User, password: String): String = {
-    val text = user.currentContest.flatMap(ContestJuryJdbc.byId).fold(password) {
-      _.country + "/" + password
-    }
-    sha1(text)
+    sha1(password)
   }
 
   def login(username: String, password: String): Option[User] = {

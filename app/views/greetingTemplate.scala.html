@@ -1,0 +1,27 @@
+@(
+        adminUser: org.intracer.wmua.User,
+        importUserForm: Form[String],
+        contestId: Long)(implicit flash: Flash, lang: Lang, messages: Messages)
+@import helper._
+
+@mainAdmin(Messages("users"), adminUser, adminUser.id.get, contestId = Some(contestId)) {
+    <div class="row" >
+
+        <h3>Edit greeting template options</h3>
+
+        @form(routes.Admin.saveGreeting(Some(contestId)), 'id -> "greeting-template") {
+            <div class="form-group">
+
+                @textarea(field = importUserForm("greetingtemplate"),
+                    args = 'rows -> 15, 'cols -> 50, 'class -> "form-control", 'id -> "greeting-template", '_label -> "Greeting template"
+                )
+
+                <div class="form-actions">
+                    <input type="submit" class="btn btn-default btn-primary" value="@Messages("Save")">
+                    <a href="@routes.Admin.users(Some(contestId))" class="btn btn-default">@Messages("Cancel")</a>
+                </div>
+
+            </div>
+        }
+    </div>
+}

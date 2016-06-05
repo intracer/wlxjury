@@ -36,7 +36,7 @@ version := "1.0-SNAPSHOT"
 //
 //maintainer := "***REMOVED*** Korniiko <***REMOVED***>"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 val scalikejdbcVersion = "2.2.9"
 val scalikejdbcPlayVersion = "2.4.3"

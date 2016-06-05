@@ -12,7 +12,7 @@
     @import org.intracer.wmua.Round
     @import db.scalikejdbc.SelectionJdbc
 
-    @mainAdmin(Messages("rounds"), adminUser, adminUser.id.get, currentRounds = round.toSeq, contest = Some(contest)) {
+    @mainAdmin(Messages("rounds"), adminUser, adminUser.id.get, currentRounds = round.toSeq, contestId = contest.id) {
         <div class="row" >
             <h3>@Messages("Contest: " + contest.fullName)</h3>
 
@@ -86,8 +86,8 @@
                             <td>
                             @select(editRoundForm("rates"), Round.rates.map(x => (x.id.toString, x.name)), '_label -> "", '_help -> "", 'class -> "input-small")
                             </td>
-<!--                            <td>
-                            @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "", '_help -> "", 'class -> "input-small")
+<!--                        <td>
+                                @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "", '_help -> "", 'class -> "input-small")
                             </td>
                             <td>
                             @select(editRoundForm("limitMax"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "", '_help -> "", 'class -> "input-small")

@@ -12,7 +12,7 @@
         region: String = "all",
 //        menu: Html = Html.empty,
         pager: Html = Html(""),
-        contest: Option[ContestJury] = None)(content: Html)()(implicit lang: Lang, messages: Messages)
+        contestId: Option[Long] = None)(content: Html)()(implicit lang: Lang, messages: Messages)
 <!DOCTYPE html>
 
 <html lang="@lang.language">
@@ -46,7 +46,7 @@
 
     <body @if(gallery){class="gallery"}>
 
-        @navbar(title, user, asUserId, asUser, selectedRound, currentRounds, allRounds, gallery, rate, region, pager, contest)
+        @navbar(title, user, asUserId, asUser, selectedRound, currentRounds, allRounds, gallery, rate, region, pager, contestId)
 
      <div class="container">
 

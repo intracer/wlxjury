@@ -4,80 +4,94 @@
         users: Seq[org.intracer.wmua.User],
         editUserForm: Form[org.intracer.wmua.User],
         contest: ContestJury)(implicit flash: Flash, lang: Lang, messages: Messages)
-@import helper._
+    @import helper._
 
-@mainAdmin(Messages("users"), adminUser, adminUser.id.get, contest = Some(contest)) {
-    <div class="row" >
-        <h3>@Messages("Contest: " + contest.fullName)</h3>
+    @mainAdmin(Messages("users"), adminUser, adminUser.id.get, contestId = contest.id) {
+        <div class="row" >
+            <h3>@Messages("Contest: " + contest.fullName)</h3>
 
-        <table class="table table-striped table-condensed" style="background-color : #CCCCCC ;">
+            <div class="form-actions">
+                <a href="@routes.Admin.importUsers(contest.id)">
+                    <div class="btn btn-primary">
+                        Mass import
+                    </div>
+                </a>
 
-            <thead>
-                <tr>
-                    <th>@Messages("name")</th>
-                    <th>@Messages("email")</th>
-                    <th>@Messages("role")</th>
-                    <th>@Messages("edit")</th>
-                </tr>
-            </thead>
+                <a href="@routes.Admin.editGreeting(contest.id)">
+                    <div class="btn btn-primary">
+                        Edit greeting message
+                    </div>
+                </a>
+            </div>
 
-            <tbody>
 
-                @for(user <- users) {
+            <table class="table table-striped table-condensed" style="background-color: #CCCCCC ;">
+
+                <thead>
                     <tr>
-                        <td>@user.fullname </td>
-                        <td>@user.email </td>
-                        <td>@user.roles.filterNot(_.startsWith("USER_ID")).mkString(", ") </td>
-                        <td>
-                            <a href="/users/edit/@user.id">
-                                <button type="button" class="btn btn-default btn-xs">
-                                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-                                </button>
-                            </a>
-                        </td>
+                        <th>@Messages("name")</th>
+                        <th>@Messages("email")</th>
+                        <th>@Messages("role")</th>
+                        <th>@Messages("edit")</th>
                     </tr>
-                }
+                </thead>
 
-                @form(routes.Admin.saveUser, 'class -> "form-vertical", 'id -> "add-user") {
-                    <tr>
-                        @if(editUserForm.hasGlobalErrors) {
-                            <p class="error">
-                                <span class="label important">@Messages(editUserForm.errors.head.message)</span>
-                            </p>
-                        }
+                <tbody>
 
-                        <td>
-                        <input type="hidden" name="id" id="id" value="0" />
-                        <input type="hidden" name="contest" id="contest" value="@contest.id" />
-                        @inputText(
-                            editUserForm("fullname"),
-                            'placeholder -> Messages("Name"),
-                            '_label -> null,
-                            '_help -> ""
-                        )
-                        </td>
-                        <td>
-                        @inputText(
-                            editUserForm("email"),
-                            'placeholder -> Messages("Email"),
-                            '_label -> null,
-                            '_help -> ""
-                        )</td>
-                        <td>
-                            @select(editUserForm("roles"), Seq("no", "jury", "organizer", "admin").map(x => (x,x)), '_label -> "", '_help -> "")
-                        </td>
-                        <td>
-                            <div class="btn btn-primary" onClick="document.forms['add-user'].submit();">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/5a/Farm-Fresh_group_add.png">
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
+                    @for(user <- users) {
+                        <tr>
+                            <td>@user.fullname </td>
+                            <td>@user.email </td>
+                            <td>@user.roles.filterNot(_.startsWith("USER_ID")).mkString(", ") </td>
+                            <td>
+                                <a href="/users/edit/@user.id">
+                                    <button type="button" class="btn btn-default btn-xs">
+                                        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                                    </button>
+                                </a>
+                            </td>
+                        </tr>
+                    }
 
-        </table>
+                    @form(routes.Admin.saveUser, 'class -> "form-vertical", 'id -> "add-user") {
+                        <tr>
+                            @if(editUserForm.hasGlobalErrors) {
+                                <p class="error">
+                                    <span class="label important">@Messages(editUserForm.errors.head.message)</span>
+                                </p>
+                            }
 
-    </div>
-}
+                            <td>
+                                <input type="hidden" name="id" id="id" value="0" />
+                                <input type="hidden" name="contest" id="contest" value="@contest.id" />
+                                @inputText(
+                                    editUserForm("fullname"),
+                                    'placeholder -> Messages("Name"),
+                                    '_label -> null,
+                                    '_help -> ""
+                                )
+                            </td>
+                            <td>
+                            @inputText(
+                                editUserForm("email"),
+                                'placeholder -> Messages("Email"),
+                                '_label -> null,
+                                '_help -> ""
+                            )</td>
+                            <td>
+                            @select(editUserForm("roles"), Seq("no", "jury", "organizer", "admin").map(x => (x, x)), '_label -> "", '_help -> "")
+                            </td>
+                            <td>
+                                <div class="btn btn-primary" onClick="document.forms['add-user'].submit();">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5a/Farm-Fresh_group_add.png">
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    }
 
 
