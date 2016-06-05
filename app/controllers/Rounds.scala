@@ -63,9 +63,12 @@ object Rounds extends Controller with Secured {
 
     val count = RoundJdbc.countByContest(round.contest)
 
-    RoundJdbc.create(count + 1, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
+    val created = RoundJdbc.create(count + 1, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
       round.limitMin, round.limitMax, round.recommended)
 
+    Tools.distributeImages(created, created.jurors, None)
+
+    created
   }
 
   def setRound() = withAuth({
