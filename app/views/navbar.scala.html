@@ -25,8 +25,11 @@
                         Admin items: users and rounds setup
                     -->
                     @if(user.hasAnyRole(User.ADMIN_ROLES)) {
-                        <li role="presentation"><a class="brand" href="/admin/users">@Messages("users")</a>
+                        @for(cId <-contestId) {
+                        <li role="presentation"><a class="brand" href="@routes.Contests.images(cId)">@Messages("images")</a>
+                        <li role="presentation"><a class="brand" href="@routes.Admin.users(contestId)">@Messages("users")</a>
                         <li role="presentation"><a class="brand" href="@routes.Rounds.rounds(contestId)">@Messages("rounds")</a>
+                        }
                     }
 
                     @for(round <- if (user.roles.contains("jury")) currentRounds else selectedRound.toSeq) {
