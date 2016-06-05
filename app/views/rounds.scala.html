@@ -23,7 +23,7 @@
                     <tr>
                         <th width="10%">@Messages("Number") </th>
                         <th width="10%">@Messages("Name") </th>
-                        <th width="10%">@Messages("Jury role") </th>
+                      <!--  <th width="10%">@Messages("Jury role") </th> -->
                         <th width="10%">@Messages("Image distribution") </th>
                         <th width="10%">@Messages("Selection type") </th>
                             <!--                        <th width="10%">@Messages("Min selected") </th>
@@ -40,7 +40,7 @@
                         <tr>
                             <td> <a href="/admin/rounds/edit/@round.id">@round.number</a> </td>
                             <td> @round.name </td>
-                            <td>@round.roles.mkString(",") </td>
+<!--                            <td>@round.roles.mkString(",") </td> -->
                             <td>@((Seq("Each image to all jurors") ++ (1 to 4).map(i => s"Each image to $i juror(s)")).apply(round.distribution)) </td>
                             <td>@round.rates.name </td>
 <!--                            <td>@round.limitMin </td>
@@ -74,9 +74,9 @@
                                 <input type="hidden" name="contest" id="contest" value="@adminUser.contest" />
                                 @inputText(editRoundForm("name"), 'placeholder -> Messages("Name"), '_label -> null, '_help -> "", 'class -> "input-small")
                             </td>
-                            <td>
+<!--                            <td>
                             @select(editRoundForm("roles"), Seq("jury", "organizer").map(x => (x, x)), '_label -> "", '_help -> "", 'class -> "input-small")
-                            </td>
+                            </td> -->
                             <td>
                             @select(editRoundForm("distribution"),
                                 (0 to 4).map(x => (x.toString,

@@ -99,7 +99,7 @@ object Rounds extends Controller with Secured {
 
 
   def distributeImages(contest: ContestJury, round: Round) {
-    ImageDistributor.distributeImages(contest.id.get, round)
+    Tools.distributeImages(round, round.jurors, None)
   }
 
   def setImages() = withAuth({
