@@ -1,6 +1,9 @@
-@(user: org.intracer.wmua.User,
-editUserForm: Form[org.intracer.wmua.User],
-round: Option[org.intracer.wmua.Round], contestId: Option[Long] = None)(implicit flash: Flash, lang: Lang, messages: Messages)
+@(
+        user: org.intracer.wmua.User,
+        editUserForm: Form[org.intracer.wmua.User],
+        round: Option[org.intracer.wmua.Round],
+        contestId: Option[Long] = None
+)(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @import views.html.bootstrap._
 
@@ -8,73 +11,73 @@ round: Option[org.intracer.wmua.Round], contestId: Option[Long] = None)(implicit
 @import org.intracer.wmua.User
 
 
-@mainAdmin(Messages("edit user"), user, user.id.get) {
+@mainAdmin(Messages("edit user"), user, user.id.get, contestId = contestId) {
     <div class="row" >
         <div class="col-md-4">
 
 
-        @if(!editUserForm("id").value.contains("0")) {
-            <h3>@Messages("Edit user")</h3>
-        } else {
-            <h3>@Messages("Create user")</h3>
-        }
-
-@form(routes.Admin.saveUser, 'class -> "form-vertical") {
-
-    @if(editUserForm.hasGlobalErrors) {
-        <div class="alert alert-danger" role="alert">
-            @Messages(editUserForm.errors.head.message)
-        </div>
-    }
-
-    <fieldset>
-        <input type="hidden" id="id" name="id" value='@editUserForm("id").value' />
-        <input type="hidden" name="contest" id="contest" value='@editUserForm("contest").value' />
-
-        @text(editUserForm("fullname"))
-
-        @text(editUserForm("email"))
-
-        @if(user.hasAnyRole(User.ADMIN_ROLES)) {
-            @select(editUserForm("roles"),
-                (Seq("no", "jury", "organizer", "admin") ++ (
-                        if (user.hasRole("root")) Seq("root") else Seq.empty)
-                        ).map(x => (x, x)),
-                Seq('_label -> Messages("Role"), '_help -> "", 'class -> "form-control") ++
-                        (if(!user.hasAnyRole(User.ADMIN_ROLES)) Seq('disabled -> "true") else Seq.empty): _*)
-        }
-
-        @select(editUserForm("lang"), Seq("en", "ru", "uk" ).map(x => (x, User.LANGS(x))),
-            '_label -> Messages("Language"), '_help -> "", 'class -> "form-control" )
-
-        @if(true || editUserForm("id").value.contains(user.id.toString)) {
-            <div class="form-group">
-                <label for="password" class="control-label">@Messages("Password")</label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="Password" value="">
-            </div>
-        } else {
             @if(!editUserForm("id").value.contains("0")) {
-                @flash.get("password-reset").map { msg =>
-                    <div class="alert alert-success">@msg</div>
+                <h3>@Messages("Edit user")</h3>
+            } else {
+                <h3>@Messages("Create user")</h3>
+            }
+
+            @form(routes.Admin.saveUser, 'class -> "form-vertical") {
+
+                @if(editUserForm.hasGlobalErrors) {
+                    <div class="alert alert-danger" role="alert">
+                    @Messages(editUserForm.errors.head.message)
+                    </div>
                 }
 
-                <a href="#" class="btn" onclick="document.forms['reset-password'].submit();">@Messages("Reset password")</a>
+                <fieldset>
+                    <input type="hidden" id="id" name="id" value='@editUserForm("id").value' />
+                    <input type="hidden" name="contest" id="contest" value='@editUserForm("contest").value' />
+
+                    @text(editUserForm("fullname"))
+
+                    @text(editUserForm("email"))
+
+                    @if(user.hasAnyRole(User.ADMIN_ROLES)) {
+                        @select(editUserForm("roles"),
+                            (Seq("no", "jury", "organizer", "admin") ++ (
+                                    if(user.hasRole("root")) Seq("root") else Seq.empty)
+                                    ).map(x => (x, x)),
+                            Seq('_label -> Messages("Role"), '_help -> "", 'class -> "form-control") ++
+                                    (if(!user.hasAnyRole(User.ADMIN_ROLES)) Seq('disabled -> "true") else Seq.empty): _*)
+                    }
+
+                    @select(editUserForm("lang"), Seq("en", "ru", "uk").map(x => (x, User.LANGS(x))),
+                        '_label -> Messages("Language"), '_help -> "", 'class -> "form-control")
+
+                    @if(true || editUserForm("id").value.contains(user.id.toString)) {
+                        <div class="form-group">
+                            <label for="password" class="control-label">@Messages("Password")</label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" value="">
+                        </div>
+                    } else {
+                        @if(!editUserForm("id").value.contains("0")) {
+                            @flash.get("password-reset").map { msg =>
+                                <div class="alert alert-success">@msg</div>
+                            }
+
+                            <a href="#" class="btn" onclick="document.forms['reset-password'].submit();">@Messages("Reset password")</a>
+                        }
+                    }
+
+                </fieldset>
+
+                <div class="form-actions">
+                    <input type="submit" class="btn btn-default btn-primary" value="@Messages("Save")">
+                    <a href="@routes.Admin.users(contestId)" class="btn btn-default">@Messages("Cancel")</a>
+                </div>
             }
-        }
 
-    </fieldset>
-
-    <div class="form-actions">
-        <input type="submit" class="btn btn-default btn-primary" value="@Messages("Save")">
-        <a href="@routes.Admin.users(contestId)" class="btn btn-default">@Messages("Cancel")</a>
-    </div>
-}
-
-        <div style="display:none;">
-        @form(routes.Admin.resetPassword(editUserForm("id").value.map(_.toLong).get), 'class -> "form-vertical", 'id -> "reset-password" ) {
+            <div style="display: none;">
+            @form(routes.Admin.resetPassword(editUserForm("id").value.map(_.toLong).get), 'class -> "form-vertical", 'id -> "reset-password") {
                 <input type="submit" class="btn" value="@Messages("Reset password")">
-        }
-        </div>
+                }
+            </div>
         </div>
     </div>
 }

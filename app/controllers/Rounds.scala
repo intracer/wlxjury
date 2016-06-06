@@ -35,7 +35,7 @@ object Rounds extends Controller with Secured {
 
         val filledRound = editRoundForm.fill(editRound)
 
-        Ok(views.html.editRound(user, filledRound, RoundJdbc.current(user)))
+        Ok(views.html.editRound(user, filledRound, RoundJdbc.current(user), Some(round.contest)))
   }, User.ADMIN_ROLES)
 
   def saveRound() = withAuth({

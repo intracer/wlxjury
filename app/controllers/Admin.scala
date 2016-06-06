@@ -46,7 +46,7 @@ object Admin extends Controller with Secured {
 
           val filledForm = editUserForm.fill(editedUser)
 
-          Ok(views.html.editUser(user, filledForm, RoundJdbc.current(user)))
+          Ok(views.html.editUser(user, filledForm, RoundJdbc.current(user), user.currentContest))
         }
   }, Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$id"))
 
