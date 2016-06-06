@@ -55,6 +55,7 @@
                     @form(routes.Rounds.saveRound, 'class -> "form-vertical", 'id -> "add-round") {
                         <input type="hidden" name="returnTo" id="returnTo" value="roundList" />
                         <input type="hidden" name="contest" id="contest" value="@contest.id.get" />
+                        <input type="hidden" name="roles" id="roles" value='jury' />
 
                         <tr>
                             @if(editRoundForm.hasGlobalErrors) {
@@ -75,12 +76,6 @@
                                 <input type="hidden" name="contest" id="contest" value="@adminUser.contest" />
                                 @text(editRoundForm("name"))
                             </td>
-<!--                            <td>
-                            @select(
-                            editRoundForm("roles"),
-                            Seq("jury", "organizer").map(x => (x, x)),
-                            '_label -> "", '_help -> "", 'class -> "input-small", 'class -> "form-control")
-                            </td> -->
                             <td>
                             @select(editRoundForm("distribution"),
                                 (0 to 4).map(x => (x.toString,

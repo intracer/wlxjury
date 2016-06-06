@@ -32,14 +32,9 @@
         <input type="hidden" id="id" name="id" value='@editRoundForm("id").value' />
         <input type="hidden" name="contest" id="contest" value='@editRoundForm("contest").value' />
         <input type="hidden" name="number" id="number" value='@editRoundForm("number").value' />
+        <input type="hidden" name="roles" id="roles" value='jury' />
 
         @text(editRoundForm("name"))
-
-<!--        @select(
-            editRoundForm("roles"),
-            Seq("jury", "organizer").map(x => (x,x)), '_label -> "Jury role",
-            '_help -> "", 'class -> "form-control"
-        ) -->
 
         @select(editRoundForm("distribution"),
             (0 to 4).map(x => (x.toString,
