@@ -5,11 +5,14 @@
         contestId: Option[Long] = None
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
+@import views.html.bootstrap._
 @import helper._
 @import org.intracer.wmua.Round
 
 @mainAdmin(Messages("edit round"), user, user.id.get, contestId = contestId) {
     <div class="row" >
+        <div class="col-md-4">
+
 
         @if(!editRoundForm("id").value.contains("0")) {
             <h3>@Messages("Edit round")</h3>
@@ -30,16 +33,29 @@
         <input type="hidden" name="contest" id="contest" value='@editRoundForm("contest").value' />
         <input type="hidden" name="number" id="number" value='@editRoundForm("number").value' />
 
-        @inputText(editRoundForm("name"),'placeholder -> Messages("Name"),'_label -> Messages("Name"),'_help -> "")
+        @text(editRoundForm("name"))
 
-        @select(editRoundForm("roles"), Seq("jury", "organizer").map(x => (x,x)), '_label -> "Jury role", '_help -> "")
+<!--        @select(
+            editRoundForm("roles"),
+            Seq("jury", "organizer").map(x => (x,x)), '_label -> "Jury role",
+            '_help -> "", 'class -> "form-control"
+        ) -->
 
         @select(editRoundForm("distribution"),
-            (0 to 2).map(x => (x.toString,
-                    Seq("Each image to all jurors", "Each image to 1 juror", "Each image to 2 jurors")(x))),
-            '_label -> "Image distribution", '_help -> "")
+            (0 to 4).map(x => (x.toString,
+                    Seq(
+                        "Each image to all jurors",
+                        "Each image to 1 juror",
+                        "Each image to 2 jurors",
+                        "Each image to 3 jurors",
+                        "Each image to 4 jurors"
+                    )(x))),
+            '_label -> "Image distribution", '_help -> "", 'class -> "form-control")
 
-        @select(editRoundForm("rates"), Round.rates.map(x => (x.id.toString,x.name)), '_label -> "Selection type", '_help -> "")
+        @select(
+            editRoundForm("rates"),
+            Round.rates.map(x => (x.id.toString,x.name)),
+            '_label -> "Selection type", '_help -> "", 'class -> "form-control")
 
 <!--
         @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString,x.toString)), '_label -> "Min selected", '_help -> "")
@@ -53,6 +69,7 @@
     <div class="form-actions">
         <input type="submit" class="btn btn-primary" value="@Messages("Save")">
         <a href="@routes.Rounds.rounds(editRoundForm("contest").value.map(_.toLong))" class="btn">@Messages("Cancel")</a>
+    </div>
     </div>
 
     </div>
