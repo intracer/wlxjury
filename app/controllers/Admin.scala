@@ -56,18 +56,26 @@ object Admin extends Controller with Secured {
 
         editUserForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(views.html.editUser(user, formWithErrors, RoundJdbc.current(user))),
+            BadRequest(
+              views.html.editUser(
+                user,
+                formWithErrors,
+                RoundJdbc.current(user),
+                contestId = Some(formWithErrors.data("contest").toLong)
+              )
+            ),
           formUser => {
             havingEditRights(user, formUser) {
 
               val userId = formUser.id.get
-              val count: Long = UserJdbc.countByEmail(userId, formUser.email)
+              val count = UserJdbc.countByEmail(userId, formUser.email)
               if (count > 0) {
                 BadRequest(
                   views.html.editUser(
                     user,
                     editUserForm.fill(formUser).withError("email", "email should be unique"),
-                    RoundJdbc.current(user)
+                    RoundJdbc.current(user),
+                    contestId = formUser.contest
                   )
                 )
               } else {
