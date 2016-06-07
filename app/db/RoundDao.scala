@@ -24,7 +24,9 @@ trait RoundDao {
              limitMin: Option[Int],
              limitMax: Option[Int],
              recommended: Option[Int],
-             createdAt: DateTime = DateTime.now): Round
+             createdAt: DateTime = DateTime.now,
+             minMpx: Option[Int]
+            ): Round
 
   def create(round: Round): Round
 

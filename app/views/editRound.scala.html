@@ -52,6 +52,11 @@
             Round.rates.map(x => (x.id.toString,x.name)),
             '_label -> "Selection type", '_help -> "", 'class -> "form-control")
 
+        @select(
+            editRoundForm("minMpx"),
+            Seq("No", "1", "2").map(x => (x, x)),
+            '_label -> "Minimum MegaPixels", '_help -> "", 'class -> "form-control")
+
 <!--
         @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString,x.toString)), '_label -> "Min selected", '_help -> "")
 

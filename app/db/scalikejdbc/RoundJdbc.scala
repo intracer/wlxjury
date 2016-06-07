@@ -32,7 +32,8 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime),
     active = rs.booleanOpt(c.active).getOrElse(false),
     optionalRate = rs.booleanOpt(c.optionalRate).getOrElse(false),
-    juryOrgView = rs.booleanOpt(c.juryOrgView).getOrElse(false)
+    juryOrgView = rs.booleanOpt(c.juryOrgView).getOrElse(false),
+    minMpx = rs.intOpt(c.minMpx)
   )
 
   override def activeRounds(contestId: Long): Seq[Round] = {
@@ -66,7 +67,7 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
 
   override def create(number: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
                       rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int],
-                      createdAt: DateTime = DateTime.now): Round = {
+                      createdAt: DateTime = DateTime.now, minMpx: Option[Int]): Round = {
     val id = withSQL {
       insert.into(RoundJdbc).namedValues(
         column.number -> number,
@@ -78,12 +79,13 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
         column.limitMin -> limitMin,
         column.limitMax -> limitMax,
         column.recommended -> recommended,
-        column.createdAt -> createdAt)
+        column.createdAt -> createdAt,
+        column.minMpx -> minMpx)
     }.updateAndReturnGeneratedKey().apply()
 
     new Round(id = Some(id), name = name, number = number, contest = contest, roles = Set(roles), distribution = distribution,
       rates = Round.ratesById(rates), limitMin = limitMin,
-      limitMax = limitMax, recommended = recommended, createdAt = createdAt)
+      limitMax = limitMax, recommended = recommended, createdAt = createdAt, minMpx = minMpx)
   }
 
   override def create(round: Round): Round = {
@@ -108,7 +110,7 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     round.copy(id = Some(id))
   }
 
-  override def updateRound(id: Long, round: Round): Unit = withSQL {
+  override def updateRound(id: Long, round: Round) = withSQL {
     update(RoundJdbc).set(
       column.name -> round.name,
       column.roles -> round.roles,

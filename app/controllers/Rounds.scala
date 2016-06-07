@@ -1,12 +1,14 @@
 package controllers
 
-import db.scalikejdbc.{SelectionJdbc, ContestJuryJdbc, RoundJdbc}
+import db.scalikejdbc.{ContestJuryJdbc, RoundJdbc, SelectionJdbc}
 import org.intracer.wmua._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc.Controller
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
+
+import scala.util.Try
 
 object Rounds extends Controller with Secured {
 
@@ -39,23 +41,23 @@ object Rounds extends Controller with Secured {
   }, User.ADMIN_ROLES)
 
   def saveRound() = withAuth({
-    user =>
-      implicit request =>
+        user =>
+          implicit request =>
 
-        editRoundForm.bindFromRequest.fold(
-          formWithErrors => // binding failure, you retrieve the form containing errors,
-              BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user), formWithErrors.data.get("contest").map(_.toLong))),
-          editForm => {
-            val round = editForm.round
-            if (round.id.contains(0)) {
-              createNewRound(user, round)
-            } else {
-              RoundJdbc.updateRound(round.id.get, round)
-            }
-            Redirect(routes.Rounds.rounds(Some(round.contest)))
-          }
-        )
-  }, User.ADMIN_ROLES)
+            editRoundForm.bindFromRequest.fold(
+              formWithErrors => // binding failure, you retrieve the form containing errors,
+                BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user), formWithErrors.data.get("contest").map(_.toLong))),
+              editForm => {
+                val round = editForm.round
+                if (round.id.isEmpty) {
+                  createNewRound(user, round)
+                } else {
+                  round.id.foreach(roundId => RoundJdbc.updateRound(roundId, round))
+                }
+                Redirect(routes.Rounds.rounds(Some(round.contest)))
+              }
+            )
+      }, User.ADMIN_ROLES)
 
   def createNewRound(user: User, round: Round): Round = {
 
@@ -64,7 +66,7 @@ object Rounds extends Controller with Secured {
     val count = RoundJdbc.countByContest(round.contest)
 
     val created = RoundJdbc.create(count + 1, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
-      round.limitMin, round.limitMax, round.recommended)
+      round.limitMin, round.limitMax, round.recommended, minMpx = round.minMpx)
 
     Tools.distributeImages(created, created.jurors, None)
 
@@ -206,7 +208,7 @@ object Rounds extends Controller with Secured {
 
   val editRoundForm = Form(
     mapping(
-      "id" -> longNumber(),
+      "id" -> optional(longNumber()),
       "number" -> number(),
       "name" -> optional(text()),
       "contest" -> longNumber(),
@@ -216,21 +218,27 @@ object Rounds extends Controller with Secured {
       "limitMin" -> optional(number),
       "limitMax" -> optional(number),
       "recommended" -> optional(number),
-      "returnTo" -> optional(text)
+      "returnTo" -> optional(text),
+      "minMpx" -> text
     )(applyEdit)(unapplyEdit)
   )
 
-  def applyEdit(id: Long, num: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
-                rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int], returnTo: Option[String]): EditRound = {
-    val round = new Round(Some(id), num, name, contest, Set(roles), distribution, Round.ratesById(rates), limitMin, limitMax, recommended)
+  def applyEdit(id: Option[Long], num: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
+                rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int], returnTo: Option[String],
+                minMpx: String): EditRound = {
+    val round = new Round(id, num, name, contest, Set(roles), distribution, Round.ratesById(rates),
+      limitMin, limitMax, recommended, minMpx = Try(minMpx.toInt).toOption)
     EditRound(round, returnTo)
   }
 
-  def unapplyEdit(editRound: EditRound): Option[(Long, Int, Option[String], Long, String, Int, Int, Option[Int], Option[Int], Option[Int], Option[String])] = {
+  def unapplyEdit(editRound: EditRound): Option[(Option[Long], Int, Option[String], Long, String, Int, Int, Option[Int],
+    Option[Int], Option[Int], Option[String], String)] = {
     val round = editRound.round
     Some(
-      (round.id.get, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
-        round.limitMin, round.limitMax, round.recommended, editRound.returnTo))
+      (round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
+        round.limitMin, round.limitMax, round.recommended, editRound.returnTo,
+        round.minMpx.fold("No")(_.toString))
+    )
   }
 }
 
