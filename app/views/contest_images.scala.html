@@ -1,29 +1,30 @@
-@(
+@(importImagesForm: Form[String],
         contest: org.intracer.wmua.ContestJury,
         user: org.intracer.wmua.User,
         sourceImages: Long,
         dbImages: Int
 )(implicit flash: Flash, lang: Lang, messages: Messages)
-@import helper._
+    @import helper._
+    @import views.html.bootstrap._
 
+    @mainAdmin(Messages("contest images"), user, user.id.get, contestId = contest.id) {
+        <h3>@Messages("Contest: " + contest.fullName)</h3>
+        @form(routes.Contests.importImages(contest.id.get), 'class -> "form-vertical", 'id -> "import-images") {
 
-@mainAdmin(Messages("contest images"), user, user.id.get, contestId = contest.id)  {
-    <h3>@Messages("Contest: " + contest.fullName)</h3>
+            @text(importImagesForm("source"))
 
-    Images on commons: <a href="https://commons.wikimedia.org/wiki/@contest.images.get">@sourceImages</a>
-    <br>
-    Images in DB: @dbImages
+            Images on Commons: <a href="https://commons.wikimedia.org/wiki/@contest.images.get">@sourceImages</a>
+            <br>
+            Images in DB: @dbImages
 
-    @form(routes.Contests.importImages(contest.id.get), 'class -> "form-vertical", 'id -> "import-images") {
-        <div class="btn btn-primary" onClick="document.forms['import-images'].submit();">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" data-transitiongoal="0"></div>
+            </div>
+
+            <div class="btn btn-primary" onClick="document.forms['import-images'].submit();">
             @Messages("import")
-        </div>
+            </div>
+        }
+
+
     }
-
-    <div class="progress">
-        <div class="progress-bar" role="progressbar" data-transitiongoal="0"></div>
-    </div>
-
-    <div id="content"></div>
-
-}

@@ -92,7 +92,8 @@ object Contests extends Controller with Secured {
 
         val imageInfos = Seq.empty[Image] //imageInfo.apply().await
 
-        Ok(views.html.contest_images(contest, user, sourceImageNum, dbImagesNum))
+        val filledForm = importForm.fill(contest.images.getOrElse(""))
+        Ok(views.html.contest_images(filledForm, contest, user, sourceImageNum, dbImagesNum))
   }, User.ADMIN_ROLES)
 
   def getNumberOfImages(contest: ContestJury): Long = {
