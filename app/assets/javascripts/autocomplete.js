@@ -1,7 +1,8 @@
 $(function () {
+    var apiUrl = 'https://commons.wikimedia.org/w/api.php';
     $("#source").typeahead({
         ajax: {
-            url: 'https://commons.wikimedia.org/w/api.php',
+            url: apiUrl,
             timeout: 200,
             triggerLength: 1,
             method: 'get',
@@ -14,11 +15,25 @@ $(function () {
                 };
             },
             preProcess: function preProcess(data) {
-                var results = data.query.prefixsearch.map(function (elem) {
+                return data.query.prefixsearch.map(function (elem) {
                     return elem.title;
                 });
-                return results;
             }
+        },
+        onSelect: function (item) {
+            $.ajax({
+                url: apiUrl + "?action=query&prop=categoryinfo&format=json&titles=" + encodeURI(item.value),
+                dataType: 'jsonp',
+                context: document.body,
+                success: function (obj) {
+                    $.each(obj.query.pages, function(key, value) {
+                        var files = value.categoryinfo.files;
+                        var commonscat = $("#commonscat");
+                        commonscat.html(files);
+                        commonscat.attr("href", "https://commons.wikimedia.org/wiki/" + encodeURI(item.value));
+                    });
+                }
+            });
         }
     });
 });
