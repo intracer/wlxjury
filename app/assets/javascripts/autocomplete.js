@@ -1,6 +1,8 @@
 $(function () {
     var apiUrl = 'https://commons.wikimedia.org/w/api.php';
-    $("#source").typeahead({
+    var source = $("#source");
+    source.attr("autocomplete", "off");
+    source.typeahead({
         ajax: {
             url: apiUrl,
             timeout: 200,

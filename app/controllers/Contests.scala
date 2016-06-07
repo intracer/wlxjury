@@ -108,7 +108,9 @@ object Contests extends Controller with Secured {
 
       val sourceImageNum = getNumberOfImages(contest)
 
-      Global.progressController.foreach(_.max = sourceImageNum)
+      Option(
+        Global.progressControllers.getOrDefault(contestId.toString, null)
+      ).foreach(_.max = sourceImageNum)
 
       new GlobalRefactor(Global.commons).appendImages(
         contest.images.get,

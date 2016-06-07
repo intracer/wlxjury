@@ -29,6 +29,9 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
 
+        <script>
+            var contestId = @contestId.getOrElse(0L);
+        </script>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="@routes.Assets.at("javascripts/bootstrap-progressbar.js")"></script>

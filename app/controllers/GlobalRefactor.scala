@@ -292,6 +292,10 @@ class GlobalRefactor(val commons: MwBot) {
 class ProgressListener extends Actor {
   def receive = {
     case progress: QueryProgress =>
-      Global.progressController.foreach(_.progress(progress.pages.toInt))
+      for (contestId <- progress.context.get("contestId");
+           controller <- Option(Global.progressControllers.getOrDefault(contestId, null))
+      ) {
+        controller.progress(progress.pages.toInt)
+      }
   }
 }

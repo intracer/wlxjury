@@ -1,22 +1,26 @@
 package controllers
 
-import org.atmosphere.config.service.{Disconnect, ManagedService, Ready}
+import org.atmosphere.config.service.{Disconnect, ManagedService, PathParam, Ready}
 import org.atmosphere.cpr.{AtmosphereResource, AtmosphereResourceEvent, Broadcaster}
 import org.slf4j.{Logger, LoggerFactory}
 
-@ManagedService(path = "/progress")
+@ManagedService(path = "/progress/{contestId: [0-9]*}")
 class ProgressController {
+
   var max: Long = 0
 
   private val logger: Logger = LoggerFactory.getLogger(classOf[ProgressController])
 
   private var broadcaster: Option[Broadcaster] = None
 
+  @PathParam("contestId")
+  private val contestId: String = "22"
+
   @Ready
   def onReady(r: AtmosphereResource) {
     logger.info("Browser {} connected.", r.uuid)
     broadcaster = Some(r.getBroadcaster)
-    Global.progressController = Some(this)
+    Global.progressControllers.putIfAbsent(contestId, this)
   }
 
   @Disconnect

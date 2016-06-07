@@ -17,7 +17,7 @@ class AtmosphereRequestHandler @Inject()(atm: AtmosphereHttpRequestHandler, erro
 
   override def routeRequest(request: RequestHeader) = {
     request.path match {
-      case "/progress" => atm.dispatch(request)
+      case s if s.startsWith("/progress/") => atm.dispatch(request)
       case _ => super.routeRequest(request)
     }
   }

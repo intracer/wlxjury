@@ -3,6 +3,12 @@ package org.intracer.wmua.cmd
 import org.intracer.wmua.{ContestJury, Image}
 import org.scalawiki.MwBot
 import org.scalawiki.dto.Page
+import org.scalawiki.dto.cmd.Action
+import org.scalawiki.dto.cmd.query.list.ListArgs
+import org.scalawiki.dto.cmd.query.{Generator, Query}
+import org.scalawiki.dto.cmd.query.prop.rvprop.RvProp
+import org.scalawiki.dto.cmd.query.prop.{Info, Prop, Revisions, RvPropArgs}
+import org.scalawiki.query.DslQuery
 import org.scalawiki.wikitext.TemplateParser
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -11,10 +17,9 @@ import scala.concurrent.Future
 case class ImageTextFromCategory(category: String, contest: ContestJury, monumentIdTemplate: Option[String], commons: MwBot) {
 
   def apply(): Future[Seq[Image]] = {
-    val query = commons.page(category)
 
-    val future = query.revisionsByGenerator("categorymembers", "cm",
-      Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None)
+    val future = revisionsByGenerator(category, "categorymembers", "cm",
+      Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50")
 
     future.map {
       pages =>
@@ -60,5 +65,29 @@ case class ImageTextFromCategory(category: String, contest: ContestJury, monumen
 
   def namedParam(text: String, templateName: String, paramName: String): Option[String] =
     TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt(paramName))
+
+  def revisionsByGenerator(category: String,
+                                     generator: String,
+                                     generatorPrefix: String,
+                                     namespaces: Set[Int],
+                                     props: Set[String],
+                                     limit: String): Future[Seq[Page]] = {
+
+    val pageId: Option[Long] = None
+    val title = Some(category)
+
+    val action = Action(Query(
+      Prop(
+        Info(),
+        Revisions(RvProp(RvPropArgs.byNames(props.toSeq): _*))
+      ),
+      Generator(ListArgs.toDsl(generator, title, pageId, namespaces, Some(limit)))
+    ))
+
+    new DslQuery(action, commons,
+      Map("contestId" -> contest.id.getOrElse(0).toString)
+    ).run()
+  }
+
 
 }

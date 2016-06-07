@@ -1,5 +1,7 @@
 package controllers
 
+import java.util.concurrent.ConcurrentHashMap
+
 import _root_.db.scalikejdbc.ContestJuryJdbc
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import org.intracer.wmua._
@@ -29,7 +31,7 @@ object Global {
 
   val projectRoot = Play.application().path()
 
-  var progressController: Option[ProgressController] = None
+  val progressControllers = new ConcurrentHashMap[String, ProgressController]()
 
   val commons = MwBot.get(COMMONS_WIKIMEDIA_ORG)
 
