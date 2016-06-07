@@ -41,7 +41,8 @@
 
     <body @if(gallery){class="gallery"}>
 
-        @navbar(title, user, asUserId, asUser, selectedRound, currentRounds, allRounds, gallery, rate, region, pager)
+        @navbar(title, user, asUserId, asUser, selectedRound, currentRounds, allRounds, gallery, rate, region, pager,
+            contestId = selectedRound.map(_.contest))
 
      <div class="container-fluid" style="margin-left: 0; margin-right :0;">
 
