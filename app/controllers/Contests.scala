@@ -82,7 +82,7 @@ object Contests extends Controller with Secured {
     )
   }
 
-  def images(contestId: Long) = withAuth({
+  def images(contestId: Long, inProgress: Boolean = false) = withAuth({
     user =>
       implicit request =>
         val contest = ContestJuryJdbc.byId(contestId).get
@@ -93,11 +93,11 @@ object Contests extends Controller with Secured {
         val imageInfos = Seq.empty[Image] //imageInfo.apply().await
 
         val filledForm = importForm.fill(contest.images.getOrElse(""))
-        Ok(views.html.contest_images(filledForm, contest, user, sourceImageNum, dbImagesNum))
+        Ok(views.html.contest_images(filledForm, contest, user, sourceImageNum, dbImagesNum, inProgress))
   }, User.ADMIN_ROLES)
 
   def getNumberOfImages(contest: ContestJury): Long = {
-    val imageInfo = ImageInfoFromCategory(contest.images.get, contest, Global.commons)
+    val imageInfo = ImageInfoFromCategory(contest.images.get, contest, Global.commons, 0)
 
     imageInfo.numberOfImages.await
   }
@@ -108,13 +108,13 @@ object Contests extends Controller with Secured {
 
       val sourceImageNum = getNumberOfImages(contest)
 
-      Option(
-        Global.progressControllers.getOrDefault(contestId.toString, null)
-      ).foreach(_.max = sourceImageNum)
+//      Option(
+//        Global.progressControllers.getOrDefault(contestId.toString, null)
+//      ).foreach(_.max = sourceImageNum)
 
       new GlobalRefactor(Global.commons).appendImages(
         contest.images.get,
-        contest
+        contest, max = sourceImageNum
       )
 
       Redirect(routes.Contests.images(contestId))

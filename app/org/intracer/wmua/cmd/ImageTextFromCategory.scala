@@ -14,7 +14,12 @@ import org.scalawiki.wikitext.TemplateParser
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class ImageTextFromCategory(category: String, contest: ContestJury, monumentIdTemplate: Option[String], commons: MwBot) {
+case class ImageTextFromCategory(
+                                  category: String,
+                                  contest: ContestJury,
+                                  monumentIdTemplate: Option[String],
+                                  commons: MwBot,
+                                  max: Long) {
 
   def apply(): Future[Seq[Image]] = {
 
@@ -85,7 +90,7 @@ case class ImageTextFromCategory(category: String, contest: ContestJury, monumen
     ))
 
     new DslQuery(action, commons,
-      Map("contestId" -> contest.id.getOrElse(0).toString)
+      Map("contestId" -> contest.id.getOrElse(0).toString, "max" -> max.toString)
     ).run()
   }
 

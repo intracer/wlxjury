@@ -14,13 +14,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-case class ImageInfoFromCategory(category: String, contest: ContestJury, commons: MwBot) {
+case class ImageInfoFromCategory(category: String, contest: ContestJury, commons: MwBot, max: Long) {
   def apply(): Future[Seq[Image]] = {
 
     val imageInfoQuery = imageInfoByGenerator(category,
       "categorymembers", "cm",
       namespaces = Set(Namespace.FILE),
-      props = Set("timestamp", "user", "size", "url")
+      props = Set("timestamp", "user", "size", "url"),
+      limit = Math.min(Math.max(max / 20, 200), 500).toString
     )
 
     for (pages <- imageInfoQuery) yield
@@ -56,7 +57,7 @@ case class ImageInfoFromCategory(category: String, contest: ContestJury, commons
     ))
 
     new DslQuery(action, commons,
-      Map("contestId" -> contest.id.getOrElse(0).toString)
+      Map("contestId" -> contest.id.getOrElse(0).toString, "max" -> max.toString)
     ).run()
   }
 

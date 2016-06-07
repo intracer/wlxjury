@@ -2,7 +2,8 @@
         contest: org.intracer.wmua.ContestJury,
         user: org.intracer.wmua.User,
         sourceImages: Long,
-        dbImages: Int
+        dbImages: Int,
+        inProgress: Boolean = false
 )(implicit flash: Flash, lang: Lang, messages: Messages)
     @import helper._
     @import views.html.bootstrap._
@@ -21,12 +22,8 @@
                 <div class="progress-bar" role="progressbar" data-transitiongoal="0"></div>
             </div>
 
-            <div class="btn btn-primary" onClick="document.forms['import-images'].submit();">
-            @Messages("import")
-            </div>
+            <input type="submit" id="import-btn" class="btn btn-primary" value="@Messages("import")">
 
-            <div id="progress-debug"></div>
+            <div id="progress-debug" style="display: none"></div>
         }
-
-
     }

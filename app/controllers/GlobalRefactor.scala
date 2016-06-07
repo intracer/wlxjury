@@ -29,17 +29,17 @@ class GlobalRefactor(val commons: MwBot) {
     val images = ImageJdbc.findByContest(contest.id.get)
 
     if (images.isEmpty) {
-      initImagesFromCategory(contest, category, Seq.empty)
+      initImagesFromCategory(contest, category, Seq.empty, max = 0)
     } else {
       //        initContestFiles(contest, images)
       //createJury()
     }
   }
 
-  def appendImages(category: String, contest: ContestJury, idsFilter: Set[String] = Set.empty): Any = {
+  def appendImages(category: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0): Any = {
     val images = ImageJdbc.findByContest(contest.id.get)
 
-    initImagesFromCategory(contest, category, images, idsFilter)
+    initImagesFromCategory(contest, category, images, idsFilter, max)
   }
 
   def createJury() {
@@ -73,18 +73,25 @@ class GlobalRefactor(val commons: MwBot) {
                               contest: ContestJury,
                               category: String,
                               existing: Seq[Image],
-                              idsFilter: Set[String] = Set.empty) = {
+                              idsFilter: Set[String] = Set.empty, max: Long) = {
     val existingPageIds = existing.map(_.pageId).toSet
-
-    val imageInfos = ImageInfoFromCategory(category, contest, commons).apply()
-    val revInfo = ImageTextFromCategory(category, contest, contest.monumentIdTemplate, commons).apply()
-
     Global.commons.system.eventStream.subscribe(progressListener, classOf[QueryProgress])
 
-    for (images <- ImageEnricher.zipWithRevData(imageInfos, revInfo)
+    val imageInfos = ImageInfoFromCategory(category, contest, commons, max).apply()
+
+    val getImages = if (contest.country == "Ukraine") {
+      val revInfo = ImageTextFromCategory(category, contest, contest.monumentIdTemplate, commons, max).apply()
+      ImageEnricher.zipWithRevData(imageInfos, revInfo)
+    } else {
+      imageInfos
+    }
+
+    for (images <- getImages
       .map(_.filter(image => !existingPageIds.contains(image.pageId)))
     ) {
       saveNewImages(contest, images)
+
+      commons.system.eventStream.publish(new QueryProgress(-1, true, null, commons, context = Map("contestId" -> contest.id.get.toString)))
     }
   }
 
@@ -295,7 +302,7 @@ class ProgressListener extends Actor {
       for (contestId <- progress.context.get("contestId");
            controller <- Option(Global.progressControllers.getOrDefault(contestId, null))
       ) {
-        controller.progress(progress.pages.toInt)
+        controller.progress(progress.pages.toInt, progress.context("max").toInt)
       }
   }
 }

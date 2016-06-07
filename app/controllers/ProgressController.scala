@@ -7,8 +7,6 @@ import org.slf4j.{Logger, LoggerFactory}
 @ManagedService(path = "/progress/{contestId: [0-9]*}")
 class ProgressController {
 
-  var max: Long = 0
-
   private val logger: Logger = LoggerFactory.getLogger(classOf[ProgressController])
 
   private var broadcaster: Option[Broadcaster] = None
@@ -33,10 +31,10 @@ class ProgressController {
     }
   }
 
-  def progress(percentage: Int) = {
-    val percentStr = (percentage * 100.0 / max).toString
+  def progress(done: Int, max: Int) = {
+    val percentStr = (done * 100.0 / max).toString
 
-    logger.info(s":progress: $percentage * 100.0 / $max = $percentStr")
+    logger.info(s":progress: $done * 100.0 / $max = $percentStr")
 
     broadcaster.map(_.broadcast(percentStr))
   }
