@@ -41,8 +41,9 @@ object Gallery extends Controller with Secured with Instrumented {
           val userContest = user.currentContest.getOrElse(0L)
           val roundContest = maybeRound.map(_.contest).getOrElse(0L)
 
-          if (maybeRound.isEmpty || userContest != roundContest ||
-            (user.roles.intersect(Set("admin", "organizer")).isEmpty
+          if (maybeRound.isEmpty ||
+            (!user.hasRole("root") && userContest != roundContest) ||
+            (user.roles.intersect(Set("admin", "organizer", "root")).isEmpty
               && !ContestJuryJdbc.find(userContest).exists(_.currentRound == roundId)
               && !maybeRound.exists(_.juryOrgView))) {
             onUnAuthorized(user)
