@@ -54,7 +54,7 @@
                         Statistics item, if user has rights
                         -->
                         @if(user.canViewOrgInfo(round)) {
-                            <li role="presentation"><a class="brand" href="/roundstat">@Messages("statistics")</a>
+                            <li role="presentation"><a class="brand" href="@routes.Rounds.currentRoundStat(round.id)">@Messages("statistics")</a>
                         }
 
                         <!--

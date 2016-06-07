@@ -23,7 +23,7 @@ object Rounds extends Controller with Secured {
           Ok(views.html.rounds(user, rounds, editRoundForm,
             imagesForm.fill(images),
             selectRoundForm.fill(contest.currentRound.map(_.toString)),
-            RoundJdbc.current(user), contest)
+            rounds.lastOption, contest)
           )
         }
         roundsView.getOrElse(Redirect(routes.Login.index())) // TODO message
@@ -128,11 +128,13 @@ object Rounds extends Controller with Secured {
   }, User.ADMIN_ROLES)
 
 
-  def currentRoundStat() = withAuth({
+  def currentRoundStat(roundId: Option[Long]) = withAuth({
     user =>
       implicit request =>
         //        val rounds = Round.findByContest(user.contest)
-        val round: Round = RoundJdbc.current(user).get
+        val round: Round = roundId.fold(RoundJdbc.current(user).get){
+          id => RoundJdbc.find(id).get
+        }
 
         if (user.roles.contains("jury") && !round.juryOrgView) {
           onUnAuthorized(user)
@@ -156,7 +158,7 @@ object Rounds extends Controller with Secured {
 
           Ok(views.html.roundStat(user, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
         }
-  }, Set(User.ADMIN_ROLE, "jury") ++ User.ORG_COM_ROLES)
+  }, Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)
 
   def roundStat(roundId: Long) = withAuth({
     user =>
@@ -181,7 +183,7 @@ object Rounds extends Controller with Secured {
 
           Ok(views.html.roundStat(user, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
         }
-  }, Set(User.ADMIN_ROLE, "jury") ++ User.ORG_COM_ROLES)
+  }, Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)
 
   //  def byRate(roundId: Int) = withAuth({
   //    user =>
