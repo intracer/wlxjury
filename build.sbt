@@ -34,7 +34,7 @@ version := "1.0-SNAPSHOT"
 //    |From large image view one can return to gallery view, visit image page on commons by clicking the large image, or open full resolution version of the image. Caption of the full resolution image version link shows image resolution.
 //  """.stripMargin
 //
-//maintainer := "***REMOVED*** Korniiko <***REMOVED***>"
+//maintainer := "Ilya Korniiko <intracer@gmail.com>"
 
 scalaVersion := "2.11.8"
 

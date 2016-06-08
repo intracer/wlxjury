@@ -6,7 +6,7 @@
  * Copyright 2010, John Resig
  * Dual licensed under the MIT or GPL Version 2 licenses.
  *
- * ***REMOVED***d upon the plugin by Tzury Bar Yochay:
+ * Based upon the plugin by Tzury Bar Yochay:
  * http://github.com/tzuryby/hotkeys
  *
  * Original idea by:

@@ -9,7 +9,7 @@ case class ConnectDb(host: String = "jury.wikilovesearth.org.ua") extends (() =>
 
     val url = s"jdbc:mysql://$host/wlxjury"
 
-    ConnectionPool.singleton(url, "***REMOVED***", "***REMOVED***")
+    ConnectionPool.singleton(url, "", "")
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,

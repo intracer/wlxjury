@@ -23,7 +23,7 @@ object Tools {
     val url: String = "jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
     println(s"URL:" + url)
 
-    ConnectionPool.singleton(url, "***REMOVED***", "***REMOVED***")
+    ConnectionPool.singleton(url, "", "")
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
@@ -152,7 +152,7 @@ object Tools {
 
     import scala.concurrent.duration._
 
-    Await.result(commons.login("***REMOVED***", "***REMOVED***"), 1.minute)
+    Await.result(commons.login("", ""), 1.minute)
 
     val category = "Category:Images from Wiki Loves Earth 2014 in Ghana"
     val query = commons.page(category)
@@ -180,7 +180,7 @@ object Tools {
 
     val contest = ContestJuryJdbc.find(77L).get
 
-    //    val category: String = "User:***REMOVED***/files" // "Commons:Wiki Loves Earth 2014/Finalists"
+    //    val category: String = "User:Ilya/files" // "Commons:Wiki Loves Earth 2014/Finalists"
     globalRefactor.appendImages(contest.images.get, contest)
 
     val prevRouTond = RoundJdbc.find(133L).get
