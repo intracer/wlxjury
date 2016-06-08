@@ -78,7 +78,8 @@ object ImageWithRatingSeqFilter {
                     includeJurorId: Set[Long] = Set.empty,
                     excludeJurorId: Set[Long] = Set.empty,
                     selectTopByRating: Option[Int] = None,
-                    selectedAtLeast: Option[Int] = None
+                    selectedAtLeast: Option[Int] = None,
+                    mpxAtLeast: Option[Int] = None
                    ): Seq[ImageFilterGen] = {
 
     val setMap = Map(
@@ -94,7 +95,8 @@ object ImageWithRatingSeqFilter {
 
     val optionMap = Map(
       selectTopByRating -> selectTopByRating.map(top => SelectTopByRating(top, round.get)),
-      selectedAtLeast -> selectedAtLeast.map(n => SelectedAtLeast(n))
+      selectedAtLeast -> selectedAtLeast.map(n => SelectedAtLeast(n)),
+      mpxAtLeast -> mpxAtLeast.map(MegaPixelsAtLeast(_))
     )
 
     (setMap.filterKeys(_.nonEmpty).values ++ optionMap.values.flatten).toSeq

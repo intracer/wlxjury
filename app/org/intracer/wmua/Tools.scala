@@ -98,6 +98,7 @@ object Tools {
     val currentSelection = ImageJdbc.byRoundMerged(round.id.get).filter(iwr => iwr.selection.nonEmpty).toSet
     val existingImageIds = currentSelection.map(_.pageId)
     val existingJurorIds = currentSelection.flatMap(_.jurors)
+    val mpxAtLeast = round.minMpx
 
     val contestId = round.contest
     val imagesAll = prevRound.fold[Seq[ImageWithRating]](
@@ -119,7 +120,8 @@ object Tools {
       includeJurorId = includeJurorId,
       excludeJurorId = excludeJurorId ++ existingJurorIds,
       selectTopByRating = selectTopByRating,
-      selectedAtLeast = selectedAtLeast
+      selectedAtLeast = selectedAtLeast,
+      mpxAtLeast = mpxAtLeast
     )
 
     println("Image filters:")
