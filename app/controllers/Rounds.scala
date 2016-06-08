@@ -2,6 +2,7 @@ package controllers
 
 import db.scalikejdbc.{ContestJuryJdbc, RoundJdbc, SelectionJdbc}
 import org.intracer.wmua._
+import org.intracer.wmua.cmd.SetCurrentRound
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc.Controller
@@ -69,6 +70,7 @@ object Rounds extends Controller with Secured {
       round.limitMin, round.limitMax, round.recommended, minMpx = round.minMpx)
 
     Tools.distributeImages(created, created.jurors, None)
+    SetCurrentRound(round.contest, None, round).apply()
 
     created
   }
