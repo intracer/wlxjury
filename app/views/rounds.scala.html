@@ -8,9 +8,7 @@
         round: Option[org.intracer.wmua.Round],
         contest: ContestJury
 )(implicit flash: Flash, lang: Lang, messages: Messages)
-    @import views.html.bootstrap._
     @import helper._
-    @import org.intracer.wmua.Round
     @import db.scalikejdbc.SelectionJdbc
 
     @mainAdmin(Messages("rounds"), adminUser, adminUser.id.get,
@@ -18,6 +16,16 @@
         <div class="row" >
             <h3>@Messages("Contest: " + contest.fullName)</h3>
 
+            @form(routes.Rounds.setRound(), 'class -> "form-inline", 'id -> "set-round", 'role -> "form") {
+                <div class="form-group">
+                @select(selectRoundForm("currentRound"), rounds.map(r => (r.id.toString, r.description)),
+                    '_label -> "Current round", '_help -> "", 'class -> "form-control")
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary" value="@Messages("Set current round")">
+                </div>
+            }
 
             <table class="table table-striped table-condensed" style="background-color: #CCCCCC ;">
 
@@ -38,37 +46,38 @@
 
                 <tbody>
 
-                    @for(round <- rounds) {
-                        <tr>
-                            <td> <a href="/admin/rounds/edit/@round.id">@round.number</a> </td>
-                            <td> @round.name </td>
-                                <!--                            <td> @round.roles.mkString(",") </td> -->
-                            <td>@((Seq("Each image to all jurors") ++ (1 to 4).map(i => s"Each image to $i juror(s)")).apply(round.distribution)) </td>
-                            <td>@round.rates.name </td>
-                                <!--                            <td> @round.limitMin </td>
-                            <td>@round.limitMax </td>
-                            <td>@round.recommended.fold("")(_.toString) </td> -->
-                            <td>@round.allImages.size </td>
-                            <td>@SelectionJdbc.byRoundSelected(round.id.get).filter(_.rate > 0).groupBy(_.pageId).size </td>
-                        </tr>
-                    }
-
-                    @form(routes.Rounds.saveRound, 'class -> "form-vertical", 'id -> "add-round") {
-                        <input type="hidden" name="returnTo" id="returnTo" value="roundList" />
-                        <input type="hidden" name="contest" id="contest" value="@contest.id.get" />
-                        <input type="hidden" name="roles" id="roles" value='jury' />
-                        <input type="hidden" name="number" id="number" value="@{
-                            rounds.size + 1
-                        }" />
-
-                        <div class="btn" onClick="document.forms['add-round'].submit() ;">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/0/06/Farm-Fresh_add.png">
-                        </div>
-                    }
+                @for(round <- rounds) {
+                    <tr>
+                        <td> <a href="/admin/rounds/edit/@round.id">@round.number</a> </td>
+                        <td> @round.name </td>
+                            <!--                            <td>          @round.roles.mkString(",") </td> -->
+                        <td>@((Seq("Each image to all jurors") ++ (1 to 4).map(i => s"Each image to $i juror(s)")).apply(round.distribution)) </td>
+                        <td>@round.rates.name </td>
+                            <!--                            <td>          @round.limitMin </td>
+                        <td>@round.limitMax </td>
+                        <td>@round.recommended.fold("")(_.toString) </td> -->
+                        <td>@round.allImages.size </td>
+                        <td>@SelectionJdbc.byRoundSelected(round.id.get).filter(_.rate > 0).groupBy(_.pageId).size </td>
+                    </tr>
+                }
                 </tbody>
 
             </table>
+        </div>
 
+        <div class="row" >
+        @form(routes.Rounds.saveRound, 'class -> "form-vertical", 'id -> "add-round") {
+            <input type="hidden" name="returnTo" id="returnTo" value="roundList" />
+            <input type="hidden" name="contest" id="contest" value="@contest.id.get" />
+            <input type="hidden" name="roles" id="roles" value='jury' />
+            <input type="hidden" name="number" id="number" value="@{
+                rounds.size + 1
+            }" />
+
+            <div class="control-group">
+                <input type="submit" class="btn btn-primary" value="@Messages("Add round")">
+            </div>
+        }
         </div>
     }
 
