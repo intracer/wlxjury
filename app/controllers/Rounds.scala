@@ -19,13 +19,12 @@ object Rounds extends Controller with Secured {
         val roundsView = for (contestId <- user.currentContest.orElse(contestIdParam);
                               contest <- ContestJuryJdbc.byId(contestId)) yield {
           val rounds = RoundJdbc.findByContest(contestId)
-          val images = contest.images
-          val currentRound = contest.currentRound.map(_.toString)
+          val currentRound = rounds.find(_.id == contest.currentRound)
 
           Ok(views.html.rounds(user, rounds, editRoundForm,
-            imagesForm.fill(images),
-            selectRoundForm.fill(currentRound),
-            rounds.lastOption, contest)
+            imagesForm.fill(contest.images),
+            selectRoundForm.fill(contest.currentRound.map(_.toString)),
+            currentRound, contest)
           )
         }
         roundsView.getOrElse(Redirect(routes.Login.index())) // TODO message
