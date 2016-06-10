@@ -6,6 +6,7 @@
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @import views.html.bootstrap._
+@import b3.vertical.fieldConstructor
 @import helper._
 @import org.intracer.wmua.Round
 
@@ -20,7 +21,7 @@
             <h3>@Messages("Create round")</h3>
         }
 
-@form(routes.Rounds.saveRound, 'class -> "form-vertical") {
+@b3.form(routes.Rounds.saveRound) {
 
     @if(editRoundForm.hasGlobalErrors) {
         <p class="error">
@@ -34,36 +35,38 @@
         <input type="hidden" name="number" id="number" value='@editRoundForm("number").value' />
         <input type="hidden" name="roles" id="roles" value='jury' />
 
-        @text(editRoundForm("name"))
+        @b3.text(editRoundForm("name"))
 
-        @select(editRoundForm("distribution"),
-            (0 to 4).map(x => (x.toString,
-                    Seq(
-                        "Each image to all jurors",
-                        "Each image to 1 juror",
-                        "Each image to 2 jurors",
-                        "Each image to 3 jurors",
-                        "Each image to 4 jurors"
-                    )(x))),
-            '_label -> "Image distribution", '_help -> "", 'class -> "form-control")
+        @defining(round.flatMap(_.id).isDefined) { noEdit =>
+            @b3.select(editRoundForm("distribution"),
+                (0 to 4).map(x => (x.toString,
+                        Seq(
+                            "Each image to all jurors",
+                            "Each image to 1 juror",
+                            "Each image to 2 jurors",
+                            "Each image to 3 jurors",
+                            "Each image to 4 jurors"
+                        )(x))),
+                '_label -> "Image distribution", 'readonly -> noEdit)
 
-        @select(
-            editRoundForm("rates"),
-            Round.rates.map(x => (x.id.toString,x.name)),
-            '_label -> "Selection type", '_help -> "", 'class -> "form-control")
+            @b3.select(
+                editRoundForm("rates"),
+                Round.rates.map(x => (x.id.toString, x.name)),
+                '_label -> "Selection type", 'readonly -> noEdit)
 
-        @select(
-            editRoundForm("minMpx"),
-            Seq("No", "1", "2").map(x => (x, x)),
-            '_label -> "Minimum MegaPixels", '_help -> "", 'class -> "form-control")
+            @b3.select(
+                editRoundForm("minMpx"),
+                Seq("No", "1", "2").map(x => (x, x)),
+                '_label -> "Minimum MegaPixels", 'readonly -> noEdit)
 
-<!--
-        @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString,x.toString)), '_label -> "Min selected", '_help -> "")
+            <!--
+            @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Min selected" )
 
-        @select(editRoundForm("limitMax"), (1 to 50).map(x => (x.toString,x.toString)), '_label -> "Max selected", '_help -> "")
+            @select(editRoundForm("limitMax"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Max selected" )
 
-        @select(editRoundForm("recommended"), (1 to 50).map(x => (x.toString,x.toString)), '_label -> "Recommended selected", '_help -> "")  -->
+            @select(editRoundForm("recommended"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Recommended selected") -->
 
+        }
     </fieldset>
 
     <div class="form-actions">

@@ -51,8 +51,8 @@ resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
 libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.4.0",
-  "com.adrianhurt" %% "play-bootstrap3" % "0.4.4-P24",
-  "mysql" % "mysql-connector-java" % "5.1.35",
+  "com.adrianhurt" %% "play-bootstrap" % "1.0-P24-B3",
+"mysql" % "mysql-connector-java" % "5.1.35",
   "org.scalikejdbc" %% "scalikejdbc" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % scalikejdbcPlayVersion,
