@@ -22,11 +22,10 @@ class SendMail {
     val email = Email(
       subject,
       to = to,
-      from = s"$fromName FROM <$fromEmail>",
+      from = s"$fromName <$fromEmail>",
       bodyText = Some(message)
     )
 
     MailerPlugin.send(email)(play.api.Play.current)
   }
-
 }
