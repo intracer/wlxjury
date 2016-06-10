@@ -14,7 +14,7 @@
         <div class="col-md-4">
 
 
-        @if(!editRoundForm("id").value.contains("0")) {
+        @if(round.flatMap(_.id).isDefined) {
             <h3>@Messages("Edit round")</h3>
         } else {
             <h3>@Messages("Create round")</h3>
