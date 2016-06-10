@@ -102,7 +102,11 @@ object Admin extends Controller with Secured {
                   }
                 }
 
-                val result = Redirect(routes.Admin.users(formUser.contest))
+                val result = if (user.hasAnyRole(User.ADMIN_ROLES)) {
+                  Redirect(routes.Admin.users(formUser.contest))
+                } else {
+                  Redirect(routes.Login.index())
+                }
                 val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
 
                 lang.fold(result)(l => result.withLang(Lang(l)))
