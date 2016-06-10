@@ -6,7 +6,8 @@
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @main("error", user, asUserId, asUser) {
-    <p class="error">
-        <span class="label important">@Messages(message)</span>
-    </p>
+
+    <div class="alert alert-warning">
+        @Messages(message)
+    </div>
 }

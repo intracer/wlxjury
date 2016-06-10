@@ -172,3 +172,5 @@ reject.image = Reject image
 up.key = Up
 down.key = Down
 format.boolean=
+
+no.round.yet=No round configured yet. Please wait until contest admin configures the tool.
