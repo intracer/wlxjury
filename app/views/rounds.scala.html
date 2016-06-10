@@ -48,12 +48,12 @@
 
                 @for(round <- rounds) {
                     <tr>
-                        <td> <a href="/admin/rounds/edit/@round.id">@round.number</a> </td>
+                        <td> <a href="@routes.Rounds.editRound(id = round.id, contestId = contest.id.get)">@round.number</a> </td>
                         <td> @round.name </td>
-                            <!--                            <td>          @round.roles.mkString(",") </td> -->
+                            <!--                            <td>            @round.roles.mkString(",") </td> -->
                         <td>@((Seq("Each image to all jurors") ++ (1 to 4).map(i => s"Each image to $i juror(s)")).apply(round.distribution)) </td>
                         <td>@round.rates.name </td>
-                            <!--                            <td>          @round.limitMin </td>
+                            <!--                            <td>            @round.limitMin </td>
                         <td>@round.limitMax </td>
                         <td>@round.recommended.fold("")(_.toString) </td> -->
                         <td>@round.allImages.size </td>
@@ -66,18 +66,13 @@
         </div>
 
         <div class="row" >
-        @form(routes.Rounds.saveRound, 'class -> "form-vertical", 'id -> "add-round") {
-            <input type="hidden" name="returnTo" id="returnTo" value="roundList" />
-            <input type="hidden" name="contest" id="contest" value="@contest.id.get" />
-            <input type="hidden" name="roles" id="roles" value='jury' />
-            <input type="hidden" name="number" id="number" value="@{
-                rounds.size + 1
-            }" />
-
             <div class="control-group">
-                <input type="submit" class="btn btn-primary" value="@Messages("Add round")">
+                <a href="@routes.Rounds.editRound(id = None, contestId = contest.id.get)">
+                    <div class="btn btn-primary" onClick="document.forms['add-user'].submit();">@Messages("Add round")</div>
+                </a>
+
             </div>
-        }
+
         </div>
     }
 

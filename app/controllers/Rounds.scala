@@ -30,10 +30,13 @@ object Rounds extends Controller with Secured {
         roundsView.getOrElse(Redirect(routes.Login.index())) // TODO message
   }, User.ADMIN_ROLES)
 
-  def editRound(id: String) = withAuth({
+  def editRound(roundId: Option[Long], contestId: Long) = withAuth({
     user =>
       implicit request =>
-        val round = RoundJdbc.find(id.toLong).get
+        val number = RoundJdbc.findByContest(contestId).size + 1
+        val round = roundId.flatMap(RoundJdbc.find).getOrElse(
+          new Round(id = None, contest = contestId, number = number)
+        )
         val editRound = EditRound(round, None)
 
         val filledRound = editRoundForm.fill(editRound)

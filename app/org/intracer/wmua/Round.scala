@@ -22,7 +22,7 @@ case class Round(id: Option[Long],
                  active: Boolean = false,
                  optionalRate: Boolean = false,
                  juryOrgView: Boolean = false,
-                 minMpx: Option[Int]) {
+                 minMpx: Option[Int] = None) {
 
   def jurors = UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contest, contest))
 

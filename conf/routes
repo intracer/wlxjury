@@ -88,7 +88,7 @@ POST        /users/resetpasswd/:id                                              
 
 GET         /admin/rounds                                                           controllers.Rounds.rounds(contestId: Option[Long] ?= None)
 
-GET         /admin/rounds/edit/:id                                                  controllers.Rounds.editRound(id: String)
+GET         /admin/rounds/edit                                                      controllers.Rounds.editRound(id: Option[Long] ?= None, contestId: Long)
 
 POST        /admin/rounds/save                                                      controllers.Rounds.saveRound()
 
