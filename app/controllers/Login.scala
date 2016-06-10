@@ -1,10 +1,10 @@
 package controllers
 
-import db.scalikejdbc.{UserJdbc, RoundJdbc}
+import db.scalikejdbc.{RoundJdbc, UserJdbc}
 import org.intracer.wmua.{Round, User}
 import play.api.data.Forms._
 import play.api.data._
-import play.api.i18n.Lang
+import play.api.i18n.{Lang, Messages}
 import play.api.mvc._
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
@@ -22,20 +22,23 @@ object Login extends Controller with Secured {
     if (user.hasAnyRole(User.ORG_COM_ROLES)) {
       Redirect(routes.Rounds.currentRoundStat())
     } else if (user.hasAnyRole(User.JURY_ROLES)) {
-      val round = RoundJdbc.current(user).get
-      if (round.rates == Round.binaryRound) {
-        Redirect(routes.Gallery.list(user.id.get, 0, "all", round.id.get))
-      } else {
-        Redirect(routes.Gallery.byRate(user.id.get, 0, "all", 0))
+      val maybeRound = RoundJdbc.current(user)
+      maybeRound.fold {
+        Redirect(routes.Login.error("no.round.yet"))
+      } {
+        round =>
+          if (round.rates == Round.binaryRound) {
+            Redirect(routes.Gallery.list(user.id.get, 0, "all", round.id.get))
+          } else {
+            Redirect(routes.Gallery.byRate(user.id.get, 0, "all", 0))
+          }
       }
     } else if (user.hasRole(User.ROOT_ROLE)) {
       Redirect(routes.Contests.list())
     } else if (user.hasAnyRole(User.ADMIN_ROLES)) {
       Redirect(routes.Admin.users())
     } else {
-      Redirect(
-        routes.Login.error("You don't have permission to access this page")
-      )
+      Redirect(routes.Login.error("You don't have permission to access this page"))
     }
   }
 
@@ -60,10 +63,10 @@ object Login extends Controller with Secured {
   }
 
   /**
-   * Logout and clean the session.
-   *
-   * @return Index page
-   */
+    * Logout and clean the session.
+    *
+    * @return Index page
+    */
   def logout = Action {
     Redirect(routes.Login.login()).withNewSession
   }
