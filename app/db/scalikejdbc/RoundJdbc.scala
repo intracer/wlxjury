@@ -129,6 +129,12 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     ).where.eq(column.id, id)
   }.update().apply()
 
+  def setInActiveAllInContest(contestId: Long): Unit = withSQL {
+    update(RoundJdbc).set(
+      column.active -> false
+    ).where.eq(column.contest, contestId)
+  }.update().apply()
+
   override def countByContest(contest: Long): Int = withSQL {
     select(sqls.count).from(RoundJdbc as c).where.eq(column.contest, contest)
   }.map(rs => rs.int(1)).single().apply().get

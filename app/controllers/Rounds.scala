@@ -20,10 +20,11 @@ object Rounds extends Controller with Secured {
                               contest <- ContestJuryJdbc.byId(contestId)) yield {
           val rounds = RoundJdbc.findByContest(contestId)
           val images = contest.images
+          val currentRound = contest.currentRound.map(_.toString)
 
           Ok(views.html.rounds(user, rounds, editRoundForm,
             imagesForm.fill(images),
-            selectRoundForm.fill(contest.currentRound.map(_.toString)),
+            selectRoundForm.fill(currentRound),
             rounds.lastOption, contest)
           )
         }
@@ -42,23 +43,23 @@ object Rounds extends Controller with Secured {
   }, User.ADMIN_ROLES)
 
   def saveRound() = withAuth({
-        user =>
-          implicit request =>
+    user =>
+      implicit request =>
 
-            editRoundForm.bindFromRequest.fold(
-              formWithErrors => // binding failure, you retrieve the form containing errors,
-                BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user), formWithErrors.data.get("contest").map(_.toLong))),
-              editForm => {
-                val round = editForm.round
-                if (round.id.isEmpty) {
-                  createNewRound(user, round)
-                } else {
-                  round.id.foreach(roundId => RoundJdbc.updateRound(roundId, round))
-                }
-                Redirect(routes.Rounds.rounds(Some(round.contest)))
-              }
-            )
-      }, User.ADMIN_ROLES)
+        editRoundForm.bindFromRequest.fold(
+          formWithErrors => // binding failure, you retrieve the form containing errors,
+            BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user), formWithErrors.data.get("contest").map(_.toLong))),
+          editForm => {
+            val round = editForm.round
+            if (round.id.isEmpty) {
+              createNewRound(user, round)
+            } else {
+              round.id.foreach(roundId => RoundJdbc.updateRound(roundId, round))
+            }
+            Redirect(routes.Rounds.rounds(Some(round.contest)))
+          }
+        )
+  }, User.ADMIN_ROLES)
 
   def createNewRound(user: User, round: Round): Round = {
 
@@ -78,10 +79,13 @@ object Rounds extends Controller with Secured {
   def setRound() = withAuth({
     user =>
       implicit request =>
-        val newRound = selectRoundForm.bindFromRequest.get
+        val newRoundId = selectRoundForm.bindFromRequest.get
 
-        user.currentContest.foreach { c =>
-          ContestJuryJdbc.setCurrentRound(c, newRound.map(_.toLong))
+        newRoundId.map(_.toLong).foreach { id =>
+          val round = RoundJdbc.find(id)
+          round.foreach{ r =>
+            SetCurrentRound(r.contest, None, r).apply()
+          }
         }
 
         Redirect(routes.Rounds.rounds())
@@ -134,7 +138,7 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         //        val rounds = Round.findByContest(user.contest)
-        val round: Round = roundId.fold(RoundJdbc.current(user).get){
+        val round: Round = roundId.fold(RoundJdbc.current(user).get) {
           id => RoundJdbc.find(id).get
         }
 

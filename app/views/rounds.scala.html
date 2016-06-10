@@ -18,7 +18,7 @@
 
             @form(routes.Rounds.setRound(), 'class -> "form-inline", 'id -> "set-round", 'role -> "form") {
                 <div class="form-group">
-                @select(selectRoundForm("currentRound"), rounds.map(r => (r.id.toString, r.description)),
+                @select(selectRoundForm("currentRound"), rounds.map(r => (r.id.map(_.toString).get, r.description)),
                     '_label -> "Current round", '_help -> "", 'class -> "form-control")
                 </div>
 
