@@ -73,7 +73,7 @@ object Rounds extends Controller with Secured {
       round.limitMin, round.limitMax, round.recommended, minMpx = round.minMpx)
 
     Tools.distributeImages(created, created.jurors, None)
-    SetCurrentRound(round.contest, None, round).apply()
+    SetCurrentRound(round.contest, None, created).apply()
 
     created
   }
