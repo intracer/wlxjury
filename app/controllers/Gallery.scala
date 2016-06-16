@@ -208,22 +208,24 @@ object Gallery extends Controller with Secured with Instrumented {
 
           val files = filterFiles(rate, region, user, round)
 
-          val file = files.find(_.pageId == pageId).get
-
           val index = files.indexWhere(_.pageId == pageId)
 
-          if (criteria.isEmpty) {
-            file.rate = select
-            SelectionJdbc.rate(pageId = file.pageId, juryId = user.id.get, round = round.id.get, rate = select)
-          } else {
+          val maybeFile = files.find(_.pageId == pageId)
 
-            val selection = SelectionJdbc.findBy(pageId, user.id.get, roundId).get
+          maybeFile.foreach { file =>
+            if (criteria.isEmpty) {
+              file.rate = select
+              SelectionJdbc.rate(pageId = file.pageId, juryId = user.id.get, round = round.id.get, rate = select)
+            } else {
 
-            CriteriaRate.updateRate(selection.id, criteria.get, select)
+              val selection = SelectionJdbc.findBy(pageId, user.id.get, roundId).get
 
-            //            val rates = CriteriaRate.getRates(selection.id)
-            //            val average =
-            ///            Selection.rateWithCriteria(pageId = file.pageId, juryId = user.id.toInt, round = round.id, rate = select, criteriaId = criteria.get)
+              CriteriaRate.updateRate(selection.id, criteria.get, select)
+
+              //            val rates = CriteriaRate.getRates(selection.id)
+              //            val average =
+              ///            Selection.rateWithCriteria(pageId = file.pageId, juryId = user.id.toInt, round = round.id, rate = select, criteriaId = criteria.get)
+            }
           }
 
           checkLargeIndex(user, rate, index, pageId, files, region, round.id.get, module)
@@ -260,7 +262,7 @@ object Gallery extends Controller with Secured with Instrumented {
                        roundId: Long,
                        module: String): Result = {
     val newIndex = if (roundId >= 124 || roundId <= 128) index
-    else if (index > files.size - 2)
+    else if (index >= files.size - 1)
       files.size - 2
     else index + 1
 
