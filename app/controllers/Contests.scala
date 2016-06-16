@@ -105,19 +105,30 @@ object Contests extends Controller with Secured {
   def importImages(contestId: Long) = withAuth({ user =>
     implicit request =>
       val contest = ContestJuryJdbc.byId(contestId).get
+      val dbImagesNum = ImageJdbc.countByContest(contestId)
 
-      val sourceImageNum = getNumberOfImages(contest)
+      importForm.bindFromRequest.fold(
+        formWithErrors => {
+          BadRequest(views.html.contest_images(formWithErrors, contest, user, 0, dbImagesNum))
+        },
+        source => {
+          val withNewImages = contest.copy(images = Some(source))
 
-//      Option(
-//        Global.progressControllers.getOrDefault(contestId.toString, null)
-//      ).foreach(_.max = sourceImageNum)
+          ContestJuryJdbc.updateImages(contestId, Some(source))
 
-      new GlobalRefactor(Global.commons).appendImages(
-        contest.images.get,
-        contest, max = sourceImageNum
-      )
+          val sourceImageNum = getNumberOfImages(withNewImages)
 
-      Redirect(routes.Contests.images(contestId))
+          //      Option(
+          //        Global.progressControllers.getOrDefault(contestId.toString, null)
+          //      ).foreach(_.max = sourceImageNum)
+
+          new GlobalRefactor(Global.commons).appendImages(
+            source,
+            withNewImages, max = sourceImageNum
+          )
+
+          Redirect(routes.Contests.images(contestId))
+        })
   }, User.ADMIN_ROLES)
 
   val editContestForm = Form(
