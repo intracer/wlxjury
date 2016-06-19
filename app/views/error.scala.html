@@ -3,11 +3,11 @@
         user: org.intracer.wmua.User = null,
         asUserId: Long = 0,
         asUser: org.intracer.wmua.User = null
-)(implicit flash: Flash, lang: Lang, messages: Messages)
+)(implicit lang: Lang, messages: Messages)
 
 @main("error", user, asUserId, asUser) {
 
-    <div class="alert alert-warning">
+    <div class="alert alert-danger">
         @Messages(message)
     </div>
 }
