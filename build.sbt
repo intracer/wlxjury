@@ -58,7 +58,7 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % scalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % scalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % scalikejdbcPlayVersion,
-  "org.slf4j" % "slf4j-simple" % "[1.7,)",
+  "org.slf4j" % "slf4j-simple" % "1.7.21",
   "org.apache.commons" % "commons-email" % "1.3.2",
   "org.scalawiki" %% "scalawiki-core" % "0.4.2",
   "org.scalawiki" %% "scalawiki-wlx" % "0.4.2",
