@@ -3,8 +3,8 @@ logLevel := Level.Warn
 
 // The Typesafe repository 
 resolvers ++= Seq("typesafe" at "http://repo.typesafe.com/typesafe/releases/",
-  Resolver.file("file",  new File(Path.userHome.absolutePath+"/.ivy2/local/")),
-  "Scalaz Bintray Repo"  at "http://dl.bintray.com/scalaz/releases"
+  Resolver.file("file", new File(Path.userHome.absolutePath + "/.ivy2/local/")),
+  "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 )
 
 // The Sonatype snapshots repository
@@ -26,7 +26,7 @@ addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.5")
 
 //addSbtPlugin("com.github.shmishleniy" % "sbt-deploy-ssh" % "0.1.1")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "0.8.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0-M2")
 
 addSbtPlugin("org.ensime" % "ensime-sbt" % "0.1.6")
 
