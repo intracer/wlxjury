@@ -45,6 +45,8 @@ resolvers += Resolver.bintrayRepo("intracer", "maven")
 
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
+resolvers += Resolver.jcenterRepo
+
 libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.4.0",
   "com.adrianhurt" %% "play-bootstrap" % "1.0-P24-B3",
