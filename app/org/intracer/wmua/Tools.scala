@@ -9,6 +9,7 @@ import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, SpecialNomination}
 import org.scalawiki.wlx.query.MonumentQuery
+import play.api.Play
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
 
 import scala.concurrent.Await
@@ -23,7 +24,10 @@ object Tools {
     val url: String = "jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
     println(s"URL:" + url)
 
-    ConnectionPool.singleton(url, "", "")
+    val user = Play.current.configuration.getString("db.default.user").get
+    val password = Play.current.configuration.getString("db.default.user").get
+
+    ConnectionPool.singleton(url, user, password)
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,
@@ -152,7 +156,11 @@ object Tools {
 
     import scala.concurrent.duration._
 
-    Await.result(commons.login("", ""), 1.minute)
+    val user = Play.current.configuration.getString("db.default.user").get
+    val password = Play.current.configuration.getString("db.default.user").get
+
+
+    Await.result(commons.login(user, password), 1.minute)
 
     val category = "Category:Images from Wiki Loves Earth 2014 in Ghana"
     val query = commons.page(category)

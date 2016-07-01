@@ -1,6 +1,7 @@
 package org.intracer.wmua.cmd
 
-import scalikejdbc.{LoggingSQLAndTimeSettings, GlobalSettings, ConnectionPool}
+import play.api.Play
+import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
 
 case class ConnectDb(host: String = "jury.wikilovesearth.org.ua") extends (() => Unit) {
 
@@ -9,7 +10,10 @@ case class ConnectDb(host: String = "jury.wikilovesearth.org.ua") extends (() =>
 
     val url = s"jdbc:mysql://$host/wlxjury"
 
-    ConnectionPool.singleton(url, "", "")
+    val user = Play.current.configuration.getString("db.default.user").get
+    val password = Play.current.configuration.getString("db.default.user").get
+
+    ConnectionPool.singleton(url, user, password)
 
     GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
       enabled = true,

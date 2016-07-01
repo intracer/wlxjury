@@ -10,7 +10,6 @@ import play.Play
 import play.api._
 import scalikejdbc.{GlobalSettings, LoggingSQLAndTimeSettings}
 
-
 object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
@@ -33,7 +32,7 @@ object Global {
 
   val progressControllers = new ConcurrentHashMap[String, ProgressController]()
 
-  val commons = MwBot.get(COMMONS_WIKIMEDIA_ORG)
+  lazy val commons = MwBot.get(COMMONS_WIKIMEDIA_ORG)
 
   def onStart(app: Application) {
     Logger.info("Application has started")
