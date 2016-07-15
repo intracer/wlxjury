@@ -41,7 +41,9 @@ object Rounds extends Controller with Secured {
 
         val filledRound = editRoundForm.fill(editRound)
 
-        Ok(views.html.editRound(user, filledRound, Some(round), Some(round.contest)))
+        val rounds = RoundJdbc.findByContest(contestId)
+
+        Ok(views.html.editRound(user, filledRound, round, rounds, Some(round.contest)))
   }, User.ADMIN_ROLES)
 
   def saveRound() = withAuth({
@@ -49,8 +51,12 @@ object Rounds extends Controller with Secured {
       implicit request =>
 
         editRoundForm.bindFromRequest.fold(
-          formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user), formWithErrors.data.get("contest").map(_.toLong))),
+          formWithErrors => {
+            // binding failure, you retrieve the form containing errors,
+            val contestId: Option[Long] = formWithErrors.data.get("contest").map(_.toLong)
+            val rounds = contestId.map(RoundJdbc.findByContest).getOrElse(Seq.empty)
+            BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user).get, rounds, contestId))
+          },
           editForm => {
             val round = editForm.round
             if (round.id.isEmpty) {
@@ -69,10 +75,11 @@ object Rounds extends Controller with Secured {
 
     val count = RoundJdbc.countByContest(round.contest)
 
-    val created = RoundJdbc.create(count + 1, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
-      round.limitMin, round.limitMax, round.recommended, minMpx = round.minMpx)
+    val created = RoundJdbc.create(round.copy(number = count + 1))
 
-    Tools.distributeImages(created, created.jurors, None)
+    val prevRound = created.previous.flatMap(RoundJdbc.find)
+
+    Tools.distributeImages(created, created.jurors, prevRound, selectedAtLeast = created.prevSelectedBy)
     SetCurrentRound(round.contest, None, created).apply()
 
     created
@@ -85,7 +92,7 @@ object Rounds extends Controller with Secured {
 
         newRoundId.map(_.toLong).foreach { id =>
           val round = RoundJdbc.find(id)
-          round.foreach{ r =>
+          round.foreach { r =>
             SetCurrentRound(r.contest, None, r).apply()
           }
         }
@@ -229,25 +236,30 @@ object Rounds extends Controller with Secured {
       "limitMax" -> optional(number),
       "recommended" -> optional(number),
       "returnTo" -> optional(text),
-      "minMpx" -> text
+      "minMpx" -> text,
+      "previousRound" -> optional(longNumber()),
+      "minJurors" -> optional(number())
     )(applyEdit)(unapplyEdit)
   )
 
   def applyEdit(id: Option[Long], num: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
                 rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int], returnTo: Option[String],
-                minMpx: String): EditRound = {
+                minMpx: String, previousRound: Option[Long], prevSelectedBy: Option[Int]): EditRound = {
     val round = new Round(id, num, name, contest, Set(roles), distribution, Round.ratesById(rates),
-      limitMin, limitMax, recommended, minMpx = Try(minMpx.toInt).toOption)
+      limitMin, limitMax, recommended,
+      minMpx = Try(minMpx.toInt).toOption,
+      previous = previousRound,
+      prevSelectedBy = prevSelectedBy)
     EditRound(round, returnTo)
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Int, Option[String], Long, String, Int, Int, Option[Int],
-    Option[Int], Option[Int], Option[String], String)] = {
+    Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int])] = {
     val round = editRound.round
     Some(
       (round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
         round.limitMin, round.limitMax, round.recommended, editRound.returnTo,
-        round.minMpx.fold("No")(_.toString))
+        round.minMpx.fold("No")(_.toString), round.previous, round.prevSelectedBy)
     )
   }
 }

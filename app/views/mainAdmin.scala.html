@@ -47,6 +47,20 @@
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
       <![endif]-->
 
+        <script type="text/javascript">
+        $(function () {
+            $('#previousRound').change(function () {
+
+                if ($(this).val()) {
+                    $('#prevRoundFilters').show();
+                } else {
+                    $('#prevRoundFilters').hide();
+                }
+
+            });
+        });
+        </script>
+
     </head>
 
     <body @if(gallery){class="gallery"}>

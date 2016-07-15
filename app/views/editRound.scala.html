@@ -1,7 +1,8 @@
 @(
         user: org.intracer.wmua.User,
         editRoundForm: Form[controllers.EditRound],
-        round: Option[org.intracer.wmua.Round],
+        round: org.intracer.wmua.Round,
+        rounds: Seq[org.intracer.wmua.Round],
         contestId: Option[Long] = None
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
@@ -14,65 +15,87 @@
         <div class="col-md-4">
 
 
-        @if(round.flatMap(_.id).isDefined) {
-            <h3>@Messages("Edit round")</h3>
-        } else {
-            <h3>@Messages("Create round")</h3>
-        }
+            @if(round.id.isDefined) {
+                <h3>@Messages("Edit round")</h3>
+            } else {
+                <h3>@Messages("Create round")</h3>
+            }
 
-@b3.form(routes.Rounds.saveRound) {
+            @b3.form(routes.Rounds.saveRound) {
 
-    @if(editRoundForm.hasGlobalErrors) {
-        <p class="error">
-            <span class="label important">@Messages(editRoundForm.errors.head.message)</span>
-        </p>
-    }
+                @if(editRoundForm.hasGlobalErrors) {
+                    <p class="error">
+                        <span class="label important">@Messages(editRoundForm.errors.head.message)</span>
+                    </p>
+                }
 
-    <fieldset>
-        <input type="hidden" id="id" name="id" value='@editRoundForm("id").value' />
-        <input type="hidden" name="contest" id="contest" value='@editRoundForm("contest").value' />
-        <input type="hidden" name="number" id="number" value='@editRoundForm("number").value' />
-        <input type="hidden" name="roles" id="roles" value='jury' />
+                <fieldset>
+                    <input type="hidden" id="id" name="id" value='@editRoundForm("id").value' />
+                    <input type="hidden" name="contest" id="contest" value='@editRoundForm("contest").value' />
+                    <input type="hidden" name="number" id="number" value='@editRoundForm("number").value' />
+                    <input type="hidden" name="roles" id="roles" value='jury' />
 
-        @b3.text(editRoundForm("name"))
+                    @b3.text(editRoundForm("name"))
 
-        @defining(round.flatMap(_.id).isDefined) { noEdit =>
-            @b3.select(editRoundForm("distribution"),
-                (0 to 4).map(x => (x.toString,
-                        Seq(
-                            "Each image to all jurors",
-                            "Each image to 1 juror",
-                            "Each image to 2 jurors",
-                            "Each image to 3 jurors",
-                            "Each image to 4 jurors"
-                        )(x))),
-                '_label -> "Image distribution", 'readonly -> noEdit)
+                    @defining(round.id.isDefined) { noEdit =>
 
-            @b3.select(
-                editRoundForm("rates"),
-                Round.rates.map(x => (x.id.toString, x.name)),
-                '_label -> "Selection type", 'readonly -> noEdit)
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Filtering</h3>
+                            </div>
+                            <div class="panel-body">
+                                @if(rounds.nonEmpty) {
+                                    @b3.select(editRoundForm("previousRound"), rounds.map(r => (r.id.map(_.toString).get, r.description)),
+                                        '_label -> "Previous round", '_help -> "", 'class -> "form-control", 'readonly -> noEdit,
+                                        '_default -> "No")
+                                }
 
-            @b3.select(
-                editRoundForm("minMpx"),
-                Seq("No", "1", "2").map(x => (x, x)),
-                '_label -> "Minimum MegaPixels", 'readonly -> noEdit)
+                            <div id="prevRoundFilters" @if(round.previous.isEmpty){style="display: none"}>
+                                @b3.select(
+                                    editRoundForm("minJurors"),
+                                    Seq("0", "1", "2").map(x => (x, x)),
+                                    '_label -> "Selected by at least X jurors", 'readonly -> noEdit)
+                            </div>
 
-            <!--
-            @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Min selected" )
+                                @b3.select(
+                                    editRoundForm("minMpx"),
+                                    Seq("No", "1", "2").map(x => (x, x)),
+                                    '_label -> "Minimum MegaPixels", 'readonly -> noEdit)
+                            </div>
+                        </div>
 
-            @select(editRoundForm("limitMax"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Max selected" )
 
-            @select(editRoundForm("recommended"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Recommended selected") -->
+                    @b3.select(editRoundForm("distribution"),
+                        (0 to 4).map(x => (x.toString,
+                                Seq(
+                                    "Each image to all jurors",
+                                    "Each image to 1 juror",
+                                    "Each image to 2 jurors",
+                                    "Each image to 3 jurors",
+                                    "Each image to 4 jurors"
+                                )(x))),
+                        '_label -> "Image distribution", 'readonly -> noEdit)
 
-        }
-    </fieldset>
+                    @b3.select(
+                        editRoundForm("rates"),
+                        Round.rates.map(x => (x.id.toString, x.name)),
+                        '_label -> "Selection type", 'readonly -> noEdit)
 
-    <div class="form-actions">
-        <input type="submit" class="btn btn-primary" value="@Messages("Save")">
-        <a href="@routes.Rounds.rounds(editRoundForm("contest").value.map(_.toLong))" class="btn">@Messages("Cancel")</a>
-    </div>
-    </div>
+                        <!--
+                        @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Min selected")
+
+                        @select(editRoundForm("limitMax"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Max selected")
+
+                        @select(editRoundForm("recommended"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Recommended selected") -->
+
+                    }
+                </fieldset>
+
+                <div class="form-actions">
+                    <input type="submit" class="btn btn-primary" value="@Messages("Save")">
+                    <a href="@routes.Rounds.rounds(editRoundForm("contest").value.map(_.toLong))" class="btn">@Messages("Cancel")</a>
+                </div>
+            </div>
 
     </div>
 }

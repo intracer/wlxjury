@@ -33,7 +33,9 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     active = rs.booleanOpt(c.active).getOrElse(false),
     optionalRate = rs.booleanOpt(c.optionalRate).getOrElse(false),
     juryOrgView = rs.booleanOpt(c.juryOrgView).getOrElse(false),
-    minMpx = rs.intOpt(c.minMpx)
+    minMpx = rs.intOpt(c.minMpx),
+    previous = rs.longOpt(c.previous),
+    prevSelectedBy = rs.intOpt(c.prevSelectedBy)
   )
 
   override def activeRounds(contestId: Long): Seq[Round] = {
@@ -94,7 +96,7 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
         column.number -> round.number,
         column.name -> round.name,
         column.contest -> round.contest,
-        column.roles -> round.roles,
+        column.roles -> round.roles.head,
         column.distribution -> round.distribution,
         column.rates -> round.rates.id,
         column.limitMin -> round.limitMin,
@@ -103,7 +105,9 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
         column.createdAt -> round.createdAt,
         column.active -> round.active,
         column.optionalRate -> round.optionalRate,
-        column.juryOrgView -> round.juryOrgView
+        column.juryOrgView -> round.juryOrgView,
+        column.previous -> round.previous,
+        column.prevSelectedBy -> round.prevSelectedBy
       )
     }.updateAndReturnGeneratedKey().apply()
 

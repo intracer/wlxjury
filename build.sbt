@@ -1,5 +1,5 @@
-lazy val root = (project in file (".") )
-  .enablePlugins (PlayScala, RpmPlugin, DebianPlugin, UpstartPlugin)
+lazy val root = (project in file("."))
+  .enablePlugins(PlayScala, RpmPlugin, DebianPlugin, UpstartPlugin)
 
 name := "wlxjury"
 
@@ -50,7 +50,7 @@ resolvers += Resolver.jcenterRepo
 libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.4.0",
   "com.adrianhurt" %% "play-bootstrap" % "1.0-P24-B3",
-"mysql" % "mysql-connector-java" % "5.1.35",
+  "mysql" % "mysql-connector-java" % "5.1.35",
   "org.scalikejdbc" %% "scalikejdbc" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % scalikejdbcPlayVersion,
