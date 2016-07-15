@@ -19,7 +19,7 @@ case class ImageTextFromCategory(
                                   contest: ContestJury,
                                   monumentIdTemplate: Option[String],
                                   commons: MwBot,
-                                  max: Long) {
+                                  max: Long = 0L) {
 
   def apply(): Future[Seq[Image]] = {
 
@@ -29,12 +29,14 @@ case class ImageTextFromCategory(
     future.map {
       pages =>
 
-        val images = pages.map(
+        val images = pages.sortBy(_.id).map(
           page =>
             new Image(page.id.get, contest.id.get, page.title, "", "", 0, 0, None, None)
         )
 
         val ids: Seq[String] = monumentIdTemplate.fold(Array.fill(pages.size)("").toSeq)(t => monumentIds(pages, t))
+
+        val authorsSeq: Seq[String] = authors(pages)
 
         val descrs: Seq[String] = descriptions(pages)
 
@@ -46,7 +48,11 @@ case class ImageTextFromCategory(
           case (image, descr) => image.copy(description = Some(descr))
         }
 
-        imagesWithDescr
+        val imagesWithAuthor = imagesWithDescr.zip(authorsSeq).map {
+          case (image, author) => image.copy(author = Some(author))
+        }
+
+        imagesWithAuthor
     }
   }
 
@@ -62,6 +68,13 @@ case class ImageTextFromCategory(
     pages.sortBy(_.id).map {
       page =>
         page.text.flatMap(text => namedParam(text, "Information", "description")).getOrElse("")
+    }
+  }
+
+  def authors(pages: Seq[Page]): Seq[String] = {
+    pages.sortBy(_.id).map {
+      page =>
+        page.text.flatMap(text => namedParam(text, "Information", "author")).getOrElse("")
     }
   }
 

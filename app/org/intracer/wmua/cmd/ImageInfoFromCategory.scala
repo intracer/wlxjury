@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-case class ImageInfoFromCategory(category: String, contest: ContestJury, commons: MwBot, max: Long) {
+case class ImageInfoFromCategory(category: String, contest: ContestJury, commons: MwBot, max: Long = 0L) {
   def apply(): Future[Seq[Image]] = {
 
     val imageInfoQuery = imageInfoByGenerator(category,

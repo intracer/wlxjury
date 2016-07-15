@@ -10,7 +10,8 @@ case class Image(pageId: Long,
                  width: Int,
                  height: Int,
                  monumentId: Option[String],
-                 description: Option[String] = None
+                 description: Option[String] = None,
+                 author: Option[String] = None
                   ) extends Ordered[Image] {
 
   def compare(that: Image) = (this.pageId - that.pageId).signum
