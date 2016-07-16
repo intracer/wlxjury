@@ -123,8 +123,8 @@ object Tools {
       excludeTitles = excludeTitles,
       includeJurorId = includeJurorId,
       excludeJurorId = excludeJurorId ++ existingJurorIds,
-      selectTopByRating = selectTopByRating,
-      selectedAtLeast = selectedAtLeast,
+      selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
+      selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
       mpxAtLeast = mpxAtLeast
     )
 
