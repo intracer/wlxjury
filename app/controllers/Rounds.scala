@@ -142,61 +142,43 @@ object Rounds extends Controller with Secured {
 
   }, User.ADMIN_ROLES)
 
-
-  def currentRoundStat(roundId: Option[Long]) = withAuth({
+  def currentRoundStat() = withAuth({
     user =>
       implicit request =>
-        //        val rounds = Round.findByContest(user.contest)
-        val round: Round = roundId.fold(RoundJdbc.current(user).get) {
-          id => RoundJdbc.find(id).get
-        }
-
-        if (user.roles.contains("jury") && !round.juryOrgView) {
-          onUnAuthorized(user)
-        } else {
-
-          val rounds = RoundJdbc.findByContest(user.currentContest.getOrElse(0L))
-
-          val selection = SelectionJdbc.byRoundWithCriteria(round.id.get)
-
-          val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
-          val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
-
-          val totalCount = selection.map(_.pageId).toSet.size
-          val totalByRateCount = selection.groupBy(_.rate).mapValues(_.map(_.pageId).toSet.size)
-
-          val byPageId: Map[Long, Seq[Selection]] = selection.filter(_.rate > 0).groupBy(_.pageId)
-          val pageIdToNumber: Map[Long, Int] = byPageId.mapValues(_.size)
-          val swapped: Seq[(Int, Long)] = pageIdToNumber.toSeq.map(_.swap)
-          val grouped: Map[Int, Seq[(Int, Long)]] = swapped.groupBy(_._1)
-          val byJurorNum = grouped.mapValues(_.size)
-
-          Ok(views.html.roundStat(user, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
+        RoundJdbc.current(user).map {
+          round =>
+            Redirect(routes.Rounds.roundStat(round.id.get))
+        }.getOrElse {
+          Redirect(routes.Login.error("You don't have permission to access this page"))
         }
   }, Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)
 
   def roundStat(roundId: Long) = withAuth({
     user =>
       implicit request =>
-        //        val rounds = Round.findByContest(user.contest)
-        val round: Round = RoundJdbc.find(roundId).get
 
-        if (user.roles.contains("jury") && !round.juryOrgView) {
-          onUnAuthorized(user)
-        } else {
-          val rounds = RoundJdbc.findByContest(user.currentContest.getOrElse(0L))
+        RoundJdbc.find(roundId).map {
+          round =>
 
-          val selection = SelectionJdbc.byRoundWithCriteria(round.id.get)
+            if (!user.canViewOrgInfo(round)) {
+              onUnAuthorized(user)
+            } else {
+              val rounds = RoundJdbc.findByContest(round.contest)
 
-          val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
-          val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
+              val selection = SelectionJdbc.byRoundWithCriteria(round.id.get)
 
-          val totalCount = selection.map(_.pageId).toSet.size
-          val totalByRateCount = selection.groupBy(_.rate).mapValues(_.map(_.pageId).toSet.size)
+              val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
+              val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
 
-          val byJurorNum = selection.filter(_.rate > 0).groupBy(_.pageId).mapValues(_.size).toSeq.map(_.swap).groupBy(_._1).mapValues(_.size)
+              val totalCount = selection.map(_.pageId).toSet.size
+              val totalByRateCount = selection.groupBy(_.rate).mapValues(_.map(_.pageId).toSet.size)
 
-          Ok(views.html.roundStat(user, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
+              val byJurorNum = selection.filter(_.rate > 0).groupBy(_.pageId).mapValues(_.size).toSeq.map(_.swap).groupBy(_._1).mapValues(_.size)
+
+              Ok(views.html.roundStat(user, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
+            }
+        }.getOrElse {
+          Redirect(routes.Login.error("You don't have permission to access this page"))
         }
   }, Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)
 
