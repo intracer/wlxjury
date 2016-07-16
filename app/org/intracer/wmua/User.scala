@@ -38,7 +38,10 @@ case class User(fullname: String,
       hasRole(User.ROOT_ROLE)
 
   def canViewOrgInfo(round: Round) =
-    hasAnyRole(Set("organizer", "admin", "root")) || (roles.contains("jury") && round.juryOrgView)
+    hasRole("root") ||
+      (contest.contains(round.contest) &&
+        hasAnyRole(Set("organizer", "admin", "root")) ||
+        (roles.contains("jury") && round.juryOrgView))
 }
 
 object User {
