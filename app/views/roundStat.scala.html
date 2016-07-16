@@ -50,7 +50,7 @@
 
     @main(Messages("statistics"), user, user.id.get, user, Some(round), currentRounds = Seq(round), rounds, gallery = false) {
 
-        @if(user.roles.intersect(Set("organizer", "admin", "jury")).nonEmpty) {
+        @if(user.canViewOrgInfo(round)) {
             <div class="row" >
                 <nav>
                 <div class="col-md-12 text-center">
