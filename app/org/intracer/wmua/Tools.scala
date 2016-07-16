@@ -94,6 +94,7 @@ object Tools {
                         excludePageIds: Set[Long] = Set.empty,
                         includeTitles: Set[String] = Set.empty,
                         excludeTitles: Set[String] = Set.empty,
+                        selectMinAvgRating: Option[Int] = None,
                         selectTopByRating: Option[Int] = None,
                         selectedAtLeast: Option[Int] = None,
                         includeJurorId: Set[Long] = Set.empty,
@@ -123,6 +124,7 @@ object Tools {
       excludeTitles = excludeTitles,
       includeJurorId = includeJurorId,
       excludeJurorId = excludeJurorId ++ existingJurorIds,
+      selectMinAvgRating = prevRound.flatMap(_ => selectMinAvgRating),
       selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
       selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
       mpxAtLeast = mpxAtLeast

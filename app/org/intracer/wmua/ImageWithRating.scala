@@ -25,7 +25,7 @@ case class ImageWithRating(image: Image, selection: Seq[Selection], countFromDb:
     ownJuryRating.rate = rate
   }
 
-  def totalRate(round: Round):Double =
+  def totalRate(round: Round): Double =
     if (selection.size == 1 && selection.head.juryId != 0)
       selection.head.rate
     else

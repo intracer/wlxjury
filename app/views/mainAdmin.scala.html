@@ -52,7 +52,10 @@
             $('#previousRound').change(function () {
 
                 if ($(this).val()) {
+                    $('#selectFilters').hide();
+                    $('#rateFilters').hide();
                     $('#prevRoundFilters').show();
+                    $('.round' + $(this).val()).show()
                 } else {
                     $('#prevRoundFilters').hide();
                 }

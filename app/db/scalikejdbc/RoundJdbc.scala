@@ -35,7 +35,8 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     juryOrgView = rs.booleanOpt(c.juryOrgView).getOrElse(false),
     minMpx = rs.intOpt(c.minMpx),
     previous = rs.longOpt(c.previous),
-    prevSelectedBy = rs.intOpt(c.prevSelectedBy)
+    prevSelectedBy = rs.intOpt(c.prevSelectedBy),
+    prevMinAvgRate = rs.intOpt(c.prevMinAvgRate)
   )
 
   override def activeRounds(contestId: Long): Seq[Round] = {
@@ -67,29 +68,6 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     select.from(RoundJdbc as c).where.eq(c.id, id).and.append(isNotDeleted)
   }.map(RoundJdbc(c)).single().apply()
 
-  override def create(number: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
-                      rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int],
-                      createdAt: DateTime = DateTime.now, minMpx: Option[Int]): Round = {
-    val id = withSQL {
-      insert.into(RoundJdbc).namedValues(
-        column.number -> number,
-        column.name -> name,
-        column.contest -> contest,
-        column.roles -> roles,
-        column.distribution -> distribution,
-        column.rates -> rates,
-        column.limitMin -> limitMin,
-        column.limitMax -> limitMax,
-        column.recommended -> recommended,
-        column.createdAt -> createdAt,
-        column.minMpx -> minMpx)
-    }.updateAndReturnGeneratedKey().apply()
-
-    new Round(id = Some(id), name = name, number = number, contest = contest, roles = Set(roles), distribution = distribution,
-      rates = Round.ratesById(rates), limitMin = limitMin,
-      limitMax = limitMax, recommended = recommended, createdAt = createdAt, minMpx = minMpx)
-  }
-
   override def create(round: Round): Round = {
     val id = withSQL {
       insert.into(RoundJdbc).namedValues(
@@ -107,7 +85,8 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
         column.optionalRate -> round.optionalRate,
         column.juryOrgView -> round.juryOrgView,
         column.previous -> round.previous,
-        column.prevSelectedBy -> round.prevSelectedBy
+        column.prevSelectedBy -> round.prevSelectedBy,
+        column.prevMinAvgRate -> round.prevMinAvgRate
       )
     }.updateAndReturnGeneratedKey().apply()
 

@@ -59,6 +59,10 @@ case class SelectTopByRating(topN: Int, round: Round) extends ImageFilterGen {
   def apply = (images: Seq[ImageWithRating]) => images.sortBy(-_.totalRate(round)).take(topN)
 }
 
+case class SelectMinAvgRating(rate: Int, round: Round) extends ImageFilterGen {
+  def apply = imageRatingFilter(i => i.totalRate(round) >= rate)
+}
+
 case class SelectedAtLeast(by: Int) extends ImageFilterGen {
   def apply = imageRatingFilter(i => i.selection.count(_.rate > 0) >= by)
 }
@@ -77,6 +81,7 @@ object ImageWithRatingSeqFilter {
                     excludeTitles: Set[String] = Set.empty,
                     includeJurorId: Set[Long] = Set.empty,
                     excludeJurorId: Set[Long] = Set.empty,
+                    selectMinAvgRating: Option[Int] = None,
                     selectTopByRating: Option[Int] = None,
                     selectedAtLeast: Option[Int] = None,
                     mpxAtLeast: Option[Int] = None
@@ -94,6 +99,7 @@ object ImageWithRatingSeqFilter {
     )
 
     val optionMap = Map(
+      selectMinAvgRating -> selectMinAvgRating.map(top => SelectMinAvgRating(top, round.get)),
       selectTopByRating -> selectTopByRating.map(top => SelectTopByRating(top, round.get)),
       selectedAtLeast -> selectedAtLeast.map(n => SelectedAtLeast(n)),
       mpxAtLeast -> mpxAtLeast.map(MegaPixelsAtLeast(_))

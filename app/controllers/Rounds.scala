@@ -79,7 +79,10 @@ object Rounds extends Controller with Secured {
 
     val prevRound = created.previous.flatMap(RoundJdbc.find)
 
-    Tools.distributeImages(created, created.jurors, prevRound, selectedAtLeast = created.prevSelectedBy)
+    Tools.distributeImages(created, created.jurors, prevRound,
+      selectedAtLeast = created.prevSelectedBy,
+      selectMinAvgRating = created.prevMinAvgRate
+    )
     SetCurrentRound(round.contest, None, created).apply()
 
     created
@@ -220,28 +223,35 @@ object Rounds extends Controller with Secured {
       "returnTo" -> optional(text),
       "minMpx" -> text,
       "previousRound" -> optional(longNumber()),
-      "minJurors" -> optional(number())
+      "minJurors" -> optional(number()),
+      "minAvgRate" -> optional(number())
     )(applyEdit)(unapplyEdit)
   )
 
   def applyEdit(id: Option[Long], num: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
                 rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int], returnTo: Option[String],
-                minMpx: String, previousRound: Option[Long], prevSelectedBy: Option[Int]): EditRound = {
+                minMpx: String,
+                previousRound: Option[Long],
+                prevSelectedBy: Option[Int],
+                prevMinAvgRate: Option[Int]
+               ): EditRound = {
     val round = new Round(id, num, name, contest, Set(roles), distribution, Round.ratesById(rates),
       limitMin, limitMax, recommended,
       minMpx = Try(minMpx.toInt).toOption,
       previous = previousRound,
-      prevSelectedBy = prevSelectedBy)
+      prevSelectedBy = prevSelectedBy,
+      prevMinAvgRate = prevMinAvgRate
+    )
     EditRound(round, returnTo)
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Int, Option[String], Long, String, Int, Int, Option[Int],
-    Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int])] = {
+    Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int], Option[Int])] = {
     val round = editRound.round
     Some(
       (round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
         round.limitMin, round.limitMax, round.recommended, editRound.returnTo,
-        round.minMpx.fold("No")(_.toString), round.previous, round.prevSelectedBy)
+        round.minMpx.fold("No")(_.toString), round.previous, round.prevSelectedBy, round.prevMinAvgRate)
     )
   }
 }
