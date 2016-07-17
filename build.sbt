@@ -40,6 +40,7 @@ scalaVersion := "2.11.8"
 
 val scalikejdbcVersion = "2.2.9"
 val scalikejdbcPlayVersion = "2.4.3"
+val scalawikiVersion = "0.4.3"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -57,13 +58,13 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % scalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % scalikejdbcPlayVersion,
   "org.slf4j" % "slf4j-simple" % "1.7.21",
-  "org.apache.commons" % "commons-email" % "1.3.2",
-  "org.scalawiki" %% "scalawiki-core" % "0.4.2",
-  "org.scalawiki" %% "scalawiki-wlx" % "0.4.2",
+  "org.scalawiki" %% "scalawiki-core" % scalawikiVersion,
+  "org.scalawiki" %% "scalawiki-wlx" % scalawikiVersion,
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
   "org.atmosphere" % "atmosphere-play" % "2.2.0",
   "com.typesafe.play" %% "play-mailer" % "4.0.0",
-  jdbc, cache, filters, evolutions,
+  "org.flywaydb" %% "flyway-play" % "2.3.0",
+  jdbc, cache, filters,
   specs2 % Test,
   "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
 )
