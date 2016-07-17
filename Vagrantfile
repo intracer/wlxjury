@@ -6,7 +6,6 @@ VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.define "wlxjury", primary: true do |wlxjury|
         wlxjury.vm.box = "ubuntu/trusty64"
-
     end
 
     config.vm.provider "virtualbox" do |vb|
@@ -14,5 +13,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
     config.vm.provision "shell", path: "provision.sh"
+
+    config.vm.network "forwarded_port", guest: 9000, host:9000
+    config.vm.network "private_network", type: "dhcp"
+
+    config.vm.synced_folder ".", "/vagrant", type: "nfs"
 
 end
