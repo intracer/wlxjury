@@ -57,7 +57,6 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % scalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % scalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % scalikejdbcPlayVersion,
-  "org.slf4j" % "slf4j-simple" % "1.7.21",
   "org.scalawiki" %% "scalawiki-core" % scalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % scalawikiVersion,
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
@@ -69,6 +68,7 @@ libraryDependencies ++= Seq(
   "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
 )
 
+doc in Compile <<= target.map(_ / "none")
 
 //lazy val root = (project in file(".")).enablePlugins(PlayScala, DeploySSH).settings(
 //  deployHomeConfigFiles ++= Seq("wm/wmua.conf"),
