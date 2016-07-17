@@ -1,5 +1,3 @@
-# --- !Ups
-
 CREATE TABLE criteria_rate
 (
   id BIGINT(20) UNSIGNED NOT NULL,

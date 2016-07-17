@@ -32,7 +32,7 @@ object Global {
 
   val progressControllers = new ConcurrentHashMap[String, ProgressController]()
 
-  lazy val commons = MwBot.get(COMMONS_WIKIMEDIA_ORG)
+  lazy val commons = MwBot.fromHost(COMMONS_WIKIMEDIA_ORG)
 
   def onStart(app: Application) {
     Logger.info("Application has started")
@@ -66,7 +66,7 @@ object Global {
   }
 
   def globalRefactor = {
-    val commons = MwBot.get(MwBot.commons)
+    val commons = MwBot.fromHost(MwBot.commons)
     new GlobalRefactor(commons)
   }
 

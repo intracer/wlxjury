@@ -84,7 +84,7 @@ object ImageDistributor {
   def fromCategory: Set[Long] = {
     import scala.concurrent.duration._
 
-    val commons = MwBot.get(MwBot.commons)
+    val commons = MwBot.fromHost(MwBot.commons)
 
     val query = commons.page("Category:Non-photographic media from European Science Photo Competition 2015")
     val future = query.imageInfoByGenerator("categorymembers", "cm",

@@ -1,5 +1,3 @@
-# --- !Ups
-
 CREATE TABLE criteria (
   id SERIAL not null,
   round INTEGER,
@@ -8,8 +6,3 @@ CREATE TABLE criteria (
 );
 
 alter table selection add column criteria_id integer DEFAULT null;
-
-# --- !Downs
-DROP TABLE criteria;
-
-alter table selection drop column criteria_id;

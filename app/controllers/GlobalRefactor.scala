@@ -51,7 +51,7 @@ class GlobalRefactor(val commons: MwBot) {
   def initLists(contest: Contest) = {
 
     if (MonumentJdbc.findAll().isEmpty) {
-      val ukWiki = MwBot.get("uk.wikipedia.org")
+      val ukWiki = MwBot.fromHost("uk.wikipedia.org")
 
       //    listsNew(system, http, ukWiki)
 

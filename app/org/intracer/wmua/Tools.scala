@@ -154,7 +154,7 @@ object Tools {
 
     import system.dispatcher
 
-    val commons = MwBot.get(controllers.Global.COMMONS_WIKIMEDIA_ORG)
+    val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
 
     import scala.concurrent.duration._
 
@@ -182,7 +182,7 @@ object Tools {
   }
 
   def globalRefactor = {
-    val commons = MwBot.get(MwBot.commons)
+    val commons = MwBot.fromHost(MwBot.commons)
     new GlobalRefactor(commons)
   }
 

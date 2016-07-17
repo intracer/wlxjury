@@ -1,9 +1,7 @@
-# --- !Ups
-
 CREATE TABLE users (
-  id SERIAL not null PRIMARY KEY,
-  fullname varchar(255) not null,
-  email varchar(255) not null,
+	id SERIAL not null PRIMARY KEY,
+	fullname varchar(255) not null,
+	email varchar(255) UNIQUE not null,
   created_at timestamp not null,
   deleted_at timestamp null,
   password varchar(255),
@@ -11,8 +9,3 @@ CREATE TABLE users (
   contest integer,
   lang char(10)
 );
-
-
-# --- !Downs
-
-DROP TABLE users;
