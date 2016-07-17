@@ -22,11 +22,7 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.6")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-web" % "1.0.0")
 
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.5")
-
-//addSbtPlugin("com.github.shmishleniy" % "sbt-deploy-ssh" % "0.1.1")
-
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.2.0-M3")
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.1.4")
 
 resolvers += Classpaths.sbtPluginReleases
 
