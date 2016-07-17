@@ -1,5 +1,9 @@
 #!/bin/bash
 
+DB_NAME=wlxjury_db
+DB_USER_NAME=wlx_jury_user
+DB_USER_PASSW=wlx_jury
+
 function package_absent() {
     return dpkg -l "$1" &> /dev/null
 }
@@ -18,6 +22,7 @@ if package_absent oracle-java8-installer ; then
     apt-get install -y oracle-java8-set-default
 fi
 
+# Overall you don't need to install scala separately
 if package_absent scala ; then
     wget http://www.scala-lang.org/files/archive/scala-2.11.8.deb
     dpkg -i scala-2.11.8.deb
@@ -32,5 +37,21 @@ if package_absent sbt ; then
     apt-get -y install sbt
 fi
 
+if package_absent mysql-server ; then
+    apt-get install mysql-server
+    mysql_secure_installation
+    mysql_install_db
+fi
+
+if ! mysql -u root -e "use $DB_NAME"; then
+    mysql -u root -e "create database $DB_NAME; GRANT ALL PRIVILEGES ON $DB_NAME.* TO $DB_USER_NAME@localhost IDENTIFIED BY '$DB_USER_PASSW'"
+fi
+
 cd /vagrant
-sbt -v debian:packageBin
+sbt -v clean debian:packageBin
+
+if ! package_absent wlxjury ; then
+    dpkg -r wlxjury
+fi
+
+dpkg -i target/wlxjury_0.8_all.deb
