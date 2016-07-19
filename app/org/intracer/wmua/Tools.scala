@@ -1,6 +1,5 @@
 package org.intracer.wmua
 
-import akka.actor.ActorSystem
 import controllers.GlobalRefactor
 import db.scalikejdbc._
 import org.intracer.wmua.cmd.{DistributeImages, ImageWithRatingSeqFilter}
@@ -14,6 +13,9 @@ import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
 
 import scala.concurrent.Await
 import scala.io.Source
+import scala.concurrent.ExecutionContext.Implicits.global
+import controllers.Global.commons
+import spray.util.pimpFuture
 
 object Tools {
 
@@ -39,49 +41,6 @@ object Tools {
       warningThresholdMillis = 3000L,
       warningLogLevel = 'warn
     )
-
-    //users()
-
-    //    GlobalRefactor.addContestCategories("Wiki Loves Monuments", 2015)
-    val contest = ContestJuryJdbc.find(77L).get
-
-    // GlobalRefactor.rateByCategory("Category:Obviously ineligible submissions for WLM 2015 in Ukraine", 491, 89, -1)
-
-    //val query = GlobalRefactor.commons.page(contest.images.get)
-    //GlobalRefactor.updateMonuments(query, contest)
-    //GlobalRefactor.distributeByCategory("Category:WLM 2015 in Ukraine Round Zero", contest.get)
-    //    addUsers(contest, 5)
-
-    //    addItalyR3()
-
-    //        val round = RoundJdbc.find(116)
-    //        ImageDistributor.distributeImages(contest.id.get, round.get)
-    //    fixRound()
-    initImages()
-    //verifySpain()
-    //internationalRound()
-    // val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
-    //wooden(wlmContest)
-
-    //    GlobalRefactor.initLists(wlmContest)
-    //    return
-
-
-    //    for (contest <- ContestJury.findAll()) {
-    //
-    //      if (contest.country == "Ghana") {
-    //        println(contest)
-
-    //                controllers.GlobalRefactor.initContest("Category:Images from Wiki Loves Earth 2014 in " + contest.country,  contest)
-
-    //    roundAndUsers(contest)
-
-    //updateResolution(contest)
-
-    //Admin.distributeImages(contest, Round.findByContest(contest.id).head)
-    //        createNextRound()
-    //      }
-    //    }
   }
 
   def distributeImages(
@@ -98,8 +57,27 @@ object Tools {
                         selectTopByRating: Option[Int] = None,
                         selectedAtLeast: Option[Int] = None,
                         includeJurorId: Set[Long] = Set.empty,
-                        excludeJurorId: Set[Long] = Set.empty
+                        excludeJurorId: Set[Long] = Set.empty,
+                        sourceCategory: Option[String] = None,
+                        includeCategory: Option[Boolean] = None
                       ) = {
+
+
+    val catIds = sourceCategory.map { category =>
+      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
+      pages.flatMap(_.id)
+    }
+
+    val (includeFromCats, excludeFromCats) = (
+      for (ids <- catIds;
+           include <- includeCategory)
+        yield
+          if (include)
+            (ids, Seq.empty)
+          else (Seq.empty, ids)
+      ).getOrElse(Seq.empty, Seq.empty)
+
+
     val currentSelection = ImageJdbc.byRoundMerged(round.id.get).filter(iwr => iwr.selection.nonEmpty).toSet
     val existingImageIds = currentSelection.map(_.pageId)
     val existingJurorIds = currentSelection.flatMap(_.jurors)
@@ -109,7 +87,7 @@ object Tools {
     val imagesAll = prevRound.fold[Seq[ImageWithRating]](
       ImageJdbc.findByContest(contestId).map(i =>
         new ImageWithRating(i, Seq.empty)
-      ).toSeq
+      )
     )(r =>
       ImageJdbc.byRoundMerged(r.id.get)
     )
@@ -118,8 +96,8 @@ object Tools {
     val funGens = ImageWithRatingSeqFilter.funGenerators(prevRound,
       includeRegionIds = includeRegionIds,
       excludeRegionIds = excludeRegionIds,
-      includePageIds = includePageIds,
-      excludePageIds = excludePageIds ++ existingImageIds,
+      includePageIds = includePageIds ++ includeFromCats.toSet,
+      excludePageIds = excludePageIds ++ existingImageIds ++ excludeFromCats.toSet,
       includeTitles = includeTitles,
       excludeTitles = excludeTitles,
       includeJurorId = includeJurorId,
@@ -149,10 +127,6 @@ object Tools {
   }
 
   def updateResolution(contest: ContestJury) = {
-
-    val system = ActorSystem()
-
-    import system.dispatcher
 
     val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
 
@@ -187,21 +161,13 @@ object Tools {
   }
 
   def initImages(): Unit = {
-
     val contest = ContestJuryJdbc.find(77L).get
 
-    //    val category: String = "User:Ilya/files" // "Commons:Wiki Loves Earth 2014/Finalists"
     globalRefactor.appendImages(contest.images.get, contest)
 
-    val prevRouTond = RoundJdbc.find(133L).get
     val round = RoundJdbc.find(133L).get
 
-    //    val selection = Selection.byRound(22L)
-
     ImageDistributor.distributeImages(contest.id.get, round)
-
-    //    val jurors = round.jurors.filter(j => j.id.get == 626)
-    //    createNextRound(round, jurors, prevRound)
   }
 
   def wooden(wlmContest: Contest) = {
@@ -223,7 +189,6 @@ object Tools {
   }
 
   def internationalRound() = {
-    //GlobalRefactor.commons.page("Commons:Wiki Loves Earth 2015/Winners").
     val contest = ContestJuryJdbc.find(37L).get
 
     globalRefactor.appendImages("Commons:Wiki Loves Earth 2015/Winners", contest)
@@ -254,14 +219,11 @@ object Tools {
           Some("en"))
     }
 
-
     logins.zip(passwords).foreach {
       case (login, password) =>
         println(s"$login / $password")
     }
-
   }
-
 
   def verifySpain(): Unit = {
     val newImages = ImageJdbc.byRatingMerged(0, 112).map(_.title).toSet
@@ -297,11 +259,8 @@ object Tools {
   }
 
   def removeIneligible() = {
-    val system = ActorSystem()
-    import system.dispatcher
-
     val category = "Category:Obviously ineligible submissions for ESPC 2015 in Ukraine"
-    val query = globalRefactor.commons.page(category)
+    val query = commons.page(category)
 
     query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
       filesInCategory =>
@@ -314,11 +273,8 @@ object Tools {
   }
 
   def fixRound() = {
-    val system = ActorSystem()
-    import system.dispatcher
-
     val category = "Category:Non-photographic media from European Science Photo Competition 2015"
-    val query = globalRefactor.commons.page(category)
+    val query = commons.page(category)
 
     query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
       filesInCategory =>

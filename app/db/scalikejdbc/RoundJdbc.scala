@@ -36,14 +36,54 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     minMpx = rs.intOpt(c.minMpx),
     previous = rs.longOpt(c.previous),
     prevSelectedBy = rs.intOpt(c.prevSelectedBy),
-    prevMinAvgRate = rs.intOpt(c.prevMinAvgRate)
+    prevMinAvgRate = rs.intOpt(c.prevMinAvgRate),
+    category = rs.stringOpt(c.category),
+    categoryClause = rs.intOpt(c.categoryClause)
   )
+
+  override def create(round: Round): Round = {
+    val id = withSQL {
+      insert.into(RoundJdbc).namedValues(
+        column.number -> round.number,
+        column.name -> round.name,
+        column.contest -> round.contest,
+        column.roles -> round.roles.head,
+        column.distribution -> round.distribution,
+        column.rates -> round.rates.id,
+        column.limitMin -> round.limitMin,
+        column.limitMax -> round.limitMax,
+        column.recommended -> round.recommended,
+        column.createdAt -> round.createdAt,
+        column.active -> round.active,
+        column.optionalRate -> round.optionalRate,
+        column.juryOrgView -> round.juryOrgView,
+        column.previous -> round.previous,
+        column.prevSelectedBy -> round.prevSelectedBy,
+        column.prevMinAvgRate -> round.prevMinAvgRate,
+        column.category -> round.category,
+        column.categoryClause -> round.categoryClause
+      )
+    }.updateAndReturnGeneratedKey().apply()
+
+    round.copy(id = Some(id))
+  }
+
+  override def updateRound(id: Long, round: Round) = withSQL {
+    update(RoundJdbc).set(
+      column.name -> round.name,
+      column.roles -> round.roles,
+      column.distribution -> round.distribution,
+      column.rates -> round.rates.id,
+      column.limitMin -> round.limitMin,
+      column.limitMax -> round.limitMax,
+      column.recommended -> round.recommended,
+      column.active -> round.active
+    ).where.eq(column.id, id)
+  }.update().apply()
 
   override def activeRounds(contestId: Long): Seq[Round] = {
     ContestJuryJdbc.currentRound(contestId).flatMap(find).toSeq
   }
-
-  //ContestJuryJdbc.currentRound(contestId).map { roundId => find(roundId) }
 
   override def current(user: User): Option[Round] = {
     for (contest <- user.currentContest.flatMap(ContestJuryJdbc.byId);
@@ -67,44 +107,6 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
   override def find(id: Long): Option[Round] = withSQL {
     select.from(RoundJdbc as c).where.eq(c.id, id).and.append(isNotDeleted)
   }.map(RoundJdbc(c)).single().apply()
-
-  override def create(round: Round): Round = {
-    val id = withSQL {
-      insert.into(RoundJdbc).namedValues(
-        column.number -> round.number,
-        column.name -> round.name,
-        column.contest -> round.contest,
-        column.roles -> round.roles.head,
-        column.distribution -> round.distribution,
-        column.rates -> round.rates.id,
-        column.limitMin -> round.limitMin,
-        column.limitMax -> round.limitMax,
-        column.recommended -> round.recommended,
-        column.createdAt -> round.createdAt,
-        column.active -> round.active,
-        column.optionalRate -> round.optionalRate,
-        column.juryOrgView -> round.juryOrgView,
-        column.previous -> round.previous,
-        column.prevSelectedBy -> round.prevSelectedBy,
-        column.prevMinAvgRate -> round.prevMinAvgRate
-      )
-    }.updateAndReturnGeneratedKey().apply()
-
-    round.copy(id = Some(id))
-  }
-
-  override def updateRound(id: Long, round: Round) = withSQL {
-    update(RoundJdbc).set(
-      column.name -> round.name,
-      column.roles -> round.roles,
-      column.distribution -> round.distribution,
-      column.rates -> round.rates.id,
-      column.limitMin -> round.limitMin,
-      column.limitMax -> round.limitMax,
-      column.recommended -> round.recommended,
-      column.active -> round.active
-    ).where.eq(column.id, id)
-  }.update().apply()
 
   override def setActive(id: Long, active: Boolean): Unit = withSQL {
     update(RoundJdbc).set(

@@ -61,6 +61,15 @@
                 }
 
             });
+
+            $('#categoryClause').change(function () {
+                if ($(this).val() == "No") {
+                    $('#categoryDiv').hide();
+                } else {
+                    $('#categoryDiv').show();
+                }
+            });
+
         });
         </script>
 

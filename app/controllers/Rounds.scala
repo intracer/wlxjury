@@ -81,7 +81,9 @@ object Rounds extends Controller with Secured {
 
     Tools.distributeImages(created, created.jurors, prevRound,
       selectedAtLeast = created.prevSelectedBy,
-      selectMinAvgRating = created.prevMinAvgRate
+      selectMinAvgRating = created.prevMinAvgRate,
+      sourceCategory = created.category,
+      includeCategory = created.categoryClause.map(_ > 0)
     )
     SetCurrentRound(round.contest, None, created).apply()
 
@@ -210,11 +212,11 @@ object Rounds extends Controller with Secured {
 
   val editRoundForm = Form(
     mapping(
-      "id" -> optional(longNumber()),
-      "number" -> number(),
-      "name" -> optional(text()),
-      "contest" -> longNumber(),
-      "roles" -> text(),
+      "id" -> optional(longNumber),
+      "number" -> number,
+      "name" -> optional(text),
+      "contest" -> longNumber,
+      "roles" -> text,
       "distribution" -> number,
       "rates" -> number,
       "limitMin" -> optional(number),
@@ -222,9 +224,11 @@ object Rounds extends Controller with Secured {
       "recommended" -> optional(number),
       "returnTo" -> optional(text),
       "minMpx" -> text,
-      "previousRound" -> optional(longNumber()),
-      "minJurors" -> optional(number()),
-      "minAvgRate" -> optional(number())
+      "previousRound" -> optional(longNumber),
+      "minJurors" -> optional(number),
+      "minAvgRate" -> optional(number),
+      "categoryClause" -> text,
+      "source" -> optional(text)
     )(applyEdit)(unapplyEdit)
   )
 
@@ -233,25 +237,34 @@ object Rounds extends Controller with Secured {
                 minMpx: String,
                 previousRound: Option[Long],
                 prevSelectedBy: Option[Int],
-                prevMinAvgRate: Option[Int]
+                prevMinAvgRate: Option[Int],
+                categoryClause: String,
+                category: Option[String]
                ): EditRound = {
     val round = new Round(id, num, name, contest, Set(roles), distribution, Round.ratesById(rates),
       limitMin, limitMax, recommended,
       minMpx = Try(minMpx.toInt).toOption,
       previous = previousRound,
       prevSelectedBy = prevSelectedBy,
-      prevMinAvgRate = prevMinAvgRate
+      prevMinAvgRate = prevMinAvgRate,
+      categoryClause = Try(categoryClause.toInt).toOption,
+      category = category
     )
     EditRound(round, returnTo)
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Int, Option[String], Long, String, Int, Int, Option[Int],
-    Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int], Option[Int])] = {
+    Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String])] = {
     val round = editRound.round
     Some(
       (round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
         round.limitMin, round.limitMax, round.recommended, editRound.returnTo,
-        round.minMpx.fold("No")(_.toString), round.previous, round.prevSelectedBy, round.prevMinAvgRate)
+        round.minMpx.fold("No")(_.toString),
+        round.previous,
+        round.prevSelectedBy,
+        round.prevMinAvgRate,
+        round.categoryClause.fold("No")(_.toString),
+        round.category)
     )
   }
 }

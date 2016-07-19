@@ -12,7 +12,7 @@
 
 @mainAdmin(Messages("edit round"), user, user.id.get, contestId = contestId) {
     <div class="row" >
-        <div class="col-md-4">
+        <div class="col-md-6">
 
 
             @if(round.id.isDefined) {
@@ -50,9 +50,10 @@
                                         '_default -> "No")
                                 }
 
-                            <div id="prevRoundFilters" @if(round.previous.isEmpty){style="display: none"}>
+                            <div id="prevRoundFilters" @if(round.previous.isEmpty) {
+                                style="display: none"}>
                                 <div id="selectFilters" class="@rounds.filter(_.rates.id == 1).map(r => "round" + r.id.get).mkString(" ")">
-                                    @b3.select(
+                                @b3.select(
                                     editRoundForm("minJurors"),
                                     Seq("0", "1", "2").map(x => (x, x)),
                                     '_label -> "Selected by at least X jurors", 'readonly -> noEdit)
@@ -65,6 +66,18 @@
                                     '_label -> "Average image rating is at least", 'readonly -> noEdit)
                                 </div>
                             </div>
+                                @b3.select(
+                                    editRoundForm("categoryClause"),
+                                    Seq(
+                                        ("No", "Absent"),
+                                        ("1", "Images should be IN the category"),
+                                        ("-1", "Images should be NOT IN the category")
+                                    ),
+                                    '_label -> "Category Filter", 'readonly -> noEdit)
+
+                                <div id="categoryDiv" @if(round.category.isEmpty) {style="display: none"}>
+                                    @b3.text(editRoundForm("source"), '_label -> "Category", 'readonly -> noEdit)
+                                </div>
 
                                 @b3.select(
                                     editRoundForm("minMpx"),
