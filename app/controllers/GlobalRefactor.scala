@@ -114,7 +114,7 @@ class GlobalRefactor(val commons: MwBot) {
           pages =>
 
             val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-            val ids: Seq[String] = monumentIds(pages, Set.empty, "Monument Ukraine")
+            val ids: Seq[String] = monumentIds(pages, Set.empty, contest.monumentIdTemplate.get)
 
             val imagesWithIds = newImagesOrigIds.zip(ids).map {
               case (image, id) => image.copy(monumentId = Some(id))
