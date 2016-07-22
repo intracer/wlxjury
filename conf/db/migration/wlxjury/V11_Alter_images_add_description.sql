@@ -1,1 +1,0 @@
-alter table images add COLUMN description text;
