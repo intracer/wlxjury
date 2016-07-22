@@ -102,7 +102,7 @@ object Tools {
       excludeTitles = excludeTitles,
       includeJurorId = includeJurorId,
       excludeJurorId = excludeJurorId ++ existingJurorIds,
-      selectMinAvgRating = prevRound.flatMap(_ => selectMinAvgRating),
+      selectMinAvgRating = prevRound.flatMap(_ => selectMinAvgRating.filter(x => !prevRound.exists(_.rates.id == 1))),
       selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
       selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
       mpxAtLeast = mpxAtLeast
