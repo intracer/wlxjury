@@ -48,10 +48,10 @@ if ! mysql -u root -e "use $DB_NAME"; then
 fi
 
 cd /vagrant
-sbt -v clean debian:packageBin
+sbt -v clean packageDebianUpstart
 
 if ! package_absent wlxjury ; then
     dpkg -r wlxjury
 fi
 
-dpkg -i target/wlxjury_0.8_all.deb
+dpkg -i package/wlxjury-upstart-0.8.deb
