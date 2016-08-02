@@ -19,6 +19,8 @@ fi
 rpm --quiet -q mariadb-server
 if [ $? != 0 ]  ; then
     yum -y install mariadb-server
+    systemctl start mariadb
+    systemctl enable mariadb
 fi
 
 if ! mysql -u root -e "use $DB_NAME"; then
