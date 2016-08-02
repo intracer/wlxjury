@@ -87,56 +87,80 @@ addCommandAlias(
     "; packageRpmSystemD"
 )
 
-lazy val packageDebianSystemV = taskKey[File]("creates debian package with systemv")
-lazy val packageDebianUpstart = taskKey[File]("creates debian package with upstart")
-lazy val packageDebianSystemD = taskKey[File]("creates debian package with systemd")
+addCommandAlias(
+  "packageDebianSystemV", "; set serverLoading in Debian := com.typesafe.sbt.packager.archetypes.ServerLoader.SystemV" +
+    "; internalPackageDebianSystemV"
+)
 
-lazy val packageRpmSystemV = taskKey[File]("creates rpm package with systemv")
-lazy val packageRpmUpstart = taskKey[File]("creates rpm package with upstart")
-lazy val packageRpmSystemD = taskKey[File]("creates rpm package with systemd")
+addCommandAlias(
+  "packageDebianUpstart", "; set serverLoading in Debian := com.typesafe.sbt.packager.archetypes.ServerLoader.Upstart" +
+    "; internalPackageDebianUpstart"
+)
 
-packageDebianSystemV := {
-  serverLoading in Debian := com.typesafe.sbt.packager.archetypes.ServerLoader.SystemV
+addCommandAlias(
+  "packageDebianSystemD", "; set serverLoading in Debian := com.typesafe.sbt.packager.archetypes.ServerLoader.Systemd" +
+    "; internalPackageDebianSystemD"
+)
+
+addCommandAlias(
+  "packageRpmSystemV", "; set serverLoading in Rpm := com.typesafe.sbt.packager.archetypes.ServerLoader.SystemV" +
+    "; internalPackageRpmSystemV"
+)
+
+addCommandAlias(
+  "packageRpmUpstart", "; set serverLoading in Rpm := com.typesafe.sbt.packager.archetypes.ServerLoader.Upstart" +
+    "; internalPackageRpmUpstart"
+)
+
+addCommandAlias(
+  "packageRpmSystemD", "; set serverLoading in Rpm := com.typesafe.sbt.packager.archetypes.ServerLoader.Systemd" +
+    "; internalPackageRpmSystemD"
+)
+
+lazy val internalPackageDebianSystemV = taskKey[File]("creates debian package with systemv")
+lazy val internalPackageDebianUpstart = taskKey[File]("creates debian package with upstart")
+lazy val internalPackageDebianSystemD = taskKey[File]("creates debian package with systemd")
+
+lazy val internalPackageRpmSystemV = taskKey[File]("creates rpm package with systemv")
+lazy val internalPackageRpmUpstart = taskKey[File]("creates rpm package with upstart")
+lazy val internalPackageRpmSystemD = taskKey[File]("creates rpm package with systemd")
+
+internalPackageDebianSystemV := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemv-${version.value}.deb"
   val debianFile = (packageBin in Debian).value
   IO.move(debianFile, output)
   output
 }
 
-packageDebianUpstart := {
-  serverLoading in Debian := com.typesafe.sbt.packager.archetypes.ServerLoader.Upstart
+internalPackageDebianUpstart := {
   val output = baseDirectory.value / "package" / s"wlxjury-upstart-${version.value}.deb"
   val debianFile = (packageBin in Debian).value
   IO.move(debianFile, output)
   output
 }
 
-packageDebianSystemD := {
-  serverLoading in Debian := com.typesafe.sbt.packager.archetypes.ServerLoader.Systemd
+internalPackageDebianSystemD := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemd-${version.value}.deb"
   val debianFile = (packageBin in Debian).value
   IO.move(debianFile, output)
   output
 }
 
-packageRpmSystemV := {
-  serverLoading in Rpm := com.typesafe.sbt.packager.archetypes.ServerLoader.SystemV
+internalPackageRpmSystemV := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemv-${version.value}.rpm"
   val rpmFile = (packageBin in Rpm).value
   IO.move(rpmFile, output)
   output
 }
 
-packageRpmUpstart := {
-  serverLoading in Rpm := com.typesafe.sbt.packager.archetypes.ServerLoader.Upstart
+internalPackageRpmUpstart := {
   val output = baseDirectory.value / "package" / s"wlxjury-upstart-${version.value}.rpm"
   val rpmFile = (packageBin in Rpm).value
   IO.move(rpmFile, output)
   output
 }
 
-packageRpmSystemD := {
-  serverLoading in Rpm := com.typesafe.sbt.packager.archetypes.ServerLoader.Systemd
+internalPackageRpmSystemD := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemd-${version.value}.rpm"
   val rpmFile = (packageBin in Rpm).value
   IO.move(rpmFile, output)
