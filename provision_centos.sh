@@ -16,9 +16,9 @@ if [ $? != 0 ]  ; then
     yum -y install sbt
 fi
 
-rpm --quiet -q mariadb
+rpm --quiet -q mariadb-server
 if [ $? != 0 ]  ; then
-    yum -y install mariadb
+    yum -y install mariadb-server
 fi
 
 if ! mysql -u root -e "use $DB_NAME"; then
@@ -26,7 +26,7 @@ if ! mysql -u root -e "use $DB_NAME"; then
 fi
 
 cd /vagrant
-sbt -v clean packageRpmSystemD
+sbt -v clean packageRpmSystemd
 
 rpm --quiet -q wlxjury
 if [ $? = 0 ]  ; then

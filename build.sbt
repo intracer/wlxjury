@@ -78,13 +78,13 @@ addCommandAlias(
     "; clean " +
     "; packageDebianUpstart" +
     "; clean " +
-    "; packageDebianSystemD" +
+    "; packageDebianSystemd" +
     "; clean " +
     "; packageRpmSystemV" +
     "; clean " +
     "; packageRpmUpstart" +
     "; clean " +
-    "; packageRpmSystemD"
+    "; packageRpmSystemd"
 )
 
 addCommandAlias(
@@ -98,8 +98,8 @@ addCommandAlias(
 )
 
 addCommandAlias(
-  "packageDebianSystemD", "; set serverLoading in Debian := com.typesafe.sbt.packager.archetypes.ServerLoader.Systemd" +
-    "; internalPackageDebianSystemD"
+  "packageDebianSystemd", "; set serverLoading in Debian := com.typesafe.sbt.packager.archetypes.ServerLoader.Systemd" +
+    "; internalPackageDebianSystemd"
 )
 
 addCommandAlias(
@@ -113,17 +113,17 @@ addCommandAlias(
 )
 
 addCommandAlias(
-  "packageRpmSystemD", "; set serverLoading in Rpm := com.typesafe.sbt.packager.archetypes.ServerLoader.Systemd" +
-    "; internalPackageRpmSystemD"
+  "packageRpmSystemd", "; set serverLoading in Rpm := com.typesafe.sbt.packager.archetypes.ServerLoader.Systemd" +
+    "; internalPackageRpmSystemd"
 )
 
 lazy val internalPackageDebianSystemV = taskKey[File]("creates debian package with systemv")
 lazy val internalPackageDebianUpstart = taskKey[File]("creates debian package with upstart")
-lazy val internalPackageDebianSystemD = taskKey[File]("creates debian package with systemd")
+lazy val internalPackageDebianSystemd = taskKey[File]("creates debian package with systemd")
 
 lazy val internalPackageRpmSystemV = taskKey[File]("creates rpm package with systemv")
 lazy val internalPackageRpmUpstart = taskKey[File]("creates rpm package with upstart")
-lazy val internalPackageRpmSystemD = taskKey[File]("creates rpm package with systemd")
+lazy val internalPackageRpmSystemd = taskKey[File]("creates rpm package with systemd")
 
 internalPackageDebianSystemV := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemv-${version.value}.deb"
@@ -139,7 +139,7 @@ internalPackageDebianUpstart := {
   output
 }
 
-internalPackageDebianSystemD := {
+internalPackageDebianSystemd := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemd-${version.value}.deb"
   val debianFile = (packageBin in Debian).value
   IO.move(debianFile, output)
@@ -160,7 +160,7 @@ internalPackageRpmUpstart := {
   output
 }
 
-internalPackageRpmSystemD := {
+internalPackageRpmSystemd := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemd-${version.value}.rpm"
   val rpmFile = (packageBin in Rpm).value
   IO.move(rpmFile, output)
