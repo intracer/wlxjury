@@ -4,19 +4,18 @@ import play.mvc.Call
 
 class UiSelectionDto[T](
                          val itemUrlFunction: T => Call,
-                         val idOpt: T,
-                         val values: Seq[(T, SelectionItem)],
-                         val defaultPair: (T, SelectionItem),
-                         val default: Boolean = true) {
+                         val selectedItemId: T,
+                         val items: Seq[(T, SelectionItem)],
+                         val defaultPair: Option[(T, SelectionItem)] = None) {
 
-  val optValues: Seq[(T, SelectionItem)] = (if (default || values.isEmpty) Seq(defaultPair) else Seq.empty) ++
-    values.map {
+  val optValues: Seq[(T, SelectionItem)] = defaultPair.fold(Seq.empty[(T, SelectionItem)])(Seq(_)) ++
+    items.map {
       case (k, v) => (k, v)
     }
 
   val map: Map[T, SelectionItem] = optValues.toMap
 
-  def current = map(idOpt)
+  def current = map(selectedItemId)
 
 }
 
@@ -27,7 +26,7 @@ object Test {
     dto.itemUrlFunction(Some(dto.map.keys.head))
   }
 
-  private val dto: UiSelectionDto[Int] = new UiSelectionDto[Int](Int => play.api.mvc.Call("", ""), 1, Seq.empty, 0 -> new SelectionItem(""))
+  private val dto: UiSelectionDto[Int] = new UiSelectionDto[Int](Int => play.api.mvc.Call("", ""), 1, Seq.empty, Some(0 -> new SelectionItem("")))
 
   test(dto.asInstanceOf[UiSelectionDto[Any]])
 }
