@@ -50,7 +50,7 @@ object Gallery extends Controller with Secured with Instrumented {
           } else {
             val round = maybeRound.get
 
-            val rounds = RoundJdbc.findByContest(userContest.toLong)
+            val rounds = RoundJdbc.findByContest(roundContest)
             val (uFiles, asUser) = filesByUserId(asUserId, rate, user, maybeRound)
 
             val ratedFiles = rate.fold(
