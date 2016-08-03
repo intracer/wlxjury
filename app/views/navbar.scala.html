@@ -47,15 +47,13 @@
                         <!-- Show rounds dropdown -->
                         @if(user.canViewOrgInfo(round)) {
                             <li role="presentation" class="brand" style="margin-left : 10px">
-                            @dropDownSelection(
-                                new UiSelectionDto[Long](
+                            @(new UiSelectionDto[Long](
                                     itemUrlFunction = (roundId: Long) => routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate),
                                     selectedItemId = selectedRound.flatMap(_.id).get,
                                     items = RoundJdbc.findByContest(user.currentContest.getOrElse(0L)).filter(user.canViewOrgInfo).map {
                                         r => (r.id.get, SelectionItem(r.description, localized = false))
                                     }
-                                ).asInstanceOf[UiSelectionDto[Any]]
-                            )
+                                ).toDropDown())
                             </li>
                         }
 
@@ -113,15 +111,13 @@
 
                     @if(user.id.get != asUserId && user.canViewOrgInfo(round)) {
                                 <li role="presentation" class="brand" >
-                                @dropDownSelection(
-                                    new UiSelectionDto[Long](
+                                @(new UiSelectionDto[Long](
                                         { roundId: Long => routes.Gallery.query(module = if(allRounds.exists(r => r.id.get == roundId && r.rates.id == 1)) "gallery" else "byrate",
                                             Some(asUserId), page = 1, region = region, roundId, rate)
                                         },
                                         round.id.get,
                                         allRounds.filter(user.canViewOrgInfo).map(r => (r.id.get, SelectionItem(r.description, localized = false)))
-                                    ).asInstanceOf[UiSelectionDto[Any]]
-                                )
+                                    ).toDropDown())
                                 </li>
                             @if(round.id.get == 34) {
                                 <li  role="presentation">
@@ -129,19 +125,15 @@
                                 </li>
                             }
                             <li role="presentation">
-
-                                @dropDownSelection(
-                                    new UiSelectionDto[Option[Long]](
+                                @(new UiSelectionDto[Option[Long]](
                                         routes.Gallery.query(module = title, _, page = 1, region = region, round = round.id.get, rate),
                                         Some(asUserId),
                                         round.jurors.map(u => (Some(u.id.get), SelectionItem(u.fullname, localized = false))),
                                         Some(Some(0L) -> SelectionItem("all"))
-                                    ).asInstanceOf[UiSelectionDto[Any]]
-                                )
+                                    ).toDropDown())
 
                             @if(round.rates.id == 1) {
-                                @dropDownSelection(
-                                    new UiSelectionDto[Option[Int]](
+                                @(new UiSelectionDto[Option[Int]](
                                         routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.id.get, _),
                                         rate,
                                         Seq(
@@ -150,20 +142,17 @@
                                             Some(-1) -> SelectionItem("rejected")
                                         ),
                                         Some(None -> SelectionItem("all"))
-                                    ).asInstanceOf[UiSelectionDto[Any]]
-                                )
+                                    ).toDropDown())
                             }
                             @if(/*round.rates.id == 1 &&*/ title != "byrate") {
-                                @dropDownSelection(
-                                    new UiSelectionDto[String](
+                                @(new UiSelectionDto[String](
                                         routes.Gallery.query(_, user = Some(asUserId), page = 1, region = region, round = round.id.get, rate),
                                         title,
                                         Seq(
                                             /*"gallerylarge" -> SelectionItem("large.thumbnails",Some("icon-th-large")),*/
                                             "filelist" -> SelectionItem("file.list", Some("align-justify"))),
                                         Some("gallery" -> SelectionItem("thumbnails", Some("th")))
-                                    ).asInstanceOf[UiSelectionDto[Any]]
-                                    , iconOnly = true)
+                                    ).toDropDown(iconOnly = true))
                             } else {
                                 @if(user.roundFiles(round.id.get).count(_.rate == 0) > 0) {
                             <li  role="presentation" class="@if(rate.contains(0)) {active}">
@@ -176,16 +165,14 @@
                                     (@user.roundFiles(round.id.get).count(_.rate > 0))
                                 </a>
 
-                                @dropDownSelection(
-                                    new UiSelectionDto[String](
+                                @(new UiSelectionDto[String](
                                         routes.Gallery.query(_, user = Some(asUserId), page = 1, region = region, round = round.id.get),
                                         title,
                                         Seq(
                                             /*"gallerylarge" -> SelectionItem("large.thumbnails",Some("icon-th-large")),*/
                                             "filelist" -> SelectionItem("file.list", Some("align-justify"))),
                                         Some("byrate" -> SelectionItem("thumbnails", Some("th")))
-                                    ).asInstanceOf[UiSelectionDto[Any]]
-                                    , iconOnly = true)
+                                    ).toDropDown(iconOnly = true))
                                 }
                     </li>
                     }

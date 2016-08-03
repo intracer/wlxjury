@@ -1,5 +1,6 @@
 package controllers
 
+import play.api.i18n.{Lang, Messages}
 import play.mvc.Call
 
 class UiSelectionDto[T](
@@ -13,12 +14,13 @@ class UiSelectionDto[T](
       case (k, v) => (k, v)
     }
 
-  val map: Map[T, SelectionItem] = optValues.toMap
+  def map = optValues.toMap
 
   def current = map(selectedItemId)
 
+  def toDropDown(iconOnly: Boolean = false)(implicit lang: Lang, messages: Messages) =
+    views.html.dropDownSelection(this.asInstanceOf[UiSelectionDto[Any]], iconOnly)
 }
-
 
 object Test {
 
