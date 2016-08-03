@@ -3,13 +3,12 @@ package controllers
 import play.mvc.Call
 
 class UiSelectionDto[T](
-                         val call: T => Call,
-                         val idOpt:T,
+                         val itemUrlFunction: T => Call,
+                         val idOpt: T,
                          val defaultValue: SelectionItem,
                          val values: Seq[(T, SelectionItem)],
                          val defaultKey: T,
-                         val default:Boolean = true,
-                         val id:Int = 0) {
+                         val default: Boolean = true) {
 
   val optValues: Seq[(T, SelectionItem)] = (if (default || values.isEmpty) Seq(defaultKey -> defaultValue) else Seq.empty) ++
     values.map {
@@ -26,7 +25,7 @@ class UiSelectionDto[T](
 object Test {
 
   def test(dto: UiSelectionDto[Any]) = {
-    dto.call(Some(dto.map.keys.head))
+    dto.itemUrlFunction(Some(dto.map.keys.head))
   }
 
   private val dto: UiSelectionDto[Int] = new UiSelectionDto[Int](Int => play.api.mvc.Call("", ""), 1, new SelectionItem(""), Seq.empty, 0)

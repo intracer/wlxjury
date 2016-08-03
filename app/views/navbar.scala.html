@@ -23,10 +23,9 @@
             <ul class="nav navbar-nav">
                 @if(user != null) {
 
+                   <!-- Admin items: images,  users and rounds setup -->
                    @if(user.hasAnyRole(User.ADMIN_ROLES)) {
-                    <!-- Admin items: images,  users and rounds setup -->
-
-                       @for(cId <- contestId) {
+                      @for(cId <- contestId) {
                             <li role="presentation"><a class="brand" href="@routes.Contests.images(cId)">@Messages("images")</a>
                             <li role="presentation"><a class="brand" href="@routes.Admin.users(contestId)">@Messages("users")</a>
                             <li role="presentation"><a class="brand" href="@routes.Rounds.rounds(contestId)">@Messages("rounds")</a>
@@ -37,33 +36,27 @@
 
                        <li class="navbar-brand" style="margin-left: 10px">@Messages(round.description)</li>
 
-                        <!--
-                        Statistics item, if user has rights
-                        -->
+                        <!-- Link to statistics view, if user has rights -->
                         @if(user.canViewOrgInfo(round)) {
                             <li role="presentation"><a class="brand" href="@routes.Rounds.roundStat(round.id.get)">@Messages("statistics")</a>
                         }
 
-                        <!--
-                            If (viewing users summary or own gallery) and user is juror"
-                        -->
+                        <!-- If (viewing users summary or own gallery) and user is juror" -->
                         @if((asUserId == 0 || asUserId == user.id.get) && round.roles.intersect(user.roles).nonEmpty) {
-                            <!--
-                                Show rounds dropdown
-                            -->
+
+                        <!-- Show rounds dropdown -->
                         @if(user.canViewOrgInfo(round)) {
                             <li role="presentation" class="brand" style="margin-left : 10px">
                             @dropDownSelection(
                                 new UiSelectionDto[Long](
-                                    routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, _, rate),
+                                    (roundId: Long) => routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate),
                                     selectedRound.flatMap(_.id).get,
                                     SelectionItem(round.description),
                                     RoundJdbc.findByContest(user.currentContest.getOrElse(0L)).filter(user.canViewOrgInfo).map {
                                         r => (r.id.get, SelectionItem(r.description, localized = false))
                                     },
                                     defaultKey = round.id.get,
-                                    default = false,
-                                    id = 1
+                                    default = false
                                 ).asInstanceOf[UiSelectionDto[Any]]
                             )
                             </li>
@@ -132,8 +125,7 @@
                                         SelectionItem(round.description),
                                         allRounds.filter(user.canViewOrgInfo).map(r => (r.id.get, SelectionItem(r.description, localized = false))),
                                         defaultKey = round.id.get,
-                                        default = false,
-                                        id = 2
+                                        default = false
                                     ).asInstanceOf[UiSelectionDto[Any]]
                                 )
                                 </li>
@@ -150,8 +142,7 @@
                                         Some(asUserId),
                                         SelectionItem("all"),
                                         round.jurors.map(u => (Some(u.id.get), SelectionItem(u.fullname, localized = false))),
-                                        defaultKey = Some(0L),
-                                        id = 3
+                                        defaultKey = Some(0L)
                                     ).asInstanceOf[UiSelectionDto[Any]]
                                 )
 
@@ -165,8 +156,7 @@
                                             Some(1)-> SelectionItem("selected"),
                                             Some(0) -> SelectionItem("unrated"),
                                             Some(-1) -> SelectionItem("rejected")),
-                                        None,
-                                    id = 4
+                                        None
                                     ).asInstanceOf[UiSelectionDto[Any]]
                                 )
                             }
@@ -179,8 +169,7 @@
                                         Seq(
                                             /*"gallerylarge" -> SelectionItem("large.thumbnails",Some("icon-th-large")),*/
                                             "filelist" -> SelectionItem("file.list", Some("align-justify"))),
-                                        "gallery",
-                                        id = 5
+                                        "gallery"
                                     ).asInstanceOf[UiSelectionDto[Any]]
                                     , iconOnly = true)
                             } else {
@@ -203,8 +192,7 @@
                                         Seq(
                                             /*"gallerylarge" -> SelectionItem("large.thumbnails",Some("icon-th-large")),*/
                                             "filelist" -> SelectionItem("file.list", Some("align-justify"))),
-                                        "byrate",
-                                        id = 6
+                                        "byrate"
                                     ).asInstanceOf[UiSelectionDto[Any]]
                                     , iconOnly = true)
                                 }

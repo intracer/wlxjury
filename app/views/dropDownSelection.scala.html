@@ -1,15 +1,21 @@
 @(dto: UiSelectionDto[Any], iconOnly: Boolean = false)(implicit lang: Lang, messages: Messages)
 <li class="dropdown">
+
+    <!-- Current selected value with dropdown icon -->
     <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" href="#">
+
+        <!-- If no icon: display text, if icon is defined: display icon -->
         @dto.current.icon.fold(Html(dto.current.localizedText)) { iconClass =>
                 <span class="glyphicon glyphicon-@iconClass" style="font-size: 12px"></span>
         }
         <span class="caret"></span>
     </a>
+
+    <!-- Menu that is shown when clicking on dropdown -->
     <ul class="dropdown-menu" role="menu">
         @for((id, value) <- dto.optValues) {
             <li>
-                <a href="@dto.call(id)">
+                <a href="@dto.itemUrlFunction(id)">
                     @value.icon.map { iconClass =>
                         <span class="glyphicon glyphicon-@iconClass" style="font-size: 12px" aria-hidden="true"></span>
                     }
