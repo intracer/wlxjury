@@ -1,7 +1,7 @@
 import sbt.Keys._
 
 lazy val root = identity((project in file("."))
-  .enablePlugins(PlayScala, DebianPlugin, RpmPlugin))
+  .enablePlugins(PlayScala, DebianPlugin, RpmPlugin, JavaAppPackaging))
 
 name := "wlxjury"
 
@@ -65,6 +65,7 @@ libraryDependencies ++= Seq(
   "org.atmosphere" % "atmosphere-play" % "2.2.0",
   "com.typesafe.play" %% "play-mailer" % "4.0.0",
   "org.flywaydb" %% "flyway-play" % "2.3.0",
+  "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
   jdbc, cache, filters,
   specs2 % Test,
   "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
