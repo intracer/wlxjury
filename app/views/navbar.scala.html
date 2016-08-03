@@ -16,39 +16,26 @@
         contestId: Option[Long] = None)(implicit lang: Lang, messages: Messages)
 @import org.intracer.wmua.Round
 
+<!-- Navigation bar on the top of the page -->
 <nav class="navbar navbar-inverse" role="navigation" style="margin-bottom: 10px;">
     <div class="navbar-inner">
         <div class="container-fluid" style="margin-left : 5px ; margin-right : 5px">
             <ul class="nav navbar-nav">
                 @if(user != null) {
-                    <!--
-                        Admin items: users and rounds setup
-                    -->
-                    @if(user.hasAnyRole(User.ADMIN_ROLES)) {
-                        @for(cId <-contestId) {
-                        <li role="presentation"><a class="brand" href="@routes.Contests.images(cId)">@Messages("images")</a>
-                        <li role="presentation"><a class="brand" href="@routes.Admin.users(contestId)">@Messages("users")</a>
-                        <li role="presentation"><a class="brand" href="@routes.Rounds.rounds(contestId)">@Messages("rounds")</a>
+
+                   @if(user.hasAnyRole(User.ADMIN_ROLES)) {
+                    <!-- Admin items: images,  users and rounds setup -->
+
+                       @for(cId <- contestId) {
+                            <li role="presentation"><a class="brand" href="@routes.Contests.images(cId)">@Messages("images")</a>
+                            <li role="presentation"><a class="brand" href="@routes.Admin.users(contestId)">@Messages("users")</a>
+                            <li role="presentation"><a class="brand" href="@routes.Rounds.rounds(contestId)">@Messages("rounds")</a>
                         }
                     }
 
                     @for(round <- if (user.roles.contains("jury")) currentRounds else selectedRound.toSeq) {
 
-                        @if(round.id.get >= 124 && round.id.get <= 128) {
-
-                            @defining(selectedRound.flatMap(_.id) == round.id){ isActive =>
-                                @if(user.roundFiles(round.id.get).count(_.rate == 0) > 0) {
-                                    <li  role="presentation"
-                                    class="@if(isActive) {active}">
-                                        <a href="/byrate/round/@round.id.get/user/@user.id.get/page/1">@Messages(round.description)
-                                            (@user.roundFiles(round.id.get).size)
-                                        </a>
-                                    </li>
-                                }
-                            }
-                        } else {
-                            <li class="navbar-brand" style="margin-left: 10px">@Messages(round.description)</li>
-                        }
+                       <li class="navbar-brand" style="margin-left: 10px">@Messages(round.description)</li>
 
                         <!--
                         Statistics item, if user has rights
