@@ -5,8 +5,6 @@ import javax.mail.internet.InternetAddress
 import controllers.Gallery
 import org.joda.time.DateTime
 
-import scala.collection.mutable
-
 case class User(fullname: String,
                 email: String,
                 id: Option[Long],
@@ -14,7 +12,6 @@ case class User(fullname: String,
                 password: Option[String] = None,
                 contest: Option[Long],
                 lang: Option[String] = None,
-                files: mutable.Buffer[ImageWithRating] = mutable.Buffer.empty,
                 createdAt: Option[DateTime] = None,
                 deletedAt: Option[DateTime] = None) {
 

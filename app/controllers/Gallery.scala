@@ -5,6 +5,9 @@ import org.intracer.wmua._
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{Controller, EssentialAction, Request, Result}
 
+/**
+  * Backend for getting and displaying images
+  */
 object Gallery extends Controller with Secured with Instrumented {
 
   import play.api.Play.current
@@ -21,7 +24,17 @@ object Gallery extends Controller with Secured with Instrumented {
   private[this] val timerByRate = metrics.timer("Gallery.byRate")
   private[this] val timerShow = metrics.timer("Gallery.show")
 
-
+  /**
+    * Queries images
+    *
+    * @param module   one of "gallery", "byrate" or "filelist"
+    * @param asUserId view images assigned to specific user
+    * @param page     show specific page
+    * @param region   region code to filter
+    * @param roundId  round id
+    * @param rate     filter by rate. For select/reject rounds it is selected: 1, rejected: -1, unrated: 0
+    * @return
+    */
   def query(module: String, asUserId: Option[Long], page: Int = 1, region: String = "all", roundId: Long = 0, rate: Option[Int]) = {
     listGeneric(module, asUserId.getOrElse(0), pager => page, region, roundId, rate)
   }
@@ -38,14 +51,9 @@ object Gallery extends Controller with Secured with Instrumented {
         timerList.time {
           val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
 
-          val userContest = user.currentContest.getOrElse(0L)
           val roundContest = maybeRound.map(_.contest).getOrElse(0L)
 
-          if (maybeRound.isEmpty ||
-            (!user.hasRole("root") && userContest != roundContest) ||
-            (user.roles.intersect(Set("admin", "organizer", "root")).isEmpty
-              && !ContestJuryJdbc.find(userContest).exists(_.currentRound == maybeRound.flatMap(_.id))
-              && !maybeRound.exists(_.juryOrgView))) {
+          if (isNotAuthorized(user, maybeRound, roundContest)) {
             onUnAuthorized(user)
           } else {
             val round = maybeRound.get
@@ -91,6 +99,16 @@ object Gallery extends Controller with Secured with Instrumented {
               }
           }
         }
+  }
+
+  def isNotAuthorized(user: User, maybeRound: Option[Round], roundContest: Long): Boolean = {
+    val userContest = user.currentContest.getOrElse(0L)
+    val notAuthorized = maybeRound.isEmpty ||
+      (!user.hasRole("root") && userContest != roundContest) ||
+      (user.roles.intersect(Set("admin", "organizer", "root")).isEmpty
+        && !ContestJuryJdbc.find(userContest).exists(_.currentRound == maybeRound.flatMap(_.id))
+        && !maybeRound.exists(_.juryOrgView))
+    notAuthorized
   }
 
   def byRate(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0) =
@@ -178,21 +196,14 @@ object Gallery extends Controller with Secured with Instrumented {
         show(pageId, user, asUserId, rate, region, roundId, module)
   }
 
-  def largeCurrent(pageId: Long, region: String = "all", rate: Option[Int], module: String) = withAuth {
+  def largeCurrentUser(pageId: Long, region: String = "all", rate: Option[Int], module: String) = withAuth {
     user =>
       implicit request =>
         show(pageId, user, user.id.get, rate, region, 0, module)
   }
 
   def userFiles(user: User, roundId: Long): Seq[ImageWithRating] = {
-    val files = //Cache.getOrElse(s"user/${user.id}/round/$roundId", 900) TODO use cache
-    {
       ImageJdbc.byUserImageWithCriteriaRating(user, roundId)
-    }
-    user.files.clear()
-    user.files ++= files
-
-    files
   }
 
   def selectByPageId(roundId: Long, pageId: Long, select: Int, region: String = "all",

@@ -66,9 +66,9 @@ GET         /gallery/page/:page                                                 
 
 GET         /gallery/region/:region/page/:page                                      controllers.Gallery.listCurrent(page: Int, region: String, rate: Option[Int] ?= None)
 
-GET         /large/pageid/:pageid                                                   controllers.Gallery.largeCurrent(pageid: Long, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery")
+GET         /large/pageid/:pageid                                                   controllers.Gallery.largeCurrentUser(pageid: Long, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery")
 
-GET         /large/region/:region/pageid/:pageid                                    controllers.Gallery.largeCurrent(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery")
+GET         /large/region/:region/pageid/:pageid                                    controllers.Gallery.largeCurrentUser(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery")
 
 GET         /admin/users                                                            controllers.Admin.users(contestId: Option[Long] ?= None)
 
