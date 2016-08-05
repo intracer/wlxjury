@@ -72,7 +72,7 @@ object Gallery extends Controller with Secured with Instrumented {
             val page = pageFn(pager)
             val pageFiles = pager.pageFiles(page)
 
-            if (round.rates.id == 1 && asUserId == 0) {
+            if (round.isBinary && asUserId == 0) {
               val pageFiles2 = pageFiles.map {
                 file => new ImageWithRating(
                   file.image,
@@ -88,10 +88,11 @@ object Gallery extends Controller with Secured with Instrumented {
                   Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, maybeRound, rounds, rate, region, byReg))
 
                 case "filelist" =>
-                  Ok(views.html.fileList(user, asUserId, asUser, files, files, page, maybeRound, rounds, rate, region, byReg, "wiki"))
+                  val useTable = !round.isBinary
+                  Ok(views.html.fileList(user, asUserId, asUser, files, files, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
 
                 case "byrate" =>
-                  if (round.rates.id != 1) {
+                  if (!round.isBinary) {
                     Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, page, maybeRound, rounds, region, byReg))
                   } else {
                     Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, maybeRound, rounds, None, region, byReg))
@@ -119,7 +120,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
   def filterByRate(round: Round, rate: Option[Int], uFiles: Seq[ImageWithRating]): Seq[ImageWithRating] = {
     if (rate.isEmpty) uFiles
-    else if (round.rates != Round.binaryRound) {
+    else if (!round.isBinary) {
       if (rate.get > 0) uFiles.filter(_.rate > 0) else uFiles.filter(_.rate == 0)
     } else {
       uFiles.filter(_.rate == rate.get)
@@ -168,7 +169,8 @@ object Gallery extends Controller with Secured with Instrumented {
         //        val pager = new Pager(files)
         //        val pageFiles = pager.pageFiles(page)
         val byReg: Map[String, Int] = byRegion(ratedFiles)
-        Ok(views.html.fileList(user, asUserId, asUser, files, files, page, round, rounds, rate, region, byReg, format))
+        val useTable = !round.map(_.isBinary).get
+        Ok(views.html.fileList(user, asUserId, asUser, files, files, page, round, rounds, rate, region, byReg, format, useTable))
   }
 
   def filesByUserId(asUserId: Long, rate: Option[Int], user: User, round: Option[Round]): (Seq[ImageWithRating], User) = {

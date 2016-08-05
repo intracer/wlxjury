@@ -1,82 +1,89 @@
 @(
-user: org.intracer.wmua.User,
-asUserId: Long,
-asUser: org.intracer.wmua.User,
-pageFiles: Seq[org.intracer.wmua.ImageWithRating],
-regionFiles: Seq[org.intracer.wmua.ImageWithRating],
-page: Int,
-round: Option[org.intracer.wmua.Round],
-rounds: Seq[org.intracer.wmua.Round],
-rate: Option[Int],
-region: String = "all",
-byRegion: Map[String, Int],
-format1:String = "wiki")(implicit flash: Flash, lang: Lang, messages: Messages)
+        user: org.intracer.wmua.User, /* logged in user */
+        asUserId: Long, /* viewing files of user with asUserId id  */
+        asUser: org.intracer.wmua.User, /* viewing files of user asUser  */
+        pageFiles: Seq[org.intracer.wmua.ImageWithRating],
+        regionFiles: Seq[org.intracer.wmua.ImageWithRating],
+        page: Int, /* not used */
+        round: Option[org.intracer.wmua.Round],
+        rounds: Seq[org.intracer.wmua.Round],
+        rate: Option[Int],
+        region: String = "all",
+        byRegion: Map[String, Int],
+        outputFormat: String = "wiki",
+        wrapInTable: Boolean
+)(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@main("filelist", user, asUserId, asUser, round, rounds, rounds, false, rate, region) {
+@wrapInIf(tag: String, condition: Boolean)(content: Html) = {
+@if(condition) {
+    <@tag>
+        @content
+    </@tag>
+} else {
+    @content
+}
+}
 
-@defining( round.flatMap(_.id).getOrElse(0L)) { roundId =>
+@cell(content: Html) = { @wrapInIf("td", wrapInTable)(content) }
 
-@regionNav({region:String => s"/filelist/round/$roundId/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
+@row(content: Html) = { @wrapInIf("tr", wrapInTable)(content) }
 
-<div class="row">
+@main("filelist", user, asUserId, asUser, round, rounds, rounds, gallery = false, rate, region) {
 
-    @if(round.map(_.rates.id) == Some(1)) {
-    <div contenteditable="true">
+
+    @defining(round.flatMap(_.id).getOrElse(0L)) { roundId =>
+
+        @regionNav({ region: String => s"/filelist/round/$roundId/user/$asUserId/region/$region/page/1${rateParam(rate).body}" }, round, region, byRegion)
+
+    <div class="row">
+
         @defining(s"<!-- Wiki Loves Eath 2014, " +
-                        s"Round ${round.fold("None")(_.description)}, " +
-                        s"Juror: ${Option(asUser).fold("All")(u => u.fullname)} " +
-                        s"${KOATUU.regions.get(region).fold("")(name => s", Region: $name")}. --> ") { t => @t <br/>}
-        @for(file <- pageFiles) {
-        @format1 match {
-        case "wiki" => {
-        <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
-        }
-        case "html" => {
-        @defining(
-        s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img
+                s"Round ${round.fold("None")(_.description)}, " +
+                s"Juror: ${Option(asUser).fold("All")(u => u.fullname)} " +
+                s"${KOATUU.regions.get(region).fold("")(name => s", Region: $name")}. --> ") { t => @t <br/> }
+
+    <div contenteditable="true">
+
+        @if(wrapInTable) {
+            <table>
+                <thead>
+                    <th>
+                        File
+                    </th>
+                    <th>
+                        Rating
+                    </th>
+                </thead>
+                <tbody>
+                }
+
+        @for(file <- if(round.map(_.isBinary).get) pageFiles else pageFiles.sortBy(-_.totalRate(round.get))) {
+            @row {
+                @cell {
+
+                    @outputFormat match {
+                        case "wiki" => {
+                            <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
+                        }
+                        case "html" => {
+                            @defining(
+                                s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img
             src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)}"></a>"""
-        ) {str => @str <br/> }
+                            ) { str => @str <br/> }
+                        }
+                    }
+                }
+
+                @if(wrapInTable) {
+                    <td>@file.rateString(round.get)</td>
+                }
+            }
         }
-        }
+        @if(wrapInTable) {
+        </tbody>
+        </table>
         }
     </div>
-    } else {
-    @defining(s"Wiki Loves Eath 2014, " +
-    s"Round ${round.fold("None")(_.description)}, " +
-    s"Juror: ${Option(asUser).fold("All")(u => u.fullname)} " +
-    s"${KOATUU.regions.get(region).fold("")(name => s", Region: $name")}.") { t => @t <br/>}
-
-    <table>
-        <thead>
-        <th>
-            File
-        </th>
-        <th>
-            Rating
-        </th>
-        </thead>
-        <tbody>
-        @for(file <- pageFiles.sortBy(-_.totalRate(round.get))) {
-        <tr>
-            <td>
-                @format1 match {
-                case "wiki" => {
-                <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
-                }
-                case "html" => {
-                @defining(
-                s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)}"></a>"""
-                ) { str => @str <br/>}
-                }
-                }
-            </td>
-            <td>@file.rateString(round.get)</td>
-        </tr>
-        }
-        </tbody>
-    </table>
-
+    </div>
     }
-</div>
-}
 }

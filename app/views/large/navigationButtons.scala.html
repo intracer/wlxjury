@@ -79,7 +79,7 @@
     @buttonUp()
     @buttonDown()
 
-    @if(round.rates == Round.binaryRound) {
+    @if(round.isBinary) {
         @if(user.id.get == asUserId && round.active && user.roles.contains("jury")) {
             @buttonSelect()
         } else {

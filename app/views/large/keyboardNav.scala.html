@@ -64,7 +64,7 @@
         return false ;
     });
 
-    @if(round.rates == org.intracer.wmua.Round.binaryRound && user.id.get == asUserId && round.active && user.roles.contains("jury")) {
+    @if(round.isBinary && user.id.get == asUserId && round.active && user.roles.contains("jury")) {
        @if(files(index).rate <= 0) {
            $ ( document ).on ( 'keydown', null, 'space', function ( e ) {
            e.preventDefault ( ) ;

@@ -60,7 +60,7 @@
                             <!--
                                 If binary round show unrated, selected, rejected tabs
                             -->
-                            @if(round.rates == Round.binaryRound) {
+                            @if(round.isBinary) {
                                 @defining(selectedRound.flatMap(_.id) == round.id){ isActive =>
 
                                 <li role="presentation" class="@if(rate.contains(0) && isActive){active}">
@@ -132,7 +132,7 @@
                                         Some(Some(0L) -> SelectionItem("all"))
                                     ).toDropDown())
 
-                            @if(round.rates.id == 1) {
+                            @if(round.isBinary) {
                                 @(new UiSelectionDto[Option[Int]](
                                         routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.id.get, _),
                                         rate,

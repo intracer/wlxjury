@@ -39,7 +39,7 @@ case class ImageWithRating(image: Image, selection: Seq[Selection], countFromDb:
   def jurors = selection.map(s => s.juryId).toSet
 
   def ratedJurors(round: Round):Int =
-   if (round.rates.id == 1) {
+   if (round.isBinary) {
      round._allJurors
    } else
 

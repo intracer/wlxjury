@@ -41,6 +41,8 @@ case class Round(id: Option[Long],
   def allImages = ImageJdbc.byRoundMerged(id.get)
 
   def description: String = name.flatMap(s => if (s.trim.isEmpty) None else Some(s)).fold(number.toString)(s => s)
+
+  def isBinary = rates.id == Round.binaryRound.id
 }
 
 object Round {

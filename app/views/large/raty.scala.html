@@ -7,7 +7,7 @@
         byCriteria: Map[Int, Int] = Map.empty
 )(implicit lang: Lang, messages: Messages)
 
-@if(round.rates.id > 1) {
+@if(!round.isBinary) {
 
     <script src="@routes.Assets.at("javascripts/jquery.raty.js")"></script>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/jquery.raty.css")">

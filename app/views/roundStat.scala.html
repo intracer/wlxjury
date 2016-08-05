@@ -9,10 +9,10 @@
         byJurorNum: Map[Int, Int]
         )(implicit flash: Flash, lang: Lang, messages: Messages)
 
-    @roundLinks(round: org.intracer.wmua.Round, user: org.intracer.wmua.User, rate: Int)= {
+    @roundLinks(round: org.intracer.wmua.Round, user: org.intracer.wmua.User, rate: Int) = {
         @defining(byUserRateCount.getOrElse(user.id.get, Map.empty).getOrElse(rate, 0)) { count =>
                     <div class="btn-group">
-                        @if(round.rates.id == 1 || rate == 0) {
+                        @if(round.isBinary || rate == 0) {
                             <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
                                 <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
                                     <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
@@ -25,7 +25,7 @@
                                 </button>
                             </a>
                         }
-                        @if(round.rates.id == 1 || rate == 0) {
+                        @if(round.isBinary || rate == 0) {
                             <a href="/filelist/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
                                 <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
                                     <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
@@ -39,7 +39,7 @@
                             </a>
                         }
                     </div>
-        @if(round.rates.id == 1) { @count } else {
+        @if(round.isBinary) { @count } else {
             @byUserRateCount.getOrElse(user.id.get, Map.empty).toSeq.collect({
                 case (x, y) if rate > 0 && x > 0 || rate == 0 && x == 0 => y
             }).sum
@@ -80,7 +80,7 @@
                             Images
                         </th>
 
-                        @if(round.rates.id == 1) {
+                        @if(round.isBinary) {
                             <th>
                                 @Messages("selected")
                             </th>
@@ -112,7 +112,7 @@
                         <td>
                             @defining(byUserCount.getOrElse(user.id.get, 0)) { count =>
 
-                                    @if(round.rates.id == 1) {
+                                    @if(round.isBinary) {
                                         <a href="/gallery/round/@round.id/user/@user.id/page/1"
                                         <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
                                             <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
@@ -127,7 +127,7 @@
                                 @count
                             }
                         </td>
-                        @if(round.rates.id == 1) {
+                        @if(round.isBinary) {
                             <td>
                             @roundLinks(round, user, 1)
                             </td>
@@ -154,7 +154,7 @@
                             @Messages("Total")
                         </th>
                         <th>
-                        @if(round.rates.id == 1) {
+                        @if(round.isBinary) {
                             <a href="/gallery/round/@round.id/user/0/page/1">
                                 <button type="button" class="btn btn-default btn-xs @if(total == 0) {disabled}">
                                     <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
@@ -168,13 +168,13 @@
                         }
                             @total
                         </th>
-                        @if(round.rates.id != 1) {
+                        @if(!round.isBinary) {
                             <th>
                             </th>
                         }
                         <th>
                             <div class="btn-group">
-                            @if(round.rates.id == 1) {
+                            @if(round.isBinary) {
                                 <a href="/gallery/round/@round.id/user/0/page/1@rateParam(Some(1))">
                                     <button type="button" class="btn btn-default btn-xs @if(total == 0){disabled}">
                                         <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
@@ -198,13 +198,13 @@
                                 </a>
                             }
                             </div>
-                            @if(round.rates.id == 1) {
+                            @if(round.isBinary) {
                                 @totalByRate.getOrElse(1, 0)
                             }
                         </th>
                         <th style="text-align: center">
                             <!-- <a href="/gallery/user/0/rate/0/page/1"> -->
-                            @if(round.rates.id == 1) {
+                            @if(round.isBinary) {
                                 @{total - totalByRate.getOrElse(1, 0)}
                             }
                             <!-- </a> -->
