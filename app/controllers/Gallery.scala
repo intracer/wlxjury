@@ -80,7 +80,13 @@ object Gallery extends Controller with Secured with Instrumented {
                   countFromDb = file.countFromDb
                 )
               }
-              Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, maybeRound, rounds, region, byReg))
+              module match {
+                case "filelist" =>
+                  val useTable = !round.isBinary || asUserId == 0
+                  Ok(views.html.fileList(user, asUserId, asUser, files, files, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
+                case _ =>
+                  Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, maybeRound, rounds, region, byReg))
+              }
             } else
 
               module match {

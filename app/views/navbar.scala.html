@@ -112,18 +112,11 @@
                     @if(user.id.get != asUserId && user.canViewOrgInfo(round)) {
                                 <li role="presentation" class="brand" >
                                 @(new UiSelectionDto[Long](
-                                        { roundId: Long => routes.Gallery.query(module = if(allRounds.exists(r => r.id.get == roundId && r.rates.id == 1)) "gallery" else "byrate",
-                                            Some(asUserId), page = 1, region = region, roundId, rate)
-                                        },
+                                        { roundId: Long => routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate)},
                                         round.id.get,
                                         allRounds.filter(user.canViewOrgInfo).map(r => (r.id.get, SelectionItem(r.description, localized = false)))
                                     ).toDropDown())
                                 </li>
-                            @if(round.id.get == 34) {
-                                <li  role="presentation">
-                                    <a class="brand" style="margin-left: 10px;" href="/chat">@Messages("chat") </a>
-                                </li>
-                            }
                             <li role="presentation">
                                 @(new UiSelectionDto[Option[Long]](
                                         routes.Gallery.query(module = title, _, page = 1, region = region, round = round.id.get, rate),
