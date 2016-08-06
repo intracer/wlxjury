@@ -100,10 +100,28 @@
 
                 }
             }
-        }
+
         @if(wrapInTable) {
         </tbody>
+            @if(asUserId == 0) {
+                <tfoot>
+                    <th>
+                        File
+                    </th>
+                    <th>
+                        Overall <br>
+                        Rating
+                    </th>
+
+                @for(juror <- jurors) {
+                    <th>
+                    @juror.fullname
+                    </th>
+                }
+                </tfoot>
+            }
         </table>
+        }
         }
     </div>
     </div>
