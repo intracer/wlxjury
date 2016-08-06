@@ -88,7 +88,7 @@ object Gallery extends Controller with Secured with Instrumented {
                   Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, maybeRound, rounds, rate, region, byReg))
 
                 case "filelist" =>
-                  val useTable = !round.isBinary
+                  val useTable = !round.isBinary || asUserId == 0
                   Ok(views.html.fileList(user, asUserId, asUser, files, files, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
 
                 case "byrate" =>
@@ -131,7 +131,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
         val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
-        val rounds = RoundJdbc.findByContest(user.currentContest.getOrElse(0L))
+        val rounds = RoundJdbc.findByContest(round.map(_.contest).get)
 
         val images = round.fold(Seq.empty[ImageWithRating])(_.allImages)
         val selection = round.fold(Seq.empty[Selection])(r => SelectionJdbc.byRound(r.id.get))
@@ -160,7 +160,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
         val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
-        val rounds = RoundJdbc.findByContest(user.currentContest.getOrElse(0L))
+        val rounds = RoundJdbc.findByContest(round.map(_.contest).get)
         val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
 
         val ratedFiles = rate.fold(uFiles)(r => uFiles.filter(_.rate == r))
@@ -169,7 +169,7 @@ object Gallery extends Controller with Secured with Instrumented {
         //        val pager = new Pager(files)
         //        val pageFiles = pager.pageFiles(page)
         val byReg: Map[String, Int] = byRegion(ratedFiles)
-        val useTable = !round.map(_.isBinary).get
+        val useTable = !round.map(_.isBinary).get || asUserId == 0
         Ok(views.html.fileList(user, asUserId, asUser, files, files, page, round, rounds, rate, region, byReg, format, useTable))
   }
 

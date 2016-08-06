@@ -57,7 +57,7 @@
                 <tbody>
                 }
 
-        @for(file <- if(round.map(_.isBinary).get) pageFiles else pageFiles.sortBy(-_.totalRate(round.get))) {
+        @for(file <- if(!wrapInTable) pageFiles else pageFiles.sortBy(-_.totalRate(round.get))) {
             @row {
                 @cell {
 
