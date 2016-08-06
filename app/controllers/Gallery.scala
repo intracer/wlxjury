@@ -59,7 +59,7 @@ object Gallery extends Controller with Secured with Instrumented {
             val round = maybeRound.get
 
             val rounds = RoundJdbc.findByContest(roundContest)
-            val (uFiles, asUser) = filesByUserId(asUserId, rate, user, maybeRound)
+            val (uFiles, asUser) = filesByUserId(asUserId, rate, user, maybeRound, userDetails = module == "filelist")
 
             val ratedFiles = rate.fold(
               uFiles.filter(_.selection.nonEmpty).sortBy(-_.totalRate(round))
@@ -161,7 +161,7 @@ object Gallery extends Controller with Secured with Instrumented {
       implicit request =>
         val round = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
         val rounds = RoundJdbc.findByContest(round.map(_.contest).get)
-        val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round)
+        val (uFiles, asUser) = filesByUserId(asUserId, rate, user, round, userDetails = true)
 
         val ratedFiles = rate.fold(uFiles)(r => uFiles.filter(_.rate == r))
         val files = regionFiles(region, ratedFiles)
@@ -173,11 +173,26 @@ object Gallery extends Controller with Secured with Instrumented {
         Ok(views.html.fileList(user, asUserId, asUser, files, files, page, round, rounds, rate, region, byReg, format, useTable))
   }
 
-  def filesByUserId(asUserId: Long, rate: Option[Int], user: User, round: Option[Round]): (Seq[ImageWithRating], User) = {
+  def filesByUserId(
+                     asUserId: Long,
+                     rate: Option[Int],
+                     user: User,
+                     round: Option[Round],
+                     userDetails: Boolean = false): (Seq[ImageWithRating], User) = {
     val maybeRoundId = round.flatMap(_.id)
     maybeRoundId.fold((Seq.empty[ImageWithRating], user)) { roundId =>
       if (asUserId == 0) {
-        (rate.fold(ImageJdbc.byRoundSummedWithCriteria(roundId))(r => ImageJdbc.byRatingWithCriteriaMerged(r, roundId)), null)
+        val images = rate.fold(
+          if (userDetails)
+            ImageJdbc.byRound(roundId).groupBy(_.image.pageId).map { case (id, images) =>
+              new ImageWithRating(images.head.image, images.flatMap(_.selection))
+            }.toSeq
+          else
+            ImageJdbc.byRoundSummedWithCriteria(roundId)
+        )(r =>
+          ImageJdbc.byRatingWithCriteriaMerged(r, roundId))
+
+        (images, null)
       } else if (asUserId != user.id.get) {
         val asUser: User = UserJdbc.find(asUserId).get
         (userFiles(asUser, roundId), asUser)
