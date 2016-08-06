@@ -30,6 +30,7 @@
 
 @main("filelist", user, asUserId, asUser, round, rounds, rounds, gallery = false, rate, region) {
 
+    <div class="container">
 
     @defining(round.flatMap(_.id).getOrElse(0L)) { roundId =>
 
@@ -83,6 +84,7 @@
         </tbody>
         </table>
         }
+    </div>
     </div>
     </div>
     }
