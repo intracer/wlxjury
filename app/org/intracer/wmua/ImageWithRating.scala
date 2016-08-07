@@ -61,6 +61,30 @@ case class ImageWithRating(image: Image, selection: Seq[Selection], countFromDb:
   def compare(that: ImageWithRating) =  (this.pageId - that.pageId).signum
 }
 
+object ImageWithRating {
+
+  def rankImages(orderedImages: Seq[ImageWithRating], round: Round) = {
+    rank(orderedImages.map(_.rateSum))
+  }
+
+  def rank(orderedRates: Seq[Int]): Seq[String] = {
+
+    val sizeByRate = orderedRates.groupBy(identity).mapValues(_.size)
+    val startByRate = sizeByRate.keys.map { rate => rate -> (orderedRates.indexOf(rate) + 1) }.toMap
+
+    orderedRates.map{
+      rate =>
+        val (start, size) = (startByRate(rate), sizeByRate(rate))
+        if (size == 1)
+          start.toString
+        else
+          start + "-" + (start + size - 1)
+    }
+  }
+
+
+}
+
 class Rating
 
 class OneJuryRating(val selection: Selection) extends Rating {

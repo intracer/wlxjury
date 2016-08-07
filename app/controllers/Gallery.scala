@@ -83,7 +83,16 @@ object Gallery extends Controller with Secured with Instrumented {
               module match {
                 case "filelist" =>
                   val useTable = !round.isBinary || asUserId == 0
-                  Ok(views.html.fileList(user, asUserId, asUser, files, files, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
+
+                  val sortedFiles = if (!useTable)
+                    files
+                  else if (round.isBinary)
+                    files.sortBy(-_.selection.count(_.rate > 0))
+                  else
+                    files.sortBy(-_.totalRate(round))
+
+                  val ranks = ImageWithRating.rankImages(sortedFiles, round)
+                  Ok(views.html.fileList(user, asUserId, asUser, files, ranks, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
                 case _ =>
                   Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, maybeRound, rounds, region, byReg))
               }
@@ -95,7 +104,17 @@ object Gallery extends Controller with Secured with Instrumented {
 
                 case "filelist" =>
                   val useTable = !round.isBinary || asUserId == 0
-                  Ok(views.html.fileList(user, asUserId, asUser, files, files, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
+
+                  val sortedFiles = if (!useTable)
+                    files
+                  else if (round.isBinary)
+                    files.sortBy(-_.selection.count(_.rate > 0))
+                  else
+                    files.sortBy(-_.totalRate(round))
+
+                  val ranks = ImageWithRating.rankImages(sortedFiles, round)
+
+                  Ok(views.html.fileList(user, asUserId, asUser, sortedFiles, ranks, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
 
                 case "byrate" =>
                   if (!round.isBinary) {
@@ -175,8 +194,19 @@ object Gallery extends Controller with Secured with Instrumented {
         //        val pager = new Pager(files)
         //        val pageFiles = pager.pageFiles(page)
         val byReg: Map[String, Int] = byRegion(ratedFiles)
-        val useTable = !round.map(_.isBinary).get || asUserId == 0
-        Ok(views.html.fileList(user, asUserId, asUser, files, files, page, round, rounds, rate, region, byReg, format, useTable))
+        val isBinary = round.map(_.isBinary).get
+        val useTable = !isBinary || asUserId == 0
+
+        val sortedFiles = if (!useTable)
+          files
+        else if (isBinary)
+          files.sortBy(-_.selection.count(_.rate > 0))
+        else
+          files.sortBy(-_.totalRate(round.get))
+
+        val ranks = ImageWithRating.rankImages(sortedFiles, round.get)
+
+        Ok(views.html.fileList(user, asUserId, asUser, sortedFiles, ranks, page, round, rounds, rate, region, byReg, format, useTable))
   }
 
   def filesByUserId(
@@ -226,7 +256,7 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def userFiles(user: User, roundId: Long): Seq[ImageWithRating] = {
-      ImageJdbc.byUserImageWithCriteriaRating(user, roundId)
+    ImageJdbc.byUserImageWithCriteriaRating(user, roundId)
   }
 
   def selectByPageId(roundId: Long, pageId: Long, select: Int, region: String = "all",

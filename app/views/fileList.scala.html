@@ -2,8 +2,8 @@
         user: org.intracer.wmua.User, /* logged in user */
         asUserId: Long, /* viewing files of user with asUserId id  */
         asUser: org.intracer.wmua.User, /* viewing files of user asUser  */
-        pageFiles: Seq[org.intracer.wmua.ImageWithRating],
-        regionFiles: Seq[org.intracer.wmua.ImageWithRating],
+        files: Seq[org.intracer.wmua.ImageWithRating],
+        ranks: Seq[String],
         page: Int, /* not used */
         round: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
@@ -63,6 +63,9 @@
             <table class="table table-striped table-condensed">
                 <thead>
                     <th>
+                        Rank
+                    </th>
+                    <th>
                         File
                     </th>
                     <th>
@@ -82,12 +85,14 @@
                 <tbody>
                 }
 
-        @for(file <- if(!wrapInTable)
-            pageFiles else if(round.map(_.isBinary).get)
-                pageFiles.sortBy(-_.selection.count(_.rate > 0))
-            else
-                pageFiles.sortBy(-_.totalRate(round.get))) {
+        @for((file, rank)<- files.zip(ranks)) {
             @row {
+                @if(wrapInTable) {
+                    <td>
+                        @rank
+                    </td>
+                }
+
                 @cell {
 
                     @outputFormat match {
@@ -125,6 +130,9 @@
         </tbody>
             @if(asUserId == 0) {
                 <tfoot>
+                    <th>
+                        Rank
+                    </th>
                     <th>
                         File
                     </th>
