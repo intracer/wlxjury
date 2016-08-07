@@ -24,8 +24,8 @@ class ImageDistributorSpec extends Specification {
   def contestImage(id: Long, contest: Long) =
     Image(id, contest, s"File:Image$id.jpg", s"url$id", s"pageUrl$id", 640, 480, Some(s"12-345-$id"))
 
-  def contestUser(contest: Long, role: String) =
-    User("fullname", "email", None, Set(role), Some("password hash"), Some(contest), Some("en"))
+  def contestUser(contest: Long, role: String, i: Int) =
+    User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), Some(contest), Some("en"))
 
   def createJurors(
                     contest: Long,
@@ -34,16 +34,16 @@ class ImageDistributorSpec extends Specification {
                     orgCom: Boolean = true,
                     otherContest: Option[Long] = Some(20)) = {
 
-    val jurors = (1 to jurorsNum).map(i => contestUser(contest, "jury"))
+    val jurors = (1 to jurorsNum).map(i => contestUser(contest, "jury", i))
     val dbJurors = jurors.map(userDao.create)
 
-    val preJurors = (1 to jurorsNum).map(i => contestUser(contest, "prejury"))
+    val preJurors = (1 to jurorsNum).map(i => contestUser(contest, "prejury", i + 100))
     preJurors.foreach(userDao.create)
 
-    val orgCom = contestUser(contest, "organizer")
+    val orgCom = contestUser(contest, "organizer", 200)
     userDao.create(orgCom)
 
-    val otherContestJurors = (1 to jurorsNum).map(i => contestUser(20, "jury"))
+    val otherContestJurors = (1 to jurorsNum).map(i => contestUser(20, "jury", i + 300))
     otherContestJurors.foreach(userDao.create)
 
     dbJurors

@@ -45,8 +45,8 @@ class RoundSpec extends Specification {
       }
     }
 
-    def contestUser(contest: Long, role: String) =
-      User("fullname", "email", None, Set(role), Some("password hash"), Some(contest), Some("en"))
+    def contestUser(contest: Long, role: String, i: Int) =
+      User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), Some(contest), Some("en"))
 
     "jurors" in {
       inMemDbApp {
@@ -54,16 +54,16 @@ class RoundSpec extends Specification {
         val round = Round(None, 1, Some("Round 1"), 10, Set("jury"), 3, Round.ratesById(10), active = true)
         roundDao.create(round)
 
-        val jurors = (1 to 3).map(i => contestUser(10, "jury"))
+        val jurors = (1 to 3).map(i => contestUser(10, "jury", i))
         val dbJurors = jurors.map(userDao.create).map(u => u.copy(roles = u.roles + s"USER_ID_${u.id.get}"))
 
-        val preJurors = (1 to 3).map(i => contestUser(10, "prejury"))
+        val preJurors = (1 to 3).map(i => contestUser(10, "prejury", i + 10))
         preJurors.foreach(userDao.create)
 
-        val orgCom = contestUser(10, "organizer")
+        val orgCom = contestUser(10, "organizer", 20)
         userDao.create(orgCom)
 
-        val otherContestJurors = (1 to 3).map(i => contestUser(20, "jury"))
+        val otherContestJurors = (1 to 3).map(i => contestUser(20, "jury", i + 30))
         otherContestJurors.foreach(userDao.create)
 
         round.jurors === dbJurors
