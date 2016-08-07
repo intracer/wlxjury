@@ -4,15 +4,12 @@ import db.scalikejdbc.ImageJdbc
 import org.intracer.wmua.{ContestJury, Image}
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
-import org.scalawiki.dto.cmd.query.list.ListArgs
-import org.scalawiki.dto.cmd.query.prop.{CategoryInfo, ImageInfo, Prop}
-import org.scalawiki.dto.cmd.query.{Generator, Query, TitlesParam}
+import org.scalawiki.dto.cmd.query.prop.{CategoryInfo, Prop}
+import org.scalawiki.dto.cmd.query.{Query, TitlesParam}
 import org.scalawiki.dto.{Namespace, Page}
-import org.scalawiki.query.DslQuery
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
 
 case class ImageInfoFromCategory(category: String, contest: ContestJury, commons: MwBot, max: Long = 0L) {
   def apply(): Future[Seq[Image]] = {
@@ -42,23 +39,12 @@ case class ImageInfoFromCategory(category: String, contest: ContestJury, commons
                            namespaces: Set[Int],
                            props: Set[String],
                            limit: String = "max"): Future[Seq[Page]] = {
-    import org.scalawiki.dto.cmd.query.prop.iiprop._
 
-    val pageId: Option[Long] = None
-    val title = Some(category)
+    val context = Map("contestId" -> contest.id.getOrElse(0).toString, "max" -> max.toString)
 
-    val action = Action(Query(
-      Prop(
-        ImageInfo(
-          IiProp(IiPropArgs.byNames(props.toSeq): _*)
-        )
-      ),
-      Generator(ListArgs.toDsl(generator, title, pageId, namespaces, Some(limit)))
-    ))
-
-    new DslQuery(action, commons,
-      Map("contestId" -> contest.id.getOrElse(0).toString, "max" -> max.toString)
-    ).run()
+    commons.page(category).withContext(context).imageInfoByGenerator(
+      "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
+    )
   }
 
 }

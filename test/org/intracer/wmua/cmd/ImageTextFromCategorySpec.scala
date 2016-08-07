@@ -1,7 +1,6 @@
 package org.intracer.wmua.cmd
 
-import org.intracer.wmua.{ContestJury, Image}
-import org.scalawiki.MwBot
+import org.intracer.wmua.{ContestJury, Image, JuryTestHelpers}
 import org.scalawiki.dto.{Namespace, Page, Revision}
 import org.scalawiki.query.SinglePageQuery
 import org.specs2.concurrent.ExecutionEnv
@@ -10,7 +9,7 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent.Future
 
-class ImageTextFromCategorySpec extends Specification with Mockito {
+class ImageTextFromCategorySpec extends Specification with Mockito with JuryTestHelpers {
 
   def contestImage(id: Long, contest: Long) =
     Image(id, contest, s"File:Image$id.jpg", "", "", 0, 0, Some(s"12-345-$id"))
@@ -28,12 +27,12 @@ class ImageTextFromCategorySpec extends Specification with Mockito {
         val revisions = Seq.empty[Page]
 
         val query = mock[SinglePageQuery]
-
+        query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.revisionsByGenerator("categorymembers", "cm",
           Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
-        val commons = mock[MwBot]
+        val commons = mockBot()
         commons.page(category) returns query
 
         val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category))
@@ -50,12 +49,12 @@ class ImageTextFromCategorySpec extends Specification with Mockito {
         val revisions = Seq(revision(imageId, "{{Information|description=descr}}"))
 
         val query = mock[SinglePageQuery]
-
+        query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.revisionsByGenerator("categorymembers", "cm",
           Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
-        val commons = mock[MwBot]
+        val commons = mockBot()
         commons.page(category) returns query
 
         val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category), Some(0), None)
@@ -75,19 +74,17 @@ class ImageTextFromCategorySpec extends Specification with Mockito {
         val revisions = Seq(revision(imageId, s"{{Information|description=$descr}}"))
 
         val query = mock[SinglePageQuery]
-
+        query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.revisionsByGenerator("categorymembers", "cm",
           Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
-        val commons = mock[MwBot]
+        val commons = mockBot()
         commons.page(category) returns query
 
         val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category), Some(0), None)
 
         ImageTextFromCategory(category, contest, Some(idTemplate), commons).apply() must be_==(images).await
     }
-
   }
-
 }

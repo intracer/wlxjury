@@ -1,10 +1,9 @@
 package controllers
 
-import db.{ImageDao, ContestJuryDao}
-import db.scalikejdbc.{ImageJdbc, ContestJuryJdbc}
-import org.intracer.wmua.Image
-import org.scalawiki.MwBot
-import org.scalawiki.dto.{Revision, Page, Namespace}
+import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
+import db.{ContestJuryDao, ImageDao}
+import org.intracer.wmua.{Image, JuryTestHelpers}
+import org.scalawiki.dto.{Namespace, Page, Revision}
 import org.scalawiki.query.SinglePageQuery
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -13,7 +12,7 @@ import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class GlobalRefactorSpec extends Specification with Mockito {
+class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers {
 
   sequential
 
@@ -45,7 +44,7 @@ class GlobalRefactorSpec extends Specification with Mockito {
         val imageInfos = Seq.empty[Page]
 
         val query = mock[SinglePageQuery]
-
+        query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.imageInfoByGenerator(
           "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
         ) returns Future.successful(imageInfos)
@@ -54,7 +53,7 @@ class GlobalRefactorSpec extends Specification with Mockito {
           Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(imageInfos)
 
-        val commons = mock[MwBot]
+        val commons = mockBot()
         commons.page(category) returns query
 
         val g = new GlobalRefactor(commons)
@@ -77,7 +76,7 @@ class GlobalRefactorSpec extends Specification with Mockito {
         val revisions = Seq(revision(imageId, "{{Information|description=descr}}"))
 
         val query = mock[SinglePageQuery]
-
+        query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.imageInfoByGenerator(
           "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
         ) returns Future.successful(imageInfos)
@@ -86,7 +85,7 @@ class GlobalRefactorSpec extends Specification with Mockito {
           Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
-        val commons = mock[MwBot]
+        val commons = mockBot()
         commons.page(category) returns query
 
         val g = new GlobalRefactor(commons)
@@ -113,7 +112,7 @@ class GlobalRefactorSpec extends Specification with Mockito {
         val revisions = Seq(revision(imageId, s"{{Information|description=$descr}}"))
 
         val query = mock[SinglePageQuery]
-
+        query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.imageInfoByGenerator(
           "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
         ) returns Future.successful(imageInfos)
@@ -122,7 +121,7 @@ class GlobalRefactorSpec extends Specification with Mockito {
           Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
-        val commons = mock[MwBot]
+        val commons = mockBot()
         commons.page(category) returns query
 
         val g = new GlobalRefactor(commons)

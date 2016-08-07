@@ -1,7 +1,6 @@
 package org.intracer.wmua.cmd
 
-import org.intracer.wmua.{ContestJury, Image}
-import org.scalawiki.MwBot
+import org.intracer.wmua.{ContestJury, Image, JuryTestHelpers}
 import org.scalawiki.dto.{Namespace, Page}
 import org.scalawiki.query.SinglePageQuery
 import org.specs2.concurrent.ExecutionEnv
@@ -10,7 +9,7 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent.Future
 
-class ImageInfoFromCategorySpec extends Specification with Mockito {
+class ImageInfoFromCategorySpec extends Specification with Mockito with JuryTestHelpers {
 
   def contestImage(id: Long, contest: Long) =
     Image(id, contest, s"File:Image$id.jpg", s"url$id", s"pageUrl$id", 640, 480, None)
@@ -30,11 +29,12 @@ class ImageInfoFromCategorySpec extends Specification with Mockito {
 
         val query = mock[SinglePageQuery]
 
+        query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.imageInfoByGenerator(
           "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
         ) returns Future.successful(imageInfos)
 
-        val commons = mock[MwBot]
+        val commons = mockBot()
         commons.page(category) returns query
 
         val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None)
@@ -52,12 +52,12 @@ class ImageInfoFromCategorySpec extends Specification with Mockito {
         val imageInfos = Seq(imageInfo(imageId))
 
         val query = mock[SinglePageQuery]
-
+        query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.imageInfoByGenerator(
           "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
         ) returns Future.successful(imageInfos)
 
-        val commons = mock[MwBot]
+        val commons = mockBot()
         commons.page(category) returns query
 
         val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category))

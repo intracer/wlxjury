@@ -42,7 +42,7 @@ scalaVersion := "2.11.8"
 
 val scalikejdbcVersion = "2.2.9"
 val scalikejdbcPlayVersion = "2.4.3"
-val scalawikiVersion = "0.4.3"
+val scalawikiVersion = "0.4.4"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
