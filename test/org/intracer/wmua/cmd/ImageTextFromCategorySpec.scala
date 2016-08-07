@@ -45,7 +45,7 @@ class ImageTextFromCategorySpec extends Specification with Mockito with JuryTest
         val category = "Category:Category Name"
         val contestId = 13
         val imageId = 11
-        val images = Seq(contestImage(imageId, contestId).copy(description = Some("descr"), monumentId = Some("")))
+        val images = Seq(contestImage(imageId, contestId).copy(description = Some("descr"), monumentId = Some(""), author = Some("")))
         val revisions = Seq(revision(imageId, "{{Information|description=descr}}"))
 
         val query = mock[SinglePageQuery]
@@ -70,7 +70,7 @@ class ImageTextFromCategorySpec extends Specification with Mockito with JuryTest
         val contestId = 13
         val imageId = 11
         val descr = s"descr. {{$idTemplate|12-345-$imageId}}"
-        val images = Seq(contestImage(imageId, contestId).copy(description = Some(descr)))
+        val images = Seq(contestImage(imageId, contestId).copy(description = Some(descr), author = Some("")))
         val revisions = Seq(revision(imageId, s"{{Information|description=$descr}}"))
 
         val query = mock[SinglePageQuery]
