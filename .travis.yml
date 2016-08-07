@@ -1,12 +1,6 @@
 # use Docker-based container (instead of OpenVZ)
 sudo: false
 
-env:
-   - commons.user = FAKE_COMMONS_USER
-   - commons.password = FAKE_COMMONS_USER
-   - db.default.username = FAKE_WLXJURY_DB_USER
-   - db.default.password = FAKE_WLXJURY_DB_PASSWORD
-
 cache:
   directories:
     - $HOME/.m2/repository
