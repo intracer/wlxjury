@@ -73,6 +73,8 @@ libraryDependencies ++= Seq(
 
 doc in Compile <<= target.map(_ / "none")
 
+javaOptions in Test += "-Dconfig.file=conf/application.test.conf"
+
 addCommandAlias(
   "packageAll", "; clean" +
     "; packageDebianSystemV" +
