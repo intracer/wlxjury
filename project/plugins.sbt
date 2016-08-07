@@ -20,10 +20,12 @@ addSbtPlugin("me.lessis" % "bintray-sbt" % "0.1.1")
 // Use the Play sbt plugin for Play projects
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.6")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-web" % "1.0.0")
-
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.1.4")
 
 resolvers += Classpaths.sbtPluginReleases
 
 addSbtPlugin("au.com.onegeek" %% "sbt-dotenv" % "1.1.33")
+
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.3.5")
+
+addSbtPlugin("org.scoverage" % "sbt-coveralls" % "1.1.0")
