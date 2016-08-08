@@ -61,21 +61,12 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val asUser = getAsUser(asUserId, user)
 
-            val uFiles = filesByUserId(asUserId, rate, user, maybeRound, userDetails = module == "filelist")
+            val sortedFiles = getSortedImages(module, asUserId, rate, user, round)
 
-            val ratedFiles = rate.fold(
-              uFiles.filter(_.selection.nonEmpty)
-            )(r => filterByRate(round, rate, uFiles))
-
-            val sortedFiles = if (round.isBinary)
-              ratedFiles.sortBy(-_.selection.count(_.rate > 0))
-            else
-              ratedFiles.sortBy(-_.totalRate(round))
+            val filesInRegion = regionFiles(region, sortedFiles)
 
             val byReg = byRegion(sortedFiles)
-            val files = regionFiles(region, sortedFiles)
-
-            val pager = new Pager(files)
+            val pager = new Pager(filesInRegion)
             val page = pageFn(pager)
             val pageFiles = pager.pageFiles(page)
 
@@ -92,25 +83,18 @@ object Gallery extends Controller with Secured with Instrumented {
                   val useTable = !round.isBinary || asUserId == 0
 
                   val ranks = ImageWithRating.rankImages(sortedFiles, round)
-                  Ok(views.html.fileList(user, asUserId, asUser, files, ranks, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
+                  Ok(views.html.fileList(user, asUserId, asUser, filesInRegion, ranks, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
                 case _ =>
-                  Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, files, page, maybeRound, rounds, region, byReg))
+                  Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles2, filesInRegion, page, maybeRound, rounds, region, byReg))
               }
             } else
 
               module match {
                 case "gallery" =>
-                  Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, maybeRound, rounds, rate, region, byReg))
+                  Ok(views.html.gallery(user, asUserId, asUser, pageFiles, filesInRegion, page, maybeRound, rounds, rate, region, byReg))
 
                 case "filelist" =>
                   val useTable = !round.isBinary || asUserId == 0
-
-                  val sortedFiles = if (!useTable)
-                    files
-                  else if (round.isBinary)
-                    files.sortBy(-_.selection.count(_.rate > 0))
-                  else
-                    files.sortBy(-_.totalRate(round))
 
                   val ranks = ImageWithRating.rankImages(sortedFiles, round)
 
@@ -118,13 +102,27 @@ object Gallery extends Controller with Secured with Instrumented {
 
                 case "byrate" =>
                   if (!round.isBinary) {
-                    Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, files, page, maybeRound, rounds, region, byReg))
+                    Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, filesInRegion, page, maybeRound, rounds, region, byReg))
                   } else {
-                    Ok(views.html.gallery(user, asUserId, asUser, pageFiles, files, page, maybeRound, rounds, None, region, byReg))
+                    Ok(views.html.gallery(user, asUserId, asUser, pageFiles, filesInRegion, page, maybeRound, rounds, None, region, byReg))
                   }
               }
           }
         }
+  }
+
+  def getSortedImages(module: String, asUserId: Long, rate: Option[Int], user: User, round: Round): Seq[ImageWithRating] = {
+    val uFiles = filesByUserId(asUserId, rate, user, round, userDetails = module == "filelist")
+
+    val ratedFiles = rate.fold(
+      uFiles.filter(_.selection.nonEmpty)
+    )(r => filterByRate(round, rate, uFiles))
+
+    val sortedFiles = if (round.isBinary)
+      ratedFiles.sortBy(-_.selection.count(_.rate > 0))
+    else
+      ratedFiles.sortBy(-_.totalRate(round))
+    sortedFiles
   }
 
   def isNotAuthorized(user: User, maybeRound: Option[Round], roundContest: Long): Boolean = {
@@ -160,7 +158,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
         val asUser = getAsUser(asUserId, user)
 
-        val uFiles = filesByUserId(asUserId, rate, user, round, userDetails = true)
+        val uFiles = filesByUserId(asUserId, rate, user, round.get, userDetails = true)
 
         val ratedFiles = rate.fold(uFiles)(r => uFiles.filter(_.rate == r))
         val files = regionFiles(region, ratedFiles)
@@ -198,10 +196,9 @@ object Gallery extends Controller with Secured with Instrumented {
                      asUserId: Long,
                      rate: Option[Int],
                      user: User,
-                     round: Option[Round],
+                     round: Round,
                      userDetails: Boolean = false): Seq[ImageWithRating] = {
-    val maybeRoundId = round.flatMap(_.id)
-    maybeRoundId.fold(Seq.empty[ImageWithRating]) { roundId =>
+    round.id.fold(Seq.empty[ImageWithRating]) { roundId =>
       if (asUserId == 0) {
         val images = rate.fold(
           if (userDetails)
@@ -337,7 +334,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
       val round = maybeRound.get
 
-      val allFiles = filesByUserId(asUserId, rate, user, maybeRound)
+      val allFiles = filesByUserId(asUserId, rate, user, round)
 
       val sorted = if (module == "byrate") allFiles.sortBy(-_.totalRate(round)) else allFiles
 
@@ -441,8 +438,5 @@ object Gallery extends Controller with Secured with Instrumented {
         val byReg: Map[String, Int] = byRegion(imagesWithSelection)
         Ok(views.html.gallery(user, 0, null, pageFiles, files, page, round, rounds, rate, region, byReg))
   }
-
-
-
 }
 
