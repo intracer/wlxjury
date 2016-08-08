@@ -104,31 +104,30 @@ class GallerySpec extends Specification {
       }
     }
 
-    // TODO fix
-    //    "see images ordered by rate in binary round" in {
-    //      inMemDbApp {
-    //        /// prepare
-    //        setUp(rates = Round.binaryRound)
-    //        val images = createImages(6)
-    //
-    //        def range(rate: Int) = Seq(2 + rate * 2, 4 + rate * 2)
-    //
-    //        def slice(rate: Int) = images.slice(range(rate).head, range(rate).last)
-    //
-    //        for (rate <- -1 to 1) {
-    //          createSelection(slice(rate), rate = rate)
-    //        }
-    //
-    //        /// test
-    //        val result = Gallery.getSortedImages("gallery", user.id.get, None, round)
-    //
-    //        /// check
-    //        result.size === 6
-    //        result.map(_.image) === slice(1) ++ slice(0) ++ slice(-1)
-    //        result.map(_.selection.size) === Seq.fill(6)(1)
-    //        result.map(_.rate) === Seq(1, 1, 0, 0, -1, -1)
-    //      }
-    //    }
+    "see images ordered by rate in binary round" in {
+      inMemDbApp {
+        /// prepare
+        setUp(rates = Round.binaryRound)
+        val images = createImages(6)
+
+        def range(rate: Int) = Seq(2 + rate * 2, 4 + rate * 2)
+
+        def slice(rate: Int) = images.slice(range(rate).head, range(rate).last)
+
+        for (rate <- -1 to 1) {
+          createSelection(slice(rate), rate = rate)
+        }
+
+        /// test
+        val result = Gallery.getSortedImages(user.id.get, None, round, "gallery")
+
+        /// check
+        result.size === 6
+        result.map(_.image) === slice(1) ++ slice(0) ++ slice(-1)
+        result.map(_.selection.size) === Seq.fill(6)(1)
+        result.map(_.rate) === Seq(1, 1, 0, 0, -1, -1)
+      }
+    }
 
     "see images ordered by rate in rated round" in {
       inMemDbApp {
@@ -189,7 +188,6 @@ class GallerySpec extends Specification {
         )
         result.map(_.selection.size) === Seq(1, 1, 1, 1)
         result.map(_.rate) === Seq(3, 2, 1, 0)
-
       }
     }
   }
