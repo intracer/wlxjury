@@ -61,7 +61,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val asUser = getAsUser(asUserId, user)
 
-            val sortedFiles = getSortedImages(module, asUserId, rate, user, round)
+            val sortedFiles = getSortedImages(module, asUserId, rate, round)
 
             val filesInRegion = regionFiles(region, sortedFiles)
 
@@ -111,8 +111,8 @@ object Gallery extends Controller with Secured with Instrumented {
         }
   }
 
-  def getSortedImages(module: String, asUserId: Long, rate: Option[Int], user: User, round: Round): Seq[ImageWithRating] = {
-    val uFiles = filesByUserId(asUserId, rate, user, round, userDetails = module == "filelist")
+  def getSortedImages(module: String, asUserId: Long, rate: Option[Int], round: Round): Seq[ImageWithRating] = {
+    val uFiles = filesByUserId(asUserId, rate, round, userDetails = module == "filelist")
 
     val ratedFiles = rate.fold(
       uFiles.filter(_.selection.nonEmpty)
@@ -158,7 +158,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
         val asUser = getAsUser(asUserId, user)
 
-        val uFiles = filesByUserId(asUserId, rate, user, round.get, userDetails = true)
+        val uFiles = filesByUserId(asUserId, rate, round.get, userDetails = true)
 
         val ratedFiles = rate.fold(uFiles)(r => uFiles.filter(_.rate == r))
         val files = regionFiles(region, ratedFiles)
@@ -193,13 +193,12 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def filesByUserId(
-                     asUserId: Long,
+                     userId: Long,
                      rate: Option[Int],
-                     user: User,
                      round: Round,
                      userDetails: Boolean = false): Seq[ImageWithRating] = {
     round.id.fold(Seq.empty[ImageWithRating]) { roundId =>
-      if (asUserId == 0) {
+      if (userId == 0) {
         val images = rate.fold(
           if (userDetails)
             ImageJdbc.byRound(roundId).groupBy(_.image.pageId).map { case (id, images) =>
@@ -209,12 +208,10 @@ object Gallery extends Controller with Secured with Instrumented {
             ImageJdbc.byRoundSummedWithCriteria(roundId)
         )(r =>
           ImageJdbc.byRatingWithCriteriaMerged(r, roundId))
-
         images
-      } else if (asUserId != user.id.get) {
-        val asUser: User = UserJdbc.find(asUserId).get
-        userFiles(asUser, roundId)
-      } else userFiles(user, roundId)
+      } else {
+        userFiles(userId, roundId)
+      }
     }
   }
 
@@ -237,8 +234,8 @@ object Gallery extends Controller with Secured with Instrumented {
         show(pageId, user, user.id.get, rate, region, 0, module)
   }
 
-  def userFiles(user: User, roundId: Long): Seq[ImageWithRating] = {
-    ImageJdbc.byUserImageWithCriteriaRating(user, roundId)
+  def userFiles(userId: Long, roundId: Long): Seq[ImageWithRating] = {
+    ImageJdbc.byUserImageWithCriteriaRating(userId, roundId)
   }
 
   def selectByPageId(roundId: Long, pageId: Long, select: Int, region: String = "all",
@@ -282,7 +279,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
 
   def filterFiles(rate: Option[Int], region: String, user: User, round: Round): Seq[ImageWithRating] = {
-    regionFiles(region, filterByRate(round, rate, userFiles(user, round.id.get)))
+    regionFiles(region, filterByRate(round, rate, userFiles(user.id.get, round.id.get)))
   }
 
   def regionFiles(region: String, files: Seq[ImageWithRating]): Seq[ImageWithRating] = {
@@ -334,7 +331,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
       val round = maybeRound.get
 
-      val allFiles = filesByUserId(asUserId, rate, user, round)
+      val allFiles = filesByUserId(asUserId, rate, round)
 
       val sorted = if (module == "byrate") allFiles.sortBy(-_.totalRate(round)) else allFiles
 

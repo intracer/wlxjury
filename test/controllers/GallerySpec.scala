@@ -48,7 +48,7 @@ class GallerySpec extends Specification {
                       rate: Int = 0,
                       user: User = user,
                       round: Round = round) = {
-    val selections = images.map { image =>
+    val selections = images.zipWithIndex.map { case(image, i) =>
       Selection(0, image.pageId, rate, user.id.get, round.id.get)
     }
     selectionDao.batchInsert(selections)
@@ -64,7 +64,7 @@ class GallerySpec extends Specification {
         createSelection(images.slice(0, 3), rate = 0)
 
         /// test
-        val result = Gallery.getSortedImages("gallery", user.id.get, None, user, round)
+        val result = Gallery.getSortedImages("gallery", user.id.get, None, round)
 
         /// check
         result.size === 3
@@ -74,7 +74,7 @@ class GallerySpec extends Specification {
       }
     }
 
-    "see images by rate in binary round" in {
+    "see images filtered by rate in binary round" in {
       inMemDbApp {
         /// prepare
         setUp(rates = Round.binaryRound)
@@ -90,7 +90,7 @@ class GallerySpec extends Specification {
 
         for (rate <- -1 to 1) yield {
           /// test
-          val result = Gallery.getSortedImages("gallery", user.id.get, Some(rate), user, round)
+          val result = Gallery.getSortedImages("gallery", user.id.get, Some(rate), round)
 
           /// check
           result.size === 2
@@ -98,6 +98,55 @@ class GallerySpec extends Specification {
           result.map(_.selection.size) === Seq(1, 1)
           result.map(_.rate) === Seq(rate, rate)
         }
+      }
+    }
+
+    // TODO fix
+//    "see images ordered by rate in binary round" in {
+//      inMemDbApp {
+//        /// prepare
+//        setUp(rates = Round.binaryRound)
+//        val images = createImages(6)
+//
+//        def range(rate: Int) = Seq(2 + rate * 2, 4 + rate * 2)
+//
+//        def slice(rate: Int) = images.slice(range(rate).head, range(rate).last)
+//
+//        for (rate <- -1 to 1) {
+//          createSelection(slice(rate), rate = rate)
+//        }
+//
+//        /// test
+//        val result = Gallery.getSortedImages("gallery", user.id.get, None, round)
+//
+//        /// check
+//        result.size === 6
+//        result.map(_.image) === slice(1) ++ slice(0) ++ slice(-1)
+//        result.map(_.selection.size) === Seq.fill(6)(1)
+//        result.map(_.rate) === Seq(1, 1, 0, 0, -1, -1)
+//      }
+//    }
+
+    "see images ordered by rate in rated round" in {
+      inMemDbApp {
+        /// prepare
+        setUp(rates = Round.ratesById(10))
+        val images = createImages(6)
+
+
+        val selections = images.zipWithIndex.map { case(image, i) =>
+          Selection(0, image.pageId, rate = i, user.id.get, round.id.get)
+        }
+        selectionDao.batchInsert(selections)
+
+        /// test
+        val result = Gallery.getSortedImages("gallery", user.id.get, None, round)
+
+        /// check
+        result.size === 6
+        result.map(_.image) === images.reverse
+        result.map(_.selection.size) === Seq.fill(6)(1)
+        result.map(_.rate) === (0 to 5).reverse
       }
     }
   }

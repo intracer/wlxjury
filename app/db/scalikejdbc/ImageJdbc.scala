@@ -173,14 +173,14 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
       .and.append(isNotDeleted)
   }.map(rs => (ImageJdbc(i)(rs), SelectionJdbc(SelectionJdbc.s)(rs))).list().apply().map { case (i, s) => ImageWithRating(i, Seq(s)) }
 
-  def byUserImageWithCriteriaRating(user: User, roundId: Long): Seq[ImageWithRating] = withSQL {
+  def byUserImageWithCriteriaRating(userId: Long, roundId: Long): Seq[ImageWithRating] = withSQL {
     select(
       sum(CriteriaRate.c.rate), count(CriteriaRate.c.rate),
       i.result.*, SelectionJdbc.s.result.*)
       .from(ImageJdbc as i)
       .innerJoin(SelectionJdbc as SelectionJdbc.s).on(i.pageId, SelectionJdbc.s.pageId)
       .leftJoin(CriteriaRate as CriteriaRate.c).on(SelectionJdbc.s.id, CriteriaRate.c.selection)
-      .where.eq(SelectionJdbc.s.juryId, user.id).and
+      .where.eq(SelectionJdbc.s.juryId, userId).and
       .eq(SelectionJdbc.s.round, roundId)
       .and.append(isNotDeleted)
       .groupBy(SelectionJdbc.s.id)

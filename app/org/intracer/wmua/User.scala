@@ -19,7 +19,7 @@ case class User(fullname: String,
 
   def currentContest = contest
 
-  def roundFiles(roundId: Long) = Gallery.userFiles(this, roundId)
+  def roundFiles(roundId: Long) = Gallery.userFiles(id.get, roundId)
 
   def hasRole(role: String) = roles.contains(role)
 
