@@ -26,15 +26,11 @@ fi
 if package_absent scala ; then
     wget http://www.scala-lang.org/files/archive/scala-2.11.8.deb
     dpkg -i scala-2.11.8.deb
-    apt-get -y update
-    apt-get -y install scala
 fi
 
 if package_absent sbt ; then
     wget http://dl.bintray.com/sbt/debian/sbt-0.13.11.deb
     dpkg -i sbt-0.13.11.deb
-    apt-get -y update
-    apt-get -y install sbt
 fi
 
 if package_absent mysql-server ; then
