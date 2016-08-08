@@ -61,7 +61,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val asUser = getAsUser(asUserId, user)
 
-            val sortedFiles = getSortedImages(module, asUserId, rate, round)
+            val sortedFiles = getSortedImages(asUserId, rate, round, module)
 
             val filesInRegion = regionFiles(region, sortedFiles)
 
@@ -111,14 +111,15 @@ object Gallery extends Controller with Secured with Instrumented {
         }
   }
 
-  def getSortedImages(module: String, asUserId: Long, rate: Option[Int], round: Round): Seq[ImageWithRating] = {
-    val uFiles = filesByUserId(asUserId, rate, round, userDetails = module == "filelist")
+  def getSortedImages(asUserId: Long, rate: Option[Int], round: Round, module: String): Seq[ImageWithRating] = {
+    val userDetails = module == "filelist"
+    val uFiles = filesByUserId(asUserId, rate, round, userDetails = userDetails)
 
     val ratedFiles = rate.fold(
       uFiles.filter(_.selection.nonEmpty)
     )(r => filterByRate(round, rate, uFiles))
 
-    val sortedFiles = if (round.isBinary)
+    val sortedFiles = if (round.isBinary && userDetails)
       ratedFiles.sortBy(-_.selection.count(_.rate > 0))
     else
       ratedFiles.sortBy(-_.totalRate(round))

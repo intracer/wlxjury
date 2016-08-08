@@ -25,8 +25,11 @@ class GallerySpec extends Specification {
     running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
   }
 
-  def contestImage(id: Long, contest: Long) =
-    Image(id, contest, s"File:Image$id.jpg", s"url$id", s"pageUrl$id", 640, 480, Some(s"12-345-$id"))
+  def contestImage(id: Long, contestId: Long) =
+    Image(id, contestId, s"File:Image$id.jpg", s"url$id", s"pageUrl$id", 640, 480, Some(s"12-345-$id"))
+
+  def contestUser(i: Int, contestId: Long = contest.id.get, role: String = "jury") =
+    User("fullname" + i, "email" + i, None, Set(role), contest = Some(contestId))
 
   def setUp(rates: Rates = Round.binaryRound) = {
     contest = contestDao.create(None, "WLE", 2015, "Ukraine", None, None, None)
@@ -39,7 +42,7 @@ class GallerySpec extends Specification {
   }
 
   def createImages(number: Int, contestId: Long = contest.id.get, startId: Int = 0) = {
-    val images = (1 + startId to number + startId).map(id => contestImage(id, contestId))
+    val images = (startId until number + startId).map(id => contestImage(id, contestId))
     imageDao.batchInsert(images)
     images
   }
@@ -48,7 +51,7 @@ class GallerySpec extends Specification {
                       rate: Int = 0,
                       user: User = user,
                       round: Round = round) = {
-    val selections = images.zipWithIndex.map { case(image, i) =>
+    val selections = images.zipWithIndex.map { case (image, i) =>
       Selection(0, image.pageId, rate, user.id.get, round.id.get)
     }
     selectionDao.batchInsert(selections)
@@ -64,7 +67,7 @@ class GallerySpec extends Specification {
         createSelection(images.slice(0, 3), rate = 0)
 
         /// test
-        val result = Gallery.getSortedImages("gallery", user.id.get, None, round)
+        val result = Gallery.getSortedImages(user.id.get, None, round, "gallery")
 
         /// check
         result.size === 3
@@ -90,7 +93,7 @@ class GallerySpec extends Specification {
 
         for (rate <- -1 to 1) yield {
           /// test
-          val result = Gallery.getSortedImages("gallery", user.id.get, Some(rate), round)
+          val result = Gallery.getSortedImages(user.id.get, Some(rate), round, "gallery")
 
           /// check
           result.size === 2
@@ -102,30 +105,30 @@ class GallerySpec extends Specification {
     }
 
     // TODO fix
-//    "see images ordered by rate in binary round" in {
-//      inMemDbApp {
-//        /// prepare
-//        setUp(rates = Round.binaryRound)
-//        val images = createImages(6)
-//
-//        def range(rate: Int) = Seq(2 + rate * 2, 4 + rate * 2)
-//
-//        def slice(rate: Int) = images.slice(range(rate).head, range(rate).last)
-//
-//        for (rate <- -1 to 1) {
-//          createSelection(slice(rate), rate = rate)
-//        }
-//
-//        /// test
-//        val result = Gallery.getSortedImages("gallery", user.id.get, None, round)
-//
-//        /// check
-//        result.size === 6
-//        result.map(_.image) === slice(1) ++ slice(0) ++ slice(-1)
-//        result.map(_.selection.size) === Seq.fill(6)(1)
-//        result.map(_.rate) === Seq(1, 1, 0, 0, -1, -1)
-//      }
-//    }
+    //    "see images ordered by rate in binary round" in {
+    //      inMemDbApp {
+    //        /// prepare
+    //        setUp(rates = Round.binaryRound)
+    //        val images = createImages(6)
+    //
+    //        def range(rate: Int) = Seq(2 + rate * 2, 4 + rate * 2)
+    //
+    //        def slice(rate: Int) = images.slice(range(rate).head, range(rate).last)
+    //
+    //        for (rate <- -1 to 1) {
+    //          createSelection(slice(rate), rate = rate)
+    //        }
+    //
+    //        /// test
+    //        val result = Gallery.getSortedImages("gallery", user.id.get, None, round)
+    //
+    //        /// check
+    //        result.size === 6
+    //        result.map(_.image) === slice(1) ++ slice(0) ++ slice(-1)
+    //        result.map(_.selection.size) === Seq.fill(6)(1)
+    //        result.map(_.rate) === Seq(1, 1, 0, 0, -1, -1)
+    //      }
+    //    }
 
     "see images ordered by rate in rated round" in {
       inMemDbApp {
@@ -134,19 +137,59 @@ class GallerySpec extends Specification {
         val images = createImages(6)
 
 
-        val selections = images.zipWithIndex.map { case(image, i) =>
+        val selections = images.zipWithIndex.map { case (image, i) =>
           Selection(0, image.pageId, rate = i, user.id.get, round.id.get)
         }
         selectionDao.batchInsert(selections)
 
         /// test
-        val result = Gallery.getSortedImages("gallery", user.id.get, None, round)
+        val result = Gallery.getSortedImages(user.id.get, None, round, "gallery")
 
         /// check
         result.size === 6
         result.map(_.image) === images.reverse
         result.map(_.selection.size) === Seq.fill(6)(1)
         result.map(_.rate) === (0 to 5).reverse
+      }
+    }
+  }
+
+  "organizer" should {
+    "see rating by selection" in {
+      inMemDbApp {
+        /// prepare
+        setUp(rates = Round.binaryRound)
+        val images = createImages(10)
+
+        val jurors = Seq(user) ++ (1 to 3).map(contestUser(_)).map(userDao.create)
+
+        def selectedBy(n: Int, image: Image, otherRate: Int = 0): Seq[Selection] = {
+          jurors.slice(0, n).map { j =>
+            Selection(0, image.pageId, 1, j.id.get, round.id.get)
+          } ++
+            jurors.slice(n, jurors.size).map { j =>
+              Selection(0, image.pageId, otherRate, j.id.get, round.id.get)
+            }
+        }
+
+        val selectedByX = (0 to 3).flatMap(x => selectedBy(x, images(x)))
+
+        selectionDao.batchInsert(selectedByX)
+
+        /// test
+        val result = Gallery.getSortedImages(0, None, round, "gallery")
+
+        /// check
+        result.size === 4
+        result.map(_.image) === Seq(
+          images(3),
+          images(2),
+          images(1),
+          images(0)
+        )
+        result.map(_.selection.size) === Seq(1, 1, 1, 1)
+        result.map(_.rate) === Seq(3, 2, 1, 0)
+
       }
     }
   }

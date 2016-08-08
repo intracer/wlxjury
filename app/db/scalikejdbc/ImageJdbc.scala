@@ -285,7 +285,7 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
       .innerJoin(SelectionJdbc as SelectionJdbc.s).on(i.pageId, SelectionJdbc.s.pageId)
       .leftJoin(CriteriaRate as CriteriaRate.c).on(SelectionJdbc.s.id, CriteriaRate.c.selection)
       .where.eq(SelectionJdbc.s.round, roundId)
-      .and.gt(SelectionJdbc.s.rate, 0)
+      .and.ge(SelectionJdbc.s.rate, 0)
       .and.append(isNotDeleted)
       .groupBy(SelectionJdbc.s.pageId)
   }.map(rs => (ImageJdbc(i)(rs),
