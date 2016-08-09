@@ -4,11 +4,8 @@ DB_NAME=wlxjury_db
 DB_USER_NAME=wlx_jury_user
 DB_USER_PASSW=wlx_jury
 
-function package_absent() {
-    return dpkg -l "$1" &> /dev/null
-}
-
-if package_absent oracle-java8-installer ; then
+dpkg -l "oracle-java8-installer" &> /dev/null
+if [ $? != 0 ] ; then
     echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list
     echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list
 
@@ -22,19 +19,15 @@ if package_absent oracle-java8-installer ; then
     apt-get install -y oracle-java8-set-default
 fi
 
-# Overall you don't need to install scala separately
-if package_absent scala ; then
-    wget http://www.scala-lang.org/files/archive/scala-2.11.8.deb
-    dpkg -i scala-2.11.8.deb
-fi
-
-if package_absent sbt ; then
+dpkg -l "sbt" &> /dev/null
+if [ $? != 0 ] ; then
     wget http://dl.bintray.com/sbt/debian/sbt-0.13.11.deb
     dpkg -i sbt-0.13.11.deb
 fi
 
-if package_absent mysql-server ; then
-    apt-get install mysql-server
+dpkg -l "mysql-server" &> /dev/null
+if [ $? != 0 ] ; then
+    apt-get install -y mysql-server
     mysql_secure_installation
     mysql_install_db
 fi
@@ -46,7 +39,8 @@ fi
 cd /vagrant
 sbt -v clean packageDebianUpstart
 
-if ! package_absent wlxjury ; then
+dpkg -l "wlxjury" &> /dev/null
+if [ $? == 0 ] ; then
     dpkg -r wlxjury
 fi
 
