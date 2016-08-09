@@ -190,5 +190,123 @@ class GallerySpec extends Specification {
         result.map(_.rate) === Seq(3, 2, 1, 0)
       }
     }
+
+    "see rating by selection only selected" in {
+      inMemDbApp {
+        /// prepare
+        setUp(rates = Round.binaryRound)
+        val images = createImages(10)
+
+        val jurors = Seq(user) ++ (1 to 3).map(contestUser(_)).map(userDao.create)
+
+        def selectedBy(n: Int, image: Image, otherRate: Int = 0): Seq[Selection] = {
+          jurors.slice(0, n).map { j =>
+            Selection(0, image.pageId, 1, j.id.get, round.id.get)
+          } ++
+            jurors.slice(n, jurors.size).map { j =>
+              Selection(0, image.pageId, otherRate, j.id.get, round.id.get)
+            }
+        }
+
+        val selectedByX = (0 to 3).flatMap(x => selectedBy(x, images(x)))
+
+        selectionDao.batchInsert(selectedByX)
+
+        /// test
+        val result = Gallery.getSortedImages(0, None, round, "gallery")
+
+        /// check
+        result.size === 4
+        result.map(_.image) === Seq(
+          images(3),
+          images(2),
+          images(1),
+          images(0)
+        )
+        result.map(_.selection.size) === Seq(1, 1, 1, 1)
+        result.map(_.rate) === Seq(3, 2, 1, 0)
+      }
+    }
+
+    "see rating by selection rejected not accounted" in {
+      inMemDbApp {
+        /// prepare
+        setUp(rates = Round.binaryRound)
+        val images = createImages(10)
+
+        val jurors = Seq(user) ++ (1 to 3).map(contestUser(_)).map(userDao.create)
+
+        def selectedBy(n: Int, image: Image, otherRate: Int = 0): Seq[Selection] = {
+          jurors.slice(0, n).map { j =>
+            Selection(0, image.pageId, 1, j.id.get, round.id.get)
+          } ++
+            jurors.slice(n, jurors.size).map { j =>
+              Selection(0, image.pageId, otherRate, j.id.get, round.id.get)
+            }
+        }
+
+        val selectedByX = (0 to 3).flatMap(x => selectedBy(x, images(x)))
+        val selectedByXrejectedByOthers = (0 to 3).flatMap(x => selectedBy(x, images(4 + x), otherRate = -1))
+
+        selectionDao.batchInsert(selectedByX ++ selectedByXrejectedByOthers)
+
+        /// test
+        val result = Gallery.getSortedImages(0, None, round, "gallery")
+
+        /// check
+        result.size === 7
+        result.map(_.image) === Seq(
+          images(3), images(7),
+          images(2), images(6),
+          images(1), images(5),
+          images(0) /*, images(4) */
+        )
+        result.map(_.selection.size) === Seq.fill(7)(1)
+        result.map(_.rate) === Seq(3, 3, 2, 2, 1, 1, 0)
+      }
+    }
+
+    "see details by selection" in {
+      inMemDbApp {
+        /// prepare
+        setUp(rates = Round.binaryRound)
+        val images = createImages(10)
+
+        val jurors = Seq(user) ++ (1 to 3).map(contestUser(_)).map(userDao.create)
+
+        def selectedBy(n: Int, image: Image, otherRate: Int = 0): Seq[Selection] = {
+          jurors.slice(0, n).map { j =>
+            Selection(0, image.pageId, 1, j.id.get, round.id.get)
+          } ++
+            jurors.slice(n, jurors.size).map { j =>
+              Selection(0, image.pageId, otherRate, j.id.get, round.id.get)
+            }
+        }
+
+        val selectedByX = (0 to 3).flatMap(x => selectedBy(x, images(x)))
+
+        selectionDao.batchInsert(selectedByX)
+
+        /// test
+        val result = Gallery.getSortedImages(0, None, round, "filelist")
+
+        /// check
+        result.size === 4
+        result.map(_.image) === Seq(
+          images(3),
+          images(2),
+          images(1),
+          images(0)
+        )
+        result.map(_.rate) === Seq(1, 1, 1, 0)
+        result.map(_.selection.size) === Seq(4, 4, 4, 4)
+        result.map(_.selection.map(_.rate)) === Seq(
+          Seq(1, 1, 1, 0),
+          Seq(1, 1, 0, 0),
+          Seq(1, 0, 0, 0),
+          Seq(0, 0, 0, 0)
+        )
+      }
+    }
   }
 }
