@@ -4,6 +4,8 @@ DB_NAME=wlxjury_db
 DB_USER_NAME=wlx_jury_user
 DB_USER_PASSW=wlx_jury
 
+rpmPackage=false
+
 rpm --quiet -q java-1.8.0-openjdk
 if [ $? != 0 ] ; then
     yum -y install java-1.8.0-openjdk*
@@ -27,17 +29,22 @@ if ! mysql -u root -e "use $DB_NAME"; then
     mysql -u root -e "create database $DB_NAME; GRANT ALL PRIVILEGES ON $DB_NAME.* TO $DB_USER_NAME@localhost IDENTIFIED BY '$DB_USER_PASSW'"
 fi
 
-rpm --quiet -q rpm-build
-if [ $? != 0 ] ; then
-    yum -y install rpm-build
-fi
-
 cd /vagrant
-sbt -v clean packageRpmSystemd
 
-rpm --quiet -q wlxjury
-if [ $? = 0 ] ; then
-    rpm -e wlxjury
+if [ "$rpmPackage" = true ] ; then
+    rpm --quiet -q rpm-build
+    if [ $? != 0 ] ; then
+        yum -y install rpm-build
+    fi
+
+    sbt -v clean packageRpmSystemd
+
+    rpm --quiet -q wlxjury
+    if [ $? = 0 ] ; then
+        rpm -e wlxjury
+    fi
+
+    rpm -i package/wlxjury-systemd-0.8.rpm
+else
+    sbt run
 fi
-
-rpm -i package/wlxjury-systemd-0.8.rpm

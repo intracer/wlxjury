@@ -4,6 +4,8 @@ DB_NAME=wlxjury_db
 DB_USER_NAME=wlx_jury_user
 DB_USER_PASSW=wlx_jury
 
+debianPackage=false
+
 dpkg -l "oracle-java8-installer" &> /dev/null
 if [ $? != 0 ] ; then
     echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | tee /etc/apt/sources.list.d/webupd8team-java.list
@@ -37,11 +39,16 @@ if ! mysql -u root -e "use $DB_NAME"; then
 fi
 
 cd /vagrant
-sbt -v clean packageDebianUpstart
 
-dpkg -l "wlxjury" &> /dev/null
-if [ $? == 0 ] ; then
-    dpkg -r wlxjury
+if [ "$debianPackage" = true ] ; then
+    sbt -v clean packageDebianUpstart
+
+    dpkg -l "wlxjury" &> /dev/null
+    if [ $? == 0 ] ; then
+        dpkg -r wlxjury
+    fi
+
+    dpkg -i package/wlxjury-upstart-0.8.deb
+else
+    sbt run
 fi
-
-dpkg -i package/wlxjury-upstart-0.8.deb
