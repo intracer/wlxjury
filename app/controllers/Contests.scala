@@ -97,9 +97,11 @@ object Contests extends Controller with Secured {
   }, User.ADMIN_ROLES)
 
   def getNumberOfImages(contest: ContestJury): Long = {
-    val imageInfo = ImageInfoFromCategory(contest.images.get, contest, Global.commons, 0)
-
-    imageInfo.numberOfImages.await
+    contest.images.fold(0L){
+      images =>
+        val imageInfo = ImageInfoFromCategory(images, contest, Global.commons, 0)
+        imageInfo.numberOfImages.await
+    }
   }
 
   def importImages(contestId: Long) = withAuth({ user =>
