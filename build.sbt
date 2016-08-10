@@ -62,7 +62,6 @@ libraryDependencies ++= Seq(
   "org.scalawiki" %% "scalawiki-core" % scalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % scalawikiVersion,
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
-  "org.atmosphere" % "atmosphere-play" % "2.2.0",
   "com.typesafe.play" %% "play-mailer" % "4.0.0",
   "org.flywaydb" %% "flyway-play" % "2.3.0",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",

@@ -15,15 +15,12 @@ import org.scalawiki.wikitext.TemplateParser
 import org.scalawiki.wlx.dto.Contest
 import org.scalawiki.wlx.query.MonumentQuery
 
-import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 class GlobalRefactor(val commons: MwBot) {
 
-  //  val commons = MwBot.get(MwBot.commons)
-
   import scala.concurrent.ExecutionContext.Implicits.global
-
-  val progressListener: ActorRef = commons.system.actorOf(Props(classOf[ProgressListener]))
 
   def initContest(category: String, contest: ContestJury): Any = {
     val images = ImageJdbc.findByContest(contest.id.get)
@@ -36,7 +33,7 @@ class GlobalRefactor(val commons: MwBot) {
     }
   }
 
-  def appendImages(category: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0): Any = {
+  def appendImages(category: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
     val images = ImageJdbc.findByContest(contest.id.get)
 
     initImagesFromCategory(contest, category, images, idsFilter, max)
@@ -75,7 +72,6 @@ class GlobalRefactor(val commons: MwBot) {
                               existing: Seq[Image],
                               idsFilter: Set[String] = Set.empty, max: Long) = {
     val existingPageIds = existing.map(_.pageId).toSet
-    Global.commons.system.eventStream.subscribe(progressListener, classOf[QueryProgress])
 
     val imageInfos = ImageInfoFromCategory(category, contest, commons, max).apply()
 
@@ -86,13 +82,13 @@ class GlobalRefactor(val commons: MwBot) {
       imageInfos
     }
 
-    for (images <- getImages
+    val result = for (images <- getImages
       .map(_.filter(image => !existingPageIds.contains(image.pageId)))
-    ) {
+    ) yield {
       saveNewImages(contest, images)
-
-      commons.system.eventStream.publish(new QueryProgress(-1, true, null, commons, context = Map("contestId" -> contest.id.get.toString)))
     }
+
+    Await.result(result, 5.minutes)
   }
 
   def updateMonuments(query: SinglePageQuery, contest: ContestJury) = {
@@ -293,16 +289,5 @@ class GlobalRefactor(val commons: MwBot) {
         ContestJury(None, contest, year, country, Some(title), None, None)
     }
     contests
-  }
-}
-
-class ProgressListener extends Actor {
-  def receive = {
-    case progress: QueryProgress =>
-      for (contestId <- progress.context.get("contestId");
-           controller <- Option(Global.progressControllers.getOrDefault(contestId, null))
-      ) {
-        controller.progress(progress.pages.toInt, progress.context("max").toInt)
-      }
   }
 }

@@ -1,7 +1,5 @@
 package controllers
 
-import java.util.concurrent.ConcurrentHashMap
-
 import _root_.db.scalikejdbc.ContestJuryJdbc
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import org.intracer.wmua._
@@ -30,8 +28,6 @@ object Global {
 
   val projectRoot = Play.application().path()
 
-  val progressControllers = new ConcurrentHashMap[String, ProgressController]()
-
   lazy val commons = MwBot.fromHost(COMMONS_WIKIMEDIA_ORG)
 
   def onStart(app: Application) {
@@ -51,7 +47,7 @@ object Global {
     val reporter = JmxReporter.forRegistry(metrics).build()
     reporter.start()
 
-    KOATUU.load()
+    //KOATUU.load()
   }
 
   def initCountry(category: String, countryOpt: Option[String]) = {
