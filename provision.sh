@@ -1,9 +1,9 @@
 #!/bin/bash
 
-MYSQL_ROOT_PASSW=mysql_root
-DB_NAME=wlxjury_db
-DB_USER_NAME=wlx_jury_user
-DB_USER_PASSW=wlx_jury
+MYSQL_ROOT_PASSW=mysql_root_passw
+DB_NAME=wlxjury
+WLXJURY_DB_USER=wlx_jury_user
+WLXJURY_DB_PASSWORD=wlx_jury_passw
 
 debianPackage=false
 
@@ -37,8 +37,14 @@ if [ $? != 0 ] ; then
     apt-get install -y mysql-server
 fi
 
-if ! mysql -u root -p$MYSQL_ROOT_PASSW -e "use $DB_NAME"; then
-    mysql -u root -p$MYSQL_ROOT_PASSW -e "create database $DB_NAME; GRANT ALL PRIVILEGES ON $DB_NAME.* TO $DB_USER_NAME@localhost IDENTIFIED BY '$DB_USER_PASSW'"
+mysql -u root -p$MYSQL_ROOT_PASSW -e "use $DB_NAME" &> /dev/null
+if [ $? != 0 ] ; then
+    echo Creating database $DB_NAME
+
+    mysql -u root -p$MYSQL_ROOT_PASSW -e "create database $DB_NAME; GRANT ALL PRIVILEGES ON $DB_NAME.* TO $WLXJURY_DB_USER@localhost IDENTIFIED BY '$WLXJURY_DB_PASSWORD'"
+
+    su vagrant -c "echo export WLXJURY_DB_USER=$WLXJURY_DB_USER >>~/.bash_profile"
+    su vagrant -c "echo export WLXJURY_DB_PASSWORD=$WLXJURY_DB_PASSWORD >>~/.bash_profile"
 fi
 
 cd /vagrant
