@@ -54,3 +54,10 @@ This will open the project in sbt console. Enter the command
 
 Application will start and will compile the changes in the backgroud.
 
+### IDEs
+One of the best IDEs for Scala is [Intellij IDEA](https://en.wikipedia.org/wiki/IntelliJ_IDEA). It has Community version and Scala plugin,  both of them free and open-source. Paid (or [available free for open-source projects communities like Wikimedia](https://lists.wikimedia.org/pipermail/wikitech-l/2016-May/085558.html)) Ultimate version also provides additional support for Play Framework like template and route files.
+
+There are Scala plugins for [Eclipse](http://scala-ide.org/) and [NetBeans](NetBeans) IDEs. 
+
+There is also ENSIME project that "brings Scala and Java IDE-like features to your favourite text editor". See the [supported features in different text editors](http://ensime.github.io/editors/) like Emacs, Vim or Sublime.
+
