@@ -45,8 +45,12 @@ Interpreted languages like Python or PHP always run the latest source code that 
 
 ### sbt Triggered compilation
 The drawback of autoreloading is that recompilation will only happen on new page request. Using sbt [Triggered compilation](http://www.scala-sbt.org/0.13/docs/Howto-Triggered.html) sbt can automatically recompile in the background the moment you save updated source code. To do that run sbt without commands
+
 `sbt`
+
 This will open the project in sbt console. Enter the command
+
 `~ run`
+
 Application will start and will compile the changes in the backgroud.
 
