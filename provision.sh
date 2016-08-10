@@ -1,5 +1,6 @@
 #!/bin/bash
 
+MYSQL_ROOT_PASSW=mysql_root
 DB_NAME=wlxjury_db
 DB_USER_NAME=wlx_jury_user
 DB_USER_PASSW=wlx_jury
@@ -29,13 +30,15 @@ fi
 
 dpkg -l "mysql-server" &> /dev/null
 if [ $? != 0 ] ; then
+
+    debconf-set-selections <<< "mysql-server mysql-server/root_password password $MYSQL_ROOT_PASSW"
+    debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $MYSQL_ROOT_PASSW"
+
     apt-get install -y mysql-server
-    mysql_secure_installation
-    mysql_install_db
 fi
 
-if ! mysql -u root -e "use $DB_NAME"; then
-    mysql -u root -e "create database $DB_NAME; GRANT ALL PRIVILEGES ON $DB_NAME.* TO $DB_USER_NAME@localhost IDENTIFIED BY '$DB_USER_PASSW'"
+if ! mysql -u root -p$MYSQL_ROOT_PASSW -e "use $DB_NAME"; then
+    mysql -u root -p$MYSQL_ROOT_PASSW -e "create database $DB_NAME; GRANT ALL PRIVILEGES ON $DB_NAME.* TO $DB_USER_NAME@localhost IDENTIFIED BY '$DB_USER_PASSW'"
 fi
 
 cd /vagrant
