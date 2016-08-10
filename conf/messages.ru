@@ -24,7 +24,6 @@ all.jury.rating = Суммарный выбор жюри
 statistics = Статистика
 thumbnails = Иконки
 file.list = Список файлов
-chat = Чат
 
 top-x = Топ 21
 

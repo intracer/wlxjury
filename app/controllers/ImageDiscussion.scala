@@ -18,17 +18,6 @@ object ImageDiscussion extends Controller with Secured {
     )(CommentBody.apply)(CommentBody.unapply)
   )
 
-
-  //  def list(pageId: Long) = withAuth {
-  //    user =>
-  //      implicit request =>
-  //        val round = Round.current(user)
-  //
-  //        CommentJdbc.findByRound(round.id.toInt)
-  //        Ok(views.html.large("Chat", user, user.id.toInt, user, messages, user.files, Seq(round), gallery = true))
-  //
-  //  }
-
   def addComment(pageId: Long, region: String = "all", rate: Option[Int], module: String, round: Option[Long]) = withAuth {
     user =>
       implicit request =>

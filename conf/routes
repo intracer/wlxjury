@@ -110,10 +110,6 @@ GET         /error                                                              
 
 GET         /webjars/*file                                                          controllers.WebJarAssets.at(file)
 
-GET         /chat                                                                   controllers.ChatApplication.index
-GET         /chatFeed/:round                                                        controllers.ChatApplication.chatFeed(round: String)
-POST        /chat                                                                   controllers.ChatApplication.postMessage
-
 GET         /contests                                                               controllers.Contests.list()
 
 POST        /contests/save                                                          controllers.Contests.saveContest()

@@ -84,9 +84,6 @@
 
                                 } else {
 
-
-                                    @if(round.id.get == 34) { <li role="presentation"> <a class="brand" href="/chat">@Messages("chat") </a>}
-
                                 @defining(selectedRound.flatMap(_.id) == round.id){ isActive =>
                                 @if(user.roundFiles(round.id.get).count(_.rate == 0) > 0) {
                                 <li  role="presentation" class="@if(rate.contains(0) && isActive) {active}">
