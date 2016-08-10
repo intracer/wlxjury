@@ -44,7 +44,7 @@ fi
 cd /vagrant
 
 if [ "$debianPackage" = true ] ; then
-    sbt -v clean packageDebianUpstart
+    su vagrant -c "sbt -v clean packageDebianUpstart"
 
     dpkg -l "wlxjury" &> /dev/null
     if [ $? == 0 ] ; then
@@ -53,5 +53,5 @@ if [ "$debianPackage" = true ] ; then
 
     dpkg -i package/wlxjury-upstart-0.8.deb
 else
-    sbt run
+    su vagrant -c "sbt compile"
 fi
