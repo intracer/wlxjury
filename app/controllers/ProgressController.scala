@@ -16,9 +16,11 @@ class ProgressController {
 
   @Ready
   def onReady(r: AtmosphereResource) {
-    logger.info("Browser {} connected.", r.uuid)
-    broadcaster = Some(r.getBroadcaster)
-    Global.progressControllers.putIfAbsent(contestId, this)
+    if (r != null) {
+      logger.info("Browser {} connected.", r.uuid)
+      broadcaster = Some(r.getBroadcaster)
+      Global.progressControllers.putIfAbsent(contestId, this)
+    }
   }
 
   @Disconnect
