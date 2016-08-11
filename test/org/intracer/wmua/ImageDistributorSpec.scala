@@ -1,12 +1,10 @@
 package org.intracer.wmua
 
-import db.scalikejdbc.{ImageJdbc, RoundJdbc, SelectionJdbc, UserJdbc}
+import db.scalikejdbc._
 import db.{ImageDao, RoundDao, SelectionDao, UserDao}
 import org.specs2.mutable.Specification
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
 
-class ImageDistributorSpec extends Specification {
+class ImageDistributorSpec extends Specification with InMemDb {
 
   sequential
 
@@ -14,10 +12,6 @@ class ImageDistributorSpec extends Specification {
   val userDao: UserDao = UserJdbc
   val roundDao: RoundDao = RoundJdbc
   val selectionDao: SelectionDao = SelectionJdbc
-
-  def inMemDbApp[T](block: => T): T = {
-    running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
-  }
 
   val (contest1, contest2) = (10, 20)
 

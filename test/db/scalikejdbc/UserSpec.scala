@@ -4,21 +4,14 @@ import db.UserDao
 import org.intracer.wmua.User
 import org.joda.time.DateTime
 import org.specs2.mutable.Specification
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
 
-class UserSpec extends Specification {
+class UserSpec extends Specification with InMemDb {
 
   sequential
 
   val userDao: UserDao = UserJdbc
 
-  def inMemDbApp[T](block: => T): T = {
-    running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
-  }
-
   "fresh database" should {
-
     "be empty" in {
       inMemDbApp {
         val users = userDao.findAll()

@@ -19,8 +19,5 @@ class RankSpec extends Specification {
     "rank ties" in {
       rank(Seq(10, 5, 5, 1)) === Seq("1", "2-3", "2-3", "4")
     }
-
   }
-
-
 }

@@ -3,18 +3,12 @@ package db.scalikejdbc
 import db.ImageDao
 import org.intracer.wmua.Image
 import org.specs2.mutable.Specification
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
 
-class ImageSpec extends Specification {
+class ImageSpec extends Specification with InMemDb {
 
   sequential
 
   val imageDao: ImageDao = ImageJdbc
-
-  def inMemDbApp[T](block: => T): T = {
-    running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
-  }
 
   def contestImage(id: Long, contest: Long) =
     Image(id, contest, s"File:Image$id.jpg", s"url$id", s"pageUrl$id", 640, 480, Some(s"12-345-$id"))

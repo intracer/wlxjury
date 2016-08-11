@@ -4,10 +4,8 @@ import db._
 import db.scalikejdbc._
 import org.intracer.wmua._
 import org.specs2.mutable.Specification
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
 
-class GallerySpec extends Specification {
+class GallerySpec extends Specification with InMemDb {
 
   sequential
 
@@ -20,10 +18,6 @@ class GallerySpec extends Specification {
   var contest: ContestJury = _
   var round: Round = _
   var user: User = _
-
-  def inMemDbApp[T](block: => T): T = {
-    running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
-  }
 
   def contestImage(id: Long, contestId: Long) =
     Image(id, contestId, s"File:Image$id.jpg", s"url$id", s"pageUrl$id", 640, 480, Some(s"12-345-$id"))

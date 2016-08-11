@@ -3,21 +3,14 @@ package db.scalikejdbc
 import db.ContestJuryDao
 import org.intracer.wmua.ContestJury
 import org.specs2.mutable.Specification
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
 
-class ContestSpec extends Specification {
+class ContestSpec extends Specification with InMemDb {
 
   sequential
 
   val contestDao: ContestJuryDao = ContestJuryJdbc
 
-  def inMemDbApp[T](block: => T): T = {
-    running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
-  }
-
   "fresh database" should {
-
     "be empty" in {
       inMemDbApp {
         val contests = contestDao.findAll()
@@ -56,7 +49,5 @@ class ContestSpec extends Specification {
         withoutIds === contests
       }
     }
-
   }
-
 }

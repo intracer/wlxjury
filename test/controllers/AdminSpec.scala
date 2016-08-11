@@ -1,16 +1,12 @@
 package controllers
 
+import db.scalikejdbc.InMemDb
 import org.intracer.wmua.{ContestJury, User}
 import org.specs2.mutable.Specification
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
 
-class AdminSpec extends Specification {
+class AdminSpec extends Specification with InMemDb {
+
   val sender = User("Admin User", "email@server.com", None, contest = None)
-
-  def inMemDbApp[T](block: => T): T = {
-    running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
-  }
 
   "fill template" should {
 

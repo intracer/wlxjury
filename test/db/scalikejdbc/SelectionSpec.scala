@@ -3,21 +3,14 @@ package db.scalikejdbc
 import db.SelectionDao
 import org.intracer.wmua.Selection
 import org.specs2.mutable.Specification
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
 
-class SelectionSpec extends Specification {
+class SelectionSpec extends Specification with InMemDb {
 
   sequential
 
   val selectionDao: SelectionDao = SelectionJdbc
 
-  def inMemDbApp[T](block: => T): T = {
-    running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
-  }
-
   "fresh database" should {
-
     "be empty" in {
       inMemDbApp {
         val selection = selectionDao.findAll()
@@ -44,5 +37,4 @@ class SelectionSpec extends Specification {
       }
     }
   }
-
 }

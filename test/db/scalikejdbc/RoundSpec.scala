@@ -1,24 +1,17 @@
 package db.scalikejdbc
 
-import db.{UserDao, RoundDao}
-import org.intracer.wmua.{User, Round}
+import db.{RoundDao, UserDao}
+import org.intracer.wmua.{Round, User}
 import org.specs2.mutable.Specification
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
 
-class RoundSpec extends Specification {
+class RoundSpec extends Specification with InMemDb {
 
   sequential
 
   val roundDao: RoundDao = RoundJdbc
   val userDao: UserDao = UserJdbc
 
-  def inMemDbApp[T](block: => T): T = {
-    running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
-  }
-
   "fresh database" should {
-
     "be empty" in {
       inMemDbApp {
         val rounds = roundDao.findAll()
