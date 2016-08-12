@@ -12,7 +12,6 @@ case class ImageWithRating(image: Image, selection: Seq[Selection], countFromDb:
   def select(): Unit =
     ownJuryRating.select()
 
-
   def isSelected: Boolean = ownJuryRating.isSelected
 
   def isRejected: Boolean = ownJuryRating.isRejected
@@ -34,7 +33,7 @@ case class ImageWithRating(image: Image, selection: Seq[Selection], countFromDb:
     else
       rateSum.toDouble / ratedJurors(round)
 
-  def rateSum = selection.foldLeft(0)( _ + _.rate)
+  def rateSum = selection.foldLeft(0)((acc, s) => acc + Math.max(s.rate, 0))
 
   def jurors = selection.map(s => s.juryId).toSet
 

@@ -23,7 +23,10 @@
             <ul class="nav navbar-nav">
                 @if(user != null) {
 
-                   <!-- Admin items: images,  users and rounds setup -->
+                    @if(user.hasRole(User.ROOT_ROLE)) {
+                        <li role="presentation"><a class="brand" href="@routes.Contests.list()">@Messages("Contests")</a>
+                    }
+                        <!-- Admin items: images,  users and rounds setup -->
                    @if(user.hasAnyRole(User.ADMIN_ROLES)) {
                       @for(cId <- contestId) {
                             <li role="presentation"><a class="brand" href="@routes.Contests.images(cId)">@Messages("images")</a>
