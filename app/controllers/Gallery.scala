@@ -39,11 +39,13 @@ object Gallery extends Controller with Secured with Instrumented {
     listGeneric(module, asUserId.getOrElse(0), pager => page, region, roundId, rate)
   }
 
+  def moduleByUserId(asUserId: Long) = if (asUserId == 0) "byrate" else "gallery"
+
   def list(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0, rate: Option[Int]) =
-    listGeneric("gallery", asUserId, pager => page, region, roundId, rate)
+    listGeneric(moduleByUserId(asUserId), asUserId, pager => page, region, roundId, rate)
 
   def listAtId(asUserId: Long, pageId: Long, region: String = "all", roundId: Long = 0, rate: Option[Int]) =
-    listGeneric("gallery", asUserId, pager => pager.at(pageId), region, roundId, rate)
+    listGeneric(moduleByUserId(asUserId), asUserId, pager => pager.at(pageId), region, roundId, rate)
 
   def listGeneric(module: String, asUserId: Long, pageFn: Pager => Int, region: String = "all", roundId: Long = 0, rate: Option[Int]) = withAuth {
     user =>
@@ -72,43 +74,17 @@ object Gallery extends Controller with Secured with Instrumented {
             val pages = pager.pages
             val startImage = pageFiles.headOption.map(head => filesInRegion.indexWhere(_.pageId == head.pageId)).getOrElse(0)
 
-            if (round.isBinary && asUserId == 0) {
-              val filesWithNormalizedRate = pageFiles.map {
-                file => new ImageWithRating(
-                  file.image,
-                  selection = file.selection.filter(_.rate > 0),
-                  countFromDb = file.countFromDb
-                )
-              }
-              module match {
-                case "filelist" =>
-                  val useTable = !round.isBinary || asUserId == 0
+            val ranks = ImageWithRating.rankImages(sortedFiles, round)
+            val useTable = !round.isBinary || asUserId == 0
 
-                  val ranks = ImageWithRating.rankImages(sortedFiles, round)
-                  Ok(views.html.fileList(user, asUserId, asUser, filesInRegion, ranks, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
-                case _ =>
-                  Ok(views.html.galleryByRate(user, asUserId, asUser, filesWithNormalizedRate, pages, page, startImage, maybeRound, rounds, region, byReg))
-              }
-            } else
-
-              module match {
-                case "gallery" =>
-                  Ok(views.html.gallery(user, asUserId, asUser, pageFiles, pages, page, maybeRound, rounds, rate, region, byReg))
-
-                case "filelist" =>
-                  val useTable = !round.isBinary || asUserId == 0
-
-                  val ranks = ImageWithRating.rankImages(sortedFiles, round)
-
-                  Ok(views.html.fileList(user, asUserId, asUser, sortedFiles, ranks, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
-
-                case "byrate" =>
-                  if (!round.isBinary) {
-                    Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, pages, page, startImage, maybeRound, rounds, region, byReg))
-                  } else {
-                    Ok(views.html.gallery(user, asUserId, asUser, pageFiles, pages, page, maybeRound, rounds, None, region, byReg))
-                  }
-              }
+            module match {
+              case "gallery" =>
+                Ok(views.html.gallery(user, asUserId, asUser, pageFiles, pages, page, maybeRound, rounds, rate, region, byReg))
+              case "filelist" =>
+                Ok(views.html.fileList(user, asUserId, asUser, filesInRegion, ranks, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
+              case "byrate" =>
+                  Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
+            }
           }
         }
   }
