@@ -155,9 +155,9 @@
                         </th>
                         <th>
                         @if(round.isBinary) {
-                            <a href="/gallery/round/@round.id/user/0/page/1">
+                            <a href="/byrate/round/@round.id/user/0/page/1">
                                 <button type="button" class="btn btn-default btn-xs @if(total == 0) {disabled}">
-                                    <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
+                                    <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
                                 </button>
                             </a>
                             <a href="/filelist/round/@round.id/user/0/page/1">
@@ -175,9 +175,9 @@
                         <th>
                             <div class="btn-group">
                             @if(round.isBinary) {
-                                <a href="/gallery/round/@round.id/user/0/page/1@rateParam(Some(1))">
+                                <a href="/byrate/round/@round.id/user/0/page/1@rateParam(Some(1))">
                                     <button type="button" class="btn btn-default btn-xs @if(total == 0){disabled}">
-                                        <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
+                                        <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
                                     </button>
                                 </a>
                                 <a href="/filelist/round/@round.id/user/0/page/1@rateParam(Some(1))">

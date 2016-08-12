@@ -14,7 +14,7 @@ POST        /auth                                                               
 
 GET         /auth                                                                   controllers.Login.login()
 
-GET         /query                                                                  controllers.Gallery.query(module:String ?= "gallery", user: Option[Long] ?= None, page: Int ?= 1, region: String ?= "all", round: Long ?= 0, rate: Option[Int] ?= None)
+GET         /query                                                                  controllers.Gallery.query(module:String ?= "byrate", user: Option[Long] ?= None, page: Int ?= 1, region: String ?= "all", round: Long ?= 0, rate: Option[Int] ?= None)
 
 GET         /byrate/user/:user/page/:page                                           controllers.Gallery.byRate(user: Long, page: Int, region: String = "all", round: Long = 0)
 
