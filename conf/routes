@@ -36,10 +36,6 @@ GET         /gallery/round/:round/user/:user/region/:region/page/:page          
 
 GET         /gallery/round/:round/user/:user/region/:region/pageid/:pageid          controllers.Gallery.listAtId(user: Long, pageid: Long, region: String, round: Long, rate: Option[Int] ?= None)
 
-GET         /gallery/round/:round/users/:users/page/:page                           controllers.Gallery.listByNumber(users: Int, page: Int, region: String = "all", round: Long, rate: Option[Int] ?= None)
-
-GET         /gallery/round/:round/users/:users/region/:region/page/:page            controllers.Gallery.listByNumber(users: Int, page: Int, region: String, round: Long, rate: Option[Int] ?= None)
-
 GET         /filelist/user/:user/page/:page                                         controllers.Gallery.fileList(user: Long, page: Int, region: String = "all", round: Long = 0, format:String ?= "wiki", rate: Option[Int] ?= None)
 
 GET         /filelist/user/:user/region/:region/page/:page                          controllers.Gallery.fileList(user: Long, page: Int, region: String, round: Long = 0, format:String ?= "wiki", rate: Option[Int] ?= None)

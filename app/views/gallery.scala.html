@@ -4,7 +4,7 @@
         asUserId: Long,
         asUser: org.intracer.wmua.User,
         pageFiles: Seq[org.intracer.wmua.ImageWithRating],
-        regionFiles: Seq[org.intracer.wmua.ImageWithRating],
+        pages: Int,
         page: Int,
         round: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
@@ -13,7 +13,7 @@
         byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang, messages: Messages)
 
     @main("gallery", user, asUserId, asUser, round, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),  rounds, gallery = true, rate, region,
-            pager(asUserId, regionFiles, page, rate, round.flatMap(_.id), region)
+            pager(asUserId, pages, page, rate, round.flatMap(_.id), region)
     )  {
 
 @defining( round.flatMap(_.id).getOrElse(0L) ) { roundId =>

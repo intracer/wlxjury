@@ -3,9 +3,10 @@
         user: org.intracer.wmua.User,
         asUserId: Long,
         asUser: org.intracer.wmua.User,
-        pageFiles: Seq[org.intracer.wmua.ImageWithRating],
-        regionFiles: Seq[org.intracer.wmua.ImageWithRating],
+        files: Seq[org.intracer.wmua.ImageWithRating],
+        pages: Int,
         page: Int,
+        startImage: Int,
         maybeRound: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
         region: String = "all",
@@ -34,7 +35,7 @@
 
 @main("byrate", user, asUserId, asUser, maybeRound, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),
     rounds, true, None, region,
-    pager(asUserId, regionFiles, page, None, maybeRound.flatMap(_.id), region, "byrate")
+    pager(asUserId, pages, page, None, maybeRound.flatMap(_.id), region, "byrate")
 )  {
 
 @defining( maybeRound.get) { round =>
@@ -45,8 +46,7 @@
     <div class="row" >
 
         <ul class="gallery mw-gallery-traditional">
-           @defining(pageFiles.headOption.map(head => regionFiles.indexWhere(_.pageId == head.pageId)).getOrElse(0)) {start =>
-            @for((file, index) <- pageFiles.view.zipWithIndex) {
+            @for((file, index) <- files.view.zipWithIndex) {
                 <li class="gallerybox">
                     <h1 id="@file.pageId" style="display: inline; width: 1px; height: 1px"></h1>
 
@@ -57,11 +57,10 @@
                         </a>
                     </div>
 
-                    @showRateGalery(file, index+start+1)
+                    @showRateGalery(file, index + startImage + 1)
 
                 </li>
             }
-           }
 
         </ul>
     </div>
