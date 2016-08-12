@@ -3,7 +3,9 @@ package controllers
 import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
 import org.intracer.wmua.cmd.ImageInfoFromCategory
 import org.intracer.wmua.{ContestJury, Image, User}
+import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.CountryParser
+import org.scalawiki.wlx.dto.Contest
 import play.api.Play.current
 import play.api.data.Form
 import play.api.data.Forms._
@@ -53,8 +55,12 @@ object Contests extends Controller with Secured {
             BadRequest(views.html.contests(user, contests, editContestForm, formWithErrors))
           },
           formContest => {
-            val wiki = Global.commons.pageText(formContest).await
-            val imported = CountryParser.parse(wiki)
+            val imported =
+              if (formContest.startsWith("Commons:")) {
+                importListPage(formContest)
+              } else {
+                importCategory(formContest)
+              }
             imported.foreach {
               contest =>
                 val contestJury = new ContestJury(
@@ -69,6 +75,18 @@ object Contests extends Controller with Secured {
             Redirect(routes.Contests.list())
           })
   }, Set(User.ROOT_ROLE))
+
+  def importListPage(formContest: String): Seq[Contest] = {
+    val wiki = Global.commons.pageText(formContest).await
+    CountryParser.parse(wiki)
+  }
+
+  def importCategory(formContest: String): Seq[Contest] = {
+    val pages = Global.commons.page(formContest).categoryMembers(Set(Namespace.CATEGORY)).await
+
+    pages.flatMap(p => CountryParser.fromCategoryName(p.title)) ++
+      CountryParser.fromCategoryName(formContest).filter(_.country.name.nonEmpty)
+  }
 
   def createContest(contest: ContestJury): ContestJury = {
     ContestJuryJdbc.create(
@@ -89,8 +107,6 @@ object Contests extends Controller with Secured {
 
         val sourceImageNum = getNumberOfImages(contest)
         val dbImagesNum = ImageJdbc.countByContest(contestId)
-
-        val imageInfos = Seq.empty[Image] //imageInfo.apply().await
 
         val filledForm = importForm.fill(contest.images.getOrElse(""))
         Ok(views.html.contest_images(filledForm, contest, user, sourceImageNum, dbImagesNum, inProgress))

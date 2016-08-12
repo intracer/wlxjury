@@ -4,17 +4,28 @@
         contests: Seq[org.intracer.wmua.ContestJury],
         editContestForm: Form[org.intracer.wmua.ContestJury],
         importForm: Form[String]
-        )(implicit flash: Flash, lang: Lang, messages: Messages)
+)(implicit flash: Flash, lang: Lang, messages: Messages)
 @import helper._
+@import b3.vertical.fieldConstructor
 
 @mainAdmin(Messages("contests"), user, user.id.get) {
-    <div class="row" >
+    <div class="row" xmlns="http://www.w3.org/1999/html">
+
         <h3>@Messages("Import from list page/images category")</h3>
-        @form(routes.Contests.importContests, 'id -> "import-contests") {
-            @inputText(importForm("source"), 'placeholder -> Messages("source"), '_label -> null, '_help -> "")
+        <div class="bs-callout bs-callout-info">
+            <h4>Examples of inputs:</h4>
+            <p>
+                <ul>
+                    <li>Category:Images from Wiki Loves Earth 2016
+                    <li>Commons:Wiki Loves Monuments 2016/Participating countries
+                    <li>Commons:Wiki Loves Earth 2016
+                </ul>
+        </div>
+        @b3.form(routes.Contests.importContests, 'id -> "import-contests") {
+            @b3.text(importForm("source"), 'placeholder -> Messages("source"), '_label -> null, '_help -> "")
 
             <div class="btn btn-primary" onClick="document.forms['import-contests'].submit();">
-                @Messages("import")
+            @Messages("import")
             </div>
         }
     </div>
@@ -38,72 +49,70 @@
             <tbody>
 
                 @if(user.hasRole(User.ROOT_ROLE)) {
-                @form(routes.Contests.saveContest, 'class -> "form-vertical", 'id -> "add-contest") {
-                    <tr>
-                        @if(editContestForm.hasGlobalErrors) {
-                            <p class="error">
-                                <span class="label important">@Messages(editContestForm.errors.head.message)</span>
-                            </p>
-                        }
+                    @form(routes.Contests.saveContest, 'class -> "form-vertical", 'id -> "add-contest") {
+                        <tr>
+                            @if(editContestForm.hasGlobalErrors) {
+                                <p class="error">
+                                    <span class="label important">@Messages(editContestForm.errors.head.message)</span>
+                                </p>
+                            }
 
-                        <td>
-                            <input type="hidden" name="id" id="id" value="0" />
-                            @inputText(editContestForm("name"), 'placeholder -> Messages("Name"), '_label -> null, '_help -> "")
-                        </td>
-                        <td>
+                            <td>
+                                <input type="hidden" name="id" id="id" value="0" />
+                                @inputText(editContestForm("name"), 'placeholder -> Messages("Name"), '_label -> null, '_help -> "")
+                            </td>
+                            <td>
                             @inputText(editContestForm("country"), 'placeholder -> Messages("country"), '_label -> null, '_help -> "")
-                        </td>
-                        <td>
+                            </td>
+                            <td>
                             @inputText(editContestForm("year"), 'placeholder -> Messages("year"), '_label -> null, '_help -> "")
-                        </td>
-                        <td>
+                            </td>
+                            <td>
                             @inputText(editContestForm("images"), 'placeholder -> Messages("images"), '_label -> null, '_help -> "")
-                        </td>
-                        <td>
-                        </td>
-                        <td>
-                            @inputText(editContestForm("currentRound"), 'placeholder -> Messages("currentRound"), '_label -> null, '_help -> "")
-                        </td>
-                        <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
+                            </td>
+                            <td>
                             @inputText(editContestForm("monumentIdTemplate"), 'placeholder -> Messages("id.template"), '_label -> null, '_help -> "")
+                            </td>
+                            <td>
+                                <div class="btn btn-primary" onClick="document.forms['add-contest'].submit();">
+                                @Messages("add")
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+
+                @for(contest <- contests) {
+                    <tr>
+                        <td>@Messages(contest.name)</td>
+                        <td>@Messages(contest.country)</td>
+                        <td>@contest.year</td>
+                        <td>
+                            <a href="@routes.Contests.images(contest.id.get)">@contest.images </a>
                         </td>
                         <td>
-                            <div class="btn btn-primary" onClick="document.forms['add-contest'].submit();">
-                                @Messages("add")
-                            </div>
+                            <a href="@routes.Admin.users(contest.id)">
+                                <button type="button" class="btn btn-default btn-xs">
+                                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                                </button>
+                            </a>
                         </td>
-                    </tr>
-                }
-                }
-
-
-            @for(contest <- contests) {
-                <tr>
-                    <td>@Messages(contest.name)</td>
-                    <td>@Messages(contest.country)</td>
-                    <td>@contest.year</td>
-                    <td>
-                        <a href="@routes.Contests.images(contest.id.get)">@contest.images </a>
-                    </td>
-                    <td>
-                        <a href="@routes.Admin.users(contest.id)">
+                        <td>@contest.currentRound
+                        <a href="@routes.Rounds.rounds(contest.id)">
                             <button type="button" class="btn btn-default btn-xs">
                                 <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                             </button>
                         </a>
+                        </td>
+                        <td>@contest.monumentIdTemplate.getOrElse("")</td>
+                        <td>
                     </td>
-                    <td>@contest.currentRound
-                    <a href="@routes.Rounds.rounds(contest.id)">
-                        <button type="button" class="btn btn-default btn-xs">
-                            <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
-                        </button>
-                    </a>
-                    </td>
-                    <td>@contest.monumentIdTemplate.getOrElse("")</td>
-                    <td>
-                    </td>
-                </tr>
-            }
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
