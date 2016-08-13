@@ -24,16 +24,16 @@ case class Pager(
 
   def pageNumbers = {
     (for (p <- pages) yield {
-      val (div, mod) = (p / 10, p % 10)
 
-      val tens = page / 10
-      val digits = (1 to 9).map(_ + 10 * tens).filter(_ <= p)
+      val tenPowers = Seq(1000, 100, 10, 1).filter(_ <= p)
 
-      (if (tens > 0) Seq(1) else Seq.empty) ++
-        (1 to div).map(_ * 10).patch(tens, digits, 0)
+      val numbers = Seq(1) ++ tenPowers.flatMap {
+        power => (1 to 9).map(_ * power + (page / (power * 10)) * power * 10)
+      }
+
+      numbers.filter(_ <= p).distinct.sorted
     }).getOrElse(Seq.empty)
   }
-
 }
 
 object Pager {

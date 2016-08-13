@@ -122,8 +122,7 @@ object Gallery extends Controller with Secured with Instrumented {
                        module: String,
                        pager: Pager = Pager.pageOffset(1)): Seq[ImageWithRating] = {
     val userDetails = module == "filelist"
-    val uFiles = filesByUserId(asUserId, rate, round, pager, userDetails)
-    uFiles
+    filesByUserId(asUserId, rate, round, pager, userDetails)
   }
 
   def isNotAuthorized(user: User, maybeRound: Option[Round], roundContest: Long): Boolean = {
@@ -162,11 +161,11 @@ object Gallery extends Controller with Secured with Instrumented {
                      pager: Pager,
                      userDetails: Boolean = false): Seq[ImageWithRating] = {
     val criteriaRate = round.hasCriteriaRate
-      if (userId == 0) {
-        filesFromSeveralUsers(rate, userDetails, round, pager, criteriaRate)
-      } else {
-        userFiles(userId, round, rate, pager, round.hasCriteriaRate)
-      }
+    if (userId == 0) {
+      filesFromSeveralUsers(rate, userDetails, round, pager, criteriaRate)
+    } else {
+      userFiles(userId, round, rate, pager, round.hasCriteriaRate)
+    }
   }
 
   def filesFromSeveralUsers(rate: Option[Int], userDetails: Boolean, round: Round, pager: Pager,
@@ -190,7 +189,7 @@ object Gallery extends Controller with Secured with Instrumented {
         }
       }
     } else {
-      rate.fold (ImageJdbc.byRoundSummedWithCriteria(round.id.get)) { r =>
+      rate.fold(ImageJdbc.byRoundSummedWithCriteria(round.id.get)) { r =>
         ImageJdbc.byRatingWithCriteriaMerged(r, round.id.get)
       }
     }
@@ -204,7 +203,7 @@ object Gallery extends Controller with Secured with Instrumented {
           if (round.isBinary) {
             ImageJdbc.byUserRoundRateParamCount(userId, round.id.get, r)
           } else {
-              ImageJdbc.byUserRoundRatedCount(userId, round.id.get)
+            ImageJdbc.byUserRoundRatedCount(userId, round.id.get)
           }
         }
       pager.setCount(count)
