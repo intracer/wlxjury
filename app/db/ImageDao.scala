@@ -17,13 +17,9 @@ trait ImageDao {
 
   def bySelection(round: Long): Seq[Image]
 
-  def byUser(user: User, roundId: Long): Seq[Image]
-
-  def byUserSelected(user: User, roundId: Long): Seq[Image]
-
   def findWithSelection(id: Long, roundId: Long): Seq[ImageWithRating]
 
-  def byUserImageWithRating(userId: Long, roundId: Long): Seq[ImageWithRating]
+  def byUserImageWithRating(userId: Long, roundId: Long, rate: Option[Int] = None): Seq[ImageWithRating]
 
   def byRating(roundId: Long, rate: Int): Seq[ImageWithRating]
 

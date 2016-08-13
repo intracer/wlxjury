@@ -112,11 +112,10 @@ object Gallery extends Controller with Secured with Instrumented {
       uFiles.filter(_.selection.nonEmpty)
     )(r => filterByRate(round, rate, uFiles))
 
-    val sortedFiles = if (round.isBinary && userDetails)
+    if (round.isBinary && userDetails)
       ratedFiles.sortBy(-_.selection.count(_.rate > 0))
     else
       ratedFiles.sortBy(-_.totalRate(round))
-    sortedFiles
   }
 
   def isNotAuthorized(user: User, maybeRound: Option[Round], roundContest: Long): Boolean = {
