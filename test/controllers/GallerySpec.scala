@@ -2,7 +2,7 @@ package controllers
 
 import db._
 import db.scalikejdbc._
-import org.intracer.wmua._
+import org.intracer.wmua.{Selection, _}
 import org.specs2.mutable.Specification
 
 class GallerySpec extends Specification with InMemDb {
@@ -185,78 +185,38 @@ class GallerySpec extends Specification with InMemDb {
       }
     }
 
-    "see rating by selection only selected" in {
+    "see details by selection rejected not accounted" in {
       inMemDbApp {
         /// prepare
         setUp(rates = Round.binaryRound)
-        val images = createImages(10)
+        val images = createImages(2)
 
-        val jurors = Seq(user) ++ (1 to 3).map(contestUser(_)).map(userDao.create)
+        val jurors = (1 to 3).map(contestUser(_)).map(userDao.create)
 
-        def selectedBy(n: Int, image: Image, otherRate: Int = 0): Seq[Selection] = {
-          jurors.slice(0, n).map { j =>
-            Selection(0, image.pageId, 1, j.id.get, round.id.get)
-          } ++
-            jurors.slice(n, jurors.size).map { j =>
-              Selection(0, image.pageId, otherRate, j.id.get, round.id.get)
-            }
-        }
+        def rate(imageIndex: Int, jurorIndex: Int, rate: Int) =
+          Selection(0, images(imageIndex).pageId, rate, jurors(jurorIndex).id.get, round.id.get)
 
-        val selectedByX = (0 to 3).flatMap(x => selectedBy(x, images(x)))
+        def rateN(imageIndex: Int, rates: Seq[Int]) =
+          (0 to jurors.size)
+            .zip(rates).map {
+            case (j, r) => rate(imageIndex, j, r)
+          }
 
-        selectionDao.batchInsert(selectedByX)
+        val selections =
+          rateN(0, Seq(1, -1, -1)) ++
+            rateN(1, Seq(0, 0, 0))
 
-        /// test
-        val result = Gallery.getSortedImages(0, None, round, "gallery")
-
-        /// check
-        result.size === 4
-        result.map(_.image) === Seq(
-          images(3),
-          images(2),
-          images(1),
-          images(0)
-        )
-        result.map(_.selection.size) === Seq(1, 1, 1, 1)
-        result.map(_.rate) === Seq(3, 2, 1, 0)
-      }
-    }
-
-    "see rating by selection rejected not accounted" in {
-      inMemDbApp {
-        /// prepare
-        setUp(rates = Round.binaryRound)
-        val images = createImages(10)
-
-        val jurors = Seq(user) ++ (1 to 3).map(contestUser(_)).map(userDao.create)
-
-        def selectedBy(n: Int, image: Image, otherRate: Int = 0): Seq[Selection] = {
-          jurors.slice(0, n).map { j =>
-            Selection(0, image.pageId, 1, j.id.get, round.id.get)
-          } ++
-            jurors.slice(n, jurors.size).map { j =>
-              Selection(0, image.pageId, otherRate, j.id.get, round.id.get)
-            }
-        }
-
-        val selectedByX = (0 to 3).flatMap(x => selectedBy(x, images(x)))
-        val selectedByXrejectedByOthers = (0 to 3).flatMap(x => selectedBy(x, images(4 + x), otherRate = -1))
-
-        selectionDao.batchInsert(selectedByX ++ selectedByXrejectedByOthers)
+        selectionDao.batchInsert(selections)
 
         /// test
-        val result = Gallery.getSortedImages(0, None, round, "gallery")
+        val result = Gallery.getSortedImages(0, None, round, "filelist")
 
         /// check
-        result.size === 7
-        result.map(_.image) === Seq(
-          images(3), images(7),
-          images(2), images(6),
-          images(1), images(5),
-          images(0) /*, images(4) */
-        )
-        result.map(_.selection.size) === Seq.fill(7)(1)
-        result.map(_.rate) === Seq(3, 3, 2, 2, 1, 1, 0)
+        result.size === 2
+        result.map(_.image) === Seq(images(0), images(1))
+
+        result.map(_.selection.size) === Seq(3, 3)
+        result.map(_.rate) === Seq(1, 0)
       }
     }
 

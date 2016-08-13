@@ -120,7 +120,7 @@ object Gallery extends Controller with Secured with Instrumented {
                        rate: Option[Int],
                        round: Round,
                        module: String,
-                       pager: Pager): Seq[ImageWithRating] = {
+                       pager: Pager = Pager.pageOffset(1)): Seq[ImageWithRating] = {
     val userDetails = module == "filelist"
     val uFiles = filesByUserId(asUserId, rate, round, pager, userDetails)
 
