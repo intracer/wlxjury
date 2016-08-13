@@ -191,8 +191,6 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
       gt(s.rate, 0)
   }.map(rs => rs.int(1)).single().apply().getOrElse(0)
 
-
-
   def byUserImageWithRating(
                              userId: Long,
                              roundId: Long,
@@ -206,7 +204,7 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
       .where.eq(s.juryId, userId).and
       .eq(s.round, roundId)
       .map(sql => if (rate.isDefined) sql.and.eq(s.rate, rate) else sql)
-      .orderBy(i.pageId).asc
+      .orderBy(s.rate.desc, i.pageId.asc)
       .limit(pageSize)
       .offset(offset)
   }.map(rs => (

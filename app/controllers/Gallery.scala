@@ -175,7 +175,7 @@ object Gallery extends Controller with Secured with Instrumented {
         if (userDetails)
           ImageJdbc.byRound(round.id.get).groupBy(_.image.pageId).map { case (id, images) =>
             new ImageWithRating(images.head.image, images.flatMap(_.selection))
-          }.toSeq
+          }.toSeq.sortBy(-_.selection.map(_.rate).filter(_ > 0).sum)
         else {
           val count = ImageJdbc.byRoundAllCount(round.id.get)
           pager.setCount(count)

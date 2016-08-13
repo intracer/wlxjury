@@ -147,7 +147,9 @@
                             }
 
                             @(new UiSelectionDto[String](
-                                routes.Gallery.query(_, user = Some(asUserId), page = 1, region = region, round = round.id.get),
+                                { module: String =>
+                                    routes.Gallery.query(module, Some(asUserId), page = 1, region = region, round = round.id.get, rate = rate)
+                                },
                                 title,
                                 Seq(
                                     /*"gallerylarge" -> SelectionItem("large.thumbnails",Some("icon-th-large")),*/
