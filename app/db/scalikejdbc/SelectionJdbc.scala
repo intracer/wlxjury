@@ -13,54 +13,10 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
   override val tableName = "selection"
 
   val s = SelectionJdbc.syntax("s")
-  // val autoSession = AutoSession
+  val u = UserJdbc.u
+  val c = CriteriaRate.c
+
   private def isNotDeleted = sqls.isNull(s.deletedAt)
-
-  def byUser(user: User, roundId: Long): Seq[Selection] = withSQL {
-    select.from(SelectionJdbc as s).where
-      .eq(s.juryId, user.id).and
-      .eq(s.round, roundId).and
-      .append(isNotDeleted)
-  }.map(SelectionJdbc(s)).list().apply()
-
-  def byUserSelected(user: User, roundId: Long): Seq[Selection] = withSQL {
-    select.from(SelectionJdbc as s).where
-      .eq(s.juryId, user.id).and
-      .eq(s.round, roundId).and
-      .ne(s.rate, 0).and
-      .append(isNotDeleted)
-  }.map(SelectionJdbc(s)).list().apply()
-
-  def byRoundSelected(roundId: Long): Seq[Selection] = withSQL {
-    select.from(SelectionJdbc as s).where
-      .eq(s.round, roundId).and
-      .ne(s.rate, 0).and
-      .append(isNotDeleted)
-  }.map(SelectionJdbc(s)).list().apply()
-
-  def byRoundAndImageWithJury(roundId: Long, imageId: Long): Seq[(Selection, User)] = withSQL {
-    select.from(SelectionJdbc as s)
-      .innerJoin(UserJdbc as UserJdbc.u).on(UserJdbc.u.id, SelectionJdbc.s.juryId)
-      .where.eq(s.round, roundId).and
-      .eq(s.pageId, imageId).and
-      .gt(s.rate, 0).and
-      .append(isNotDeleted)
-      .orderBy(s.rate).desc
-  }.map(rs => (SelectionJdbc(SelectionJdbc.s)(rs), UserJdbc(UserJdbc.u)(rs))).list().apply()
-
-  def byRound(roundId: Long): Seq[Selection] = withSQL {
-    select.from(SelectionJdbc as s).where
-      .eq(s.round, roundId).and
-      .append(isNotDeleted)
-  }.map(SelectionJdbc(s)).list().apply()
-
-  def byUserNotSelected(user: User, roundId: Long): Seq[Selection] = withSQL {
-    select.from(SelectionJdbc as s).where
-      .eq(s.juryId, user.id).and
-      .eq(s.round, roundId).and
-      .eq(s.rate, 0).and
-      .append(isNotDeleted)
-  }.map(SelectionJdbc(s)).list().apply()
 
   def apply(c: SyntaxProvider[Selection])(rs: WrappedResultSet): Selection = apply(c.resultName)(rs)
 
@@ -73,49 +29,6 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
     createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
   )
-
-  def find(id: Long): Option[Selection] = withSQL {
-    select.from(SelectionJdbc as s).where.eq(s.id, id).and.append(isNotDeleted)
-  }.map(SelectionJdbc(s)).single().apply()
-
-  def findBy(pageId: Long, juryId: Long, round: Long)(implicit session: DBSession = autoSession): Option[Selection] = withSQL {
-    select.from(SelectionJdbc as s).where
-      .eq(s.pageId, pageId).and
-      .eq(s.juryId, juryId).and
-      .eq(s.round, round).and
-      .append(isNotDeleted)
-  }.map(SelectionJdbc(s)).single().apply()
-
-  def findAll(): Seq[Selection] = withSQL {
-    select.from(SelectionJdbc as s)
-      .where.append(isNotDeleted)
-      .orderBy(s.id)
-  }.map(SelectionJdbc(s)).list().apply()
-
-  def countAll(): Long = withSQL {
-    select(sqls.count).from(SelectionJdbc as s).where.append(isNotDeleted)
-  }.map(rs => rs.long(1)).single().apply().get
-
-  def findAllBy(where: SQLSyntax): List[Selection] = withSQL {
-    select.from(SelectionJdbc as s)
-      .where.append(isNotDeleted).and.append(sqls"$where")
-      .orderBy(s.id)
-  }.map(SelectionJdbc(s)).list().apply()
-
-  def countBy(where: SQLSyntax): Long = withSQL {
-    select(sqls.count).from(SelectionJdbc as s).where.append(isNotDeleted).and.append(sqls"$where")
-  }.map(_.long(1)).single().apply().get
-
-  def byRoundWithCriteria(roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
-    select(sum(CriteriaRate.c.rate), count(CriteriaRate.c.rate), s.result.*).from(SelectionJdbc as s)
-      .leftJoin(CriteriaRate as CriteriaRate.c).on(s.id, CriteriaRate.c.selection)
-      .where
-      .eq(s.round, roundId).and
-      .append(isNotDeleted).
-      groupBy(s.id)
-  }.map(rs => (SelectionJdbc(s)(rs), rs.intOpt(1).getOrElse(0), rs.intOpt(2).getOrElse(0))).list().apply().map {
-    case (selection, sum, criterias) => if (criterias > 0) selection.copy(rate = sum / criterias) else selection
-  }
 
   override def create(pageId: Long, rate: Int, juryId: Long, roundId: Long, createdAt: DateTime = DateTime.now): Selection = {
     val id = withSQL {
@@ -151,6 +64,95 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
         )
       }.batch(batchParams: _*).apply()
     }
+  }
+
+  def byUser(user: User, roundId: Long): Seq[Selection] = withSQL {
+    select.from(SelectionJdbc as s).where
+      .eq(s.juryId, user.id).and
+      .eq(s.round, roundId).and
+      .append(isNotDeleted)
+  }.map(SelectionJdbc(s)).list().apply()
+
+  def byUserSelected(user: User, roundId: Long): Seq[Selection] = withSQL {
+    select.from(SelectionJdbc as s).where
+      .eq(s.juryId, user.id).and
+      .eq(s.round, roundId).and
+      .ne(s.rate, 0).and
+      .append(isNotDeleted)
+  }.map(SelectionJdbc(s)).list().apply()
+
+  def byRoundSelected(roundId: Long): Seq[Selection] = withSQL {
+    select.from(SelectionJdbc as s).where
+      .eq(s.round, roundId).and
+      .ne(s.rate, 0).and
+      .append(isNotDeleted)
+  }.map(SelectionJdbc(s)).list().apply()
+
+  def byRoundAndImageWithJury(roundId: Long, imageId: Long): Seq[(Selection, User)] = withSQL {
+    select.from(SelectionJdbc as s)
+      .innerJoin(UserJdbc as u).on(u.id, s.juryId)
+      .where.eq(s.round, roundId).and
+      .eq(s.pageId, imageId).and
+      .gt(s.rate, 0).and
+      .append(isNotDeleted)
+      .orderBy(s.rate).desc
+  }.map(rs => (SelectionJdbc(s)(rs), UserJdbc(u)(rs))).list().apply()
+
+  def byRound(roundId: Long): Seq[Selection] = withSQL {
+    select.from(SelectionJdbc as s).where
+      .eq(s.round, roundId).and
+      .append(isNotDeleted)
+  }.map(SelectionJdbc(s)).list().apply()
+
+  def byUserNotSelected(user: User, roundId: Long): Seq[Selection] = withSQL {
+    select.from(SelectionJdbc as s).where
+      .eq(s.juryId, user.id).and
+      .eq(s.round, roundId).and
+      .eq(s.rate, 0).and
+      .append(isNotDeleted)
+  }.map(SelectionJdbc(s)).list().apply()
+
+  def find(id: Long): Option[Selection] = withSQL {
+    select.from(SelectionJdbc as s).where.eq(s.id, id).and.append(isNotDeleted)
+  }.map(SelectionJdbc(s)).single().apply()
+
+  def findBy(pageId: Long, juryId: Long, round: Long)(implicit session: DBSession = autoSession): Option[Selection] = withSQL {
+    select.from(SelectionJdbc as s).where
+      .eq(s.pageId, pageId).and
+      .eq(s.juryId, juryId).and
+      .eq(s.round, round).and
+      .append(isNotDeleted)
+  }.map(SelectionJdbc(s)).single().apply()
+
+  def findAll(): Seq[Selection] = withSQL {
+    select.from(SelectionJdbc as s)
+      .where.append(isNotDeleted)
+      .orderBy(s.id)
+  }.map(SelectionJdbc(s)).list().apply()
+
+  def countAll(): Long = withSQL {
+    select(sqls.count).from(SelectionJdbc as s).where.append(isNotDeleted)
+  }.map(rs => rs.long(1)).single().apply().get
+
+  def findAllBy(where: SQLSyntax): List[Selection] = withSQL {
+    select.from(SelectionJdbc as s)
+      .where.append(isNotDeleted).and.append(sqls"$where")
+      .orderBy(s.id)
+  }.map(SelectionJdbc(s)).list().apply()
+
+  def countBy(where: SQLSyntax): Long = withSQL {
+    select(sqls.count).from(SelectionJdbc as s).where.append(isNotDeleted).and.append(sqls"$where")
+  }.map(_.long(1)).single().apply().get
+
+  def byRoundWithCriteria(roundId: Long)(implicit session: DBSession = autoSession): Seq[Selection] = withSQL {
+    select(sum(c.rate), count(c.rate), s.result.*).from(SelectionJdbc as s)
+      .leftJoin(CriteriaRate as c).on(s.id, c.selection)
+      .where
+      .eq(s.round, roundId).and
+      .append(isNotDeleted).
+      groupBy(s.id)
+  }.map(rs => (SelectionJdbc(s)(rs), rs.intOpt(1).getOrElse(0), rs.intOpt(2).getOrElse(0))).list().apply().map {
+    case (selection, sum, criterias) => if (criterias > 0) selection.copy(rate = sum / criterias) else selection
   }
 
   def destroy(pageId: Long, juryId: Long, round: Long): Unit = withSQL {
@@ -197,9 +199,12 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
 
 
   def allJurors(roundId: Long): Int = withSQL {
-    select(count(distinct(SelectionJdbc.s.juryId))).from(SelectionJdbc as SelectionJdbc.s).where.eq(SelectionJdbc.s.round, roundId).and.append(isNotDeleted)
+    select(count(distinct(SelectionJdbc.s.juryId)))
+      .from(SelectionJdbc as s)
+      .where
+      .eq(s.round, roundId).and
+      .append(isNotDeleted)
   }.map(_.int(1)).single().apply().get
-
 
   def destroyAll(pageId: Long)(implicit session: DBSession = autoSession): Unit = withSQL {
     update(SelectionJdbc).set(column.deletedAt -> DateTime.now).where.eq(column.pageId, pageId)

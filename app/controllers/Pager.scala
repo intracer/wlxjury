@@ -1,23 +1,35 @@
 package controllers
 
-import org.intracer.wmua.ImageWithRating
 
-class Pager(files: Seq[ImageWithRating]) {
+case class Pager(
+                  page: Int = 1,
+                  offset: Option[Int] = None,
+                  startPageId: Option[Long] = None,
+                  var pages: Option[Int] = None) {
 
-  def at(pageId: Long) = files.indexWhere(_.pageId == pageId) / (filesPerPage + 1) + 1
+  private var _count: Option[Int] = None
 
-  def filesPerPage = files.size / pages
+  def display = page != 0 && pages.exists(_ > 1)
 
-  def pageFiles(page: Int) = files.slice((page - 1) * (filesPerPage + 1), Math.min(page * (filesPerPage + 1), files.size))
+  def hasNext = pages.exists(page < _)
 
-  def pages = Pager.pages(files)
+  def hasPrev = page > 0
+
+  def pageSize = Pager.pageSize
+
+  def setCount(v: Int) = {
+    _count = Some(v)
+    pages = Some(v / pageSize + (if (v % pageSize > 0) 1 else 0))
+  }
 
 }
 
 object Pager {
 
-  def pages[T](files: Seq[T]) = Math.max(Math.min(10, files.size / 20), 1)
+  def pageOffset(page: Int) = new Pager(page = page, offset = Some((page - 1) * pageSize))
 
-  def filesPerPage[T](files: Seq[T]): Int = files.size / pages(files)
+  def startPageId(id: Long) = new Pager(startPageId = Some(id))
+
+  def pageSize = 50
 
 }

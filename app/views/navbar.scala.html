@@ -68,32 +68,32 @@
 
                                 <li role="presentation" class="@if(rate.contains(0) && isActive) {active}">
                                     <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(0))">
-                                        @Messages("unrated") (@user.roundFiles(round.id.get).count(_.rate == 0))
+                                        @Messages("unrated") (@user.roundFilesCount(round.id.get, 0))
                                     </a>
 
                             <li role="presentation" class="@if(rate.contains(1) && isActive) {active active-}selected">
                                 <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(1))">
-                                    @Messages("selected") (@user.roundFiles(round.id.get).count(_.rate == 1))
+                                    @Messages("selected") (@user.roundFilesCount(round.id.get, 1))
                                 </a>
 
                                 <li role="presentation" class="@if(rate.contains(-1) && isActive) {active active-}rejected">
                                     <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(-1))">
-                                        @Messages("rejected") (@user.roundFiles(round.id.get).count(_.rate == -1))
+                                        @Messages("rejected") (@user.roundFilesCount(round.id.get,  -1))
                                     </a>
                             }
                         } else {
                                 <!-- Rating round -->
 
                             @defining(selectedRound.flatMap(_.id) == round.id) { isActive =>
-                                @if(user.roundFiles(round.id.get).count(_.rate == 0) > 0) {
+                                @if(user.roundFilesCount(round.id.get, 0) > 0) {
                                     <li role="presentation" class="@if(rate.contains(0) && isActive) {active}">
                                         <a href="/gallery/round/@round.id.get/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
-                                            (@user.roundFiles(round.id.get).count(_.rate == 0))
+                                            (@user.roundFilesCount(round.id.get, 0))
                                         </a>
                                 }
                             <li role="presentation" class="@if(!rate.contains(0) && isActive && asUserId == user.id.get) {active}">
                                 <a href="/byrate/round/@round.id.get/user/@user.id.get/page/1">@Messages("rated")
-                                    (@user.roundFiles(round.id.get).count(_.rate > 0))
+                                    (@user.roundFilesCount(round.id.get, 0))
                             </a>
                             }
                         }
@@ -132,15 +132,15 @@
                                     Some(None -> SelectionItem("all"))
                                 ).toDropDown())
                             }
-                            @if(user.roundFiles(round.id.get).count(_.rate == 0) > 0) {
+                            @if(user.roundFilesCount(round.id.get, 0) > 0) {
                                 <li role="presentation" class="@if(rate.contains(0)) {active}">
                                     <a href="/gallery/round/@round.id.get/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
-                                        (@user.roundFiles(round.id.get).count(_.rate == 0))
+                                        (@user.roundFilesCount(round.id.get,  0))
                                     </a>
 
                             <li role="presentation" class="@if(!rate.contains(0) && asUserId == user.id.get) {active}">
                                 <a href="/byrate/round/@round.id.get/user/@user.id.get/page/1">@Messages("rated")
-                                    (@user.roundFiles(round.id.get).count(_.rate > 0))
+                                    (@user.roundFilesRatedCount(round.id.get))
                                 </a>
                             }
 

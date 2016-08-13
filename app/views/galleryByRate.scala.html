@@ -4,10 +4,7 @@
         asUserId: Long,
         asUser: org.intracer.wmua.User,
         files: Seq[org.intracer.wmua.ImageWithRating],
-        ranks: Seq[String],
-        pages: Int,
-        page: Int,
-        startImage: Int,
+        pager: Pager,
         maybeRound: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
         region: String = "all",
@@ -17,7 +14,7 @@
     @showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
     @defining( maybeRound.get) { round =>
 
-       <div style="margin-bottom: 10px; color: #ffffff;"> <b>@ranks(index). </b>
+       <div style="margin-bottom: 10px; color: #ffffff;"> <b>@file.rankStr</b>
        <span style="margin-left: 5px; margin-right: 10px;">
            @if(round.rates.id != 2) {
         @for(i <- 1 to round.rates.id / 2) {<img alt="@i" src="@showStar(i, file.totalRate(round).toInt, round.rates.id <= 10)">}
@@ -36,7 +33,7 @@
 
 @main("byrate", user, asUserId, asUser, maybeRound, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),
     rounds, true, None, region,
-    pager(asUserId, pages, page, None, maybeRound.flatMap(_.id), region, "byrate")
+    pagerView(asUserId, pager, None, maybeRound.flatMap(_.id), region, "byrate")
 )  {
 
 @defining( maybeRound.get) { round =>
@@ -58,7 +55,7 @@
                         </a>
                     </div>
 
-                    @showRateGalery(file, index + startImage)
+                    @showRateGalery(file, index)
 
                 </li>
             }

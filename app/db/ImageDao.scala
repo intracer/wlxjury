@@ -1,6 +1,6 @@
 package db
 
-import org.intracer.wmua.{Image, ImageWithRating, User}
+import org.intracer.wmua.{Image, ImageWithRating}
 
 trait ImageDao {
   def batchInsert(images: Seq[Image]): Unit
@@ -19,7 +19,15 @@ trait ImageDao {
 
   def findWithSelection(id: Long, roundId: Long): Seq[ImageWithRating]
 
-  def byUserImageWithRating(userId: Long, roundId: Long, rate: Option[Int] = None): Seq[ImageWithRating]
+  def byUserImageWithRating(userId: Long,
+                            roundId: Long,
+                            rate: Option[Int] = None,
+                            pageSize: Int = Int.MaxValue,
+                            offset: Int = 0): Seq[ImageWithRating]
+
+  def byUserRoundRateParamCount(userId: Long, roundId: Long, rate: Int): Int
+
+  def byUserRoundRatedCount(userId: Long, roundId: Long): Int
 
   def byRating(roundId: Long, rate: Int): Seq[ImageWithRating]
 

@@ -3,6 +3,7 @@ package org.intracer.wmua
 import javax.mail.internet.InternetAddress
 
 import controllers.Gallery
+import db.scalikejdbc.ImageJdbc
 import org.joda.time.DateTime
 
 case class User(fullname: String,
@@ -19,7 +20,11 @@ case class User(fullname: String,
 
   def currentContest = contest
 
-  def roundFiles(roundId: Long) = Gallery.userFiles(id.get, roundId)
+  def roundFilesCount(roundId: Long, rate: Int) =
+    ImageJdbc.byUserRoundRateParamCount(id.get, roundId, rate)
+
+  def roundFilesRatedCount(roundId: Long) =
+    ImageJdbc.byUserRoundRatedCount(id.get, roundId)
 
   def hasRole(role: String) = roles.contains(role)
 
