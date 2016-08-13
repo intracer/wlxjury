@@ -7,6 +7,7 @@
         pager: Pager,
         maybeRound: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
+        rate: Option[Int] = None,
         region: String = "all",
         byRegion: Map[String, Int],
         rates: RateDistribution)(implicit flash: Flash, lang: Lang, messages: Messages)
@@ -32,8 +33,8 @@
     }
 
 @main("byrate", user, asUserId, asUser, maybeRound, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),
-    rounds, true, None, region,
-    pagerView(asUserId, pager, None, maybeRound.flatMap(_.id), region, "byrate"), rates
+    rounds, true, rate, region,
+    pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate"), rates
 )  {
 
 @defining( maybeRound.get) { round =>

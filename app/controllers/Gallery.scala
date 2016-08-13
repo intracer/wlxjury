@@ -49,7 +49,7 @@ object Gallery extends Controller with Secured with Instrumented {
     listGeneric(moduleByUserId(asUserId), asUserId, startPageId(pageId), region, roundId, rate)
 
   def byRate(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0) =
-    listGeneric("byrate", asUserId, pageOffset(page), region, roundId, None)
+    listGeneric("byrate", asUserId, pageOffset(page), region, roundId)
 
   def byRateAt(asUserId: Long, pageId: Long, region: String = "all", roundId: Long = 0) =
     listGeneric("byrate", asUserId, startPageId(pageId), region, roundId, None)
@@ -107,7 +107,7 @@ object Gallery extends Controller with Secured with Instrumented {
                 )
               case "byrate" =>
                 Ok(views.html.galleryByRate(user, asUserId, asUser,
-                  filesInRegion, pager, maybeRound, rounds, region, byReg, rates)
+                  filesInRegion, pager, maybeRound, rounds, rate, region, byReg, rates)
                 )
             }
           }
@@ -185,7 +185,9 @@ object Gallery extends Controller with Secured with Instrumented {
         if (userDetails) {
           ImageJdbc.byRating(rate.get, round.id.get)
         } else {
-          ImageJdbc.byRatingMerged(rate.get, round.id.get)
+          val count = ImageJdbc.byRoundRatedCount(round.id.get)
+          pager.setCount(count)
+          ImageJdbc.byRoundAndRateSummed(round.id.get, rate.get, pager.pageSize, pager.offset.getOrElse(0))
         }
       }
     } else {

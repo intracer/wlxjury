@@ -158,12 +158,12 @@
                         </th>
                         <th>
                         @if(round.isBinary) {
-                            <a href="/byrate/round/@round.id/user/0/page/1">
+                            <a href="@routes.Gallery.query("byrate", None, 1, "all", round.id.get)">
                                 <button type="button" class="btn btn-default btn-xs @if(total == 0) {disabled}">
                                     <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
                                 </button>
                             </a>
-                            <a href="/filelist/round/@round.id/user/0/page/1">
+                            <a href="@routes.Gallery.query("filelist", None, 1, "all", round.id.get)">
                                 <button type="button" class="btn btn-default btn-xs @if(total == 0) {disabled}">
                                     <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
                                 </button>
@@ -178,23 +178,23 @@
                         <th>
                             <div class="btn-group">
                             @if(round.isBinary) {
-                                <a href="/byrate/round/@round.id/user/0/page/1@rateParam(Some(1))">
+                                <a href="@routes.Gallery.query("byrate", None, 1, "all", round.id.get, Some(1))">
                                     <button type="button" class="btn btn-default btn-xs @if(total == 0){disabled}">
                                         <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
                                     </button>
                                 </a>
-                                <a href="/filelist/round/@round.id/user/0/page/1@rateParam(Some(1))">
+                                <a href="@routes.Gallery.query("filelist", None, 1, "all", round.id.get, Some(1))">
                                     <button type="button" class="btn btn-default btn-xs @if(total == 0){disabled}">
                                         <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
                                     </button>
                                 </a>
                             } else {
-                                <a href="/byrate/round/@round.id/user/0/page/1">
+                                <a href="@routes.Gallery.query("byrate", None, 1, "all", round.id.get, None)">
                                     <button type="button" class="btn btn-default btn-xs">
                                         <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
                                     </button>
                                 </a>
-                                <a href="/filelist/round/@round.id/user/0/page/1">
+                                <a href="@routes.Gallery.query("filelist", None, 1, "all", round.id.get, None)">
                                     <button type="button" class="btn btn-default btn-xs">
                                         <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
                                     </button>

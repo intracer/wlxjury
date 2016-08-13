@@ -182,6 +182,16 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
       .where.eq(s.round, roundId)
   }.map(rs => rs.int(1)).single().apply().getOrElse(0)
 
+  def byRoundRatedCount(roundId: Long): Int = withSQL {
+    select(count(distinct(i.pageId)))
+      .from(ImageJdbc as i)
+      .innerJoin(SelectionJdbc as s)
+      .on(i.pageId, s.pageId)
+      .where.eq(s.round, roundId).and.
+      gt(s.rate, 0)
+  }.map(rs => rs.int(1)).single().apply().getOrElse(0)
+
+
 
   def byUserImageWithRating(
                              userId: Long,
@@ -367,6 +377,20 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
     select(sum(s.rate), count(s.rate), i.result.*).from(ImageJdbc as i)
       .innerJoin(SelectionJdbc as s).on(i.pageId, s.pageId)
       .where.eq(s.round, roundId)
+      //.and.append(isNotDeleted)
+      .groupBy(s.pageId)
+      .orderBy(sum(s.rate)).desc
+      .limit(pageSize)
+      .offset(offset)
+  }.map(rs => (ImageJdbc(i)(rs), rs.intOpt(1).getOrElse(0), rs.intOpt(2).getOrElse(0))).list().apply().map {
+    case (img, sum, count) => ImageWithRating(img, Seq(new Selection(0, img.pageId, sum, 0, roundId)), count)
+  }
+
+  def byRoundAndRateSummed(roundId: Long, rate: Int, pageSize: Int = Int.MaxValue, offset: Int = 0): Seq[ImageWithRating] = withSQL {
+    select(sum(s.rate), count(s.rate), i.result.*).from(ImageJdbc as i)
+      .innerJoin(SelectionJdbc as s).on(i.pageId, s.pageId)
+      .where.eq(s.round, roundId).and
+      .eq(s.rate, rate)
       //.and.append(isNotDeleted)
       .groupBy(s.pageId)
       .orderBy(sum(s.rate)).desc
