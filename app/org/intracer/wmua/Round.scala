@@ -27,7 +27,8 @@ case class Round(id: Option[Long],
                  prevSelectedBy: Option[Int] = None,
                  prevMinAvgRate: Option[Int] = None,
                  category: Option[String] = None,
-                 categoryClause: Option[Int] = None) {
+                 categoryClause: Option[Int] = None,
+                 hasCriteriaRate: Boolean = false) {
 
   def jurors = UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contest, contest))
 
@@ -43,6 +44,7 @@ case class Round(id: Option[Long],
   def description: String = name.flatMap(s => if (s.trim.isEmpty) None else Some(s)).fold(number.toString)(s => s)
 
   def isBinary = rates.id == Round.binaryRound.id
+
 }
 
 object Round {
