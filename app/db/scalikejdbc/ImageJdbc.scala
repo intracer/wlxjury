@@ -196,53 +196,52 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
   }
 
   def byUserImageWithRatingRanked(
-                             userId: Long,
-                             roundId: Long,
-                             pageSize: Int = Int.MaxValue,
-                             offset: Int = 0
-                           ): Seq[ImageWithRating] =
-
-    sql"""select count(s2.page_id) + 1 as rank, ${i.result.*}, ${s1.result.*}
-    from images i
-    join (select * from selection s where s.jury_id = $userId  and s.round = $roundId) as s1
-    on i.page_id = s1.page_id
-    left join (select * from selection s where s.jury_id = $userId and s.round = $roundId) as s2
-    on s1.rate < s2.rate
-    GROUP BY s1.page_id
-    order by rank asc
-    limit $pageSize
-    OFFSET $offset""".map(rs => (
-    rs.int(1),
-    ImageJdbc(i)(rs),
-    SelectionJdbc(s1)(rs))
-  ).list().apply().map {
-    case (rank, i, s) => ImageWithRating(i, Seq(s), rank = Some(rank))
-  }
-
-  def byUserImageRangeRanked(
                                    userId: Long,
                                    roundId: Long,
                                    pageSize: Int = Int.MaxValue,
                                    offset: Int = 0
                                  ): Seq[ImageWithRating] =
 
-    sql"""select s1.rank1, s2.rank2, ${i.result.*}, ${s1.result.*}
-          from images i join
-            (select t1.*, count(t2.page_id) + 1 as rank1
-            from (select * from selection s where  s.jury_id = 799  and s.round = 219) as t1
-            left join (select * from selection s where s.jury_id = 799 and s.round = 219) as t2
-              on  t1.rate < t2.rate
+    sql"""SELECT count(s2.page_id) + 1 AS rank, ${i.result.*}, ${s1.result.*}
+    FROM images i
+    JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId  AND s.round = $roundId) AS s1
+    ON i.page_id = s1.page_id
+    LEFT JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId AND s.round = $roundId) AS s2
+    ON s1.rate < s2.rate
+    GROUP BY s1.page_id
+    ORDER BY rank ASC
+    LIMIT $pageSize
+    OFFSET $offset""".map(rs => (
+      rs.int(1),
+      ImageJdbc(i)(rs),
+      SelectionJdbc(s1)(rs))
+    ).list().apply().map {
+      case (rank, i, s) => ImageWithRating(i, Seq(s), rank = Some(rank))
+    }
+
+  def byUserImageRangeRanked(userId: Long,
+                             roundId: Long,
+                             pageSize: Int = Int.MaxValue,
+                             offset: Int = 0
+                            ): Seq[ImageWithRating] =
+
+    sql"""SELECT s1.rank1, s2.rank2, ${i.result.*}, ${s1.result.*}
+          FROM images i JOIN
+            (SELECT t1.*, count(t2.page_id) + 1 AS rank1
+            FROM (SELECT * FROM selection s WHERE  s.jury_id = $userId AND s.round = $roundId) AS t1
+            LEFT JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId AND s.round = $roundId) AS t2
+              ON  t1.rate < t2.rate
           GROUP BY t1.page_id) s1
-              on  i.page_id = s1.page_id
-          join
-              (select t1.page_id, count(t2.page_id) as rank2
-                 from (select * from selection s where  s.jury_id = 799  and s.round = 219) as t1
-                 join (select * from selection s where s.jury_id = 799 and s.round = 219) as t2
-                   on  t1.rate <= t2.rate
+              ON  i.page_id = s1.page_id
+          JOIN
+              (SELECT t1.page_id, count(t2.page_id) AS rank2
+                 FROM (SELECT * FROM selection s WHERE  s.jury_id = $userId AND s.round = $roundId) AS t1
+                 JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId AND s.round = $roundId) AS t2
+                   ON  t1.rate <= t2.rate
                GROUP BY t1.page_id) s2
-            on s1.page_id = s2.page_id
-            ORDER BY rank1 asc
-          limit $pageSize
+            ON s1.page_id = s2.page_id
+            ORDER BY rank1 ASC
+          LIMIT $pageSize
           OFFSET $offset""".map(rs => (
       rs.int(1),
       rs.int(2),
@@ -251,8 +250,6 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
     ).list().apply().map {
       case (rank1, rank2, i, s) => ImageWithRating(i, Seq(s), rank = Some(rank1), rank2 = Some(rank2))
     }
-
-
 
   def findImageWithRating = withSQL {
     select.from(ImageJdbc as i)
@@ -264,7 +261,6 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
   ).list().apply().map {
     case (i, s) => ImageWithRating(i, Seq(s))
   }
-
 
   def byUserImageWithCriteriaRating(userId: Long, roundId: Long): Seq[ImageWithRating] = withSQL {
     select(

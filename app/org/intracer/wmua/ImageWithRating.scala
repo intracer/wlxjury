@@ -31,7 +31,7 @@ case class ImageWithRating(
 
   def rankStr = (
     for (r1 <- rank; r2 <- rank2)
-      yield s"$r1-$r2."
+      yield if (r1 != r2) s"$r1-$r2." else r1 + "."
     ).orElse(
     for (r1 <- rank)
       yield r1 + "."
