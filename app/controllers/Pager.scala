@@ -22,6 +22,18 @@ case class Pager(
     pages = Some(v / pageSize + (if (v % pageSize > 0) 1 else 0))
   }
 
+  def pageNumbers = {
+    (for (p <- pages) yield {
+      val (div, mod) = (p / 10, p % 10)
+
+      val tens = page / 10
+      val digits = (1 to 9).map(_ + 10 * tens).filter(_ <= p)
+
+      (if (tens > 0) Seq(1) else Seq.empty) ++
+        (1 to div).map(_ * 10).patch(tens, digits, 0)
+    }).getOrElse(Seq.empty)
+  }
+
 }
 
 object Pager {

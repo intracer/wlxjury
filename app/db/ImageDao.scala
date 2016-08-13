@@ -25,18 +25,18 @@ trait ImageDao {
 
   def byUserRoundRatedCount(userId: Long, roundId: Long): Int
 
-  def byRating(roundId: Long, rate: Int): Seq[ImageWithRating]
+  def byRating(rate: Int, roundId: Long): Seq[ImageWithRating]
 
   def byRatingGE(roundId: Long, rate: Int): Seq[ImageWithRating]
 
-  def byRound(roundId: Long): Seq[ImageWithRating]
+  def byRound(roundId: Long, pageSize: Int = Int.MaxValue, offset: Int = 0): Seq[ImageWithRating]
 
   def byRatingMerged(rate: Int, round: Long): Seq[ImageWithRating]
 
   def byRatingGEMerged(rate: Int, round: Long): Seq[ImageWithRating]
 
-  def byRoundMerged(round: Long): Seq[ImageWithRating]
+  def byRoundMerged(round: Long, pageSize: Int = Int.MaxValue, offset: Int = 0): Seq[ImageWithRating]
 
-  def byRoundSummed(roundId: Long): Seq[ImageWithRating]
+  def byRoundSummed(roundId: Long, pageSize: Int = Int.MaxValue, offset: Int = 0): Seq[ImageWithRating]
 
 }

@@ -33,17 +33,6 @@ object Global {
   def onStart(app: Application) {
     Logger.info("Application has started")
 
-    GlobalSettings.loggingSQLAndTime = LoggingSQLAndTimeSettings(
-      enabled = true,
-      singleLineMode = false,
-      printUnprocessedStackTrace = false,
-      stackTraceDepth = 15,
-      logLevel = 'info,
-      warningEnabled = false,
-      warningThresholdMillis = 3000L,
-      warningLogLevel = 'warn
-    )
-
     val reporter = JmxReporter.forRegistry(metrics).build()
     reporter.start()
 

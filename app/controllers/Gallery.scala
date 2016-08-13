@@ -123,15 +123,7 @@ object Gallery extends Controller with Secured with Instrumented {
                        pager: Pager = Pager.pageOffset(1)): Seq[ImageWithRating] = {
     val userDetails = module == "filelist"
     val uFiles = filesByUserId(asUserId, rate, round, pager, userDetails)
-
-    val ratedFiles = rate.fold(
-      uFiles.filter(_.selection.nonEmpty)
-    )(r => filterByRate(round, rate, uFiles))
-
-    if (round.isBinary && userDetails)
-      ratedFiles.sortBy(-_.selection.count(_.rate > 0))
-    else
-      ratedFiles.sortBy(-_.totalRate(round))
+    uFiles
   }
 
   def isNotAuthorized(user: User, maybeRound: Option[Round], roundContest: Long): Boolean = {
@@ -171,13 +163,14 @@ object Gallery extends Controller with Secured with Instrumented {
                      userDetails: Boolean = false): Seq[ImageWithRating] = {
     val criteriaRate = round.hasCriteriaRate
       if (userId == 0) {
-        filesFromSeveralUsers(rate, userDetails, round, criteriaRate)
+        filesFromSeveralUsers(rate, userDetails, round, pager, criteriaRate)
       } else {
         userFiles(userId, round, rate, pager, round.hasCriteriaRate)
       }
   }
 
-  def filesFromSeveralUsers(rate: Option[Int], userDetails: Boolean, round: Round, criteriaRate: Boolean): Seq[ImageWithRating] = {
+  def filesFromSeveralUsers(rate: Option[Int], userDetails: Boolean, round: Round, pager: Pager,
+                            criteriaRate: Boolean): Seq[ImageWithRating] = {
     if (!criteriaRate) {
       if (rate.isEmpty) {
         if (userDetails)
@@ -185,10 +178,16 @@ object Gallery extends Controller with Secured with Instrumented {
             new ImageWithRating(images.head.image, images.flatMap(_.selection))
           }.toSeq
         else {
-          ImageJdbc.byRoundSummed(round.id.get)
+          val count = ImageJdbc.byRoundAllCount(round.id.get)
+          pager.setCount(count)
+          ImageJdbc.byRoundSummed(round.id.get, pager.pageSize, pager.offset.getOrElse(0))
         }
       } else {
-        ImageJdbc.byRatingMerged(rate.get, round.id.get)
+        if (userDetails) {
+          ImageJdbc.byRating(rate.get, round.id.get)
+        } else {
+          ImageJdbc.byRatingMerged(rate.get, round.id.get)
+        }
       }
     } else {
       rate.fold (ImageJdbc.byRoundSummedWithCriteria(round.id.get)) { r =>
@@ -415,6 +414,8 @@ class RateDistribution(rateMap: Map[Int, Int]) {
   def rejected = rateMap.getOrElse(-1, 0)
 
   def all = rateMap.values.sum
+
+  def positive = all - unrated - rejected
 
   def rated = all - unrated
 

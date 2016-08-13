@@ -1,5 +1,6 @@
 @import db.scalikejdbc.RoundJdbc
 @import org.intracer.wmua.User
+@import db.scalikejdbc.UserJdbc
 @(
         title: String,
         user: org.intracer.wmua.User = null,
@@ -117,7 +118,7 @@
                             @(new UiSelectionDto[Option[Long]](
                                 { userId: Option[Long] => routes.Gallery.query(module = title, userId, page = 1, region = region, round = round.id.get, rate) },
                                 Some(asUserId),
-                                round.jurors.map(u => (Some(u.id.get), SelectionItem(u.fullname, localized = false))),
+                                UserJdbc.findByRoundSelection(round.id.get).map(u => (Some(u.id.get), SelectionItem(u.fullname, localized = false))),
                                 Some(Some(0L) -> SelectionItem("all"))
                             ).toDropDown())
 

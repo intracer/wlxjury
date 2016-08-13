@@ -1,7 +1,10 @@
+@import org.intracer.wmua.User
+@import org.intracer.wmua.Round
 @(
-        user: org.intracer.wmua.User,
-        round: org.intracer.wmua.Round,
-        rounds: Seq[org.intracer.wmua.Round],
+        user: User,
+        jurors: Seq[User],
+        round: Round,
+        rounds: Seq[Round],
         byUserCount: Map[Long, Int],
         byUserRateCount: Map[Long, Map[Int, Int]],
         total: Int,
@@ -9,7 +12,7 @@
         byJurorNum: Map[Int, Int]
         )(implicit flash: Flash, lang: Lang, messages: Messages)
 
-    @roundLinks(round: org.intracer.wmua.Round, user: org.intracer.wmua.User, rate: Int) = {
+    @roundLinks(round: Round, user: User, rate: Int) = {
         @defining(byUserRateCount.getOrElse(user.id.get, Map.empty).getOrElse(rate, 0)) { count =>
                     <div class="btn-group">
                         @if(round.isBinary || rate == 0) {
@@ -101,7 +104,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                @for(user <- round.jurors) {
+                @for(user <- jurors) {
                     <tr>
                         <td>
                         @user.fullname

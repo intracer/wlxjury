@@ -41,7 +41,8 @@ case class User(fullname: String,
 }
 
 object User {
-  val JURY_ROLES = Set("jury")
+  val JURY_ROLE = "jury"
+  val JURY_ROLES = Set(JURY_ROLE)
   val ORG_COM_ROLES = Set("organizer")
   val ADMIN_ROLE = "admin"
   val ROOT_ROLE = "root"
