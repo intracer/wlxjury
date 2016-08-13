@@ -125,23 +125,16 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
     select.from(ImageJdbc as i).where.eq(i.pageId, id) //.and.append(isNotDeleted)
   }.map(ImageJdbc(i)).single().apply()
 
-  def bySelection(round: Long): List[Image] = withSQL {
-    select.from(ImageJdbc as i)
-      .innerJoin(SelectionJdbc as s)
-      .on(i.pageId, s.pageId)
-      .where.eq(s.round, round)
-  }.map(ImageJdbc(i)).list().apply()
 
-  def findWithSelection(id: Long, roundId: Long): Seq[ImageWithRating] = withSQL {
-    select.from(ImageJdbc as i)
-      .innerJoin(SelectionJdbc as s)
-      .on(i.pageId, s.pageId)
-      .where.eq(i.pageId, id).and
-      .eq(s.round, roundId)
-  }.map(rs => (ImageJdbc(i)(rs), SelectionJdbc(s)(rs))
-  ).list().apply().map {
-    case (i, s) => ImageWithRating(i, Seq(s))
-  }
+  def rateDistribution(userId: Long, roundId: Long): Map[Int, Int] =
+    sql"""SELECT s.rate, count(1)
+  FROM images i
+  JOIN selection s ON i.page_id = s.page_id
+  WHERE
+  s.jury_id = $userId
+  AND s.round = $roundId
+  GROUP BY rate""".map(rs => rs.int(1) -> rs.int(2)).list().apply().toMap
+
 
   def byUserRoundRateParamCount(userId: Long, roundId: Long, rate: Int): Int = withSQL {
     select(count(i.pageId))

@@ -20,12 +20,6 @@ case class User(fullname: String,
 
   def currentContest = contest
 
-  def roundFilesCount(roundId: Long, rate: Int) =
-    ImageJdbc.byUserRoundRateParamCount(id.get, roundId, rate)
-
-  def roundFilesRatedCount(roundId: Long) =
-    ImageJdbc.byUserRoundRatedCount(id.get, roundId)
-
   def hasRole(role: String) = roles.contains(role)
 
   def hasAnyRole(otherRoles: Set[String]) = roles.intersect(otherRoles).nonEmpty

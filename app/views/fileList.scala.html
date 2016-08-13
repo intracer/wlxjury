@@ -11,7 +11,8 @@
         region: String = "all",
         byRegion: Map[String, Int],
         outputFormat: String = "wiki",
-        wrapInTable: Boolean
+        wrapInTable: Boolean,
+        rates: RateDistribution
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @wrapInIf(tag: String, condition: Boolean)(content: Html) = {

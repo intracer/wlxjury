@@ -10,7 +10,8 @@
         rate: Option[Int] = None,
         region: String = "all",
 //        menu: Html = Html.empty,
-        pager: Html = Html(""))(content: Html)()(implicit lang: Lang, messages: Messages)
+        pager: Html = Html(""),
+        rates: RateDistribution = new RateDistribution(Map.empty))(content: Html)()(implicit lang: Lang, messages: Messages)
 <!DOCTYPE html>
 
 <html lang="@lang.language">
@@ -42,7 +43,7 @@
     <body @if(gallery){class="gallery"}>
 
         @navbar(title, user, asUserId, asUser, selectedRound, currentRounds, allRounds, gallery, rate, region, pager,
-            contestId = selectedRound.map(_.contest))
+            contestId = selectedRound.map(_.contest), rates)
 
      <div class="container-fluid" style="margin-left: 0; margin-right :0;">
 

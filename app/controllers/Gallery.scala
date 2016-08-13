@@ -91,20 +91,29 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val byReg = byRegion(sortedFiles)
 
+            val rates = rateDistribution(user, round)
+
             val useTable = !round.isBinary || asUserId == 0
 
             module match {
               case "gallery" =>
-                Ok(views.html.gallery(user, asUserId, asUser, filesInRegion, pager, maybeRound, rounds, rate, region, byReg))
+                Ok(views.html.gallery(user, asUserId, asUser,
+                  filesInRegion, pager, maybeRound, rounds, rate, region, byReg, rates)
+                )
               case "filelist" =>
                 val ranks = ImageWithRating.rankImages(sortedFiles, round)
-                Ok(views.html.fileList(user, asUserId, asUser, filesInRegion, ranks, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
+                Ok(views.html.fileList(user, asUserId, asUser,
+                  filesInRegion, ranks, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
+                )
               case "byrate" =>
-                Ok(views.html.galleryByRate(user, asUserId, asUser, filesInRegion, pager, maybeRound, rounds, region, byReg))
+                Ok(views.html.galleryByRate(user, asUserId, asUser,
+                  filesInRegion, pager, maybeRound, rounds, region, byReg, rates)
+                )
             }
           }
         }
   }
+
 
   def getSortedImages(
                        asUserId: Long,
@@ -390,5 +399,24 @@ object Gallery extends Controller with Secured with Instrumented {
       )
     )
   }
+
+  def rateDistribution(user: User, round: Round) = {
+    val rateMap = ImageJdbc.rateDistribution(user.id.get, round.id.get)
+    new RateDistribution(rateMap)
+  }
+}
+
+class RateDistribution(rateMap: Map[Int, Int]) {
+
+  def unrated = rateMap.getOrElse(0, 0)
+
+  def selected = rateMap.getOrElse(1, 0)
+
+  def rejected = rateMap.getOrElse(-1, 0)
+
+  def all = rateMap.values.sum
+
+  def rated = all - unrated
+
 }
 

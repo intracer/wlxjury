@@ -13,7 +13,8 @@
         region: String = "all",
         //        menu: Html = Html.empty,
         pager: Html = Html(""),
-        contestId: Option[Long] = None)(implicit lang: Lang, messages: Messages)
+        contestId: Option[Long] = None,
+        rates: RateDistribution = new RateDistribution(Map.empty))(implicit lang: Lang, messages: Messages)
 
 <!-- Navigation bar on the top of the page -->
 <nav class="navbar navbar-inverse" role="navigation" style="margin-bottom: 10px;">
@@ -68,32 +69,32 @@
 
                                 <li role="presentation" class="@if(rate.contains(0) && isActive) {active}">
                                     <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(0))">
-                                        @Messages("unrated") (@user.roundFilesCount(round.id.get, 0))
+                                        @Messages("unrated") (@rates.unrated))
                                     </a>
 
                             <li role="presentation" class="@if(rate.contains(1) && isActive) {active active-}selected">
                                 <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(1))">
-                                    @Messages("selected") (@user.roundFilesCount(round.id.get, 1))
+                                    @Messages("selected") (@rates.selected)
                                 </a>
 
                                 <li role="presentation" class="@if(rate.contains(-1) && isActive) {active active-}rejected">
                                     <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(-1))">
-                                        @Messages("rejected") (@user.roundFilesCount(round.id.get,  -1))
+                                        @Messages("rejected") (@rates.rejected)
                                     </a>
                             }
                         } else {
                                 <!-- Rating round -->
 
                             @defining(selectedRound.flatMap(_.id) == round.id) { isActive =>
-                                @if(user.roundFilesCount(round.id.get, 0) > 0) {
+                                @if(rates.unrated > 0) {
                                     <li role="presentation" class="@if(rate.contains(0) && isActive) {active}">
                                         <a href="/gallery/round/@round.id.get/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
-                                            (@user.roundFilesCount(round.id.get, 0))
+                                            (@rates.unrated)
                                         </a>
                                 }
                             <li role="presentation" class="@if(!rate.contains(0) && isActive && asUserId == user.id.get) {active}">
                                 <a href="/byrate/round/@round.id.get/user/@user.id.get/page/1">@Messages("rated")
-                                    (@user.roundFilesCount(round.id.get, 0))
+                                    (@rates.rated)
                             </a>
                             }
                         }
@@ -132,15 +133,15 @@
                                     Some(None -> SelectionItem("all"))
                                 ).toDropDown())
                             }
-                            @if(user.roundFilesCount(round.id.get, 0) > 0) {
+                            @if(rates.unrated > 0) {
                                 <li role="presentation" class="@if(rate.contains(0)) {active}">
                                     <a href="/gallery/round/@round.id.get/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
-                                        (@user.roundFilesCount(round.id.get,  0))
+                                        (@rates.unrated)
                                     </a>
 
                             <li role="presentation" class="@if(!rate.contains(0) && asUserId == user.id.get) {active}">
                                 <a href="/byrate/round/@round.id.get/user/@user.id.get/page/1">@Messages("rated")
-                                    (@user.roundFilesRatedCount(round.id.get))
+                                    (@rates.rated)
                                 </a>
                             }
 

@@ -15,10 +15,6 @@ trait ImageDao {
 
   def find(id: Long): Option[Image]
 
-  def bySelection(round: Long): Seq[Image]
-
-  def findWithSelection(id: Long, roundId: Long): Seq[ImageWithRating]
-
   def byUserImageWithRating(userId: Long,
                             roundId: Long,
                             rate: Option[Int] = None,
