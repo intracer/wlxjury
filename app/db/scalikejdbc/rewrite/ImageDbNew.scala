@@ -1,5 +1,6 @@
-package db.scalikejdbc
+package db.scalikejdbc.rewrite
 
+import db.scalikejdbc.{ImageJdbc, SelectionJdbc}
 import org.intracer.wmua.{Image, ImageWithRating}
 import scalikejdbc.{DBSession, _}
 
@@ -25,21 +26,21 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                     roundId: Option[Long] = None,
                     rate: Option[Int] = None,
                     rated: Option[Boolean] = None,
-                    limit: Option[Limit]
+                    lim: Option[Limit] = None
                   ) {
     val imagesJoinSelection = """from images i join selection s on i.pageId = s.pageId"""
 
-    def where() = {
+
+    def where(): String = {
       val conditions =
         Seq(
-          userId.map(Query.user),
-          roundId.map(Query.user),
-          rate.map(Query.rate),
-          rate.map(Query.rate),
-          rated.map(Query.rated)
+          userId.map(id => s"s.jury_id = $id"),
+          roundId.map(id => s"s.round = $id"),
+          rate.map(r => s"s.rate = $r"),
+          rated.map(_ => s"s.rate > 0")
         )
 
-      "where " + conditions.flatten.mkString(" and ")
+      conditions.flatten.mkString(" and ")
     }
 
     def orderBy(fields: Map[String, Int]) = {
@@ -50,18 +51,15 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       }.mkString(", ")
     }
 
-    def limit() = limit.map {
-      l => s"LIMIT ${l.pageSize} OFFSET ${l.offset}"
-    }.getOrElse("")
+    def limit() = lim.map {
+      l => sqls"LIMIT ${l.pageSize} OFFSET ${l.offset}"
+    }
 
     def list(): Seq[ImageWithRating] = {
+      val select = sqls"""select ${i.result.*}, ${s.result.*} from images i join selection s on i.page_id = s.page_id where """
 
-      val select = "select ${i.result.*}, ${s.result.*}"
-
-      val q = Seq(select, imagesJoinSelection, where()).mkString("\n")
-
-
-      sql"$q".map(rs => (
+      val query = SQL(select.value + where)
+      query.map(rs => (
         ImageJdbc(i)(rs),
         SelectionJdbc(s)(rs))
       ).list().apply().map {
@@ -74,7 +72,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
 
       val q = Seq(select, imagesJoinSelection, where()).mkString("\n")
 
-      sql"$q".map(rs => rs.int(1)).single().apply().getOrElse(0)
+      SQL(q).map(rs => rs.int(1)).single().apply().getOrElse(0)
     }
 
     def imageRank(pageId: Long, sql: String) = {
@@ -87,8 +85,9 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
             WHERE page_id = $pageId;"""
     }
 
-    def rankedList(where: String): Seq[ImageWithRating] =
-      sql"""SELECT count(s2.page_id) + 1 AS rank, ${i.result.*}, ${s1.result.*}
+    def rankedList(where: String): Seq[ImageWithRating] = {
+      SQL(
+        s"""SELECT count(s2.page_id) + 1 AS rank, ${i.result.*}, ${s1.result.*}
     FROM images i
     JOIN (SELECT * FROM selection s WHERE $where) AS s1
     ON i.page_id = s1.page_id
@@ -96,17 +95,18 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     ON s1.rate < s2.rate
     GROUP BY s1.page_id
     ORDER BY rank ASC
-    $limit()""".map(rs => (
+    $limit""").map(rs => (
         rs.int(1),
         ImageJdbc(i)(rs),
         SelectionJdbc(s1)(rs))
       ).list().apply().map {
         case (rank, img, sel) => ImageWithRating(img, Seq(sel), rank = Some(rank))
       }
-  }
+    }
 
-  def rangeRankedList(where: String): Seq[ImageWithRating] = {
-    sql"""SELECT s1.rank1, s2.rank2, ${i.result.*}, ${s1.result.*}
+    def rangeRankedList(where: String): Seq[ImageWithRating] = {
+      SQL(
+        s"""SELECT s1.rank1, s2.rank2, ${i.result.*}, ${s1.result.*}
           FROM images i JOIN
             (SELECT t1.*, count(t2.page_id) + 1 AS rank1
             FROM (SELECT * FROM selection s WHERE  $where) AS t1
@@ -121,24 +121,24 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                    ON  t1.rate <= t2.rate
                GROUP BY t1.page_id) s2
             ON s1.page_id = s2.page_id
-            ORDER BY rank1 ASC $limit()""".map(rs => (
-      rs.int(1),
-      rs.int(2),
-      ImageJdbc(i)(rs),
-      SelectionJdbc(s1)(rs))
-    ).list().apply().map {
-      case (rank1, rank2, i, s) => ImageWithRating(i, Seq(s), rank = Some(rank1), rank2 = Some(rank2))
+            ORDER BY rank1 ASC $limit()""").map(rs => (
+        rs.int(1),
+        rs.int(2),
+        ImageJdbc(i)(rs),
+        SelectionJdbc(s1)(rs))
+      ).list().apply().map {
+        case (rank1, rank2, i, s) => ImageWithRating(i, Seq(s), rank = Some(rank1), rank2 = Some(rank2))
+      }
     }
-  }
 
-  object Query {
-    def user(userId: Long) = s"s.jury_id = $userId"
+    object Query {
+      def user(userId: Long) = s"s.jury_id = $userId"
 
-    def rate(rate: Int) = s"s.rate = $rate"
+      def rate(rate: Int) = s"s.rate = $rate"
 
-    def rated(r: Boolean) = "s.rate > 0"
+      def rated(r: Boolean) = "s.rate > 0"
+    }
+
   }
 
 }
-
-
