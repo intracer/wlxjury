@@ -19,7 +19,8 @@ trait ImageDao {
                             roundId: Long,
                             rate: Option[Int] = None,
                             pageSize: Int = Int.MaxValue,
-                            offset: Int = 0): Seq[ImageWithRating]
+                            offset: Int = 0,
+                            startPageId: Option[Long] = None): Seq[ImageWithRating]
 
   def byUserRoundRateParamCount(userId: Long, roundId: Long, rate: Int): Int
 
@@ -37,6 +38,6 @@ trait ImageDao {
 
   def byRoundMerged(round: Long, pageSize: Int = Int.MaxValue, offset: Int = 0): Seq[ImageWithRating]
 
-  def byRoundSummed(roundId: Long, pageSize: Int = Int.MaxValue, offset: Int = 0): Seq[ImageWithRating]
+  def byRoundSummed(roundId: Long, pageSize: Int = Int.MaxValue, offset: Int = 0, startPageId: Option[Long] = None): Seq[ImageWithRating]
 
 }

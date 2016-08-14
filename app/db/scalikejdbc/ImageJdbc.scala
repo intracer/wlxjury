@@ -125,7 +125,6 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
     select.from(ImageJdbc as i).where.eq(i.pageId, id) //.and.append(isNotDeleted)
   }.map(ImageJdbc(i)).single().apply()
 
-
   def rateDistribution(userId: Long, roundId: Long): Map[Int, Int] =
     sql"""SELECT s.rate, count(1)
   FROM images i
@@ -143,7 +142,6 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
   r.contest = $contestId
   GROUP BY r.id, s.rate
       """.map(rs => (rs.long(1), rs.int(2), rs.int(3))).list().apply()
-
 
   def byUserRoundRateParamCount(userId: Long, roundId: Long, rate: Int): Int = withSQL {
     select(count(i.pageId))
@@ -196,7 +194,8 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
                              roundId: Long,
                              rate: Option[Int] = None,
                              pageSize: Int = Int.MaxValue,
-                             offset: Int = 0
+                             offset: Int = 0,
+                             startPageId: Option[Long] = None
                            ): Seq[ImageWithRating] = withSQL {
     select.from[Image](ImageJdbc as i)
       .innerJoin(SelectionJdbc as s)
@@ -204,6 +203,7 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
       .where.eq(s.juryId, userId).and
       .eq(s.round, roundId)
       .map(sql => if (rate.isDefined) sql.and.eq(s.rate, rate) else sql)
+      .map(sql => if (startPageId.isDefined) sql.and.ge(i.pageId, startPageId) else sql)
       .orderBy(s.rate.desc, i.pageId.asc)
       .limit(pageSize)
       .offset(offset)
@@ -213,6 +213,14 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
   ).list().apply().map {
     case (i, s) => ImageWithRating(i, Seq(s))
   }
+
+  def imageRank(pageId: Long, sql: String) = {
+      sql"""select rank
+            from (select @rownum :=@rownum + 1 'rank', page_id
+            from (SELECT @rownum := 0) r, ($sql) t) t2
+            where page_id = $pageId;"""
+
+    }
 
   def byUserImageWithRatingRanked(
                                    userId: Long,
@@ -371,10 +379,15 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
     merged.values.toSeq
   }
 
-  def byRoundSummed(roundId: Long, pageSize: Int = Int.MaxValue, offset: Int = 0): Seq[ImageWithRating] = withSQL {
+  def byRoundSummed(roundId: Long,
+                    pageSize: Int = Int.MaxValue,
+                    offset: Int = 0,
+                    startPageId: Option[Long] = None
+                   ): Seq[ImageWithRating] = withSQL {
     select(sum(s.rate), count(s.rate), i.result.*).from(ImageJdbc as i)
       .innerJoin(SelectionJdbc as s).on(i.pageId, s.pageId)
-      .where.eq(s.round, roundId)
+      .where.eq(s.round, roundId).and
+       .ge(i.pageId, startPageId.getOrElse(0))
       //.and.append(isNotDeleted)
       .groupBy(s.pageId)
       .orderBy(sum(s.rate)).desc
