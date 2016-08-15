@@ -3,7 +3,8 @@
         editRoundForm: Form[controllers.EditRound],
         round: org.intracer.wmua.Round,
         rounds: Seq[org.intracer.wmua.Round],
-        contestId: Option[Long] = None
+        contestId: Option[Long] = None,
+        regions: Map[String, String] = Map.empty
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @import b3.vertical.fieldConstructor
@@ -78,6 +79,12 @@
                                 <div id="categoryDiv" @if(round.category.isEmpty) {style="display: none"}>
                                     @b3.text(editRoundForm("source"), '_label -> "Category", 'readonly -> noEdit)
                                 </div>
+
+                            @if(regions.nonEmpty) {
+                                @b3.select(
+                                    editRoundForm("regions"),
+                                    regions.toSeq.sortBy(_._1) ,'_label -> "Regions", 'multiple -> true, 'readonly -> noEdit)
+                            }
 
                                 @b3.select(
                                     editRoundForm("minMpx"),

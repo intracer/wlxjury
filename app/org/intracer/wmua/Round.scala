@@ -28,6 +28,7 @@ case class Round(id: Option[Long],
                  prevMinAvgRate: Option[Int] = None,
                  category: Option[String] = None,
                  categoryClause: Option[Int] = None,
+                 regions: Option[String] = None,
                  hasCriteriaRate: Boolean = false) {
 
   def jurors = UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contest, contest))

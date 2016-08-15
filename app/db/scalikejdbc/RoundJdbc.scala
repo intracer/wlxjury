@@ -38,7 +38,8 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     prevSelectedBy = rs.intOpt(c.prevSelectedBy),
     prevMinAvgRate = rs.intOpt(c.prevMinAvgRate),
     category = rs.stringOpt(c.category),
-    categoryClause = rs.intOpt(c.categoryClause)
+    categoryClause = rs.intOpt(c.categoryClause),
+    regions = rs.stringOpt(c.regions)
   )
 
   override def create(round: Round): Round = {
@@ -61,7 +62,8 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
         column.prevSelectedBy -> round.prevSelectedBy,
         column.prevMinAvgRate -> round.prevMinAvgRate,
         column.category -> round.category,
-        column.categoryClause -> round.categoryClause
+        column.categoryClause -> round.categoryClause,
+        column.regions -> round.regions
       )
     }.updateAndReturnGeneratedKey().apply()
 

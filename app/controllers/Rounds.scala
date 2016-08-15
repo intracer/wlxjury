@@ -43,7 +43,9 @@ object Rounds extends Controller with Secured {
 
         val rounds = RoundJdbc.findByContest(contestId)
 
-        Ok(views.html.editRound(user, filledRound, round, rounds, Some(round.contest)))
+        val regions = Contests.regions(contestId)
+
+        Ok(views.html.editRound(user, filledRound, round, rounds, Some(round.contest), regions))
   }, User.ADMIN_ROLES)
 
   def saveRound() = withAuth({
@@ -228,7 +230,8 @@ object Rounds extends Controller with Secured {
       "minJurors" -> optional(number),
       "minAvgRate" -> optional(number),
       "categoryClause" -> text,
-      "source" -> optional(text)
+      "source" -> optional(text),
+      "regions" -> seq(text)
     )(applyEdit)(unapplyEdit)
   )
 
@@ -239,7 +242,8 @@ object Rounds extends Controller with Secured {
                 prevSelectedBy: Option[Int],
                 prevMinAvgRate: Option[Int],
                 categoryClause: String,
-                category: Option[String]
+                category: Option[String],
+                regions: Seq[String]
                ): EditRound = {
     val round = new Round(id, num, name, contest, Set(roles), distribution, Round.ratesById(rates),
       limitMin, limitMax, recommended,
@@ -248,13 +252,15 @@ object Rounds extends Controller with Secured {
       prevSelectedBy = prevSelectedBy,
       prevMinAvgRate = prevMinAvgRate,
       categoryClause = Try(categoryClause.toInt).toOption,
-      category = category
+      category = category,
+      regions = if (regions.nonEmpty) Some(regions.mkString(",")) else None
     )
     EditRound(round, returnTo)
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Int, Option[String], Long, String, Int, Int, Option[Int],
-    Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String])] = {
+    Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String],
+    Seq[String])] = {
     val round = editRound.round
     Some(
       (round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
@@ -264,7 +270,8 @@ object Rounds extends Controller with Secured {
         round.prevSelectedBy,
         round.prevMinAvgRate,
         round.categoryClause.fold("No")(_.toString),
-        round.category)
+        round.category,
+        round.regions.map(_.split(",").toSeq).getOrElse(Seq.empty[String]))
     )
   }
 }

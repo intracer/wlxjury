@@ -145,6 +145,13 @@ object Contests extends Controller with Secured {
         })
   }, User.ADMIN_ROLES)
 
+  def regions(contestId: Long): Map[String, String] = {
+    ContestJuryJdbc.byId(contestId)
+      .filter(_.country == "Ukraine")
+      .map(_ => KOATUU.regions)
+      .getOrElse(Map.empty)
+  }
+
   val editContestForm = Form(
     mapping(
       "id" -> optional(longNumber),
