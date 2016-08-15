@@ -85,7 +85,8 @@ object Rounds extends Controller with Secured {
       selectedAtLeast = created.prevSelectedBy,
       selectMinAvgRating = created.prevMinAvgRate,
       sourceCategory = created.category,
-      includeCategory = created.categoryClause.map(_ > 0)
+      includeCategory = created.categoryClause.map(_ > 0),
+      includeRegionIds = created.regionIds.toSet
     )
     SetCurrentRound(round.contest, None, created).apply()
 
@@ -271,7 +272,7 @@ object Rounds extends Controller with Secured {
         round.prevMinAvgRate,
         round.categoryClause.fold("No")(_.toString),
         round.category,
-        round.regions.map(_.split(",").toSeq).getOrElse(Seq.empty[String]))
+        round.regionIds)
     )
   }
 }

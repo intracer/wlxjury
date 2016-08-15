@@ -46,6 +46,8 @@ case class Round(id: Option[Long],
 
   def isBinary = rates.id == Round.binaryRound.id
 
+  def regionIds = regions.map(_.split(",").toSeq).getOrElse(Seq.empty[String])
+
 }
 
 object Round {
