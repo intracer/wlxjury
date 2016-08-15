@@ -98,7 +98,11 @@ object Gallery extends Controller with Secured with Instrumented {
               case "filelist" =>
                 Ok(views.html.fileList(user, asUserId, asUser, filesInRegion, ranks, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
               case "byrate" =>
-                Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
+                if (region != "grouped") {
+                  Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
+                } else {
+                  Ok(views.html.galleryByRateRegions(user, asUserId, asUser, sortedFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
+                }
             }
           }
         }
@@ -242,7 +246,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
   def regionFiles(region: String, files: Seq[ImageWithRating]): Seq[ImageWithRating] = {
     region match {
-      case "all" => files
+      case "all" | "grouped" => files
       case id => files.filter(_.image.monumentId.exists(_.startsWith(id)))
     }
   }
