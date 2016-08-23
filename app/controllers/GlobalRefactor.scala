@@ -3,7 +3,7 @@ package controllers
 import akka.actor.{Actor, ActorRef, Props}
 import db.scalikejdbc._
 import org.intracer.wmua._
-import org.intracer.wmua.cmd.{ImageEnricher, ImageInfoFromCategory, ImageTextFromCategory}
+import org.intracer.wmua.cmd.{ImageEnricher, FetchImageInfo, ImageTextFromCategory}
 import org.joda.time.DateTime
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
@@ -26,7 +26,7 @@ class GlobalRefactor(val commons: MwBot) {
     val images = ImageJdbc.findByContest(contest.id.get)
 
     if (images.isEmpty) {
-      initImagesFromCategory(contest, category, Seq.empty, max = 0)
+      initImagesFromSource(contest, category, Seq.empty, max = 0)
     } else {
       //        initContestFiles(contest, images)
       //createJury()
@@ -36,7 +36,7 @@ class GlobalRefactor(val commons: MwBot) {
   def appendImages(category: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
     val images = ImageJdbc.findByContest(contest.id.get)
 
-    initImagesFromCategory(contest, category, images, idsFilter, max)
+    initImagesFromSource(contest, category, images, idsFilter, max)
   }
 
   def createJury() {
@@ -66,17 +66,17 @@ class GlobalRefactor(val commons: MwBot) {
   }
 
 
-  def initImagesFromCategory(
-                              contest: ContestJury,
-                              category: String,
-                              existing: Seq[Image],
-                              idsFilter: Set[String] = Set.empty, max: Long) = {
+  def initImagesFromSource(
+                            contest: ContestJury,
+                            source: String,
+                            existing: Seq[Image],
+                            idsFilter: Set[String] = Set.empty, max: Long) = {
     val existingPageIds = existing.map(_.pageId).toSet
 
-    val imageInfos = ImageInfoFromCategory(category, contest, commons, max).apply()
+    val imageInfos = FetchImageInfo(source, contest, commons, max).apply()
 
     val getImages = if (contest.country == "Ukraine") {
-      val revInfo = ImageTextFromCategory(category, contest, contest.monumentIdTemplate, commons, max).apply()
+      val revInfo = ImageTextFromCategory(source, contest, contest.monumentIdTemplate, commons, max).apply()
       ImageEnricher.zipWithRevData(imageInfos, revInfo)
     } else {
       imageInfos
@@ -155,7 +155,9 @@ class GlobalRefactor(val commons: MwBot) {
 
   def saveNewImages(contest: ContestJury, imagesWithIds: Seq[Image]) = {
     println("saving images: " + imagesWithIds.size)
-    ImageJdbc.batchInsert(imagesWithIds)
+
+    val mapped = imagesWithIds.map(i => i.copy(pageId = -i.pageId))
+    ImageJdbc.batchInsert(mapped)
     println("saved images")
     //createJury()
     //    initContestFiles(contest, imagesWithIds)
@@ -168,7 +170,7 @@ class GlobalRefactor(val commons: MwBot) {
   def getCategories(parent: String): Future[Seq[Page]] = {
 
     val action = Action(Query(
-      Generator(ListArgs.toDsl("categorymembers", Some(parent), None, Set(Namespace.CATEGORY), Some("max")))
+      Generator(ListArgs.toDsl("categorymembers", Some(parent), None, Set(Namespace.CATEGORY), Some("max")).get)
     ))
     new DslQuery(action, commons).run()
   }

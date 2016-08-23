@@ -11,11 +11,17 @@ import org.scalawiki.dto.{Namespace, Page}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class ImageInfoFromCategory(category: String, contest: ContestJury, commons: MwBot, max: Long = 0L) {
+case class FetchImageInfo(source: String, contest: ContestJury, commons: MwBot, max: Long = 0L) {
   def apply(): Future[Seq[Image]] = {
 
-    val imageInfoQuery = imageInfoByGenerator(category,
-      "categorymembers", "cm",
+    val (generator, prefix) = if (source.toLowerCase.startsWith("category:")) {
+      ("categorymembers", "cm")
+    } else {
+      ("images", "im")
+    }
+
+    val imageInfoQuery = imageInfoByGenerator(source,
+      generator, prefix,
       namespaces = Set(Namespace.FILE),
       props = Set("timestamp", "user", "size", "url"),
       limit = Math.min(Math.max(max / 20, 200), 500).toString
@@ -27,7 +33,7 @@ case class ImageInfoFromCategory(category: String, contest: ContestJury, commons
   }
 
   def numberOfImages: Future[Long] = {
-    val query = Action(Query(TitlesParam(Seq(category)), Prop(CategoryInfo)))
+    val query = Action(Query(TitlesParam(Seq(source)), Prop(CategoryInfo)))
     commons.run(query).map {
       _.head.categoryInfo.map(_.files).getOrElse(0L)
     }
@@ -43,7 +49,10 @@ case class ImageInfoFromCategory(category: String, contest: ContestJury, commons
     val context = Map("contestId" -> contest.id.getOrElse(0).toString, "max" -> max.toString)
 
     commons.page(category).withContext(context).imageInfoByGenerator(
-      "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
+      generator, generatorPrefix,
+      namespaces = Set(Namespace.FILE),
+      props = Set("timestamp", "user", "size", "url"),
+      titlePrefix = None
     )
   }
 

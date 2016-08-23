@@ -1,7 +1,7 @@
 package controllers
 
 import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
-import org.intracer.wmua.cmd.ImageInfoFromCategory
+import org.intracer.wmua.cmd.FetchImageInfo
 import org.intracer.wmua.{ContestJury, Image, User}
 import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.CountryParser
@@ -115,7 +115,7 @@ object Contests extends Controller with Secured {
   def getNumberOfImages(contest: ContestJury): Long = {
     contest.images.fold(0L){
       images =>
-        val imageInfo = ImageInfoFromCategory(images, contest, Global.commons, 0)
+        val imageInfo = FetchImageInfo(images, contest, Global.commons, 0)
         imageInfo.numberOfImages.await
     }
   }
