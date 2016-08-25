@@ -60,7 +60,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
 
         val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None)
 
-        g.appendImages(category, contest)
+        g.appendImages(category, "", contest)
 
         imageDao.findByContest(contestId) === images
       }
@@ -92,7 +92,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
 
         val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None)
 
-        g.appendImages(category, contest)
+        g.appendImages(category, "", contest)
 
         eventually {
           imageDao.findByContest(contestId) === images
@@ -128,7 +128,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
 
         val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, Some(idTemplate))
 
-        g.appendImages(category, contest)
+        g.appendImages(category, "", contest)
 
         eventually {
           imageDao.findByContest(contestId) === images
