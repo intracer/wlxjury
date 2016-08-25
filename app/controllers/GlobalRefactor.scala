@@ -168,8 +168,7 @@ class GlobalRefactor(val commons: MwBot) {
   def saveNewImages(contest: ContestJury, imagesWithIds: Seq[Image]) = {
     println("saving images: " + imagesWithIds.size)
 
-    val mapped = imagesWithIds.map(i => i.copy(pageId = -i.pageId))
-    ImageJdbc.batchInsert(mapped)
+    ImageJdbc.batchInsert(imagesWithIds)
     println("saved images")
     //createJury()
     //    initContestFiles(contest, imagesWithIds)
