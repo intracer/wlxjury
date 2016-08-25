@@ -155,7 +155,7 @@ object Admin extends Controller with Secured {
 
   def appConfig = play.Play.application.configuration
 
-  def editGreeting(contestIdParam: Option[Long]) = withAuth({
+  def editGreeting(contestIdParam: Option[Long], substituteJurors: Boolean = true) = withAuth({
     user =>
       implicit request =>
 
@@ -165,8 +165,20 @@ object Admin extends Controller with Secured {
         val greeting = getGreeting(contest)
 
         val recipient = new User(fullname = "Recipient Full Name", email = "Recipient email", id = None, contest = contest.id)
+
+        val substitution = if (substituteJurors) {
+          val users = UserJdbc.findByContest(contestId)
+          users.map {
+            recipient =>
+              fillGreeting(greeting.text.get, contest, user, recipient.copy(password = Some("***PASSWORD***")))
+          }
+        } else {
+          Seq.empty
+        }
+
+
         Ok(views.html.greetingTemplate(
-          user, greetingTemplateForm.fill(greeting), contestId, variables(contest, user, recipient)
+          user, greetingTemplateForm.fill(greeting), contestId, variables(contest, user, recipient), substitution
         ))
 
   }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
@@ -242,7 +254,7 @@ object Admin extends Controller with Secured {
     val message = fillGreeting(greeting.text.get, contest, creator, recipient.copy(password = Some(password)))
     sendMail.sendMail(
       fromName = creator.fullname,
-      fromEmail =  creator.email,
+      fromEmail = creator.email,
       to = Seq(recipient.email),
       bcc = Seq(creator.email),
       subject = subject,
