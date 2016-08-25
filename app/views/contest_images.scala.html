@@ -1,4 +1,4 @@
-@(importImagesForm: Form[String],
+@(importImagesForm: Form[(String, String)],
         contest: org.intracer.wmua.ContestJury,
         user: org.intracer.wmua.User,
         sourceImages: Long,
@@ -6,13 +6,17 @@
         inProgress: Boolean = false
 )(implicit flash: Flash, lang: Lang, messages: Messages)
     @import helper._
-    @import views.html.bootstrap._
+    @import b3.vertical.fieldConstructor
 
     @mainAdmin(Messages("contest images"), user, user.id.get, contestId = contest.id) {
         <h3>@Messages("Contest: " + contest.fullName)</h3>
         @form(routes.Contests.importImages(contest.id.get), 'class -> "form-vertical", 'id -> "import-images") {
 
-            @text(importImagesForm("source"))
+            <h4>@Messages("Source")</h4>
+
+            @b3.text(importImagesForm("source"), '_label -> "Commons category or page with images")
+
+            @b3.textarea(importImagesForm("list"), '_label -> "Or image list", 'rows -> 10 )
 
             @if(contest.images.isDefined) {
                 Images on Commons: <a id="commonscat" href="https://commons.wikimedia.org/wiki/@contest.images.get">@sourceImages</a>

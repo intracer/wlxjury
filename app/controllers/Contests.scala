@@ -20,7 +20,7 @@ object Contests extends Controller with Secured {
       implicit request =>
         val contests = findContests
 
-        Ok(views.html.contests(user, contests, editContestForm, importForm))
+        Ok(views.html.contests(user, contests, editContestForm, importContestsForm))
   }, User.ADMIN_ROLES)
 
   def findContests: List[ContestJury] = {
@@ -37,7 +37,7 @@ object Contests extends Controller with Secured {
         editContestForm.bindFromRequest.fold(
           formWithErrors => {
             val contests = findContests
-            BadRequest(views.html.contests(user, contests, formWithErrors, importForm))
+            BadRequest(views.html.contests(user, contests, formWithErrors, importContestsForm))
           },
           formContest => {
             createContest(formContest)
@@ -49,7 +49,7 @@ object Contests extends Controller with Secured {
     user =>
       implicit request =>
 
-        importForm.bindFromRequest.fold(
+        importContestsForm.bindFromRequest.fold(
           formWithErrors => {
             val contests = findContests
             BadRequest(views.html.contests(user, contests, editContestForm, formWithErrors))
@@ -108,15 +108,14 @@ object Contests extends Controller with Secured {
         val sourceImageNum = getNumberOfImages(contest)
         val dbImagesNum = ImageJdbc.countByContest(contestId)
 
-        val filledForm = importForm.fill(contest.images.getOrElse(""))
+        val filledForm = importImagesForm.fill((contest.images.getOrElse(""), ""))
         Ok(views.html.contest_images(filledForm, contest, user, sourceImageNum, dbImagesNum, inProgress))
   }, User.ADMIN_ROLES)
 
   def getNumberOfImages(contest: ContestJury): Long = {
-    contest.images.fold(0L){
+    contest.images.fold(0L) {
       images =>
-        val imageInfo = FetchImageInfo(images, contest, Global.commons, 0)
-        imageInfo.numberOfImages.await
+        FetchImageInfo(images, Seq.empty, contest, Global.commons).numberOfImages.await
     }
   }
 
@@ -125,21 +124,21 @@ object Contests extends Controller with Secured {
       val contest = ContestJuryJdbc.byId(contestId).get
       val dbImagesNum = ImageJdbc.countByContest(contestId)
 
-      importForm.bindFromRequest.fold(
+      importImagesForm.bindFromRequest.fold(
         formWithErrors => {
           BadRequest(views.html.contest_images(formWithErrors, contest, user, 0, dbImagesNum))
         },
-        source => {
+        tuple => {
+
+          val (source, list) = tuple
+
           val withNewImages = contest.copy(images = Some(source))
 
           ContestJuryJdbc.updateImages(contestId, Some(source))
 
           val sourceImageNum = getNumberOfImages(withNewImages)
 
-          new GlobalRefactor(Global.commons).appendImages(
-            source,
-            withNewImages, max = sourceImageNum
-          )
+          new GlobalRefactor(Global.commons).appendImages(source, list, withNewImages, max = sourceImageNum)
 
           Redirect(routes.Contests.images(contestId))
         })
@@ -170,9 +169,17 @@ object Contests extends Controller with Secured {
       Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use))
   )
 
-  val importForm = Form(
+
+  val importContestsForm = Form(
     single(
       "source" -> nonEmptyText
+    )
+  )
+
+  val importImagesForm = Form(
+    tuple(
+      "source" -> text,
+      "list" -> text
     )
   )
 

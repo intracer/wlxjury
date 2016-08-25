@@ -163,35 +163,11 @@ object Tools {
   def initImages(): Unit = {
     val contest = ContestJuryJdbc.find(77L).get
 
-    globalRefactor.appendImages(contest.images.get, contest)
+    globalRefactor.appendImages(contest.images.get, "", contest)
 
     val round = RoundJdbc.find(133L).get
 
     ImageDistributor.distributeImages(contest.id.get, round)
-  }
-
-  def wooden(wlmContest: Contest) = {
-    val page = "Commons:Images from Wiki Loves Monuments 2014 in Ukraine special nomination Пам'ятки дерев'яної архітектури України"
-    val monumentQuery = MonumentQuery.create(wlmContest)
-    val nomination = SpecialNomination.wooden
-    val monumentsListsId = monumentQuery.byPage(nomination.pages.head, nomination.listTemplate).map(_.id).toSet
-    val nanaRound = RoundJdbc.find(27L).get
-    val monumentIdsByNana = ImageJdbc.byRatingMerged(1, nanaRound.id.get).flatMap(_.image.monumentId).toSet
-
-    val onlyNana = monumentIdsByNana -- monumentsListsId
-
-    val allIds = monumentIdsByNana ++ monumentsListsId
-
-    val category = "Category:Images from Wiki Loves Monuments 2014 in Ukraine"
-    val contest = ContestJuryJdbc.find(20L).get
-    globalRefactor.appendImages(category, contest, allIds)
-
-  }
-
-  def internationalRound() = {
-    val contest = ContestJuryJdbc.find(37L).get
-
-    globalRefactor.appendImages("Commons:Wiki Loves Earth 2015/Winners", contest)
   }
 
   def addUsers(contest: ContestJury, number: Int) = {

@@ -26,17 +26,17 @@ class GlobalRefactor(val commons: MwBot) {
     val images = ImageJdbc.findByContest(contest.id.get)
 
     if (images.isEmpty) {
-      initImagesFromSource(contest, category, Seq.empty, max = 0)
+      initImagesFromSource(contest, category, "", Seq.empty, max = 0)
     } else {
       //        initContestFiles(contest, images)
       //createJury()
     }
   }
 
-  def appendImages(category: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
-    val images = ImageJdbc.findByContest(contest.id.get)
+  def appendImages(source: String, imageList: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
+    val existingImages = ImageJdbc.findByContest(contest.id.get)
 
-    initImagesFromSource(contest, category, images, idsFilter, max)
+    initImagesFromSource(contest, source, imageList, existingImages, idsFilter, max)
   }
 
   def createJury() {
@@ -69,15 +69,22 @@ class GlobalRefactor(val commons: MwBot) {
   def initImagesFromSource(
                             contest: ContestJury,
                             source: String,
+                            titles: String,
                             existing: Seq[Image],
                             idsFilter: Set[String] = Set.empty, max: Long) = {
     val existingPageIds = existing.map(_.pageId).toSet
 
-    val imageInfos = FetchImageInfo(source, contest, commons, max).apply()
+    val withImageDescriptions = contest.country == "Ukraine"
 
-    val getImages = if (contest.country == "Ukraine") {
-      val revInfo = ImageTextFromCategory(source, contest, contest.monumentIdTemplate, commons, max).apply()
-      ImageEnricher.zipWithRevData(imageInfos, revInfo)
+    val titlesSeq: Seq[String] = if (titles.trim.isEmpty)
+      Seq.empty
+    else
+      titles.split("\n").map(_.trim).filterNot(_.isEmpty)
+
+    val imageInfos = FetchImageInfo(source, titlesSeq, contest, commons, max).apply()
+
+    val getImages = if (withImageDescriptions) {
+      fetchImageDescriptions(contest, source, max, imageInfos)
     } else {
       imageInfos
     }
@@ -89,6 +96,11 @@ class GlobalRefactor(val commons: MwBot) {
     }
 
     Await.result(result, 5.minutes)
+  }
+
+  def fetchImageDescriptions(contest: ContestJury, source: String, max: Long, imageInfos: Future[Seq[Image]]): Future[Seq[Image]] = {
+    val revInfo = ImageTextFromCategory(source, contest, contest.monumentIdTemplate, commons, max).apply()
+    ImageEnricher.zipWithRevData(imageInfos, revInfo)
   }
 
   def updateMonuments(query: SinglePageQuery, contest: ContestJury) = {
