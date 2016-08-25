@@ -79,7 +79,7 @@ class GlobalRefactor(val commons: MwBot) {
     val titlesSeq: Seq[String] = if (titles.trim.isEmpty)
       Seq.empty
     else
-      titles.split("\n").map(_.trim).filterNot(_.isEmpty)
+      titles.split("(\r\n|\n|\r)")
 
     val imageInfos = FetchImageInfo(source, titlesSeq, contest, commons, max).apply()
 

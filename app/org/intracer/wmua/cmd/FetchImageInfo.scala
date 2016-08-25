@@ -1,5 +1,7 @@
 package org.intracer.wmua.cmd
 
+import java.net.URLDecoder
+
 import db.scalikejdbc.ImageJdbc
 import org.intracer.wmua.{ContestJury, Image}
 import org.scalawiki.MwBot
@@ -39,8 +41,14 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
   }
 
   def titlesQuery: Future[Seq[Page]] = {
+
+    val trimmed = titles.map(_.trim).filterNot(_.isEmpty)
+    val urlDecoded = trimmed
+      .map(t => URLDecoder.decode(t, "UTF8"))
+      .map(_.replace("https://commons.wikimedia.org/wiki/", ""))
+
     val iiProps = IiProp(IiPropArgs.byNames(imageInfoProps.toSeq): _*)
-    val query = Action(Query(TitlesParam(titles), Prop(ImageInfo(iiProps))))
+    val query = Action(Query(TitlesParam(urlDecoded), Prop(ImageInfo(iiProps))))
     commons.run(query)
   }
 
