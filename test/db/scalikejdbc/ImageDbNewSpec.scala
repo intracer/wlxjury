@@ -1,7 +1,6 @@
-package controllers
+package db.scalikejdbc
 
 import db._
-import db.scalikejdbc._
 import db.scalikejdbc.rewrite.ImageDbNew
 import org.intracer.wmua.{Selection, _}
 import org.specs2.mutable.Specification
@@ -62,7 +61,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
         createSelection(images.slice(0, 3), rate = 0)
 
         /// test
-        val result = ImageDbNew.Query(userId = user.id, roundId = round.id).list
+        val result = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id).list
 
         /// check
         result.size === 3

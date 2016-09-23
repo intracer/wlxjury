@@ -21,26 +21,30 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
 
   case class Limit(pageSize: Option[Int] = None, offset: Option[Int] = None)
 
-  case class Query(
-                    userId: Option[Long] = None,
-                    roundId: Option[Long] = None,
-                    rate: Option[Int] = None,
-                    rated: Option[Boolean] = None,
-                    lim: Option[Limit] = None
-                  ) {
-    val imagesJoinSelection = """from images i join selection s on i.pageId = s.pageId"""
+  case class SelectionQuery(userId: Option[Long] = None,
+                            roundId: Option[Long] = None,
+                            rate: Option[Int] = None,
+                            rated: Option[Boolean] = None,
+                            lim: Option[Limit] = None
+                           ) {
+    val imagesJoinSelection =
+      """ from images i
+        |join selection s
+        |on i.page_id = s.page_id""".stripMargin
 
 
     def where(): String = {
       val conditions =
         Seq(
-          userId.map(id => s"s.jury_id = $id"),
-          roundId.map(id => s"s.round = $id"),
-          rate.map(r => s"s.rate = $r"),
-          rated.map(_ => s"s.rate > 0")
+          userId.map(id => "s.jury_id = " + id),
+          roundId.map(id => "s.round = " + id),
+          rate.map(r => "s.rate = " + r),
+          rated.map(_ => "s.rate > 0")
         )
 
-      conditions.flatten.mkString(" and ")
+      val flatten = conditions.flatten
+
+      flatten.headOption.fold("")(_ => " where ") + flatten.mkString(" and ")
     }
 
     def orderBy(fields: Map[String, Int]) = {
@@ -55,11 +59,12 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       l => sqls"LIMIT ${l.pageSize} OFFSET ${l.offset}"
     }
 
-    def list(): Seq[ImageWithRating] = {
-      val select = sqls"""select ${i.result.*}, ${s.result.*} from images i join selection s on i.page_id = s.page_id where """
+    def query: String = sqls"""select ${i.result.*}, ${s.result.*} """ + imagesJoinSelection + where
 
-      val query = SQL(select.value + where)
-      query.map(rs => (
+    def list(): Seq[ImageWithRating] = {
+
+      val runner = SQL(query)
+      runner.map(rs => (
         ImageJdbc(i)(rs),
         SelectionJdbc(s)(rs))
       ).list().apply().map {
