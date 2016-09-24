@@ -25,7 +25,8 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                             roundId: Option[Long] = None,
                             rate: Option[Int] = None,
                             rated: Option[Boolean] = None,
-                            lim: Option[Limit] = None
+                            lim: Option[Limit] = None,
+                            grouped: Boolean = false
                            ) {
     val imagesJoinSelection =
       """ from images i
@@ -59,7 +60,20 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       l => sqls"LIMIT ${l.pageSize} OFFSET ${l.offset}"
     }
 
-    def query: String = sqls"""select ${i.result.*}, ${s.result.*} """ + imagesJoinSelection + where
+    def query: String = {
+
+      val columns = if (!grouped)
+        sqls"""select ${i.result.*}, ${s.result.*} """
+      else
+        sqls"""select ${i.result.*},  sum(s.rate) as rate_sum, count(s.rate) as rate_count"""
+
+
+      val groupBy = if (grouped) {
+        " group by s.page_id"
+      } else ""
+
+      columns + imagesJoinSelection + where + groupBy
+    }
 
     def list(): Seq[ImageWithRating] = {
 

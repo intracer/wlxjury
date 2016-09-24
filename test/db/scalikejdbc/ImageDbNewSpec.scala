@@ -61,7 +61,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
         createSelection(images.slice(0, 3), rate = 0)
 
         /// test
-        val result = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id).list
+        val result = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id).list()
 
         /// check
         result.size === 3
@@ -70,8 +70,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
         result.map(_.rate) === Seq(0, 0, 0)
       }
     }
-  }
-/*
+
     "see images filtered by rate in binary round" in {
       inMemDbApp {
         /// prepare
@@ -88,7 +87,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
 
         for (rate <- -1 to 1) yield {
           /// test
-          val result = Gallery.getSortedImages(user.id.get, Some(rate), round, "gallery")
+          val result = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, rate = Some(rate)).list()
 
           /// check
           result.size === 2
@@ -114,7 +113,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
         }
 
         /// test
-        val result = Gallery.getSortedImages(user.id.get, None, round, "gallery")
+        val result = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id).list()
 
         /// check
         result.size === 6
@@ -137,7 +136,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
         selectionDao.batchInsert(selections)
 
         /// test
-        val result = Gallery.getSortedImages(user.id.get, None, round, "gallery")
+        val result = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id).list()
 
         /// check
         result.size === 6
@@ -171,7 +170,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
         selectionDao.batchInsert(selectedByX)
 
         /// test
-        val result = Gallery.getSortedImages(0, None, round, "gallery")
+        val result = ImageDbNew.SelectionQuery(roundId =  round.id).list()
 
         /// check
         result.size === 4
@@ -210,7 +209,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
         selectionDao.batchInsert(selections)
 
         /// test
-        val result = Gallery.getSortedImages(0, None, round, "filelist")
+        val result = ImageDbNew.SelectionQuery(roundId = round.id).list()
 
         /// check
         result.size === 2
@@ -243,7 +242,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
         selectionDao.batchInsert(selectedByX)
 
         /// test
-        val result = Gallery.getSortedImages(0, None, round, "filelist")
+        val result = ImageDbNew.SelectionQuery(roundId = round.id).list()
 
         /// check
         result.size === 4
@@ -263,5 +262,5 @@ class ImageDbNewSpec extends Specification with InMemDb {
         )
       }
     }
-  }*/
+  }
 }

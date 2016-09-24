@@ -76,4 +76,20 @@ class ImageDbNewSqlSpec extends Specification with InMemDb {
     }
   }
 
+  "grouped" should {
+
+    "group by page list by round" in {
+      check(SelectionQuery(roundId = Some(3), grouped = true),
+        s"""select $imageFields, sum(s.rate) as rate_sum, count(s.rate) as rate_count from images i
+            join selection s
+            on i.page_id = s.page_id
+            where
+            s.round = 3
+          group by s.page_id"""
+      )
+    }
+
+
+  }
+
 }
