@@ -26,7 +26,8 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                             rate: Option[Int] = None,
                             rated: Option[Boolean] = None,
                             lim: Option[Limit] = None,
-                            grouped: Boolean = false
+                            grouped: Boolean = false,
+                            order: Map[String, Int] = Map.empty
                            ) {
     val imagesJoinSelection =
       """ from images i
@@ -48,12 +49,13 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       flatten.headOption.fold("")(_ => " where ") + flatten.mkString(" and ")
     }
 
-    def orderBy(fields: Map[String, Int]) = {
+    def orderBy(fields: Map[String, Int] = order) = {
       val dirMap = Map(1 -> "asc", -1 -> "desc")
 
-      "order by " + fields.map {
+      fields.headOption.map { _ => " order by " + fields.map {
         case (name, dir) => name + " " + dirMap(dir)
       }.mkString(", ")
+      }.getOrElse("")
     }
 
     def limit() = lim.map {
@@ -67,24 +69,22 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       else
         sqls"""select ${i.result.*},  sum(s.rate) as rate_sum, count(s.rate) as rate_count"""
 
-
       val groupBy = if (grouped) {
         " group by s.page_id"
       } else ""
 
-      columns + imagesJoinSelection + where + groupBy
+      columns + imagesJoinSelection + where + groupBy + orderBy()
     }
 
     def list(): Seq[ImageWithRating] = {
-
-      val runner = SQL(query)
-      runner.map(rs => (
-        ImageJdbc(i)(rs),
-        SelectionJdbc(s)(rs))
-      ).list().apply().map {
-        case (img, sel) => ImageWithRating(img, Seq(sel))
-      }
+      SQL(query).map(rowReader).list().apply()
     }
+
+    def rowReader(rs: WrappedResultSet): ImageWithRating =
+      ImageWithRating(
+        image = ImageJdbc(i)(rs),
+        selection = Seq(SelectionJdbc(s)(rs))
+      )
 
     def count(): Int = {
       val select = "select count(i.page_id)"

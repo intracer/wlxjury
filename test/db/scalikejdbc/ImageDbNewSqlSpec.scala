@@ -88,8 +88,6 @@ class ImageDbNewSqlSpec extends Specification with InMemDb {
           group by s.page_id"""
       )
     }
-
-
   }
 
 }
