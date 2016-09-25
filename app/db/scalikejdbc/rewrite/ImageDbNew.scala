@@ -1,7 +1,7 @@
 package db.scalikejdbc.rewrite
 
 import db.scalikejdbc.{ImageJdbc, SelectionJdbc}
-import org.intracer.wmua.{Image, ImageWithRating}
+import org.intracer.wmua.{Image, ImageWithRating, Selection}
 import scalikejdbc.{DBSession, _}
 
 object ImageDbNew extends SQLSyntaxSupport[Image] {
@@ -34,6 +34,9 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         |join selection s
         |on i.page_id = s.page_id""".stripMargin
 
+
+    val reader: WrappedResultSet => ImageWithRating =
+      if (grouped) groupedReader else rowReader
 
     def where(): String = {
       val conditions =
@@ -77,7 +80,8 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def list(): Seq[ImageWithRating] = {
-      SQL(query).map(rowReader).list().apply()
+
+      SQL(query).map(reader).list().apply()
     }
 
     def rowReader(rs: WrappedResultSet): ImageWithRating =
@@ -85,6 +89,17 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         image = ImageJdbc(i)(rs),
         selection = Seq(SelectionJdbc(s)(rs))
       )
+
+    def groupedReader(rs: WrappedResultSet): ImageWithRating = {
+      val image = ImageJdbc(i)(rs)
+      val sum = rs.intOpt(1).getOrElse(0)
+      val count = rs.intOpt(2).getOrElse(0)
+      ImageWithRating(image,
+        selection = Seq(new Selection(0, image.pageId, sum, 0, 0)),
+        count
+      )
+    }
+
 
     def count(): Int = {
       val select = "select count(i.page_id)"
