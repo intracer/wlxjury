@@ -27,6 +27,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                             rated: Option[Boolean] = None,
                             lim: Option[Limit] = None,
                             grouped: Boolean = false,
+                            groupWithDetails: Boolean = false,
                             order: Map[String, Int] = Map.empty
                            ) {
     val imagesJoinSelection =
@@ -37,6 +38,9 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
 
     val reader: WrappedResultSet => ImageWithRating =
       if (grouped) groupedReader else rowReader
+
+    val postPocessor: Seq[ImageWithRating] => Seq[ImageWithRating] =
+      if (groupWithDetails) groupedWithDetails else identity
 
     def where(): String = {
       val conditions =
@@ -80,8 +84,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def list(): Seq[ImageWithRating] = {
-
-      SQL(query).map(reader).list().apply()
+      postPocessor(SQL(query).map(reader).list().apply())
     }
 
     def rowReader(rs: WrappedResultSet): ImageWithRating =
@@ -99,6 +102,11 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         count
       )
     }
+
+    def groupedWithDetails(images: Seq[ImageWithRating]): Seq[ImageWithRating] =
+      images.groupBy(_.image.pageId).map { case (id, imagesWithId) =>
+        new ImageWithRating(imagesWithId.head.image, imagesWithId.flatMap(_.selection))
+      }.toSeq.sortBy(-_.selection.map(_.rate).filter(_ > 0).sum)
 
 
     def count(): Int = {

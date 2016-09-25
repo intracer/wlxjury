@@ -217,7 +217,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
         selectionDao.batchInsert(selections)
 
         /// test
-        val result = ImageDbNew.SelectionQuery(roundId = round.id).list()
+        val result = ImageDbNew.SelectionQuery(roundId = round.id, groupWithDetails = true).list()
 
         /// check
         result.size === 2
@@ -250,7 +250,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
         selectionDao.batchInsert(selectedByX)
 
         /// test
-        val result = ImageDbNew.SelectionQuery(roundId = round.id).list()
+        val result = ImageDbNew.SelectionQuery(roundId = round.id, groupWithDetails = true).list()
 
         /// check
         result.size === 4
