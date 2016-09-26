@@ -268,26 +268,25 @@ object Gallery extends Controller with Secured with Instrumented {
 
       val files = filesByUserId(asUserId, rate, round, Pager.startPageId(pageId))
 
-      var index = files.indexWhere(_.pageId == pageId)
+      val index = files.indexWhere(_.pageId == pageId)
 
       val newPageId = if (index < 0) {
         files.headOption.fold(-1L)(_.pageId)
       }
       else pageId
 
-      if (newPageId >= 0) {
-        if (newPageId != pageId) {
-          return Redirect(routes.Gallery.large(asUserId, newPageId, region, round.id.get, rate, module))
-        }
-      } else {
-        return Redirect(routes.Gallery.list(asUserId, 1, region, round.id.get, rate))
+      if (index < 0) {
+        return Redirect(if (files.nonEmpty) {
+          routes.Gallery.large(asUserId, files.head.pageId, region, round.id.get, rate, module)
+        } else {
+          routes.Gallery.list(asUserId, 1, region, round.id.get, rate)
+        })
       }
 
       val selection = if (user.canViewOrgInfo(round)) {
         SelectionJdbc.byRoundAndImageWithJury(round.id.get, pageId)
       } else Seq.empty
 
-      index = files.indexWhere(_.pageId == newPageId)
       val page = index / (Pager.pageSize + 1) + 1
 
       val byCriteria = if (round.hasCriteriaRate) {

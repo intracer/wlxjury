@@ -47,7 +47,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         " group by s.page_id"
       } else ""
 
-      val sql = columns + imagesJoinSelection + where + groupBy + orderBy()
+      val sql = columns + imagesJoinSelection + where(count) + groupBy + orderBy()
 
       if (count)
         "select count(t.pi_on_i) from (" + sql + ") t"
@@ -69,13 +69,14 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         |join selection s
         |on i.page_id = s.page_id""".stripMargin
 
-    def where(): String = {
+    def where(count: Boolean = false): String = {
       val conditions =
         Seq(
           userId.map(id => "s.jury_id = " + id),
           roundId.map(id => "s.round = " + id),
           rate.map(r => "s.rate = " + r),
           rated.map(_ => "s.rate > 0")
+//          limit.flatMap(_.startPageId).filter(_ => count).map(_ => "s.rate > 0")
         )
 
       val flatten = conditions.flatten
