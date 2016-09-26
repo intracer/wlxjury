@@ -145,52 +145,6 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
   GROUP BY r.id, s.rate
       """.map(rs => (rs.long(1), rs.int(2), rs.int(3))).list().apply()
 
-  def byUserRoundRateParamCount(userId: Long, roundId: Long, rate: Int): Int = withSQL {
-    select(count(i.pageId))
-      .from(ImageJdbc as i)
-      .innerJoin(SelectionJdbc as s)
-      .on(i.pageId, s.pageId)
-      .where.eq(s.juryId, userId).and
-      .eq(s.round, roundId).and
-      .eq(s.rate, rate)
-  }.map(rs => rs.int(1)).single().apply().getOrElse(0)
-
-  def byUserRoundRatedCount(userId: Long, roundId: Long): Int = withSQL {
-    select(count(i.pageId))
-      .from(ImageJdbc as i)
-      .innerJoin(SelectionJdbc as s)
-      .on(i.pageId, s.pageId)
-      .where.eq(s.juryId, userId).and
-      .eq(s.round, roundId).and
-      .gt(s.rate, 0)
-  }.map(rs => rs.int(1)).single().apply().getOrElse(0)
-
-  def byUserRoundAllCount(userId: Long, roundId: Long): Int = withSQL {
-    select(count(i.pageId))
-      .from(ImageJdbc as i)
-      .innerJoin(SelectionJdbc as s)
-      .on(i.pageId, s.pageId)
-      .where.eq(s.juryId, userId).and
-      .eq(s.round, roundId)
-  }.map(rs => rs.int(1)).single().apply().getOrElse(0)
-
-  def byRoundAllCount(roundId: Long): Int = withSQL {
-    select(count(distinct(i.pageId)))
-      .from(ImageJdbc as i)
-      .innerJoin(SelectionJdbc as s)
-      .on(i.pageId, s.pageId)
-      .where.eq(s.round, roundId)
-  }.map(rs => rs.int(1)).single().apply().getOrElse(0)
-
-  def byRoundRatedCount(roundId: Long): Int = withSQL {
-    select(count(distinct(i.pageId)))
-      .from(ImageJdbc as i)
-      .innerJoin(SelectionJdbc as s)
-      .on(i.pageId, s.pageId)
-      .where.eq(s.round, roundId).and.
-      gt(s.rate, 0)
-  }.map(rs => rs.int(1)).single().apply().getOrElse(0)
-
   def byUserImageWithRating(
                              userId: Long,
                              roundId: Long,
@@ -319,30 +273,9 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
     //      .and.append(isNotDeleted)
   }.map(rs => (ImageJdbc(i)(rs), SelectionJdbc(s)(rs))).list().apply().map { case (img, s) => ImageWithRating(img, Seq(s)) }
 
-  def byRatingGE(roundId: Long, rate: Int): Seq[ImageWithRating] = withSQL {
-    select.from(ImageJdbc as i)
-      .innerJoin(SelectionJdbc as s).on(i.pageId, s.pageId)
-      .where.ge(s.rate, rate).and
-      .eq(s.round, roundId)
-    //      .and.append(isNotDeleted)
-  }.map(rs => (ImageJdbc(i)(rs), SelectionJdbc(s)(rs))).list().apply().map { case (i, s) => ImageWithRating(i, Seq(s)) }
-
-
-  def byRound(roundId: Long, pageSize: Int = Int.MaxValue, offset: Int = 0): Seq[ImageWithRating] = withSQL {
-    select.from(ImageJdbc as i)
-      .innerJoin(SelectionJdbc as s).on(i.pageId, s.pageId)
-      .where.eq(s.round, roundId)
-    //      .and.append(isNotDeleted)
-  }.map(rs => (ImageJdbc(i)(rs), SelectionJdbc(s)(rs))).list().apply().map { case (i, s) => ImageWithRating(i, Seq(s)) }
 
   def byRatingMerged(rate: Int, round: Long): Seq[ImageWithRating] = {
     val raw = ImageJdbc.byRating(rate, round)
-    val merged = raw.groupBy(_.pageId).mapValues(iws => new ImageWithRating(iws.head.image, iws.map(_.selection.head)))
-    merged.values.toSeq
-  }
-
-  def byRatingGEMerged(rate: Int, round: Long): Seq[ImageWithRating] = {
-    val raw = ImageJdbc.byRatingGE(round, rate)
     val merged = raw.groupBy(_.pageId).mapValues(iws => new ImageWithRating(iws.head.image, iws.map(_.selection.head)))
     merged.values.toSeq
   }
