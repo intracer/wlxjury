@@ -19,28 +19,55 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
   val s3 = SelectionJdbc.syntax("s3")
 
 
-  case class Limit(pageSize: Option[Int] = None, offset: Option[Int] = None)
+  case class Limit(pageSize: Option[Int] = None, offset: Option[Int] = None, startPageId: Option[Long] = None)
 
   case class SelectionQuery(userId: Option[Long] = None,
                             roundId: Option[Long] = None,
                             rate: Option[Int] = None,
                             rated: Option[Boolean] = None,
-                            lim: Option[Limit] = None,
+                            criteriaId: Option[Long] = None,
+                            limit: Option[Limit] = None,
                             grouped: Boolean = false,
                             groupWithDetails: Boolean = false,
                             order: Map[String, Int] = Map.empty
                            ) {
+
+    val reader: WrappedResultSet => ImageWithRating =
+      if (grouped) Readers.groupedReader else Readers.rowReader
+
+    def query(count: Boolean = false): String = {
+
+      val columns =
+        if (!grouped)
+          sqls"""select ${i.result.*}, ${s.result.*} """
+        else
+          sqls"""select ${i.result.*},  sum(s.rate) as rate, count(s.rate) as rate_count"""
+
+      val groupBy = if (grouped) {
+        " group by s.page_id"
+      } else ""
+
+      val sql = columns + imagesJoinSelection + where + groupBy + orderBy()
+
+      if (count)
+        "select count(t.pi_on_i) from (" + sql + ") t"
+      else
+        sql
+    }
+
+    def list(): Seq[ImageWithRating] = {
+      postPocessor(SQL(query()).map(reader).list().apply())
+    }
+
+    def count(): Int = {
+      val sql = query(count = true)
+      SQL(sql).map(_.int(1)).single().apply().getOrElse(0)
+    }
+
     val imagesJoinSelection =
       """ from images i
         |join selection s
         |on i.page_id = s.page_id""".stripMargin
-
-
-    val reader: WrappedResultSet => ImageWithRating =
-      if (grouped) groupedReader else rowReader
-
-    val postPocessor: Seq[ImageWithRating] => Seq[ImageWithRating] =
-      if (groupWithDetails) groupedWithDetails else identity
 
     def where(): String = {
       val conditions =
@@ -65,57 +92,18 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       }.getOrElse("")
     }
 
-    def limit() = lim.map {
+    def limitSql() = limit.map {
       l => sqls"LIMIT ${l.pageSize} OFFSET ${l.offset}"
     }
 
-    def query: String = {
-
-      val columns = if (!grouped)
-        sqls"""select ${i.result.*}, ${s.result.*} """
-      else
-        sqls"""select ${i.result.*},  sum(s.rate) as rate_sum, count(s.rate) as rate_count"""
-
-      val groupBy = if (grouped) {
-        " group by s.page_id"
-      } else ""
-
-      columns + imagesJoinSelection + where + groupBy + orderBy()
-    }
-
-    def list(): Seq[ImageWithRating] = {
-      postPocessor(SQL(query).map(reader).list().apply())
-    }
-
-    def rowReader(rs: WrappedResultSet): ImageWithRating =
-      ImageWithRating(
-        image = ImageJdbc(i)(rs),
-        selection = Seq(SelectionJdbc(s)(rs))
-      )
-
-    def groupedReader(rs: WrappedResultSet): ImageWithRating = {
-      val image = ImageJdbc(i)(rs)
-      val sum = rs.intOpt(1).getOrElse(0)
-      val count = rs.intOpt(2).getOrElse(0)
-      ImageWithRating(image,
-        selection = Seq(new Selection(0, image.pageId, sum, 0, 0)),
-        count
-      )
-    }
+    val postPocessor: Seq[ImageWithRating] => Seq[ImageWithRating] =
+      if (groupWithDetails) groupedWithDetails else identity
 
     def groupedWithDetails(images: Seq[ImageWithRating]): Seq[ImageWithRating] =
       images.groupBy(_.image.pageId).map { case (id, imagesWithId) =>
         new ImageWithRating(imagesWithId.head.image, imagesWithId.flatMap(_.selection))
       }.toSeq.sortBy(-_.selection.map(_.rate).filter(_ > 0).sum)
 
-
-    def count(): Int = {
-      val select = "select count(i.page_id)"
-
-      val q = Seq(select, imagesJoinSelection, where()).mkString("\n")
-
-      SQL(q).map(rs => rs.int(1)).single().apply().getOrElse(0)
-    }
 
     def imageRank(pageId: Long, sql: String) = {
       sql"""SELECT rank
@@ -173,12 +161,23 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       }
     }
 
-    object Query {
-      def user(userId: Long) = s"s.jury_id = $userId"
+    object Readers {
 
-      def rate(rate: Int) = s"s.rate = $rate"
+      def rowReader(rs: WrappedResultSet): ImageWithRating =
+        ImageWithRating(
+          image = ImageJdbc(i)(rs),
+          selection = Seq(SelectionJdbc(s)(rs))
+        )
 
-      def rated(r: Boolean) = "s.rate > 0"
+      def groupedReader(rs: WrappedResultSet): ImageWithRating = {
+        val image = ImageJdbc(i)(rs)
+        val sum = rs.intOpt(1).getOrElse(0)
+        val count = rs.intOpt(2).getOrElse(0)
+        ImageWithRating(image,
+          selection = Seq(new Selection(0, image.pageId, sum, 0, round = 0)),
+          count
+        )
+      }
     }
 
   }

@@ -252,7 +252,7 @@ class GallerySpec extends Specification with InMemDb {
           images(1),
           images(0)
         )
-        result.map(_.rate) === Seq(1, 1, 1, 0)
+        result.map(_.rate) === Seq(3, 2, 1, 0)
         result.map(_.selection.size) === Seq(4, 4, 4, 4)
         result.map(_.selection.map(_.rate)) === Seq(
           Seq(1, 1, 1, 0),

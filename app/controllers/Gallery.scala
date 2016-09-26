@@ -1,6 +1,7 @@
 package controllers
 
 import db.scalikejdbc._
+import db.scalikejdbc.rewrite.ImageDbNew
 import org.intracer.wmua._
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{Controller, EssentialAction, Request, Result}
@@ -10,9 +11,8 @@ import play.api.mvc.{Controller, EssentialAction, Request, Result}
   */
 object Gallery extends Controller with Secured with Instrumented {
 
-  import play.api.Play.current
-
   import Pager._
+  import play.api.Play.current
 
   //def pages = 10
 
@@ -85,7 +85,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val asUser = getAsUser(asUserId, user)
 
-            val sortedFiles = getSortedImages(asUserId, rate, round, module, pager)
+            val sortedFiles = filesByUserId(asUserId, rate, round, pager, userDetails = module == "filelist")
 
             val filesInRegion = regionFiles(region, sortedFiles)
 
@@ -114,7 +114,6 @@ object Gallery extends Controller with Secured with Instrumented {
         }
   }
 
-
   def getSortedImages(
                        asUserId: Long,
                        rate: Option[Int],
@@ -135,15 +134,6 @@ object Gallery extends Controller with Secured with Instrumented {
     notAuthorized
   }
 
-  def filterByRate(round: Round, rate: Option[Int], uFiles: Seq[ImageWithRating]): Seq[ImageWithRating] = {
-    if (rate.isEmpty) uFiles
-    else if (!round.isBinary) {
-      if (rate.get > 0) uFiles.filter(_.rate > 0) else uFiles.filter(_.rate == 0)
-    } else {
-      uFiles.filter(_.rate == rate.get)
-    }
-  }
-
   def getAsUser(asUserId: Long, user: User): User = {
     if (asUserId == 0) {
       null
@@ -160,65 +150,16 @@ object Gallery extends Controller with Secured with Instrumented {
                      round: Round,
                      pager: Pager,
                      userDetails: Boolean = false): Seq[ImageWithRating] = {
-    val criteriaRate = round.hasCriteriaRate
-    if (userId == 0) {
-      filesFromSeveralUsers(rate, userDetails, round, pager, criteriaRate)
-    } else {
-      userFiles(userId, round, rate, pager, round.hasCriteriaRate)
-    }
-  }
-
-  def filesFromSeveralUsers(rate: Option[Int], userDetails: Boolean, round: Round, pager: Pager,
-                            criteriaRate: Boolean): Seq[ImageWithRating] = {
-    if (!criteriaRate) {
-      if (rate.isEmpty) {
-        if (userDetails)
-          ImageJdbc.byRound(round.id.get).groupBy(_.image.pageId).map { case (id, images) =>
-            new ImageWithRating(images.head.image, images.flatMap(_.selection))
-          }.toSeq.sortBy(-_.selection.map(_.rate).filter(_ > 0).sum)
-        else {
-          val count = ImageJdbc.byRoundAllCount(round.id.get)
-          pager.setCount(count)
-          ImageJdbc.byRoundSummed(round.id.get, pager.pageSize, pager.offset.getOrElse(0))
-        }
-      } else {
-        if (userDetails) {
-          ImageJdbc.byRating(rate.get, round.id.get)
-        } else {
-          val count = ImageJdbc.byRoundRatedCount(round.id.get)
-          pager.setCount(count)
-          ImageJdbc.byRoundAndRateSummed(round.id.get, rate.get, pager.pageSize, pager.offset.getOrElse(0))
-        }
-      }
-    } else {
-      rate.fold(ImageJdbc.byRoundSummedWithCriteria(round.id.get)) { r =>
-        ImageJdbc.byRatingWithCriteriaMerged(r, round.id.get)
-      }
-    }
-  }
-
-  def userFiles(userId: Long, round: Round, rate: Option[Int], pager: Pager,
-                rank: Boolean = false, criteriaRate: Boolean = false): Seq[ImageWithRating] = {
-    if (!criteriaRate) {
-      val count =
-        rate.fold(ImageJdbc.byUserRoundAllCount(userId, round.id.get)) { r =>
-          if (round.isBinary) {
-            ImageJdbc.byUserRoundRateParamCount(userId, round.id.get, r)
-          } else {
-            ImageJdbc.byUserRoundRatedCount(userId, round.id.get)
-          }
-        }
-      pager.setCount(count)
-
-      if (round.isBinary) {
-        ImageJdbc.byUserImageWithRating(userId, round.id.get, rate, pager.pageSize, pager.offset.getOrElse(0))
-      } else {
-        ImageJdbc.byUserImageRangeRanked(userId, round.id.get, pager.pageSize, pager.offset.getOrElse(0))
-      }
-
-    } else {
-      ImageJdbc.byUserImageWithCriteriaRating(userId, round.id.get)
-    }
+    val userIdOpt = Some(userId).filter(_ != 0)
+    val query = ImageDbNew.SelectionQuery(
+      userId = userIdOpt,
+      rate = rate,
+      roundId = round.id,
+      order = Map("rate" -> -1),
+      grouped = userIdOpt.isEmpty && !userDetails,
+      groupWithDetails = userDetails)
+    pager.setCount(query.count())
+    query.list()
   }
 
   def large(asUserId: Long, pageId: Long, region: String = "all", roundId: Long, rate: Option[Int], module: String) = withAuth {
@@ -244,7 +185,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
         roundOption.fold(Redirect(routes.Gallery.list(user.id.get, 1, region, roundId, rate))) { round =>
 
-          val files = filterFiles(rate, region, user, round, Pager.startPageId(pageId))
+          val files = filesByUserId(user.id.get, rate, round, Pager.startPageId(pageId))
 
           val index = files.indexWhere(_.pageId == pageId)
 
@@ -264,10 +205,6 @@ object Gallery extends Controller with Secured with Instrumented {
 
           checkLargeIndex(user, rate, index, pageId, files, region, round.id.get, module)
         }
-  }
-
-  def filterFiles(rate: Option[Int], region: String, user: User, round: Round, pager: Pager): Seq[ImageWithRating] = {
-    regionFiles(region, filterByRate(round, rate, userFiles(user.id.get, round, rate, pager)))
   }
 
   def regionFiles(region: String, files: Seq[ImageWithRating]): Seq[ImageWithRating] = {
@@ -325,11 +262,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
       val round = maybeRound.get
 
-      val allFiles = filesByUserId(asUserId, rate, round, Pager.startPageId(pageId))
-
-      val sorted = if (module == "byrate") allFiles.sortBy(-_.totalRate(round)) else allFiles
-
-      val files = regionFiles(region, filterByRate(round, rate, sorted))
+      val files = filesByUserId(asUserId, rate, round, Pager.startPageId(pageId))
 
       var index = files.indexWhere(_.pageId == pageId)
 

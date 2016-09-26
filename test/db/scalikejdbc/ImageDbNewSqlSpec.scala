@@ -21,7 +21,7 @@ class ImageDbNewSqlSpec extends Specification with InMemDb {
 
   def check(q: SelectionQuery, expected: String) = {
     inMemDbApp {
-      foldSpace(q.query) === foldSpace(expected)
+      foldSpace(q.query()) === foldSpace(expected)
     }
   }
 
@@ -80,7 +80,7 @@ class ImageDbNewSqlSpec extends Specification with InMemDb {
 
     "group by page list by round" in {
       check(SelectionQuery(roundId = Some(3), grouped = true),
-        s"""select $imageFields, sum(s.rate) as rate_sum, count(s.rate) as rate_count from images i
+        s"""select $imageFields, sum(s.rate) as rate, count(s.rate) as rate_count from images i
             join selection s
             on i.page_id = s.page_id
             where
