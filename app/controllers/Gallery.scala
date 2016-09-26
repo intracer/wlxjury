@@ -2,6 +2,7 @@ package controllers
 
 import db.scalikejdbc._
 import db.scalikejdbc.rewrite.ImageDbNew
+import db.scalikejdbc.rewrite.ImageDbNew.Limit
 import org.intracer.wmua._
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{Controller, EssentialAction, Request, Result}
@@ -157,7 +158,10 @@ object Gallery extends Controller with Secured with Instrumented {
       roundId = round.id,
       order = Map("rate" -> -1),
       grouped = userIdOpt.isEmpty && !userDetails,
-      groupWithDetails = userDetails)
+      groupWithDetails = userDetails,
+      limit = Some(Limit(Some(pager.pageSize), pager.offset, pager.startPageId))
+    )
+
     pager.setCount(query.count())
     query.list()
   }
