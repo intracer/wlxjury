@@ -60,7 +60,14 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def count(): Int = {
-      val sql = query(count = true)
+      single(query(count = true))
+    }
+
+    def imageRank(pageId: Long) = {
+      single(imageRank(pageId, query()))
+    }
+
+    def single(sql: String): Int = {
       SQL(sql).map(_.int(1)).single().apply().getOrElse(0)
     }
 
@@ -106,7 +113,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       }.toSeq.sortBy(-_.selection.map(_.rate).filter(_ > 0).sum)
 
     def imageRank(pageId: Long, sql: String) = {
-      sql"""SELECT rank
+      sqls"""SELECT rank
             FROM (
                   SELECT @rownum :=@rownum + 1 'rank', page_id
                   FROM (SELECT @rownum := 0) r,
