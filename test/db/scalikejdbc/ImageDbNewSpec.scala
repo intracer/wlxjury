@@ -2,6 +2,7 @@ package db.scalikejdbc
 
 import db._
 import db.scalikejdbc.rewrite.ImageDbNew
+import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import org.intracer.wmua.{Selection, _}
 import org.specs2.mutable.Specification
 
@@ -155,6 +156,25 @@ class ImageDbNewSpec extends Specification with InMemDb {
     }
   }
 
+  "juror large view" should {
+
+    def query(): SelectionQuery = {
+      setUp()
+
+      ImageDbNew.SelectionQuery(
+        userId = user.id,
+        roundId = round.id,
+        driver = "h2"
+      )
+    }
+
+    "no images" in {
+      inMemDbApp {
+        query().imageRank(1) === 0
+      }
+    }
+  }
+
   "organizer" should {
     "see rating by selection" in {
       inMemDbApp {
@@ -178,7 +198,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
         selectionDao.batchInsert(selectedByX)
 
         /// test
-        val result = ImageDbNew.SelectionQuery(roundId =  round.id, grouped = true, order = Map("rate" -> -1)).list()
+        val result = ImageDbNew.SelectionQuery(roundId = round.id, grouped = true, order = Map("rate" -> -1)).list()
 
         /// check
         result.size === 4

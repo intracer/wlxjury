@@ -29,8 +29,9 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                             limit: Option[Limit] = None,
                             grouped: Boolean = false,
                             groupWithDetails: Boolean = false,
-                            order: Map[String, Int] = Map.empty
-                           ) {
+                            order: Map[String, Int] = Map.empty,
+                            driver: String = "mysql"
+                           )() {
 
     val reader: WrappedResultSet => ImageWithRating =
       if (grouped) Readers.groupedReader else Readers.rowReader
@@ -113,13 +114,19 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       }.toSeq.sortBy(-_.selection.map(_.rate).filter(_ > 0).sum)
 
     def imageRankSql(pageId: Long, sql: String): String = {
-      sqls"""SELECT rank
+      if (driver == "mysql") {
+        s"""SELECT rank
             FROM (
-                  SELECT @rownum :=@rownum + 1 'rank', page_id
-                  FROM (SELECT @rownum := 0) r,
+                  SELECT @row_num := @row_num + 1 'rank', t.pi_on_i as page_id
+                  FROM (SELECT @row_num := 0) r,
                   ($sql) t
                   ) t2
-            WHERE page_id = $pageId;""".value
+            WHERE page_id = $pageId;"""
+      } else {
+        s"""SELECT rownum
+        FROM  ($sql) t
+        WHERE pi_on_i = $pageId;"""
+      }
     }
 
     def rankedList(where: String): Seq[ImageWithRating] = {
