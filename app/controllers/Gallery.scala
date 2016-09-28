@@ -156,7 +156,7 @@ object Gallery extends Controller with Secured with Instrumented {
       userId = userIdOpt,
       rate = rate,
       roundId = round.id,
-      order = Map("rate" -> -1),
+      order = Map("rate" -> -1, "s.page_id" -> 1),
       grouped = userIdOpt.isEmpty && !userDetails,
       groupWithDetails = userDetails,
       limit = Some(Limit(Some(pager.pageSize), pager.offset, pager.startPageId))

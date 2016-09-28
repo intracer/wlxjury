@@ -64,7 +64,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def imageRank(pageId: Long) = {
-      single(imageRank(pageId, query()))
+      single(imageRankSql(pageId, query()))
     }
 
     def single(sql: String): Int = {
@@ -83,7 +83,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           roundId.map(id => "s.round = " + id),
           rate.map(r => "s.rate = " + r),
           rated.map(_ => "s.rate > 0")
-//          limit.flatMap(_.startPageId).filter(_ => count).map(_ => "s.rate > 0")
+          //          limit.flatMap(_.startPageId).filter(_ => count).map(_ => "s.rate > 0")
         )
 
       val flatten = conditions.flatten
@@ -112,14 +112,14 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         new ImageWithRating(imagesWithId.head.image, imagesWithId.flatMap(_.selection))
       }.toSeq.sortBy(-_.selection.map(_.rate).filter(_ > 0).sum)
 
-    def imageRank(pageId: Long, sql: String) = {
+    def imageRankSql(pageId: Long, sql: String): String = {
       sqls"""SELECT rank
             FROM (
                   SELECT @rownum :=@rownum + 1 'rank', page_id
                   FROM (SELECT @rownum := 0) r,
                   ($sql) t
                   ) t2
-            WHERE page_id = $pageId;"""
+            WHERE page_id = $pageId;""".value
     }
 
     def rankedList(where: String): Seq[ImageWithRating] = {
