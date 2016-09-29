@@ -248,8 +248,9 @@ class ImageDbNewSpec extends Specification with InMemDb {
 
         selectionDao.batchInsert(selectedByX)
 
+        val query = ImageDbNew.SelectionQuery(roundId = round.id, grouped = true, order = Map("rate" -> -1), driver = "h2")
         /// test
-        val result = ImageDbNew.SelectionQuery(roundId = round.id, grouped = true, order = Map("rate" -> -1)).list()
+        val result = query.list()
 
         /// check
         result.size === 4
@@ -261,6 +262,10 @@ class ImageDbNewSpec extends Specification with InMemDb {
         )
         result.map(_.selection.size) === Seq(1, 1, 1, 1)
         result.map(_.rate) === Seq(3, 2, 1, 0)
+
+        images.slice(0, 4).zip((1 to 4).reverse).map { case (image, index) =>
+          query.imageRank(image.pageId) === index
+        }
       }
     }
 
@@ -287,8 +292,9 @@ class ImageDbNewSpec extends Specification with InMemDb {
 
         selectionDao.batchInsert(selections)
 
+        val query = ImageDbNew.SelectionQuery(roundId = round.id, groupWithDetails = true)
         /// test
-        val result = ImageDbNew.SelectionQuery(roundId = round.id, groupWithDetails = true).list()
+        val result = query.list()
 
         /// check
         result.size === 2
@@ -320,8 +326,9 @@ class ImageDbNewSpec extends Specification with InMemDb {
 
         selectionDao.batchInsert(selectedByX)
 
+        val query = ImageDbNew.SelectionQuery(roundId = round.id, groupWithDetails = true)
         /// test
-        val result = ImageDbNew.SelectionQuery(roundId = round.id, groupWithDetails = true).list()
+        val result = query.list()
 
         /// check
         result.size === 4
