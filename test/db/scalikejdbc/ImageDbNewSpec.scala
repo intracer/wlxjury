@@ -53,109 +53,6 @@ class ImageDbNewSpec extends Specification with InMemDb {
     selections
   }
 
-  "juror" should {
-    "see assigned images in binary round" in {
-      inMemDbApp {
-        /// prepare
-        setUp(rates = Round.binaryRound)
-        val images = createImages(6)
-        createSelection(images.slice(0, 3), rate = 0)
-
-        /// test
-        val result = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id).list()
-
-        /// check
-        result.size === 3
-        result.map(_.image) === images.slice(0, 3)
-        result.map(_.selection.size) === Seq(1, 1, 1)
-        result.map(_.rate) === Seq(0, 0, 0)
-      }
-    }
-
-    "see images filtered by rate in binary round" in {
-      inMemDbApp {
-        /// prepare
-        setUp(rates = Round.binaryRound)
-        val images = createImages(6)
-
-        def range(rate: Int) = Seq(2 + rate * 2, 4 + rate * 2)
-
-        def slice(rate: Int) = images.slice(range(rate).head, range(rate).last)
-
-        for (rate <- -1 to 1) {
-          createSelection(slice(rate), rate = rate)
-        }
-
-        for (rate <- -1 to 1) yield {
-          /// test
-          val result = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, rate = Some(rate)).list()
-
-          /// check
-          result.size === 2
-          result.map(_.image) === slice(rate)
-          result.map(_.selection.size) === Seq(1, 1)
-          result.map(_.rate) === Seq(rate, rate)
-        }
-      }
-    }
-
-    "see images ordered by rate in binary round" in {
-      inMemDbApp {
-        /// prepare
-        setUp(rates = Round.binaryRound)
-        val images = createImages(6)
-
-        def range(rate: Int) = Seq(2 + rate * 2, 4 + rate * 2)
-
-        def slice(rate: Int) = images.slice(range(rate).head, range(rate).last)
-
-        for (rate <- -1 to 1) {
-          createSelection(slice(rate), rate = rate)
-        }
-
-        /// test
-        val result = ImageDbNew.SelectionQuery(
-          userId = user.id,
-          roundId = round.id,
-          order = Map("rate" -> -1)
-        ).list()
-
-        /// check
-        result.size === 6
-        result.map(_.image) === slice(1) ++ slice(0) ++ slice(-1)
-        result.map(_.selection.size) === Seq.fill(6)(1)
-        result.map(_.rate) === Seq(1, 1, 0, 0, -1, -1)
-      }
-    }
-
-    "see images ordered by rate in rated round" in {
-      inMemDbApp {
-        /// prepare
-        setUp(rates = Round.ratesById(10))
-        val images = createImages(6)
-
-
-        val selections = images.zipWithIndex.map { case (image, i) =>
-          Selection(0, image.pageId, rate = i, user.id.get, round.id.get)
-        }
-        selectionDao.batchInsert(selections)
-
-        /// test
-        val result = ImageDbNew.SelectionQuery(
-          userId = user.id,
-          roundId = round.id,
-          order = Map("rate" -> -1)
-        ).list()
-
-        /// check
-        result.size === 6
-        result.map(_.image) === images.reverse
-        result.map(_.selection.size) === Seq.fill(6)(1)
-        result.map(_.rate) === (0 to 5).reverse
-      }
-    }
-  }
-
   "juror large view" should {
 
     def query(): SelectionQuery = {
@@ -195,6 +92,136 @@ class ImageDbNewSpec extends Specification with InMemDb {
         query().imageRank(images.head.pageId) === 1
         query().imageRank(images.last.pageId) === 2
         query().imageRank(images.last.pageId + 1) === 0
+      }
+    }
+  }
+
+  "juror" should {
+    "see assigned images in binary round" in {
+      inMemDbApp {
+        /// prepare
+        setUp(rates = Round.binaryRound)
+        val images = createImages(6)
+        val slice = images.slice(0, 3)
+        createSelection(slice, rate = 0)
+
+        val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, driver = "h2")
+        /// test
+        val result = query.list()
+
+        /// check
+        result.size === 3
+        result.map(_.image) === slice
+        result.map(_.selection.size) === Seq(1, 1, 1)
+        result.map(_.rate) === Seq(0, 0, 0)
+
+        slice.zipWithIndex.map { case (image, index) =>
+          query.imageRank(image.pageId) === index + 1
+        }
+      }
+    }
+
+    "see images filtered by rate in binary round" in {
+      inMemDbApp {
+        /// prepare
+        setUp(rates = Round.binaryRound)
+        val images = createImages(6)
+
+        def range(rate: Int) = Seq(2 + rate * 2, 4 + rate * 2)
+
+        def slice(rate: Int) = images.slice(range(rate).head, range(rate).last)
+
+        for (rate <- -1 to 1) {
+          createSelection(slice(rate), rate = rate)
+        }
+
+        for (rate <- -1 to 1) yield {
+          val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, rate = Some(rate), driver = "h2")
+          /// test
+          val result = query.list()
+
+          /// check
+          result.size === 2
+          result.map(_.image) === slice(rate)
+          result.map(_.selection.size) === Seq(1, 1)
+          result.map(_.rate) === Seq(rate, rate)
+
+        }
+
+        for (rate <- -1 to 1;
+             (image, index) <- slice(rate).zipWithIndex) yield {
+          val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, rate = Some(rate), driver = "h2")
+          query.imageRank(image.pageId) === index + 1
+        }
+
+      }
+    }
+
+    "see images ordered by rate in binary round" in {
+      inMemDbApp {
+        /// prepare
+        setUp(rates = Round.binaryRound)
+        val images = createImages(6)
+
+        def range(rate: Int) = Seq(2 + rate * 2, 4 + rate * 2)
+
+        def slice(rate: Int) = images.slice(range(rate).head, range(rate).last)
+
+        for (rate <- -1 to 1) {
+          createSelection(slice(rate), rate = rate)
+        }
+
+        val query: SelectionQuery = ImageDbNew.SelectionQuery(
+          userId = user.id,
+          roundId = round.id,
+          order = Map("rate" -> -1),
+          driver = "h2"
+        )
+        /// test
+        val result = query.list()
+
+        /// check
+        result.size === 6
+        result.map(_.image) === slice(1) ++ slice(0) ++ slice(-1)
+        result.map(_.selection.size) === Seq.fill(6)(1)
+        result.map(_.rate) === Seq(1, 1, 0, 0, -1, -1)
+
+        images.zip(Seq(5, 6, 3, 4, 1, 2)).map { case (image, index) =>
+          query.imageRank(image.pageId) === index
+        }
+      }
+    }
+
+    "see images ordered by rate in rated round" in {
+      inMemDbApp {
+        /// prepare
+        setUp(rates = Round.ratesById(10))
+        val images = createImages(6)
+
+
+        val selections = images.zipWithIndex.map { case (image, i) =>
+          Selection(0, image.pageId, rate = i, user.id.get, round.id.get)
+        }
+        selectionDao.batchInsert(selections)
+
+        /// test
+        val query = ImageDbNew.SelectionQuery(
+          userId = user.id,
+          roundId = round.id,
+          order = Map("rate" -> -1),
+          driver = "h2"
+        )
+        val result = query.list()
+
+        /// check
+        result.size === 6
+        result.map(_.image) === images.reverse
+        result.map(_.selection.size) === Seq.fill(6)(1)
+        result.map(_.rate) === (0 to 5).reverse
+
+        images.zip((1 to 6).reverse).map { case (image, index) =>
+          query.imageRank(image.pageId) === index
+        }
       }
     }
   }
