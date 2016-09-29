@@ -39,7 +39,7 @@ case class Pager(
 
 object Pager {
 
-  def pageOffset(page: Int) = new Pager(page = page, offset = Some((page - 1) * pageSize))
+  def pageOffset(page: Int) = new Pager(page = page, offset = Some(Math.max(0, (page - 1) * pageSize)))
 
   def startPageId(id: Long) = new Pager(startPageId = Some(id))
 
