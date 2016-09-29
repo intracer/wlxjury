@@ -4,6 +4,7 @@ package controllers
 case class Pager(
                   page: Int = 1,
                   offset: Option[Int] = None,
+                  limit: Option[Int] = None,
                   startPageId: Option[Long] = None,
                   var pages: Option[Int] = None) {
 
@@ -15,7 +16,7 @@ case class Pager(
 
   def hasPrev = page > 0
 
-  def pageSize = Pager.pageSize
+  def pageSize = limit.getOrElse(Pager.pageSize)
 
   def setCount(v: Int) = {
     _count = Some(v)

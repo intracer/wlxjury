@@ -2,7 +2,7 @@ package controllers
 
 import db.scalikejdbc._
 import db.scalikejdbc.rewrite.ImageDbNew
-import db.scalikejdbc.rewrite.ImageDbNew.Limit
+import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{Controller, EssentialAction, Request, Result}
@@ -151,6 +151,13 @@ object Gallery extends Controller with Secured with Instrumented {
                      round: Round,
                      pager: Pager,
                      userDetails: Boolean = false): Seq[ImageWithRating] = {
+    val query = getQuery(userId, rate, round, Some(pager), userDetails)
+
+    pager.setCount(query.count())
+    query.list()
+  }
+
+  def getQuery(userId: Long, rate: Option[Int], round: Round, pager: Option[Pager] = None, userDetails: Boolean = false): SelectionQuery = {
     val userIdOpt = Some(userId).filter(_ != 0)
     val query = ImageDbNew.SelectionQuery(
       userId = userIdOpt,
@@ -159,11 +166,9 @@ object Gallery extends Controller with Secured with Instrumented {
       order = Map("rate" -> -1, "s.page_id" -> 1),
       grouped = userIdOpt.isEmpty && !userDetails,
       groupWithDetails = userDetails,
-      limit = Some(Limit(Some(pager.pageSize), pager.offset, pager.startPageId))
+      limit = pager.map(p => Limit(Some(p.pageSize), p.offset, p.startPageId))
     )
-
-    pager.setCount(query.count())
-    query.list()
+    query
   }
 
   def large(asUserId: Long, pageId: Long, region: String = "all", roundId: Long, rate: Option[Int], module: String) = withAuth {
@@ -266,14 +271,15 @@ object Gallery extends Controller with Secured with Instrumented {
 
       val round = maybeRound.get
 
-      val files = filesByUserId(asUserId, rate, round, Pager.startPageId(pageId))
+      val query = getQuery(asUserId, rate, round)
+
+      val rank = query.imageRank(pageId)
+
+      val offset = Math.max(0, rank - 3)
+
+      val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()
 
       val index = files.indexWhere(_.pageId == pageId)
-
-      val newPageId = if (index < 0) {
-        files.headOption.fold(-1L)(_.pageId)
-      }
-      else pageId
 
       if (index < 0) {
         return Redirect(if (files.nonEmpty) {

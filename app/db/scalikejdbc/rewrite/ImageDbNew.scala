@@ -31,7 +31,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                             groupWithDetails: Boolean = false,
                             order: Map[String, Int] = Map.empty,
                             driver: String = "mysql"
-                           )() {
+                           ) {
 
     val reader: WrappedResultSet => ImageWithRating =
       if (grouped) Readers.groupedReader else Readers.rowReader
