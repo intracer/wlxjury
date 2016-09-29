@@ -123,9 +123,10 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                   ) t2
             WHERE page_id = $pageId;"""
       } else {
-        s"""SELECT rownum
-        FROM  ($sql) t
-        WHERE pi_on_i = $pageId;"""
+        s"""SELECT rank FROM
+            (SELECT rownum as rank, t.pi_on_i as page_id
+            FROM  ($sql) t) t2
+        WHERE page_id = $pageId;"""
       }
     }
 

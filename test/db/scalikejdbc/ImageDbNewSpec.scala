@@ -159,8 +159,6 @@ class ImageDbNewSpec extends Specification with InMemDb {
   "juror large view" should {
 
     def query(): SelectionQuery = {
-      setUp()
-
       ImageDbNew.SelectionQuery(
         userId = user.id,
         roundId = round.id,
@@ -170,7 +168,33 @@ class ImageDbNewSpec extends Specification with InMemDb {
 
     "no images" in {
       inMemDbApp {
+        setUp()
         query().imageRank(1) === 0
+      }
+    }
+
+    "1 image" in {
+      inMemDbApp {
+        setUp()
+        val images = createImages(1)
+        createSelection(images)
+
+        val id = images.head.pageId
+
+        query().imageRank(id) === 1
+        query().imageRank(id + 1) === 0
+      }
+    }
+
+    "2 images" in {
+      inMemDbApp {
+        setUp()
+        val images = createImages(2)
+        createSelection(images)
+
+        query().imageRank(images.head.pageId) === 1
+        query().imageRank(images.last.pageId) === 2
+        query().imageRank(images.last.pageId + 1) === 0
       }
     }
   }
