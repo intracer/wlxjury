@@ -42,7 +42,7 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
     pageId = rs.long(c.pageId),
     contest = rs.long(c.contest),
     title = rs.string(c.title),
-    url = None,
+    url = rs.stringOpt(c.url),
     pageUrl = None,
     width = rs.int(c.width),
     height = rs.int(c.height),

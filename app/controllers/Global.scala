@@ -70,14 +70,19 @@ object Global {
   }
 
   def resizeTo(info: Image, resizeToWidth: Int, resizeToHeight: Int): String = {
-    val h = info.height
-    val w = info.width
 
     val px = info.resizeTo(resizeToWidth, resizeToHeight)
 
-    val file = URLEncoder.encode(info.title.replaceFirst("File:", ""), "UTF-8")
+    val isPdf = info.title.toLowerCase.endsWith(".pdf")
+    val isTif = info.title.toLowerCase.endsWith(".tif")
+    val isSvg = info.title.toLowerCase.endsWith(".svg")
 
-    s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
+    if (px < info.width || isPdf || isTif || isSvg) {
+      val file = URLEncoder.encode(info.title.replaceFirst("File:", ""), "UTF-8")
+      s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
+    } else {
+      info.url.getOrElse("")
+    }
   }
 
 }

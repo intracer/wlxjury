@@ -17,7 +17,7 @@ case class ImageInfoFromCategory(category: String, contest: ContestJury, commons
     val imageInfoQuery = imageInfoByGenerator(category,
       "categorymembers", "cm",
       namespaces = Set(Namespace.FILE),
-      props = Set("timestamp", "user", "size"),
+      props = Set("timestamp", "user", "size", "url"),
       limit = Math.min(Math.max(max / 20, 200), 500).toString
     )
 
@@ -43,7 +43,7 @@ case class ImageInfoFromCategory(category: String, contest: ContestJury, commons
     val context = Map("contestId" -> contest.id.getOrElse(0).toString, "max" -> max.toString)
 
     commons.page(category).withContext(context).imageInfoByGenerator(
-      "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size"), titlePrefix = None
+      "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
     )
   }
 

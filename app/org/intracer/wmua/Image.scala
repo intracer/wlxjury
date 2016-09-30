@@ -37,8 +37,7 @@ object ImageUtil {
     val xRatio = w.toDouble / resizeToX
     val yRatio = h.toDouble / resizeToY
 
-    val width = Math.min(resizeToX, w / yRatio)
-    width.toInt
+    Seq(resizeToX, (w / yRatio).toInt, w).min
   }
 
 
