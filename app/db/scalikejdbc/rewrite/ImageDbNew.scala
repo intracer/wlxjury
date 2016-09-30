@@ -36,13 +36,18 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     val reader: WrappedResultSet => ImageWithRating =
       if (grouped) Readers.groupedReader else Readers.rowReader
 
-    def query(count: Boolean = false): String = {
+    def query(count: Boolean = false, idOnly: Boolean = false): String = {
 
-      val columns =
+      val columns: String = if (count || idOnly) {
+        "select i.page_id as pi_on_i" + (if (grouped)
+          ",  sum(s.rate) as rate, count(s.rate) as rate_count"
+        else "")
+      } else {
         if (!grouped)
-          sqls"""select ${i.result.*}, ${s.result.*} """
+          sqls"""select ${i.result.*}, ${s.result.*} """.value
         else
-          sqls"""select ${i.result.*},  sum(s.rate) as rate, count(s.rate) as rate_count"""
+          sqls"""select sum(s.rate) as rate, count(s.rate) as rate_count, ${i.result.*} """.value
+      }
 
       val groupBy = if (grouped) {
         " group by s.page_id"
@@ -50,10 +55,12 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
 
       val sql = columns + imagesJoinSelection + where(count) + groupBy + orderBy()
 
-      if (count)
+      val result = if (count)
         "select count(t.pi_on_i) from (" + sql + ") t"
       else
         sql + limitSql()
+
+      result
     }
 
     def list(): Seq[ImageWithRating] = {
@@ -65,7 +72,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def imageRank(pageId: Long) = {
-      single(imageRankSql(pageId, query()))
+      single(imageRankSql(pageId, query(idOnly = true)))
     }
 
     def single(sql: String): Int = {
@@ -114,7 +121,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       }.toSeq.sortBy(-_.selection.map(_.rate).filter(_ > 0).sum)
 
     def imageRankSql(pageId: Long, sql: String): String = {
-      if (driver == "mysql") {
+      val result = if (driver == "mysql") {
         s"""SELECT rank
             FROM (
                   SELECT @row_num := @row_num + 1 'rank', t.pi_on_i as page_id
@@ -128,6 +135,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
             FROM  ($sql) t) t2
         WHERE page_id = $pageId;"""
       }
+      result
     }
 
     def rankedList(where: String): Seq[ImageWithRating] = {
