@@ -94,6 +94,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val rates = rateDistribution(user, round)
 
+            val ranks = ImageWithRating.rankImages(sortedFiles, round)
             val useTable = !round.isBinary || asUserId == 0
 
             module match {
@@ -107,12 +108,15 @@ object Gallery extends Controller with Secured with Instrumented {
                   filesInRegion, ranks, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
                 )
               case "byrate" =>
-                Ok(views.html.galleryByRate(user, asUserId, asUser,
-                  filesInRegion, pager, maybeRound, rounds, rate, region, byReg, rates)
-                )
+                if (region != "grouped") {
+                  Ok(views.html.galleryByRate(user, asUserId, asUser, filesInRegion, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
+                } else {
+                  Ok(views.html.galleryByRateRegions(user, asUserId, asUser, sortedFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
+                }
             }
           }
         }
+
   }
 
   def getSortedImages(
@@ -228,15 +232,20 @@ object Gallery extends Controller with Secured with Instrumented {
 
   def regionFiles(region: String, files: Seq[ImageWithRating]): Seq[ImageWithRating] = {
     region match {
-      case "all" => files
+      case "all" | "grouped" => files
       case id => files.filter(_.image.monumentId.exists(_.startsWith(id)))
     }
   }
 
   def byRegion(files: Seq[ImageWithRating]): Map[String, Int] = {
-    files.groupBy(_.image.monumentId.getOrElse("").split("-")(0)).map {
-      case (id, images) => (id, images.size)
-    } + ("all" -> files.size)
+    val stat = files.groupBy(_.image.monumentId.map(_.split("-")(0))).collect {
+      case (Some(id), images) => (id, images.size)
+    }
+
+    if (stat.nonEmpty)
+      stat + ("all" -> files.size)
+    else
+      stat
   }
 
   def checkLargeIndex(

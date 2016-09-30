@@ -17,8 +17,7 @@
 
 @defining( round.flatMap(_.id).getOrElse(0L) ) { roundId =>
 
-    @regionNav({region:String => s"/gallery/round/$roundId/user/$asUserId/region/$region/page/1${rateParam(rate).body}"}, round, region, byRegion)
-
+    @regionNav((region:String) => routes.Gallery.list(user = asUserId, round = roundId, region = region, page = 1, rate = rate).url, round, region, byRegion)
 
     <div class="row" >
 

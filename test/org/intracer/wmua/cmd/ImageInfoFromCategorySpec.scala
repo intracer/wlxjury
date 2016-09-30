@@ -39,7 +39,7 @@ class ImageInfoFromCategorySpec extends Specification with Mockito with JuryTest
 
         val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None)
 
-        ImageInfoFromCategory(category, contest, commons).apply() must be_==(images).await
+        FetchImageInfo(category, Seq.empty, contest, commons).apply() must be_==(images).await
     }
 
     "get images one image" in {
@@ -62,7 +62,7 @@ class ImageInfoFromCategorySpec extends Specification with Mockito with JuryTest
 
         val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category))
 
-        ImageInfoFromCategory(category, contest, commons).apply() must be_==(images).await
+        FetchImageInfo(category, Seq.empty, contest, commons).apply() must be_==(images).await
     }
   }
 

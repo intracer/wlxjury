@@ -1,0 +1,83 @@
+@import db.scalikejdbc.RoundJdbc
+@(
+        user: org.intracer.wmua.User,
+        asUserId: Long,
+        asUser: org.intracer.wmua.User,
+        files: Seq[org.intracer.wmua.ImageWithRating],
+        ranks: Seq[String],
+        pages: Int,
+        page: Int,
+        startImage: Int,
+        maybeRound: Option[org.intracer.wmua.Round],
+        rounds: Seq[org.intracer.wmua.Round],
+        region: String = "all",
+        byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang, messages: Messages)
+
+
+@showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
+@defining(maybeRound.get) { round =>
+
+    <div style="margin-bottom: 10px;
+        color: #ffffff;"> <b>@ranks(index). </b>
+        <span style="margin-left: 5px;
+            margin-right: 10px;">
+        @if(round.rates.id != 2) {
+            @for(i <- 1 to round.rates.id / 2) {
+                <img alt="@i" src="@showStar(i, file.totalRate(round).toInt, round.rates.id <= 10)">
+            }
+            @file.rateString(round)
+        } else {
+            @for(i <- 1 to file.totalRate(round).toInt) {
+                <button type="button" class="btn btn-default btn-sm active btn-success">
+                    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                </button>
+            }
+        }
+        </span>
+    </div>
+}
+}
+
+@main("byrate", user, asUserId, asUser, maybeRound, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),
+    rounds, true, None, region,
+    pager(asUserId, pages, page, None, maybeRound.flatMap(_.id), region, "byrate")
+) {
+
+    @defining(maybeRound.get) { round =>
+        @defining(round.id.getOrElse(0)) { roundId =>
+            @defining({ region: String => s"/byrate/round/$roundId/user/$asUserId/region/$region/page/1" }) { regionToUrl =>
+
+                @regionNav(regionToUrl, maybeRound, region, byRegion)
+
+            <div class="row">
+
+                @for(regId <- byRegion.keys.toSeq.sorted) {
+                    <div class="well col-sm-1">
+                        <a href="@regionToUrl(regId)">
+                            @Messages(regId) @byRegion(regId)
+                        </a>
+                    </div>
+                    <ul class="gallery mw-gallery-traditional">
+                    @for((file, index) <- files.filter(_.image.monumentId.exists(_.startsWith(regId))).view.zipWithIndex) {
+                        <li class="gallerybox">
+                            <h1 id="@file.pageId" style="display: inline; width: 1px; height: 1px"></h1>
+
+                            <div class="thumb">
+                                <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.get, None, "byrate")" >
+                                    <img class="cropped" alt="@file.title"
+                                    src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)">
+                                </a>
+                            </div>
+
+                            @showRateGalery(file, index + startImage)
+
+                        </li>
+                    }
+                    </ul>
+                }
+
+            </div>
+            }
+        }
+    }
+}

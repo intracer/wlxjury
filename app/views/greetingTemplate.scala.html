@@ -1,7 +1,10 @@
 @(
         adminUser: org.intracer.wmua.User,
         importUserForm: Form[Greeting],
-        contestId: Long, variables: Map[String, String])(implicit flash: Flash, lang: Lang, messages: Messages)
+        contestId: Long,
+        variables: Map[String, String],
+        substitution: Seq[String]
+)(implicit flash: Flash, lang: Lang, messages: Messages)
 @import helper._
 
 @mainAdmin(Messages("users"), adminUser, adminUser.id.get, contestId = Some(contestId)) {
@@ -38,10 +41,17 @@
 
                 <div class="form-actions">
                     <input type="submit" class="btn btn-default btn-primary" value="@Messages("Save")">
+                    <a href="#substitution" class="btn btn-info" data-toggle="collapse">Check</a>
                     <a href="@routes.Admin.users(Some(contestId))" class="btn btn-default">@Messages("Cancel")</a>
                 </div>
-
             </div>
+
+            <div id="substitution" class="collapse">
+            @for(perUser <- substitution) {
+                <pre>@perUser</pre>
+            }
+            </div>
+
         }
     </div>
 }

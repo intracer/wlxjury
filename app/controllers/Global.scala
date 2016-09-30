@@ -37,7 +37,7 @@ object Global {
     val reporter = JmxReporter.forRegistry(metrics).build()
     reporter.start()
 
-    //KOATUU.load()
+    KOATUU.load()
   }
 
   def initCountry(category: String, countryOpt: Option[String]) = {
