@@ -2,7 +2,7 @@ package controllers
 
 
 case class Pager(
-                  page: Int = 1,
+                  var page: Int = 1,
                   offset: Option[Int] = None,
                   limit: Option[Int] = None,
                   startPageId: Option[Long] = None,

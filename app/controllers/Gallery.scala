@@ -152,9 +152,19 @@ object Gallery extends Controller with Secured with Instrumented {
                      pager: Pager,
                      userDetails: Boolean = false): Seq[ImageWithRating] = {
     val query = getQuery(userId, rate, round, Some(pager), userDetails)
-
     pager.setCount(query.count())
-    query.list()
+
+    val withPageIdOffset = pager.startPageId.fold(query) {
+      pageId =>
+        val rank = query.imageRank(pageId)
+        val pageSize = pager.pageSize
+        val page = rank / pageSize
+        val offset = page * pageSize
+        pager.page = page + 1
+        query.copy(limit = Some(Limit(Some(pageSize), Some(offset))))
+    }
+
+    withPageIdOffset.list()
   }
 
   def getQuery(userId: Long, rate: Option[Int], round: Round, pager: Option[Pager] = None, userDetails: Boolean = false): SelectionQuery = {

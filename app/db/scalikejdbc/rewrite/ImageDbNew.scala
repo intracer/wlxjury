@@ -36,7 +36,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     val reader: WrappedResultSet => ImageWithRating =
       if (grouped) Readers.groupedReader else Readers.rowReader
 
-    def query(count: Boolean = false, idOnly: Boolean = false): String = {
+    def query(count: Boolean = false, idOnly: Boolean = false, noLimit: Boolean = false): String = {
 
       val columns: String = if (count || idOnly) {
         "select i.page_id as pi_on_i" + (if (grouped)
@@ -58,7 +58,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       val result = if (count)
         "select count(t.pi_on_i) from (" + sql + ") t"
       else
-        sql + limitSql()
+        sql + (if (noLimit) "" else limitSql())
 
       result
     }
@@ -72,7 +72,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def imageRank(pageId: Long) = {
-      single(imageRankSql(pageId, query(idOnly = true)))
+      single(imageRankSql(pageId, query(idOnly = true, noLimit = true)))
     }
 
     def single(sql: String): Int = {
