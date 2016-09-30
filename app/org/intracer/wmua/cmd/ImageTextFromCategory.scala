@@ -25,7 +25,7 @@ case class ImageTextFromCategory(
 
         val images = pages.sortBy(_.id).map(
           page =>
-            new Image(page.id.get, contest.id.get, page.title, "", "", 0, 0, None, None)
+            new Image(page.id.get, contest.id.get, page.title, None, None, 0, 0, None, None)
         )
 
         val ids: Seq[String] = monumentIdTemplate.fold(Array.fill(pages.size)("").toSeq)(t => monumentIds(pages, t))

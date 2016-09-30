@@ -28,7 +28,7 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
   def fromPage(page: Page, contest: ContestJury): Option[Image] = {
     try {
       for (imageInfo <- page.images.headOption)
-        yield new Image(page.id.get, contest.id.get, page.title, imageInfo.url.get, imageInfo.pageUrl.get, imageInfo.width.get, imageInfo.height.get, None)
+        yield new Image(page.id.get, contest.id.get, page.title, imageInfo.url, imageInfo.pageUrl, imageInfo.width.get, imageInfo.height.get, None)
     } catch {
       case e: Throwable =>
         println(e)
@@ -42,8 +42,8 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
     pageId = rs.long(c.pageId),
     contest = rs.long(c.contest),
     title = rs.string(c.title),
-    url = rs.string(c.url),
-    pageUrl = rs.string(c.pageUrl),
+    url = None,
+    pageUrl = None,
     width = rs.int(c.width),
     height = rs.int(c.height),
     monumentId = rs.stringOpt(c.monumentId),

@@ -11,7 +11,7 @@ class ImageSpec extends Specification with InMemDb {
   val imageDao: ImageDao = ImageJdbc
 
   def contestImage(id: Long, contest: Long) =
-    Image(id, contest, s"File:Image$id.jpg", s"url$id", s"pageUrl$id", 640, 480, Some(s"12-345-$id"))
+    Image(id, contest, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
   "fresh database" should {
 
@@ -27,7 +27,7 @@ class ImageSpec extends Specification with InMemDb {
         val id = 10
         val contestId = 20
 
-        val image = Image(id, contestId, "File:Image.jpg", "url", "pageUrl", 640, 480, Some("12-345-6789"))
+        val image = Image(id, contestId, "File:Image.jpg", None, None, 640, 480, Some("12-345-6789"))
 
         imageDao.batchInsert(Seq(image))
 

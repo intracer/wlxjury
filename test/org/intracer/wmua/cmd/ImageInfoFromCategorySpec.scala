@@ -12,10 +12,10 @@ import scala.concurrent.Future
 class ImageInfoFromCategorySpec extends Specification with Mockito with JuryTestHelpers {
 
   def contestImage(id: Long, contest: Long) =
-    Image(id, contest, s"File:Image$id.jpg", s"url$id", s"pageUrl$id", 640, 480, None)
+    Image(id, contest, s"File:Image$id.jpg", None, None, 640, 480, None)
 
   def imageInfo(id: Long) = new Page(Some(id), Namespace.FILE, s"File:Image$id.jpg", images = Seq(
-    new org.scalawiki.dto.Image(s"File:Image$id.jpg", Some(s"url$id"), Some(s"pageUrl$id"), Some(1234), Some(640), Some(480))
+    new org.scalawiki.dto.Image(s"File:Image$id.jpg", None, None, Some(1234), Some(640), Some(480))
   ))
 
   "appendImages" should {
@@ -31,7 +31,7 @@ class ImageInfoFromCategorySpec extends Specification with Mockito with JuryTest
 
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.imageInfoByGenerator(
-          "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
+          "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size"), titlePrefix = None
         ) returns Future.successful(imageInfos)
 
         val commons = mockBot()
@@ -54,7 +54,7 @@ class ImageInfoFromCategorySpec extends Specification with Mockito with JuryTest
         val query = mock[SinglePageQuery]
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.imageInfoByGenerator(
-          "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size", "url"), titlePrefix = None
+          "categorymembers", "cm", namespaces = Set(Namespace.FILE), props = Set("timestamp", "user", "size"), titlePrefix = None
         ) returns Future.successful(imageInfos)
 
         val commons = mockBot()

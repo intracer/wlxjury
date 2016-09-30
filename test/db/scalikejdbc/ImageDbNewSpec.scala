@@ -21,7 +21,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
   var user: User = _
 
   def contestImage(id: Long, contestId: Long) =
-    Image(id, contestId, s"File:Image$id.jpg", s"url$id", s"pageUrl$id", 640, 480, Some(s"12-345-$id"))
+    Image(id, contestId, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
   def contestUser(i: Int, contestId: Long = contest.id.get, role: String = "jury") =
     User("fullname" + i, "email" + i, None, Set(role), contest = Some(contestId))

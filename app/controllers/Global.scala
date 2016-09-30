@@ -1,12 +1,13 @@
 package controllers
 
+import java.net.URLEncoder
+
 import _root_.db.scalikejdbc.ContestJuryJdbc
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import org.intracer.wmua._
 import org.scalawiki.MwBot
 import play.Play
 import play.api._
-import scalikejdbc.{GlobalSettings, LoggingSQLAndTimeSettings}
 
 object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
@@ -74,26 +75,9 @@ object Global {
 
     val px = info.resizeTo(resizeToWidth, resizeToHeight)
 
-    val isPdf = info.title.toLowerCase.endsWith(".pdf")
-    val isTif = info.title.toLowerCase.endsWith(".tif")
+    val file = URLEncoder.encode(info.title.replaceFirst("File:", ""), "UTF-8")
 
-    val url = info.url
-    if (px < w || isPdf || isTif) {
-      val lastSlash = url.lastIndexOf("/")
-      val utf8Size = info.title.getBytes("UTF8").length
-      val thumbStr = if (utf8Size > 165) {
-        "thumbnail.jpg"
-      } else {
-        url.substring(lastSlash + 1)
-      }
-      url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" +
-        (if (isPdf) "page1-" else
-        if (isTif) "lossy-page1-" else
-          "") +
-        px + "px-" + thumbStr + (if (isPdf || isTif) ".jpg" else "")
-    } else {
-      url
-    }
+    s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
   }
 
 }
