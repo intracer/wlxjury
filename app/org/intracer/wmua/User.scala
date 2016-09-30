@@ -3,6 +3,7 @@ package org.intracer.wmua
 import javax.mail.internet.InternetAddress
 
 import controllers.Gallery
+import db.scalikejdbc.ImageJdbc
 import org.joda.time.DateTime
 
 case class User(fullname: String,
@@ -18,8 +19,6 @@ case class User(fullname: String,
   def emailLo = email.trim.toLowerCase
 
   def currentContest = contest
-
-  def roundFiles(roundId: Long) = Gallery.userFiles(id.get, roundId)
 
   def hasRole(role: String) = roles.contains(role)
 
@@ -42,7 +41,8 @@ case class User(fullname: String,
 }
 
 object User {
-  val JURY_ROLES = Set("jury")
+  val JURY_ROLE = "jury"
+  val JURY_ROLES = Set(JURY_ROLE)
   val ORG_COM_ROLES = Set("organizer")
   val ADMIN_ROLE = "admin"
   val ROOT_ROLE = "root"

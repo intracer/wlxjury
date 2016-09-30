@@ -2,7 +2,12 @@ package org.intracer.wmua
 
 import java.text.DecimalFormat
 
-case class ImageWithRating(image: Image, selection: Seq[Selection], countFromDb: Int = 0) extends Ordered[ImageWithRating] {
+case class ImageWithRating(
+                            image: Image,
+                            selection: Seq[Selection],
+                            countFromDb: Int = 0,
+                            rank: Option[Int] = None,
+                            rank2: Option[Int] = None) extends Ordered[ImageWithRating] {
 
   val ownJuryRating = new OwnRating(selection.headOption.getOrElse(new Selection(0, image.pageId, 0, 0, 0)))
 
@@ -20,15 +25,22 @@ case class ImageWithRating(image: Image, selection: Seq[Selection], countFromDb:
 
   def rate = ownJuryRating.rate
 
-  def rate_=(rate:Int) {
+  def rate_=(rate: Int) {
     ownJuryRating.rate = rate
   }
+
+  def rankStr = (
+    for (r1 <- rank; r2 <- rank2)
+      yield if (r1 != r2) s"$r1-$r2." else r1 + "."
+    ).orElse(
+    for (r1 <- rank)
+      yield r1 + "."
+  ).getOrElse("")
 
   def totalRate(round: Round): Double =
     if (selection.size == 1 && selection.head.juryId != 0)
       selection.head.rate
-    else
-    if (ratedJurors(round) == 0)
+    else if (ratedJurors(round) == 0)
       0.0
     else
       rateSum.toDouble / ratedJurors(round)
@@ -37,15 +49,12 @@ case class ImageWithRating(image: Image, selection: Seq[Selection], countFromDb:
 
   def jurors = selection.map(s => s.juryId).toSet
 
-  def ratedJurors(round: Round):Int =
-   if (round.isBinary) {
-     round._allJurors
-   } else
-
-   if (selection.headOption.exists(_.juryId == 0) && !round.optionalRate)
-     countFromDb
-    else
-    if (selection.size == 1 && selection.headOption.exists(_.juryId != 0))
+  def ratedJurors(round: Round): Int =
+    if (round.isBinary) {
+      round._allJurors
+    } else if (selection.headOption.exists(_.juryId == 0) && !round.optionalRate)
+      countFromDb
+    else if (selection.size == 1 && selection.headOption.exists(_.juryId != 0))
       1
     else if (round.optionalRate)
       round.activeJurors
@@ -57,7 +66,7 @@ case class ImageWithRating(image: Image, selection: Seq[Selection], countFromDb:
 
   def title = image.title
 
-  def compare(that: ImageWithRating) =  (this.pageId - that.pageId).signum
+  def compare(that: ImageWithRating) = (this.pageId - that.pageId).signum
 }
 
 object ImageWithRating {
@@ -71,7 +80,7 @@ object ImageWithRating {
     val sizeByRate = orderedRates.groupBy(identity).mapValues(_.size)
     val startByRate = sizeByRate.keys.map { rate => rate -> (orderedRates.indexOf(rate) + 1) }.toMap
 
-    orderedRates.map{
+    orderedRates.map {
       rate =>
         val (start, size) = (startByRate(rate), sizeByRate(rate))
         if (size == 1)
@@ -106,7 +115,7 @@ class OwnRating(selection: Selection) extends OneJuryRating(selection) {
     selection.rate = 1
   }
 
-  def rate_=(rate:Int) {
+  def rate_=(rate: Int) {
     selection.rate = rate
   }
 

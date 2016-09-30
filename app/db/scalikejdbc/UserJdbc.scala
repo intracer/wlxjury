@@ -96,6 +96,18 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
       .orderBy(u.id)
   }.map(UserJdbc(u)).list().apply()
 
+  def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
+    import SelectionJdbc.s
+
+    select.from(UserJdbc as u)
+      .join(SelectionJdbc as s)
+      .on(u.id, s.juryId)
+      .where.eq(s.round, roundId)
+      .groupBy(u.id)
+      .orderBy(u.id)
+  }.map(UserJdbc(u)).list().apply()
+
+
   override def countByEmail(id: Long, email: String): Long = withSQL {
     select(sqls.count).from(UserJdbc as u).where.eq(column.email, email).and.ne(column.id, id)
   }.map(rs => rs.long(1)).single().apply().get

@@ -11,7 +11,8 @@ case class Selection(
                       round: Long,
                       createdAt: DateTime = DateTime.now,
                       deletedAt: Option[DateTime] = None,
-                      criteriaId: Option[Int] = None)
+                      criteriaId: Option[Int] = None
+                      )
 {
 
   def destroy() = SelectionJdbc.destroy(pageId, juryId, round)

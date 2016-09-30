@@ -28,5 +28,13 @@ class ResizeSpec extends Specification {
       val px = ImageUtil.resizeTo(imageX, imageY, boxX, boxY)
       px === 320
     }
+
+    "do not upscale" in {
+      val (imageX, imageY) = (320, 200)
+      val (boxX, boxY) = (640, 480)
+
+      val px = ImageUtil.resizeTo(imageX, imageY, boxX, boxY)
+      px === 320
+    }
   }
 }

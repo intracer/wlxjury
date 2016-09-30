@@ -39,7 +39,6 @@ case class Round(id: Option[Long],
 
   lazy val _allJurors = SelectionJdbc.allJurors(id.get)
 
-
   def allImages = ImageJdbc.byRoundMerged(id.get)
 
   def description: String = name.flatMap(s => if (s.trim.isEmpty) None else Some(s)).fold(number.toString)(s => s)

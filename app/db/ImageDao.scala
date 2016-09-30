@@ -1,6 +1,6 @@
 package db
 
-import org.intracer.wmua.{Image, ImageWithRating, User}
+import org.intracer.wmua.{Image, ImageWithRating}
 
 trait ImageDao {
   def batchInsert(images: Seq[Image]): Unit
@@ -15,24 +15,19 @@ trait ImageDao {
 
   def find(id: Long): Option[Image]
 
-  def bySelection(round: Long): Seq[Image]
+  def byUserImageWithRating(userId: Long,
+                            roundId: Long,
+                            rate: Option[Int] = None,
+                            pageSize: Int = Int.MaxValue,
+                            offset: Int = 0,
+                            startPageId: Option[Long] = None): Seq[ImageWithRating]
 
-  def findWithSelection(id: Long, roundId: Long): Seq[ImageWithRating]
-
-  def byUserImageWithRating(userId: Long, roundId: Long, rate: Option[Int] = None): Seq[ImageWithRating]
-
-  def byRating(roundId: Long, rate: Int): Seq[ImageWithRating]
-
-  def byRatingGE(roundId: Long, rate: Int): Seq[ImageWithRating]
-
-  def byRound(roundId: Long): Seq[ImageWithRating]
+  def byRating(rate: Int, roundId: Long): Seq[ImageWithRating]
 
   def byRatingMerged(rate: Int, round: Long): Seq[ImageWithRating]
 
-  def byRatingGEMerged(rate: Int, round: Long): Seq[ImageWithRating]
+  def byRoundMerged(round: Long, pageSize: Int = Int.MaxValue, offset: Int = 0): Seq[ImageWithRating]
 
-  def byRoundMerged(round: Long): Seq[ImageWithRating]
-
-  def byRoundSummed(roundId: Long): Seq[ImageWithRating]
+  def byRoundSummed(roundId: Long, pageSize: Int = Int.MaxValue, offset: Int = 0, startPageId: Option[Long] = None): Seq[ImageWithRating]
 
 }

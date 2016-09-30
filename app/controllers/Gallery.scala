@@ -1,6 +1,8 @@
 package controllers
 
 import db.scalikejdbc._
+import db.scalikejdbc.rewrite.ImageDbNew
+import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{Controller, EssentialAction, Request, Result}
@@ -10,6 +12,7 @@ import play.api.mvc.{Controller, EssentialAction, Request, Result}
   */
 object Gallery extends Controller with Secured with Instrumented {
 
+  import Pager._
   import play.api.Play.current
 
   //def pages = 10
@@ -19,6 +22,12 @@ object Gallery extends Controller with Secured with Instrumented {
   val Filter = "filter"
 
   val UrlInProgress = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Icon_tools.svg/120px-Icon_tools.svg.png"
+
+  private[this] val timerList = metrics.timer("Gallery.list")
+  private[this] val timerByRate = metrics.timer("Gallery.byRate")
+  private[this] val timerShow = metrics.timer("Gallery.show")
+
+  def moduleByUserId(asUserId: Long) = if (asUserId == 0) "byrate" else "gallery"
 
   /**
     * Queries images
@@ -31,26 +40,23 @@ object Gallery extends Controller with Secured with Instrumented {
     * @param rate     filter by rate. For select/reject rounds it is selected: 1, rejected: -1, unrated: 0
     * @return
     */
-  def query(module: String, asUserId: Option[Long], page: Int = 1, region: String = "all", roundId: Long = 0, rate: Option[Int]) = {
-    listGeneric(module, asUserId.getOrElse(0), pager => page, region, roundId, rate)
-  }
-
-  def moduleByUserId(asUserId: Long) = if (asUserId == 0) "byrate" else "gallery"
+  def query(module: String, asUserId: Option[Long], page: Int = 1, region: String = "all", roundId: Long = 0, rate: Option[Int]) =
+    listGeneric(module, asUserId.getOrElse(0), pageOffset(page), region, roundId, rate)
 
   def list(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0, rate: Option[Int]) =
-    listGeneric(moduleByUserId(asUserId), asUserId, pager => page, region, roundId, rate)
+    listGeneric(moduleByUserId(asUserId), asUserId, pageOffset(page), region, roundId, rate)
 
   def listAtId(asUserId: Long, pageId: Long, region: String = "all", roundId: Long = 0, rate: Option[Int]) =
-    listGeneric(moduleByUserId(asUserId), asUserId, pager => pager.at(pageId), region, roundId, rate)
+    listGeneric(moduleByUserId(asUserId), asUserId, startPageId(pageId), region, roundId, rate)
 
   def byRate(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0) =
-    listGeneric("byrate", asUserId, pager => page, region, roundId, None)
+    listGeneric("byrate", asUserId, pageOffset(page), region, roundId)
 
   def byRateAt(asUserId: Long, pageId: Long, region: String = "all", roundId: Long = 0) =
-    listGeneric("byrate", asUserId, pager => pager.at(pageId), region, roundId, None)
+    listGeneric("byrate", asUserId, startPageId(pageId), region, roundId, None)
 
   def fileList(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0, format: String = "wiki", rate: Option[Int]) =
-    listGeneric("filelist", asUserId, pager => page, region, roundId, rate)
+    listGeneric("filelist", asUserId, pageOffset(page), region, roundId, rate)
 
   def listCurrent(page: Int = 1, region: String = "all", rate: Option[Int]) = withAuth {
     user =>
@@ -58,9 +64,16 @@ object Gallery extends Controller with Secured with Instrumented {
         Redirect(routes.Gallery.list(user.id.get, page, region, 0, rate))
   }
 
-  def listGeneric(module: String, asUserId: Long, pageFn: Pager => Int, region: String = "all", roundId: Long = 0, rate: Option[Int]) = withAuth {
+  def listGeneric(
+                   module: String,
+                   asUserId: Long,
+                   pager: Pager,
+                   region: String = "all",
+                   roundId: Long = 0,
+                   rate: Option[Int] = None) = withAuth {
     user =>
       implicit request =>
+        timerList.time {
           val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
 
           val roundContest = maybeRound.map(_.contest).getOrElse(0L)
@@ -73,48 +86,47 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val asUser = getAsUser(asUserId, user)
 
-            val sortedFiles = getSortedImages(asUserId, rate, round, module)
+            val sortedFiles = filesByUserId(asUserId, rate, round, pager, userDetails = module == "filelist")
 
             val filesInRegion = regionFiles(region, sortedFiles)
 
             val byReg = byRegion(sortedFiles)
-            val pager = new Pager(filesInRegion)
-            val page = pageFn(pager)
-            val pageFiles = pager.pageFiles(page)
-            val pages = pager.pages
-            val startImage = pageFiles.headOption.map(head => filesInRegion.indexWhere(_.pageId == head.pageId)).getOrElse(0)
+
+            val rates = rateDistribution(user, round)
 
             val ranks = ImageWithRating.rankImages(sortedFiles, round)
             val useTable = !round.isBinary || asUserId == 0
 
             module match {
               case "gallery" =>
-                Ok(views.html.gallery(user, asUserId, asUser, pageFiles, pages, page, maybeRound, rounds, rate, region, byReg))
+                Ok(views.html.gallery(user, asUserId, asUser,
+                  filesInRegion, pager, maybeRound, rounds, rate, region, byReg, rates)
+                )
               case "filelist" =>
-                Ok(views.html.fileList(user, asUserId, asUser, filesInRegion, ranks, page, maybeRound, rounds, rate, region, byReg, "wiki", useTable))
+                val ranks = ImageWithRating.rankImages(sortedFiles, round)
+                Ok(views.html.fileList(user, asUserId, asUser,
+                  filesInRegion, ranks, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
+                )
               case "byrate" =>
                 if (region != "grouped") {
-                  Ok(views.html.galleryByRate(user, asUserId, asUser, pageFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
+                  Ok(views.html.galleryByRate(user, asUserId, asUser, filesInRegion, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
                 } else {
                   Ok(views.html.galleryByRateRegions(user, asUserId, asUser, sortedFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
                 }
             }
           }
+        }
 
   }
 
-  def getSortedImages(asUserId: Long, rate: Option[Int], round: Round, module: String): Seq[ImageWithRating] = {
+  def getSortedImages(
+                       asUserId: Long,
+                       rate: Option[Int],
+                       round: Round,
+                       module: String,
+                       pager: Pager = Pager.pageOffset(1)): Seq[ImageWithRating] = {
     val userDetails = module == "filelist"
-    val uFiles = filesByUserId(asUserId, rate, round, userDetails = userDetails)
-
-    val ratedFiles = rate.fold(
-      uFiles.filter(_.selection.nonEmpty)
-    )(r => filterByRate(round, rate, uFiles))
-
-    if (round.isBinary && userDetails)
-      ratedFiles.sortBy(-_.selection.count(_.rate > 0))
-    else
-      ratedFiles.sortBy(-_.totalRate(round))
+    filesByUserId(asUserId, rate, round, pager, userDetails)
   }
 
   def isNotAuthorized(user: User, maybeRound: Option[Round], roundContest: Long): Boolean = {
@@ -125,15 +137,6 @@ object Gallery extends Controller with Secured with Instrumented {
         && !ContestJuryJdbc.find(userContest).exists(_.currentRound == maybeRound.flatMap(_.id))
         && !maybeRound.exists(_.juryOrgView))
     notAuthorized
-  }
-
-  def filterByRate(round: Round, rate: Option[Int], uFiles: Seq[ImageWithRating]): Seq[ImageWithRating] = {
-    if (rate.isEmpty) uFiles
-    else if (!round.isBinary) {
-      if (rate.get > 0) uFiles.filter(_.rate > 0) else uFiles.filter(_.rate == 0)
-    } else {
-      uFiles.filter(_.rate == rate.get)
-    }
   }
 
   def getAsUser(asUserId: Long, user: User): User = {
@@ -150,43 +153,36 @@ object Gallery extends Controller with Secured with Instrumented {
                      userId: Long,
                      rate: Option[Int],
                      round: Round,
+                     pager: Pager,
                      userDetails: Boolean = false): Seq[ImageWithRating] = {
-    val criteriaRate = round.hasCriteriaRate
-    round.id.fold(Seq.empty[ImageWithRating]) { roundId =>
-      if (userId == 0) {
-        filesFromSeveralUsers(rate, userDetails, roundId, criteriaRate)
-      } else {
-        userFiles(userId, roundId, round.hasCriteriaRate)
-      }
+    val query = getQuery(userId, rate, round, Some(pager), userDetails)
+    pager.setCount(query.count())
+
+    val withPageIdOffset = pager.startPageId.fold(query) {
+      pageId =>
+        val rank = query.imageRank(pageId)
+        val pageSize = pager.pageSize
+        val page = rank / pageSize
+        val offset = page * pageSize
+        pager.page = page + 1
+        query.copy(limit = Some(Limit(Some(pageSize), Some(offset))))
     }
+
+    withPageIdOffset.list()
   }
 
-  def filesFromSeveralUsers(rate: Option[Int], userDetails: Boolean, roundId: Long, criteriaRate: Boolean): Seq[ImageWithRating] = {
-    if (!criteriaRate) {
-      if (rate.isEmpty) {
-        if (userDetails)
-          ImageJdbc.byRound(roundId).groupBy(_.image.pageId).map { case (id, images) =>
-            new ImageWithRating(images.head.image, images.flatMap(_.selection))
-          }.toSeq
-        else {
-          ImageJdbc.byRoundSummed(roundId)
-        }
-      } else {
-        ImageJdbc.byRatingMerged(rate.get, roundId)
-      }
-    } else {
-      rate.fold (ImageJdbc.byRoundSummedWithCriteria(roundId)) { r =>
-        ImageJdbc.byRatingWithCriteriaMerged(r, roundId)
-      }
-    }
-  }
-
-  def userFiles(userId: Long, roundId: Long, criteriaRate: Boolean = false): Seq[ImageWithRating] = {
-    if (criteriaRate) {
-      ImageJdbc.byUserImageWithCriteriaRating(userId, roundId)
-    } else {
-      ImageJdbc.byUserImageWithRating(userId, roundId)
-    }
+  def getQuery(userId: Long, rate: Option[Int], round: Round, pager: Option[Pager] = None, userDetails: Boolean = false): SelectionQuery = {
+    val userIdOpt = Some(userId).filter(_ != 0)
+    val query = ImageDbNew.SelectionQuery(
+      userId = userIdOpt,
+      rate = rate,
+      roundId = round.id,
+      order = Map("rate" -> -1, "s.page_id" -> 1),
+      grouped = userIdOpt.isEmpty && !userDetails,
+      groupWithDetails = userDetails,
+      limit = pager.map(p => Limit(Some(p.pageSize), p.offset, p.startPageId))
+    )
+    query
   }
 
   def large(asUserId: Long, pageId: Long, region: String = "all", roundId: Long, rate: Option[Int], module: String) = withAuth {
@@ -212,7 +208,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
         roundOption.fold(Redirect(routes.Gallery.list(user.id.get, 1, region, roundId, rate))) { round =>
 
-          val files = filterFiles(rate, region, user, round)
+          val files = filesByUserId(user.id.get, rate, round, Pager.startPageId(pageId))
 
           val index = files.indexWhere(_.pageId == pageId)
 
@@ -232,11 +228,6 @@ object Gallery extends Controller with Secured with Instrumented {
 
           checkLargeIndex(user, rate, index, pageId, files, region, round.id.get, module)
         }
-  }
-
-
-  def filterFiles(rate: Option[Int], region: String, user: User, round: Round): Seq[ImageWithRating] = {
-    regionFiles(region, filterByRate(round, rate, userFiles(user.id.get, round.id.get)))
   }
 
   def regionFiles(region: String, files: Seq[ImageWithRating]): Seq[ImageWithRating] = {
@@ -286,16 +277,26 @@ object Gallery extends Controller with Secured with Instrumented {
     }
   }
 
-  def show(pageId: Long, user: User, asUserId: Long, rate: Option[Int], region: String, roundId: Long, module: String)(implicit request: Request[Any]): Result = {
+  def show(
+            pageId: Long,
+            user: User,
+            asUserId: Long,
+            rate: Option[Int],
+            region: String,
+            roundId: Long,
+            module: String)(implicit request: Request[Any]): Result = {
+    timerShow.time {
       val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
 
       val round = maybeRound.get
 
-      val allFiles = filesByUserId(asUserId, rate, round)
+      val query = getQuery(asUserId, rate, round)
 
-      val sorted = if (module == "byrate") allFiles.sortBy(-_.totalRate(round)) else allFiles
+      val rank = query.imageRank(pageId)
 
-      val files = regionFiles(region, filterByRate(round, rate, sorted))
+      val offset = Math.max(0, rank - 3)
+
+      val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()
 
       val index = files.indexWhere(_.pageId == pageId)
 
@@ -311,7 +312,7 @@ object Gallery extends Controller with Secured with Instrumented {
         SelectionJdbc.byRoundAndImageWithJury(round.id.get, pageId)
       } else Seq.empty
 
-      val page = index / (Pager.filesPerPage(files) + 1) + 1
+      val page = index / (Pager.pageSize + 1) + 1
 
       val byCriteria = if (round.hasCriteriaRate) {
         val criterias = {
@@ -323,6 +324,7 @@ object Gallery extends Controller with Secured with Instrumented {
       } else Map.empty[Int, Int]
 
       show2(index, files, user, asUserId, rate, page, round, region, module, selection, byCriteria)
+    }
   }
 
   def show2(index: Int,
@@ -358,5 +360,26 @@ object Gallery extends Controller with Secured with Instrumented {
       )
     )
   }
+
+  def rateDistribution(user: User, round: Round) = {
+    val rateMap = ImageJdbc.rateDistribution(user.id.get, round.id.get)
+    new RateDistribution(rateMap)
+  }
+}
+
+class RateDistribution(rateMap: Map[Int, Int]) {
+
+  def unrated = rateMap.getOrElse(0, 0)
+
+  def selected = rateMap.getOrElse(1, 0)
+
+  def rejected = rateMap.getOrElse(-1, 0)
+
+  def all = rateMap.values.sum
+
+  def positive = all - unrated - rejected
+
+  def rated = all - unrated
+
 }
 

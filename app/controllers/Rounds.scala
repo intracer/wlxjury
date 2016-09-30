@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, RoundJdbc, SelectionJdbc}
+import db.scalikejdbc._
 import org.intracer.wmua._
 import org.intracer.wmua.cmd.SetCurrentRound
 import play.api.data.Form
@@ -21,8 +21,16 @@ object Rounds extends Controller with Secured {
           val rounds = RoundJdbc.findByContest(contestId)
           val currentRound = rounds.find(_.id == contest.currentRound)
 
-          Ok(views.html.rounds(user, rounds, editRoundForm,
-            imagesForm.fill(contest.images),
+          val roundsStat = ImageJdbc.roundsStat(contestId).groupBy(_._1).map {
+            case (rId, s) =>
+              val rateMap = s.map {
+                case (_, rate, count) => rate -> count
+              }.toMap
+              rId -> new RateDistribution(rateMap)
+          }
+
+          Ok(views.html.rounds(user, rounds, roundsStat,
+            editRoundForm, imagesForm.fill(contest.images),
             selectRoundForm.fill(contest.currentRound.map(_.toString)),
             currentRound, contest)
           )
@@ -173,7 +181,11 @@ object Rounds extends Controller with Secured {
             } else {
               val rounds = RoundJdbc.findByContest(round.contest)
 
-              val selection = SelectionJdbc.byRoundWithCriteria(round.id.get)
+              val selection = if (round.hasCriteriaRate) {
+                SelectionJdbc.byRoundWithCriteria(round.id.get)
+              } else {
+                SelectionJdbc.byRound(round.id.get)
+              }
 
               val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
               val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
@@ -183,7 +195,11 @@ object Rounds extends Controller with Secured {
 
               val byJurorNum = selection.filter(_.rate > 0).groupBy(_.pageId).mapValues(_.size).toSeq.map(_.swap).groupBy(_._1).mapValues(_.size)
 
-              Ok(views.html.roundStat(user, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
+              val jurors = UserJdbc.findByContest(round.contest).filter { u =>
+                u.id.exists(byUserCount.contains) || u.hasRole(User.JURY_ROLE)
+              }
+
+              Ok(views.html.roundStat(user, jurors, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
             }
         }.getOrElse {
           Redirect(routes.Login.error("You don't have permission to access this page"))

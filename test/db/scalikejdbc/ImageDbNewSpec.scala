@@ -1,11 +1,12 @@
-package controllers
+package db.scalikejdbc
 
 import db._
-import db.scalikejdbc._
+import db.scalikejdbc.rewrite.ImageDbNew
+import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import org.intracer.wmua.{Selection, _}
 import org.specs2.mutable.Specification
 
-class GallerySpec extends Specification with InMemDb {
+class ImageDbNewSpec extends Specification with InMemDb {
 
   sequential
 
@@ -52,22 +53,71 @@ class GallerySpec extends Specification with InMemDb {
     selections
   }
 
+  "juror large view" should {
+
+    def query(): SelectionQuery = {
+      ImageDbNew.SelectionQuery(
+        userId = user.id,
+        roundId = round.id,
+        driver = "h2"
+      )
+    }
+
+    "no images" in {
+      inMemDbApp {
+        setUp()
+        query().imageRank(1) === 0
+      }
+    }
+
+    "1 image" in {
+      inMemDbApp {
+        setUp()
+        val images = createImages(1)
+        createSelection(images)
+
+        val id = images.head.pageId
+
+        query().imageRank(id) === 1
+        query().imageRank(id + 1) === 0
+      }
+    }
+
+    "2 images" in {
+      inMemDbApp {
+        setUp()
+        val images = createImages(2)
+        createSelection(images)
+
+        query().imageRank(images.head.pageId) === 1
+        query().imageRank(images.last.pageId) === 2
+        query().imageRank(images.last.pageId + 1) === 0
+      }
+    }
+  }
+
   "juror" should {
     "see assigned images in binary round" in {
       inMemDbApp {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
-        createSelection(images.slice(0, 3), rate = 0)
+        val slice = images.slice(0, 3)
+        createSelection(slice, rate = 0)
 
+        val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, driver = "h2")
         /// test
-        val result = Gallery.getSortedImages(user.id.get, None, round, "gallery")
+        val result = query.list()
 
         /// check
         result.size === 3
-        result.map(_.image) === images.slice(0, 3)
+        result.map(_.image) === slice
         result.map(_.selection.size) === Seq(1, 1, 1)
         result.map(_.rate) === Seq(0, 0, 0)
+
+        slice.zipWithIndex.map { case (image, index) =>
+          query.imageRank(image.pageId) === index + 1
+        }
       }
     }
 
@@ -86,15 +136,24 @@ class GallerySpec extends Specification with InMemDb {
         }
 
         for (rate <- -1 to 1) yield {
+          val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, rate = Some(rate), driver = "h2")
           /// test
-          val result = Gallery.getSortedImages(user.id.get, Some(rate), round, "gallery")
+          val result = query.list()
 
           /// check
           result.size === 2
           result.map(_.image) === slice(rate)
           result.map(_.selection.size) === Seq(1, 1)
           result.map(_.rate) === Seq(rate, rate)
+
         }
+
+        for (rate <- -1 to 1;
+             (image, index) <- slice(rate).zipWithIndex) yield {
+          val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, rate = Some(rate), driver = "h2")
+          query.imageRank(image.pageId) === index + 1
+        }
+
       }
     }
 
@@ -112,14 +171,24 @@ class GallerySpec extends Specification with InMemDb {
           createSelection(slice(rate), rate = rate)
         }
 
+        val query: SelectionQuery = ImageDbNew.SelectionQuery(
+          userId = user.id,
+          roundId = round.id,
+          order = Map("rate" -> -1),
+          driver = "h2"
+        )
         /// test
-        val result = Gallery.getSortedImages(user.id.get, None, round, "gallery")
+        val result = query.list()
 
         /// check
         result.size === 6
         result.map(_.image) === slice(1) ++ slice(0) ++ slice(-1)
         result.map(_.selection.size) === Seq.fill(6)(1)
         result.map(_.rate) === Seq(1, 1, 0, 0, -1, -1)
+
+        images.zip(Seq(5, 6, 3, 4, 1, 2)).map { case (image, index) =>
+          query.imageRank(image.pageId) === index
+        }
       }
     }
 
@@ -136,13 +205,23 @@ class GallerySpec extends Specification with InMemDb {
         selectionDao.batchInsert(selections)
 
         /// test
-        val result = Gallery.getSortedImages(user.id.get, None, round, "gallery")
+        val query = ImageDbNew.SelectionQuery(
+          userId = user.id,
+          roundId = round.id,
+          order = Map("rate" -> -1),
+          driver = "h2"
+        )
+        val result = query.list()
 
         /// check
         result.size === 6
         result.map(_.image) === images.reverse
         result.map(_.selection.size) === Seq.fill(6)(1)
         result.map(_.rate) === (0 to 5).reverse
+
+        images.zip((1 to 6).reverse).map { case (image, index) =>
+          query.imageRank(image.pageId) === index
+        }
       }
     }
   }
@@ -169,8 +248,9 @@ class GallerySpec extends Specification with InMemDb {
 
         selectionDao.batchInsert(selectedByX)
 
+        val query = ImageDbNew.SelectionQuery(roundId = round.id, grouped = true, order = Map("rate" -> -1), driver = "h2")
         /// test
-        val result = Gallery.getSortedImages(0, None, round, "gallery")
+        val result = query.list()
 
         /// check
         result.size === 4
@@ -182,6 +262,10 @@ class GallerySpec extends Specification with InMemDb {
         )
         result.map(_.selection.size) === Seq(1, 1, 1, 1)
         result.map(_.rate) === Seq(3, 2, 1, 0)
+
+        images.slice(0, 4).zip((1 to 4).reverse).map { case (image, index) =>
+          query.imageRank(image.pageId) === index
+        }
       }
     }
 
@@ -208,8 +292,9 @@ class GallerySpec extends Specification with InMemDb {
 
         selectionDao.batchInsert(selections)
 
+        val query = ImageDbNew.SelectionQuery(roundId = round.id, groupWithDetails = true)
         /// test
-        val result = Gallery.getSortedImages(0, None, round, "filelist")
+        val result = query.list()
 
         /// check
         result.size === 2
@@ -241,8 +326,9 @@ class GallerySpec extends Specification with InMemDb {
 
         selectionDao.batchInsert(selectedByX)
 
+        val query = ImageDbNew.SelectionQuery(roundId = round.id, groupWithDetails = true)
         /// test
-        val result = Gallery.getSortedImages(0, None, round, "filelist")
+        val result = query.list()
 
         /// check
         result.size === 4
@@ -252,7 +338,7 @@ class GallerySpec extends Specification with InMemDb {
           images(1),
           images(0)
         )
-        result.map(_.rate) === Seq(1, 1, 1, 0) //  TODO why not Seq(3, 2, 1, 0)  ?
+        result.map(_.rate) === Seq(1, 1, 1, 0)
         result.map(_.selection.size) === Seq(4, 4, 4, 4)
         result.map(_.selection.map(_.rate)) === Seq(
           Seq(1, 1, 1, 0),

@@ -1,17 +1,19 @@
+@import db.scalikejdbc.UserJdbc
 @(
         user: org.intracer.wmua.User, /* logged in user */
         asUserId: Long, /* viewing files of user with asUserId id  */
         asUser: org.intracer.wmua.User, /* viewing files of user asUser  */
         files: Seq[org.intracer.wmua.ImageWithRating],
         ranks: Seq[String],
-        page: Int, /* not used */
+        pager: Pager, /* not used */
         round: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
         rate: Option[Int],
         region: String = "all",
         byRegion: Map[String, Int],
         outputFormat: String = "wiki",
-        wrapInTable: Boolean
+        wrapInTable: Boolean,
+        rates: RateDistribution
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @wrapInIf(tag: String, condition: Boolean)(content: Html) = {
@@ -57,7 +59,7 @@
 
     <div contenteditable="true">
 
-    @defining(round.map(_.jurors).get) { jurors =>
+    @defining(UserJdbc.findByRoundSelection(roundId)) { jurors =>
 
         @if(wrapInTable) {
             <table class="table table-striped table-condensed">

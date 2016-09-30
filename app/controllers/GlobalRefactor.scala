@@ -7,7 +7,7 @@ import org.intracer.wmua.cmd.{ImageEnricher, FetchImageInfo, ImageTextFromCatego
 import org.joda.time.DateTime
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
-import org.scalawiki.dto.cmd.query.list.ListArgs
+import org.scalawiki.dto.cmd.query.list.{ListArg, ListArgs}
 import org.scalawiki.dto.cmd.query.{Generator, Query}
 import org.scalawiki.dto.{Namespace, Page}
 import org.scalawiki.query.{DslQuery, QueryProgress, SinglePageQuery}
@@ -180,8 +180,9 @@ class GlobalRefactor(val commons: MwBot) {
 
   def getCategories(parent: String): Future[Seq[Page]] = {
 
+    val geenratorArg = ListArgs.toDsl("categorymembers", Some(parent), None, Set(Namespace.CATEGORY), Some("max")).get
     val action = Action(Query(
-      Generator(ListArgs.toDsl("categorymembers", Some(parent), None, Set(Namespace.CATEGORY), Some("max")).get)
+      Generator(geenratorArg)
     ))
     new DslQuery(action, commons).run()
   }
