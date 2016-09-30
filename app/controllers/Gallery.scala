@@ -94,7 +94,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val rates = rateDistribution(user, round)
 
-            val ranks = ImageWithRating.rankImages(sortedFiles, round)
+         //   val ranks = ImageWithRating.rankImages(sortedFiles, round)
             val useTable = !round.isBinary || asUserId == 0
 
             module match {
@@ -108,15 +108,13 @@ object Gallery extends Controller with Secured with Instrumented {
                   filesInRegion, ranks, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
                 )
               case "byrate" =>
-                if (region != "grouped") {
-                  Ok(views.html.galleryByRate(user, asUserId, asUser, filesInRegion, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
-                } else {
-                  Ok(views.html.galleryByRateRegions(user, asUserId, asUser, sortedFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
-                }
+              //  if (region != "grouped") {
+                  Ok(views.html.galleryByRate(user, asUserId, asUser, filesInRegion, pager, maybeRound, rounds, rate, region, byReg, rates))
+              //    Ok(views.html.galleryByRateRegions(user, asUserId, asUser, sortedFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
+              //  }
             }
           }
         }
-
   }
 
   def getSortedImages(

@@ -4,12 +4,13 @@
         asUserId: Long,
         asUser: org.intracer.wmua.User,
         files: Seq[org.intracer.wmua.ImageWithRating],
-        ranks: Seq[String],
+        pager: Pager,
         pages: Int,
         page: Int,
         startImage: Int,
         maybeRound: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
+        rate: Option[Int] = None,
         region: String = "all",
         byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang, messages: Messages)
 
@@ -18,7 +19,7 @@
 @defining(maybeRound.get) { round =>
 
     <div style="margin-bottom: 10px;
-        color: #ffffff;"> <b>@ranks(index). </b>
+        color: #ffffff;"> <b>@file.rankStr </b>
         <span style="margin-left: 5px;
             margin-right: 10px;">
         @if(round.rates.id != 2) {
@@ -40,7 +41,7 @@
 
 @main("byrate", user, asUserId, asUser, maybeRound, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),
     rounds, true, None, region,
-    pager(asUserId, pages, page, None, maybeRound.flatMap(_.id), region, "byrate")
+    pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate")
 ) {
 
     @defining(maybeRound.get) { round =>
