@@ -4,8 +4,7 @@
         maybeRoundId: Option[Long],
         region: String = "all",
         module: String = "gallery"
-        )(implicit messages: Messages) =
-    {
+        )(implicit messages: Messages)
     @if(pager.display) {
 
         @defining(maybeRoundId.getOrElse(0L)) { roundId =>
@@ -34,4 +33,4 @@
             </li>
         }
     }
-    }
+
