@@ -1,28 +1,50 @@
 @(loginForm: Form[(String, String)])(implicit flash: Flash, lang: Lang, messages: Messages)
+@import b3.inline.fieldConstructor
 
-<h3>@Messages("signin.signin")</h3>
 
-    <form role="form" action="@routes.Login.auth()" method="POST">
+<fieldset class="col-md-6 col-md-offset-3">
+
+    <legend>@Messages("signin.signin")</legend>
+
+    @helper.form(action = routes.Login.auth()) {
+
 
         @if(loginForm.hasGlobalErrors) {
             <div class="alert alert-danger" role="alert">
-                @Messages(loginForm.errors.head.message)
+            @Messages(loginForm.errors.head.message)
             </div>
         }
 
         <fieldset>
             <div class="form-group">
                 <label for="login" class="control-label">@Messages("signin.your.login")</label>
-                <input type="text" class="form-control" id="login" name="login" placeholder="@Messages("login")">
+                <input type="text" class="form-control input-lg" id="login" name="login" placeholder="@Messages("login")">
             </div>
             <div class="form-group">
                 <label for="password" class="control-label">@Messages("signin.your.password")</label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                <input type="password" class="form-control input-lg" id="password" name="password" placeholder="Password">
             </div>
         </fieldset>
-        <div class="form-actions">
-            <button type="submit" class="btn btn-default btn-primary">@Messages("signin.signin")</button>
+        <div class="form-group">
+            <div>
+                <button id="submit" type="submit" value="submit" class="btn btn-lg btn-primary btn-block">@Messages("signin.signin")</button>
+            </div>
         </div>
-    </form>
+    }
 
+    @if (false) {
+    <div>
+        <p class="not-a-member">@Messages("not.a.member") <a href="">@Messages("sign.up.now")</a>
+            | <a href="" title="@Messages("forgot.your.password")">@Messages("forgot.your.password")</a></p>
+    </div>
+
+    <div class="social-providers">
+        <p>@Messages("or.use.social")</p>
+
+        <a href="" class="provider mediawiki" title="MediaWiki"><img src="@routes.Assets.at(s"images/MediaWiki_logo_1.svg.png")" width="64px" height="64px" alt="MediaWiki"></a>
+    </div>
+    }
+
+
+</fieldset>
 
