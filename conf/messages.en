@@ -173,3 +173,8 @@ down.key = Down
 format.boolean=
 
 no.round.yet=No round configured yet. Please wait until contest admin configures the tool.
+
+not.a.member = Not a member?
+forgot.your.password = Forgot your password?
+sign.up.now = Sign up now
+or.use.social = Or use your existing account on MediaWiki site to sign in:

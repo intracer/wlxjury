@@ -31,7 +31,7 @@ trait UserDao {
 
   def create(user: User): User
 
-  def updateUser(id: Long, fullname: String, email: String, roles: Set[String], lang: Option[String]): Unit
+  def updateUser(id: Long, fullname: String, wikiAccount: Option[String], email: String, roles: Set[String], lang: Option[String]): Unit
 
   def updateHash(id: Long, hash:String): Unit
 

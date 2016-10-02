@@ -75,6 +75,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     contest = rs.longOpt(c.contest),
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
+    wikiAccount = rs.stringOpt(c.wikiAccount),
     createdAt = rs.timestampOpt(c.createdAt).map(_.toJodaDateTime),
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
   )
@@ -169,6 +170,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
       insert.into(UserJdbc).namedValues(
         column.fullname -> user.fullname,
         column.email -> user.email.trim.toLowerCase,
+        column.wikiAccount -> user.wikiAccount,
         column.password -> user.password,
         column.roles -> user.roles.head,
         column.contest -> user.contest,
@@ -179,10 +181,11 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     user.copy(id = Some(id), roles = user.roles ++ Set("USER_ID_" + id))
   }
 
-  override def updateUser(id: Long, fullname: String, email: String, roles: Set[String], lang: Option[String]): Unit = withSQL {
+  override def updateUser(id: Long, fullname: String, wikiAccount: Option[String], email: String, roles: Set[String], lang: Option[String]): Unit = withSQL {
     update(UserJdbc).set(
       column.fullname -> fullname,
       column.email -> email,
+      column.wikiAccount -> wikiAccount,
       column.roles -> roles.head,
       column.lang -> lang
     ).where.eq(column.id, id)

@@ -140,3 +140,8 @@ select.image = Вибрати зображення
 reject.image = Відкинути зображення
 up.key = Вгору
 down.key = Вниз
+
+not.a.member = Не зареєстровані?
+forgot.your.password = Забули пароль?
+sign.up.now = Зареєструватися
+or.use.social = Або використайте існуючу обліковку MediaWiki:

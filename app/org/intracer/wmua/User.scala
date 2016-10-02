@@ -14,7 +14,10 @@ case class User(fullname: String,
                 contest: Option[Long],
                 lang: Option[String] = None,
                 createdAt: Option[DateTime] = None,
-                deletedAt: Option[DateTime] = None) {
+                deletedAt: Option[DateTime] = None,
+                wikiAccount: Option[String] = None,
+                wikiEmail: Boolean  = false
+               ) {
 
   def emailLo = email.trim.toLowerCase
 
@@ -49,12 +52,14 @@ object User {
   val ADMIN_ROLES = Set(ADMIN_ROLE, ROOT_ROLE)
   val LANGS = Map("en" -> "English", "ru" -> "Русский", "uk" -> "Українська")
 
-  def unapplyEdit(user: User): Option[(Long, String, String, Option[String], Option[String], Option[Long], Option[String])] = {
-    Some((user.id.get, user.fullname, user.email, None, Some(user.roles.toSeq.head), user.contest, user.lang))
+  def unapplyEdit(user: User): Option[(Long, String, Option[String], String, Option[String], Option[String], Option[Long], Option[String])] = {
+    Some((user.id.get, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.contest, user.lang))
   }
 
-  def applyEdit(id: Long, fullname: String, email: String, password: Option[String], roles: Option[String], contest: Option[Long], lang: Option[String]): User = {
-    new User(fullname, email.trim.toLowerCase, Some(id), roles.fold(Set.empty[String])(Set(_)), password, contest, lang)
+  def applyEdit(id: Long, fullname: String, wikiAccount: Option[String], email: String, password: Option[String],
+                roles: Option[String], contest: Option[Long], lang: Option[String]): User = {
+    new User(fullname, email.trim.toLowerCase, Some(id), roles.fold(Set.empty[String])(Set(_)), password, contest, lang,
+      wikiAccount = wikiAccount)
   }
 
   def parseList(usersText: String): Seq[User] = {

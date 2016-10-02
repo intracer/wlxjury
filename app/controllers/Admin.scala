@@ -94,7 +94,7 @@ object Admin extends Controller with Secured {
                     originalRoles(formUser)
                   }
 
-                  UserJdbc.updateUser(userId, formUser.fullname, formUser.email, newRoles, formUser.lang)
+                  UserJdbc.updateUser(userId, formUser.fullname, formUser.wikiAccount, formUser.email, newRoles, formUser.lang)
 
                   for (password <- formUser.password) {
                     val hash = UserJdbc.hash(formUser, password)
@@ -265,6 +265,7 @@ object Admin extends Controller with Secured {
     mapping(
       "id" -> longNumber,
       "fullname" -> nonEmptyText,
+      "wiki_account" -> optional(text),
       "email" -> email,
       "password" -> optional(text),
       "roles" -> optional(text),
