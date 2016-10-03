@@ -2,6 +2,9 @@ package controllers
 
 import db.scalikejdbc.{ContestJuryJdbc, RoundJdbc, UserJdbc}
 import org.intracer.wmua._
+import org.scalawiki.dto.cmd.Action
+import org.scalawiki.dto.cmd.query.Query
+import org.scalawiki.dto.cmd.query.list.{UsGender, _}
 import play.api.Play.current
 import play.api.data.Form
 import play.api.data.Forms._
@@ -9,6 +12,7 @@ import play.api.i18n.Messages.Implicits._
 import play.api.i18n.{Lang, Messages}
 import play.api.mvc.Results._
 import play.api.mvc.{Controller, Result}
+import spray.util.pimpFuture
 
 import scala.collection.immutable.ListMap
 import scala.util.Try
@@ -23,10 +27,29 @@ object Admin extends Controller with Secured {
         val usersView = for (contestId <- user.currentContest.orElse(contestIdParam);
                              contest <- ContestJuryJdbc.byId(contestId)) yield {
           val users = UserJdbc.findByContest(contestId)
-          Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), contest))
+
+          val wikiAccounts = users.flatMap(_.wikiAccount)
+          val emailable = emailableUsers(wikiAccounts)
+
+          val withFlag = users.map(u => u.copy(wikiEmail = u.wikiAccount.exists(emailable.contains)))
+
+          Ok(views.html.users(user, withFlag, editUserForm.copy(data = Map("roles" -> "jury")), contest))
         }
         usersView.getOrElse(Redirect(routes.Login.index())) // TODO message
   }, User.ADMIN_ROLES)
+
+  def emailableUsers(userNames: Seq[String]): Set[String] = {
+    Global.commons.run(
+      Action(Query(
+        ListParam(Users(
+          UsUsers(userNames),
+          UsProp(UsEmailable, UsGender)
+        ))
+      ))
+    ).await.flatMap(_.lastRevisionUser).collect {
+      case u: org.scalawiki.dto.User if u.emailable.contains(true) => u.name.get
+    }.toSet
+  }
 
   def havingEditRights(currentUser: User, otherUser: User)(block: => Result): Result = {
     if (!currentUser.canEdit(otherUser)) {
