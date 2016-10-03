@@ -2,9 +2,8 @@ package org.intracer.wmua
 
 import javax.mail.internet.InternetAddress
 
-import controllers.Gallery
-import db.scalikejdbc.ImageJdbc
 import org.joda.time.DateTime
+import play.api.data.validation.{Constraints, Invalid, Valid}
 
 case class User(fullname: String,
                 email: String,
@@ -16,7 +15,7 @@ case class User(fullname: String,
                 createdAt: Option[DateTime] = None,
                 deletedAt: Option[DateTime] = None,
                 wikiAccount: Option[String] = None,
-                wikiEmail: Boolean  = false
+                wikiEmail: Boolean = false
                ) {
 
   def emailLo = email.trim.toLowerCase
@@ -62,9 +61,16 @@ object User {
       wikiAccount = wikiAccount)
   }
 
+  val emailConstraint = Constraints.emailAddress
+
   def parseList(usersText: String): Seq[User] = {
-    InternetAddress.parse(usersText.replaceAll("\n", ","), false).map { address =>
-      User(id = None, contest = None, fullname = Option(address.getPersonal).getOrElse(""), email = address.getAddress)
+    InternetAddress.parse(usersText.replaceAll("\n", ","), false).map { internetAddress =>
+      val address = internetAddress.getAddress
+
+      Constraints.emailAddress(address) match {
+        case Valid => User(id = None, contest = None, fullname = Option(internetAddress.getPersonal).getOrElse(""), email = internetAddress.getAddress)
+        case Invalid(errors) => User(id = None, contest = None, fullname = "", email = "", wikiAccount = Some(internetAddress.getAddress))
+      }
     }
   }
 }

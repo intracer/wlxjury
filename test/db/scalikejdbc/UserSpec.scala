@@ -42,6 +42,7 @@ class UserSpec extends Specification with InMemDb {
   }
 
   "parseList" should {
+
     "parse empty" in {
       User.parseList("") === Seq.empty
     }
@@ -53,14 +54,18 @@ class UserSpec extends Specification with InMemDb {
     }
 
     "parse emails" in {
-      val emails = Seq(
-        "123@abc.com",
-        "234@bcd.com",
-        "345@cde.com"
+      val emails = Seq("123@abc.com", "234@bcd.com", "345@cde.com")
 
-      )
       User.parseList(emails.mkString("\n")) === emails.map { email =>
         User(id = None, contest = None, fullname = "", email = email)
+      }
+    }
+
+    "parse wiki accounts" in {
+      val accounts = Seq("Ilya", "Antanana", "Ahonc", "Base")
+
+      User.parseList(accounts.mkString("\n")) === accounts.map { account =>
+        User(id = None, contest = None, fullname = "", email = "", wikiAccount = Some(account))
       }
     }
 
