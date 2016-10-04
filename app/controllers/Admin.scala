@@ -28,27 +28,35 @@ object Admin extends Controller with Secured {
                              contest <- ContestJuryJdbc.byId(contestId)) yield {
           val users = UserJdbc.findByContest(contestId)
 
-          val wikiAccounts = users.flatMap(_.wikiAccount)
-          val emailable = emailableUsers(wikiAccounts)
+          val withWiki = wikiAccountInfo(users)
 
-          val withFlag = users.map(u => u.copy(wikiEmail = u.wikiAccount.exists(emailable.contains)))
-
-          Ok(views.html.users(user, withFlag, editUserForm.copy(data = Map("roles" -> "jury")), contest))
+          Ok(views.html.users(user, withWiki, editUserForm.copy(data = Map("roles" -> "jury")), contest))
         }
         usersView.getOrElse(Redirect(routes.Login.index())) // TODO message
   }, User.ADMIN_ROLES)
 
-  def emailableUsers(userNames: Seq[String]): Set[String] = {
-    Global.commons.run(
+  def wikiAccountInfo(users: Seq[User]): Seq[User] = {
+    val names = users.flatMap(_.wikiAccount)
+
+    val accounts = Global.commons.run(
       Action(Query(
         ListParam(Users(
-          UsUsers(userNames),
+          UsUsers(names),
           UsProp(UsEmailable, UsGender)
         ))
       ))
     ).await.flatMap(_.lastRevisionUser).collect {
-      case u: org.scalawiki.dto.User if u.emailable.contains(true) => u.name.get
-    }.toSet
+      case u: org.scalawiki.dto.User if u.id.isDefined => u
+    }
+
+    users.map { u =>
+      val account = accounts.find(a => a.login == u.wikiAccount)
+
+      u.copy(
+        wikiEmail = account.flatMap(_.emailable).getOrElse(false),
+        accountValid = account.isDefined
+      )
+    }
   }
 
   def havingEditRights(currentUser: User, otherUser: User)(block: => Result): Result = {

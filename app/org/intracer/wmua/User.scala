@@ -15,7 +15,8 @@ case class User(fullname: String,
                 createdAt: Option[DateTime] = None,
                 deletedAt: Option[DateTime] = None,
                 wikiAccount: Option[String] = None,
-                wikiEmail: Boolean = false
+                wikiEmail: Boolean = false,
+                accountValid: Boolean = true
                ) {
 
   def emailLo = email.trim.toLowerCase
