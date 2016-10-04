@@ -24,7 +24,7 @@ class SecuredSpec extends Specification with Mockito with InMemDb {
   "user" should {
     "load from db" in {
       inMemDbApp {
-        val username = "user login"
+        val username = "user@server.com"
 
         val user = User("fullname", username, None, Set("jury"), Some("password hash"), Some(10))
 
