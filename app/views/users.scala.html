@@ -12,13 +12,12 @@
         <div class="row" >
             <h3>@Messages("Contest: " + contest.fullName)</h3>
 
-            <div class="form-actions">
-                <a href="@routes.Admin.importUsers(contest.id)">
+            <div style="margin-bottom: 10px">
+                <a href="@routes.Admin.importUsers(contest.id)" style="margin-right: 5px">
                     <div class="btn btn-primary">
                         Mass import
                     </div>
                 </a>
-
                 <a href="@routes.Admin.editGreeting(contest.id)">
                     <div class="btn btn-primary">
                         Edit greeting message
@@ -93,16 +92,19 @@
                                 @text(editUserForm("fullname"))
                             </td>
                             <td>
+                                @text(editUserForm("wikiAccount"))
+                            </td>
+                            <td>
                                 @text(editUserForm("email"))
                             </td>
                             <td>
                             @select(
                                 editUserForm("roles"),
                                 Seq("no", "jury", "organizer", "admin").map(x => (x, x)),
-                                '_label -> "", '_help -> "", 'class -> "form-control")
+                                '_label -> "roles", '_help -> "", 'class -> "form-control")
                             </td>
                             <td>
-                                <div class="btn btn-primary" onClick="document.forms['add-user'].submit();">
+                                <div class="btn btn-primary" onClick="document.forms['add-user'].submit();" style="margin-top: 10px">
                                     <img src="https://upload.wikimedia.org/wikipedia/commons/5/5a/Farm-Fresh_group_add.png">
                                 </div>
                             </td>
