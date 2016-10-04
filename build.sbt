@@ -7,7 +7,7 @@ name := "wlxjury"
 
 organization := "org.intracer"
 
-version := "0.8"
+version := "0.9"
 
 //rpmRelease := "1"
 
