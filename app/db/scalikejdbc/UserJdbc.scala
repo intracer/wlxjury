@@ -4,8 +4,9 @@ import java.math.BigInteger
 import java.security.MessageDigest
 
 import db.UserDao
-import org.intracer.wmua.{ContestJury, User}
+import org.intracer.wmua.User
 import org.joda.time.DateTime
+import play.api.data.validation.{Constraints, Invalid, Valid}
 import scalikejdbc._
 
 object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
@@ -33,23 +34,12 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
   }
 
   def login(username: String, password: String): Option[User] = {
-
-    val unameTrimmed = username.trim.toLowerCase
-    val passwordTrimmed = password.trim
-
-    val userOpt = findByEmail(username).headOption.filter(user => {
-      val inputHash = hash(user, password)
+    byUserName(username).filter(user => {
+      val passwordTrimmed = password.trim
+      val inputHash = hash(user, passwordTrimmed)
       val dbHash = user.password.get
       inputHash == dbHash
     })
-
-    //    for (user <- userOpt) {
-    //      val contest = ContestJuryJdbc.find(user.contest).get
-    //      Cache.set(s"contest/${contest.id}", contest)
-    //      Cache.set(s"user/${user.email}", user)
-    //    }
-
-    userOpt
   }
 
   def sha1(input: String) = {
@@ -61,8 +51,13 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     new BigInteger(1, digest.digest()).toString(16)
   }
 
-  def byUserName(email: String) = {
-    findByEmail(email.trim.toLowerCase).headOption
+  def byUserName(username: String): Option[User] = {
+    val unameTrimmed = username.trim.toLowerCase
+    val users = Constraints.emailAddress(unameTrimmed) match {
+      case Valid => findByEmail(username)
+      case Invalid(errors) => findByAccount(unameTrimmed)
+    }
+    users.headOption
   }
 
   def apply(c: SyntaxProvider[User])(rs: WrappedResultSet): User = apply(c.resultName)(rs)
@@ -117,6 +112,15 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     val users = withSQL {
       select.from(UserJdbc as u)
         .where.append(isNotDeleted).and.eq(column.email, email)
+        .orderBy(u.id)
+    }.map(UserJdbc(u)).list().apply()
+    users
+  }
+
+  def findByAccount(account: String): Seq[User] = {
+    val users = withSQL {
+      select.from(UserJdbc as u)
+        .where.append(isNotDeleted).and.eq(column.wikiAccount, account)
         .orderBy(u.id)
     }.map(UserJdbc(u)).list().apply()
     users
