@@ -32,8 +32,11 @@ function UGTheme_tiles(){
 	var g_temp = {
 			showPreloader: false
 	};
-	
-	
+
+	var selected =[];
+
+	var rejected =[];
+
 	/**
 	 * Init the theme
 	 */
@@ -196,7 +199,21 @@ function UGTheme_tiles(){
 		var objItem = g_objTileDesign.getItemByTile(objTile);
 		var index = objItem.index;
 
-		window.alert("Selected" + index);
+		var selected_index = jQuery.inArray(index, selected);
+		var rejected_index = jQuery.inArray(index, rejected);
+
+		if (selected_index == -1) {
+			selected.push(index);
+		} else {
+			selected.splice(selected_index, 1);
+		}
+
+		if (rejected_index != -1) {
+			rejected.splice(rejected_index, 1);
+		}
+
+		window.alert("si: " + selected_index + ", ri" + rejected_index + "Selected: " + JSON.stringify(selected, null, 4) +
+			", Rejected:" + JSON.stringify(rejected, null, 4));
 	}
 
 	/**
@@ -209,7 +226,22 @@ function UGTheme_tiles(){
 		var objItem = g_objTileDesign.getItemByTile(objTile);
 		var index = objItem.index;
 
-		window.alert("Rejected" + index);
+
+		var rejected_index = jQuery.inArray(index, rejected);
+		var selected_index = jQuery.inArray(index, selected);
+
+		if (rejected_index == -1) {
+			rejected.push(index);
+		} else {
+			rejected.splice(rejected_index, 1);
+		}
+
+		if (selected_index != -1) {
+			selected.splice(selected_index, 1);
+		}
+
+		window.alert("si: " + selected_index + ", ri" + rejected_index + "Selected: " + JSON.stringify(selected, null, 4) +
+			", Rejected:" + JSON.stringify(rejected, null, 4));
 	}
 	
 	
