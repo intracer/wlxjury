@@ -220,11 +220,12 @@ function UGTheme_tiles(){
 
 		var jqxhr = $.post( "/rate/round/" + objItem.roundId +"/pageid/" + objItem.pageId + "/select/" + rate, function() {
 
-			var border;
+			var border = 3;
 			var color;
 
-			if (rate == 0) border = 0; else border = 3;
-			if (rate == 1) color = "limegreen"; else color = "brown";
+			if (rate == 1) color = "limegreen";
+			else if (rate == -1) color = "brown";
+			else if (rate == 0) color = "white";
 
 			objItem.rate = rate;
 
