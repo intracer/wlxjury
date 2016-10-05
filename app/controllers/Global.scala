@@ -13,7 +13,7 @@ object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
   val gallerySizeX = 300
-  val gallerySizeY = 200
+  val gallerySizeY = 250
   val gallerySizeXDouble = 600
   val gallerySizeYDouble = 400
   val thumbSizeX = 150
@@ -85,4 +85,19 @@ object Global {
     }
   }
 
+  def resizeTo(info: Image, resizeToHeight: Int): String = {
+
+    val px = info.resizeTo(resizeToHeight)
+
+    val isPdf = info.title.toLowerCase.endsWith(".pdf")
+    val isTif = info.title.toLowerCase.endsWith(".tif")
+    val isSvg = info.title.toLowerCase.endsWith(".svg")
+
+    if (px < info.width || isPdf || isTif || isSvg) {
+      val file = URLEncoder.encode(info.title.replaceFirst("File:", ""), "UTF-8")
+      s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
+    } else {
+      info.url.getOrElse("")
+    }
+  }
 }

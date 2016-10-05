@@ -21,6 +21,9 @@ case class Image(pageId: Long,
   def resizeTo(resizeToX: Int, resizeToY: Int): Int =
     ImageUtil.resizeTo(width, height, resizeToX, resizeToY)
 
+  def resizeTo(resizeToY: Int): Int =
+    ImageUtil.resizeTo(width, height, resizeToY)
+
   def resolutionStr = s"$width x $height"
 
   def mpxStr = ImageUtil.fmt.format(mpx)
@@ -39,6 +42,13 @@ object ImageUtil {
 
     Seq(resizeToX, (w / yRatio).toInt, w).min
   }
+
+  def resizeTo(w: Int, h: Int, resizeToY: Int): Int = {
+    val yRatio = h.toDouble / resizeToY
+
+    Seq((w / yRatio).toInt, w).min
+  }
+
 
 
 }

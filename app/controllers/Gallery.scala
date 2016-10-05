@@ -195,6 +195,16 @@ object Gallery extends Controller with Secured with Instrumented {
         show(pageId, user, user.id.get, rate, region, 0, module)
   }
 
+  def selectWS(roundId: Long, pageId: Long, select: Int, region: String = "all",
+                     rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth {
+    user =>
+      implicit request =>
+
+        SelectionJdbc.rate(pageId = pageId, juryId = user.id.get, round = roundId, rate = select)
+
+        Ok("success")
+  }
+
   def selectByPageId(roundId: Long, pageId: Long, select: Int, region: String = "all",
                      rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth {
     user =>

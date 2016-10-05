@@ -12,32 +12,33 @@
         byRegion: Map[String, Int],
         rates: RateDistribution)(implicit flash: Flash, lang: Lang, messages: Messages)
 
-    @main("gallery", user, asUserId, asUser, round, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),  rounds, gallery = true, rate, region,
-            pagerView(asUserId, pager, rate, round.flatMap(_.id), region), rates = rates)  {
+@import java.net.URLEncoder
 
-@defining( round.flatMap(_.id).getOrElse(0L) ) { roundId =>
+    @main("gallery", user, asUserId, asUser, round, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)), rounds, gallery = true, rate, region,
+        pagerView(asUserId, pager, rate, round.flatMap(_.id), region), rates = rates) {
 
-    @regionNav((region:String) => routes.Gallery.list(user = asUserId, round = roundId, region = region, page = 1, rate = rate).url, round, region, byRegion)
+        @defining(round.flatMap(_.id).getOrElse(0L)) { roundId =>
 
-    <div class="row" >
+            @regionNav((region: String) => routes.Gallery.list(user = asUserId, round = roundId, region = region, page = 1, rate = rate).url, round, region, byRegion)
 
-        <ul class="gallery mw-gallery-traditional">
+        <div class="row" >
 
-            @for((file, index) <- pageFiles.view.zipWithIndex) {
-                <li class="gallerybox">
-                    <h1 id="@file.pageId" style="display: inline; width: 1px; height: 1px"></h1>
+            <div id="gallery" class="gallery mw-gallery-traditional" style="display:none;">
 
-                    <div class="thumb">
-                        <a href="/large/round/@roundId/user/@asUserId/region/@region/pageid/@file.pageId@rateParam(rate)" >
-                            <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)">
-                        </a>
-                    </div>
+                    @for((file, index) <- pageFiles.view.zipWithIndex) {
 
-                </li>
-            }
+                        <img alt="<a href='https://commons.wikimedia.org/wiki/@URLEncoder.encode(file.title.replace(" ", "_"), "UTF8")' target='_blank'>@file.title</a>"
+                        src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeY)"
+                        data-image="@controllers.Global.resizeTo(file.image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)"
+                        data-description="<b>@file.title</b>"
+                        data-pageId="@file.pageId"
+                        data-roundId="@roundId"
+                        data-rate="@file.rate"
+                        data-largeUrl="/large/round/@roundId/user/@asUserId/region/@region/pageid/@file.pageId@rateParam(rate)"
+                        >
 
-        </ul>
-
-    </div>
+                    }
+            </div>
+        </div>
+        }
     }
-}
