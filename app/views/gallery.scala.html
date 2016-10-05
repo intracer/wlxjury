@@ -12,6 +12,8 @@
         byRegion: Map[String, Int],
         rates: RateDistribution)(implicit flash: Flash, lang: Lang, messages: Messages)
 
+@import java.net.URLEncoder
+
     @main("gallery", user, asUserId, asUser, round, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)), rounds, gallery = true, rate, region,
         pagerView(asUserId, pager, rate, round.flatMap(_.id), region), rates = rates) {
 
@@ -25,9 +27,10 @@
 
                     @for((file, index) <- pageFiles.view.zipWithIndex) {
 
-                        <img alt="@file.title @file.pageId" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeY)"
+                        <img alt="<a href='https://commons.wikimedia.org/wiki/@URLEncoder.encode(file.title.replace(" ", "_"), "UTF8")' target='_blank'>@file.title</a>"
+                        src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeY)"
                         data-image="@controllers.Global.resizeTo(file.image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)"
-                        data-description="@file.title @file.pageId"
+                        data-description="<b>@file.title</b>"
                         data-pageId="@file.pageId"
                         data-roundId="@roundId"
                         data-rate="@file.rate"
