@@ -202,9 +202,17 @@ function UGTheme_tiles(){
 		var selected_index = jQuery.inArray(index, selected);
 		var rejected_index = jQuery.inArray(index, rejected);
 
+		var objCss = {};
+
 		if (selected_index == -1) {
 			selected.push(index);
+
+			objCss["border-width"] = "3px";
+			objCss["border-style"] = "solid";
+			objCss["border-color"] = "limegreen";
+
 		} else {
+			objCss["border-width"] = "0px";
 			selected.splice(selected_index, 1);
 		}
 
@@ -212,8 +220,8 @@ function UGTheme_tiles(){
 			rejected.splice(rejected_index, 1);
 		}
 
-		window.alert("si: " + selected_index + ", ri" + rejected_index + "Selected: " + JSON.stringify(selected, null, 4) +
-			", Rejected:" + JSON.stringify(rejected, null, 4));
+
+		objTile.css(objCss);
 	}
 
 	/**
@@ -230,9 +238,17 @@ function UGTheme_tiles(){
 		var rejected_index = jQuery.inArray(index, rejected);
 		var selected_index = jQuery.inArray(index, selected);
 
+		var objCss = {};
+
 		if (rejected_index == -1) {
+			objCss["border-width"] = "3px";
+			objCss["border-style"] = "solid";
+			objCss["border-color"] = "brown";
+
 			rejected.push(index);
 		} else {
+			objCss["border-width"] = "0px";
+
 			rejected.splice(rejected_index, 1);
 		}
 
@@ -240,8 +256,7 @@ function UGTheme_tiles(){
 			selected.splice(selected_index, 1);
 		}
 
-		window.alert("si: " + selected_index + ", ri" + rejected_index + "Selected: " + JSON.stringify(selected, null, 4) +
-			", Rejected:" + JSON.stringify(rejected, null, 4));
+		objTile.css(objCss);
 	}
 	
 	
