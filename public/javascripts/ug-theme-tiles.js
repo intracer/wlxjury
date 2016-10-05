@@ -200,68 +200,84 @@ function UGTheme_tiles(){
 		var index = objItem.index;
 
 		var selected_index = jQuery.inArray(index, selected);
-		var rejected_index = jQuery.inArray(index, rejected);
-
-		var objCss = {};
 
 		if (selected_index == -1) {
-			selected.push(index);
-
-			objCss["border-width"] = "3px";
-			objCss["border-style"] = "solid";
-			objCss["border-color"] = "limegreen";
-
+			serviceCall(objItem, 1, objTile)
 		} else {
-			objCss["border-width"] = "0px";
-			selected.splice(selected_index, 1);
+			serviceCall(objItem, 0, objTile)
 		}
-
-		if (rejected_index != -1) {
-			rejected.splice(rejected_index, 1);
-		}
-
-
-		objTile.css(objCss);
 	}
 
 	/**
 	 * on tile click - open lightbox
 	 */
-	function onRejectClick(data, objTile){
+	function onRejectClick(data, objTile) {
 
 		objTile = jQuery(objTile);
 
 		var objItem = g_objTileDesign.getItemByTile(objTile);
 		var index = objItem.index;
 
-
 		var rejected_index = jQuery.inArray(index, rejected);
-		var selected_index = jQuery.inArray(index, selected);
-
-		var objCss = {};
 
 		if (rejected_index == -1) {
-			objCss["border-width"] = "3px";
-			objCss["border-style"] = "solid";
-			objCss["border-color"] = "brown";
-
-			rejected.push(index);
+			serviceCall(objItem, -1, objTile)
 		} else {
-			objCss["border-width"] = "0px";
-
-			rejected.splice(rejected_index, 1);
+			serviceCall(objItem, 0, objTile)
 		}
-
-		if (selected_index != -1) {
-			selected.splice(selected_index, 1);
-		}
-
-		objTile.css(objCss);
 	}
-	
-	
-	
-	/**
+
+	function serviceCall(objItem, rate, objTile) {
+
+		var jqxhr = $.post( "/rate/round/" + objItem.roundId +"/pageid/" + objItem.pageId + "/select/" + rate, function() {
+
+			var border;
+			var color;
+
+			if (rate == 0) border = 0; else border = 3;
+			if (rate == 1) color = "limegreen"; else color = "brown";
+
+			var index = objItem.index;
+			var rejected_index = jQuery.inArray(index, rejected);
+			var selected_index = jQuery.inArray(index, selected);
+
+			if (rate == 1 && selected_index == -1) {
+				selected.push(index);
+			}
+
+			if (rate == -1 && rejected_index == -1) {
+				rejected.push(index);
+			}
+
+			if (rate != -1 && rejected_index != -1) {
+				rejected.splice(rejected_index, 1);
+			}
+
+			if (rate != 1 && selected_index != -1) {
+				selected.splice(selected_index, 1);
+			}
+
+			var objCss = {};
+
+			objCss["border-width"] = border + "px";
+			objCss["border-style"] = "solid";
+			objCss["border-color"] = color;
+
+			if (rate == -1)
+				rejected.push(index);
+
+			if (rate == 1)
+				selected.push(index);
+
+			objTile.css(objCss);
+
+		}).fail(function() {
+			alert( "error" );
+		});
+	}
+
+
+		/**
 	 * before items request: hide items, show preloader
 	 */
 	function onBeforeReqestItems(){

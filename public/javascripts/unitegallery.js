@@ -19176,7 +19176,7 @@ var g_ugWistiaAPI = new UGWistiaAPI();
 
 
 /**
- * prototype gallery funciton
+ * prototype gallery function
  */
 jQuery.fn.unitegallery = function(options){
 	var element = jQuery(this);
@@ -19819,6 +19819,9 @@ function UniteGalleryMain(){
 				}
 
 				objItem.title = objChild.attr("alt");
+
+				objItem.pageId = objChild.attr("data-pageId");
+				objItem.roundId = objChild.attr("data-roundId");
 
 				//always set thumb image to object
 				objItem.objThumbImage = objChild;
