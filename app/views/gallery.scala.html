@@ -25,7 +25,7 @@
 
                     @for((file, index) <- pageFiles.view.zipWithIndex) {
 
-                        <img alt="@file.title @file.pageId" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)"
+                        <img alt="@file.title @file.pageId" src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeY)"
                         data-image="@controllers.Global.resizeTo(file.image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)"
                         data-description="@file.title @file.pageId"
                         data-pageId="@file.pageId"
