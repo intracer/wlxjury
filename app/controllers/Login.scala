@@ -28,7 +28,7 @@ object Login extends Controller with Secured {
       } {
         round =>
           if (round.isBinary) {
-            Redirect(routes.Gallery.list(user.id.get, 0, "all", round.id.get))
+            Redirect(routes.Gallery.list(user.id.get, 1, "all", round.id.get, rate = Some(0)))
           } else {
             Redirect(routes.Gallery.byRate(user.id.get, 0, "all", 0))
           }
