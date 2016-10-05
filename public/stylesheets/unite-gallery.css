@@ -703,6 +703,14 @@ img.ug-sepia-effect{
 	background-image:url('../images/icon-link32.png');	
 }
 
+.ug-thumb-wrapper.ug-tile .ug-tile-icon.ug-icon-select{
+	background-image:url('../images/Symbol_thumbs_up_green.png');
+}
+
+.ug-thumb-wrapper.ug-tile .ug-tile-icon.ug-icon-reject{
+	background-image:url('../images/Dislike.png');
+}
+
 .ug-thumb-wrapper.ug-tile .ug-tile-icon.ug-icon-zoom{
 	background-image:url('../images/icon-zoom32.png');	
 }
