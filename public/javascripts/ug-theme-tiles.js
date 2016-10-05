@@ -33,10 +33,6 @@ function UGTheme_tiles(){
 			showPreloader: false
 	};
 
-	var selected =[];
-
-	var rejected =[];
-
 	/**
 	 * Init the theme
 	 */
@@ -158,7 +154,6 @@ function UGTheme_tiles(){
 	}
 	
 	
-	
 	/**
 	 * init size of the thumbs panel
 	 */
@@ -197,11 +192,8 @@ function UGTheme_tiles(){
 		objTile = jQuery(objTile);
 
 		var objItem = g_objTileDesign.getItemByTile(objTile);
-		var index = objItem.index;
 
-		var selected_index = jQuery.inArray(index, selected);
-
-		if (selected_index == -1) {
+		if (objItem.rate != 1) {
 			serviceCall(objItem, 1, objTile)
 		} else {
 			serviceCall(objItem, 0, objTile)
@@ -216,11 +208,8 @@ function UGTheme_tiles(){
 		objTile = jQuery(objTile);
 
 		var objItem = g_objTileDesign.getItemByTile(objTile);
-		var index = objItem.index;
 
-		var rejected_index = jQuery.inArray(index, rejected);
-
-		if (rejected_index == -1) {
+		if (objItem.rate != -1) {
 			serviceCall(objItem, -1, objTile)
 		} else {
 			serviceCall(objItem, 0, objTile)
@@ -237,37 +226,13 @@ function UGTheme_tiles(){
 			if (rate == 0) border = 0; else border = 3;
 			if (rate == 1) color = "limegreen"; else color = "brown";
 
-			var index = objItem.index;
-			var rejected_index = jQuery.inArray(index, rejected);
-			var selected_index = jQuery.inArray(index, selected);
-
-			if (rate == 1 && selected_index == -1) {
-				selected.push(index);
-			}
-
-			if (rate == -1 && rejected_index == -1) {
-				rejected.push(index);
-			}
-
-			if (rate != -1 && rejected_index != -1) {
-				rejected.splice(rejected_index, 1);
-			}
-
-			if (rate != 1 && selected_index != -1) {
-				selected.splice(selected_index, 1);
-			}
+			objItem.rate = rate;
 
 			var objCss = {};
 
 			objCss["border-width"] = border + "px";
 			objCss["border-style"] = "solid";
 			objCss["border-color"] = color;
-
-			if (rate == -1)
-				rejected.push(index);
-
-			if (rate == 1)
-				selected.push(index);
 
 			objTile.css(objCss);
 
