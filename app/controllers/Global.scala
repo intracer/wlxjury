@@ -13,7 +13,7 @@ object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
   val gallerySizeX = 300
-  val gallerySizeY = 200
+  val gallerySizeY = 250
   val gallerySizeXDouble = 600
   val gallerySizeYDouble = 400
   val thumbSizeX = 150
