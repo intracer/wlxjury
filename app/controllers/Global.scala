@@ -94,7 +94,7 @@ object Global {
     val isSvg = info.title.toLowerCase.endsWith(".svg")
 
     if (px < info.width || isPdf || isTif || isSvg) {
-      val file = URLEncoder.encode(info.title.replaceFirst("File:", ""), "UTF-8")
+      val file = URLEncoder.encode(info.title.replaceFirst("File:", "").replace(" ", "_"), "UTF-8")
       s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
     } else {
       info.url.getOrElse("")
