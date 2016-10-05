@@ -19814,6 +19814,7 @@ function UniteGalleryMain(){
 				objItem.pageId = objChild.attr("data-pageId");
 				objItem.roundId = objChild.attr("data-roundId");
 				objItem.rate = objChild.attr("data-rate");
+				objItem.largeUrl = objChild.attr("data-largeUrl");
 
 				//always set thumb image to object
 				objItem.objThumbImage = objChild;

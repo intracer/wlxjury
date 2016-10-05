@@ -179,9 +179,8 @@ function UGTheme_tiles(){
 		objTile = jQuery(objTile);		
 		
 		var objItem = g_objTileDesign.getItemByTile(objTile);
-		var index = objItem.index;		
-		
-		g_lightbox.open(index);
+
+		window.open(objItem.largeUrl, "_self");
 	}
 
 	/**
