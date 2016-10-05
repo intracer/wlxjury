@@ -11243,7 +11243,7 @@ function UGTileDesign(){
 				var objTextPanelElement = getTextPanelElement(objTile);
 				var texPanelSize = g_functions.getElementSize(objTextPanelElement);
 				if(texPanelSize.height > 0)
-					gapVert = Math.floor((texPanelSize.height / 2) * -1);
+					gapVert = Math.floor((texPanelSize.height / 3) * -1);
 			}
 
 		}
@@ -11254,20 +11254,11 @@ function UGTileDesign(){
 			var spaceBetween = g_options.tile_space_between_icons;
 
 			var buttonsWidth = sizeZoom.width + spaceBetween + sizeSelect.width;
-			var buttonsX = Math.floor((sizeTile.width - buttonsWidth) / 2);
+			var buttonsX = Math.floor(sizeTile.width / 3);
 
-			//trace("X: "+buttonsX+" "+"space: " + spaceBetween);
-
-			//if space more then padding, calc even space.
-			if(buttonsX < spaceBetween){
-				spaceBetween = Math.floor((sizeTile.width - sizeZoom.width - sizeSelect.width) / 3);
-				buttonsWidth = sizeZoom.width + spaceBetween + sizeSelect.width;
-				buttonsX = Math.floor((sizeTile.width - buttonsWidth) / 2);
-			}
-
-			g_functions.placeElement(objButtonZoom, buttonsX - sizeZoom.width, "middle", 0 ,gapVert);
-			g_functions.placeElement(objButtonSelect, buttonsX + spaceBetween, "middle", 0, gapVert);
-			g_functions.placeElement(objButtonReject, buttonsX + sizeSelect.width * 1.5 + spaceBetween, "middle", 0, gapVert);
+			g_functions.placeElement(objButtonZoom, sizeTile.width/2 - 24, sizeTile.height/3, 0, gapVert);
+			g_functions.placeElement(objButtonSelect, buttonsX - 16, sizeTile.height*2/3 - 4, 0, gapVert);
+			g_functions.placeElement(objButtonReject, buttonsX*2 - 16, sizeTile.height*2/3 + 4, 0, gapVert);
 
 		}else{
 
@@ -19795,10 +19786,10 @@ function UniteGalleryMain(){
 
 			if(tagname == "img"){
 
-				//protection agains lasy load
-				var lasyLoadSrc = objChild.data("lazyload-src");
-				if(lasyLoadSrc && lasyLoadSrc != ""){
-					objChild.attr("src", lasyLoadSrc);
+				//protection against lazy load
+				var lazyLoadSrc = objChild.data("lazyload-src");
+				if(lazyLoadSrc && lazyLoadSrc != ""){
+					objChild.attr("src", lazyLoadSrc);
 					jQuery.removeData(objChild, "lazyload-src");
 				}
 
