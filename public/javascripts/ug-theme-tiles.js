@@ -180,7 +180,10 @@ function UGTheme_tiles(){
 		
 		var objItem = g_objTileDesign.getItemByTile(objTile);
 
-		window.open(objItem.largeUrl, "_self");
+		var rate = objItem.rate;
+		var url = objItem.largeUrl.split('?')[0] + '?rate=' + rate;
+
+		window.open(url, "_self");
 	}
 
 	/**
