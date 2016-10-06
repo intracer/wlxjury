@@ -19,7 +19,7 @@ object Global {
   val thumbSizeX = 150
   val thumbSizeY = 120
   val largeSizeX = 1280
-  val largeSizeY = 1180
+  val largeSizeY = 1100
 
   private val galleryUrls = collection.mutable.Map[Long, String]()
   private val largeUrls = collection.mutable.Map[Long, String]()
