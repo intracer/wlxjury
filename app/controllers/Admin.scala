@@ -269,7 +269,10 @@ object Admin extends Controller with Secured {
   def createUser(creator: User, formUser: User, contestOpt: Option[ContestJury]) = {
     val password = UserJdbc.randomString(12)
     val hash = UserJdbc.hash(formUser, password)
-    val createdUser = UserJdbc.create(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest, formUser.lang)
+
+    val toCreate = formUser.copy(password = Some(hash))
+
+    val createdUser = UserJdbc.create(toCreate)
 
     contestOpt.foreach { contest =>
       if (contest.greeting.use) {
@@ -296,7 +299,7 @@ object Admin extends Controller with Secured {
     mapping(
       "id" -> longNumber,
       "fullname" -> nonEmptyText,
-      "wiki_account" -> optional(text),
+      "wikiAccount" -> optional(text),
       "email" -> email,
       "password" -> optional(text),
       "roles" -> optional(text),
