@@ -90,6 +90,12 @@
                                     editRoundForm("minMpx"),
                                     Seq("No", "1", "2").map(x => (x, x)),
                                     '_label -> "Minimum MegaPixels", 'readonly -> noEdit)
+
+                                @b3.select(
+                                    editRoundForm("minSize"),
+                                    Seq("No", "1", "2").map(x => (x, x)),
+                                    '_label -> "Minimum Megabytes", 'readonly -> noEdit)
+
                             </div>
                         </div>
 

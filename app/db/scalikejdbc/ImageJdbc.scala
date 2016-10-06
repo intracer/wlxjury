@@ -28,7 +28,16 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
   def fromPage(page: Page, contest: ContestJury): Option[Image] = {
     try {
       for (imageInfo <- page.images.headOption)
-        yield new Image(page.id.get, contest.id.get, page.title, imageInfo.url, imageInfo.pageUrl, imageInfo.width.get, imageInfo.height.get, None)
+        yield new Image(
+          page.id.get,
+          contest.id.get,
+          page.title,
+          imageInfo.url,
+          imageInfo.pageUrl,
+          imageInfo.width.get,
+          imageInfo.height.get, None,
+          size = imageInfo.size.map(_.toInt)
+        )
     } catch {
       case e: Throwable =>
         println(e)
@@ -47,7 +56,8 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
     width = rs.int(c.width),
     height = rs.int(c.height),
     monumentId = rs.stringOpt(c.monumentId),
-    description = rs.stringOpt(c.description)
+    description = rs.stringOpt(c.description),
+    size = rs.intOpt(c.size)
   )
 
   def batchInsert(images: Seq[Image]) {
@@ -62,7 +72,8 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
         i.width,
         i.height,
         i.monumentId,
-        i.description
+        i.description,
+        i.size
       ))
       withSQL {
         insert.into(ImageJdbc).namedValues(
@@ -74,7 +85,8 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
           column.width -> sqls.?,
           column.height -> sqls.?,
           column.monumentId -> sqls.?,
-          column.description -> sqls.?
+          column.description -> sqls.?,
+          column.size -> sqls.?
         )
       }.batch(batchParams: _*).apply()
     }

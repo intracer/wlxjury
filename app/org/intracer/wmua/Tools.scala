@@ -82,6 +82,7 @@ object Tools {
     val existingImageIds = currentSelection.map(_.pageId)
     val existingJurorIds = currentSelection.flatMap(_.jurors)
     val mpxAtLeast = round.minMpx
+    val sizeAtLeast = round.minImageSize.map(_  * 1024 * 1024)
 
     val contestId = round.contest
     val imagesAll = prevRound.fold[Seq[ImageWithRating]](
@@ -105,7 +106,8 @@ object Tools {
       selectMinAvgRating = prevRound.flatMap(_ => selectMinAvgRating.filter(x => !prevRound.exists(_.isBinary))),
       selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
       selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
-      mpxAtLeast = mpxAtLeast
+      mpxAtLeast = mpxAtLeast,
+      sizeAtLeast = sizeAtLeast
     )
 
     println("Image filters:")
