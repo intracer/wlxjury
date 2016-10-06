@@ -7,131 +7,137 @@
         regions: Map[String, String] = Map.empty
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@import b3.vertical.fieldConstructor
-@import helper._
-@import org.intracer.wmua.Round
+    @import b3.vertical.fieldConstructor
+    @import helper._
+    @import org.intracer.wmua.Round
 
-@mainAdmin(Messages("edit round"), user, user.id.get, contestId = contestId) {
-    <div class="row" >
-        <div class="col-md-6">
+    @mainAdmin(Messages("edit round"), user, user.id.get, contestId = contestId) {
+        <div class="row" >
+            <div class="col-md-6">
 
 
-            @if(round.id.isDefined) {
-                <h3>@Messages("Edit round")</h3>
-            } else {
-                <h3>@Messages("Create round")</h3>
-            }
-
-            @b3.form(routes.Rounds.saveRound) {
-
-                @if(editRoundForm.hasGlobalErrors) {
-                    <p class="error">
-                        <span class="label important">@Messages(editRoundForm.errors.head.message)</span>
-                    </p>
+                @if(round.id.isDefined) {
+                    <h3>@Messages("Edit round")</h3>
+                } else {
+                    <h3>@Messages("Create round")</h3>
                 }
 
-                <fieldset>
-                    <input type="hidden" id="id" name="id" value='@editRoundForm("id").value' />
-                    <input type="hidden" name="contest" id="contest" value='@editRoundForm("contest").value' />
-                    <input type="hidden" name="number" id="number" value='@editRoundForm("number").value' />
-                    <input type="hidden" name="roles" id="roles" value='jury' />
+                @b3.form(routes.Rounds.saveRound) {
 
-                    @b3.text(editRoundForm("name"), '_label -> "Round name (optional)")
-
-                    @defining(round.id.isDefined) { noEdit =>
-
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">Filtering</h3>
-                            </div>
-                            <div class="panel-body">
-                                @if(rounds.nonEmpty) {
-                                    @b3.select(editRoundForm("previousRound"), rounds.map(r => (r.id.map(_.toString).get, r.description)),
-                                        '_label -> "Previous round", '_help -> "", 'class -> "form-control", 'readonly -> noEdit,
-                                        '_default -> "No")
-                                }
-
-                            <div id="prevRoundFilters" @if(round.previous.isEmpty) {
-                                style="display: none"}>
-                                <div id="selectFilters" class="@rounds.filter(_.isBinary).map(r => "round" + r.id.get).mkString(" ")">
-                                @b3.select(
-                                    editRoundForm("minJurors"),
-                                    Seq("0", "1", "2", "3", "4", "5", "6").map(x => (x, x)),
-                                    '_label -> "Selected by at least X jurors", 'readonly -> noEdit)
-                                </div>
-
-                                <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.id.get).mkString(" ")">
-                                @b3.select(
-                                    editRoundForm("minAvgRate"),
-                                    (0 to 20).map(x => (x.toString, x.toString)),
-                                    '_label -> "Average image rating is at least", 'readonly -> noEdit)
-                                </div>
-                            </div>
-                                @b3.select(
-                                    editRoundForm("categoryClause"),
-                                    Seq(
-                                        ("No", "Absent"),
-                                        ("1", "Images should be IN the category"),
-                                        ("-1", "Images should be NOT IN the category")
-                                    ),
-                                    '_label -> "Category Filter", 'readonly -> noEdit)
-
-                                <div id="categoryDiv" @if(round.category.isEmpty) {style="display: none"}>
-                                    @b3.text(editRoundForm("source"), '_label -> "Category", 'readonly -> noEdit)
-                                </div>
-
-                            @if(regions.nonEmpty) {
-                                @b3.select(
-                                    editRoundForm("regions"),
-                                    regions.toSeq.sortBy(_._1) ,'_label -> "Regions", 'multiple -> true, 'readonly -> noEdit)
-                            }
-
-                                @b3.select(
-                                    editRoundForm("minMpx"),
-                                    Seq("No", "1", "2").map(x => (x, x)),
-                                    '_label -> "Minimum MegaPixels", 'readonly -> noEdit)
-
-                                @b3.select(
-                                    editRoundForm("minSize"),
-                                    Seq("No", "1", "2").map(x => (x, x)),
-                                    '_label -> "Minimum Megabytes", 'readonly -> noEdit)
-
-                            </div>
-                        </div>
-
-
-                    @b3.select(editRoundForm("distribution"),
-                        (0 to 4).map(x => (x.toString,
-                                Seq(
-                                    "Each image to all jurors",
-                                    "Each image to 1 juror",
-                                    "Each image to 2 jurors",
-                                    "Each image to 3 jurors",
-                                    "Each image to 4 jurors"
-                                )(x))),
-                        '_label -> "Image distribution", 'readonly -> noEdit)
-
-                    @b3.select(
-                        editRoundForm("rates"),
-                        Round.rates.map(x => (x.id.toString, x.name)),
-                        '_label -> "Selection type", 'readonly -> noEdit)
-
-                        <!--
-                        @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Min selected")
-
-                        @select(editRoundForm("limitMax"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Max selected")
-
-                        @select(editRoundForm("recommended"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Recommended selected") -->
-
+                    @if(editRoundForm.hasGlobalErrors) {
+                        <p class="error">
+                            <span class="label important">@Messages(editRoundForm.errors.head.message)</span>
+                        </p>
                     }
-                </fieldset>
 
-                <div class="form-actions">
-                    <input type="submit" class="btn btn-primary" value="@Messages("Save")">
-                    <a href="@routes.Rounds.rounds(editRoundForm("contest").value.map(_.toLong))" class="btn">@Messages("Cancel")</a>
+                    <fieldset>
+                        <input type="hidden" id="id" name="id" value='@editRoundForm("id").value' />
+                        <input type="hidden" name="contest" id="contest" value='@editRoundForm("contest").value' />
+                        <input type="hidden" name="number" id="number" value='@editRoundForm("number").value' />
+                        <input type="hidden" name="roles" id="roles" value='jury' />
+
+                        @b3.text(editRoundForm("name"), '_label -> "Round name (optional)")
+
+                        @defining(round.id.isDefined) { noEdit =>
+
+                            <div class="panel panel-default">
+                                <div class="panel-heading" id="headingImageFiltering">
+                                    <a role="button" data-toggle="collapse" href="#collapseImageFiltering" aria-expanded="false" aria-controls="collapseImageFiltering">
+                                        <h3 class="panel-title">Image filtering</h3>
+                                    </a>
+                                </div>
+
+                                <div id="collapseImageFiltering" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingImageFiltering">
+                                    <div class="panel-body">
+                                        @if(rounds.nonEmpty) {
+                                            @b3.select(editRoundForm("previousRound"), rounds.map(r => (r.id.map(_.toString).get, r.description)),
+                                                '_label -> "Previous round", '_help -> "", 'class -> "form-control", 'readonly -> noEdit,
+                                                '_default -> "No")
+                                        }
+
+                                    <div id="prevRoundFilters" @if(round.previous.isEmpty) {
+                                        style="display: none"}>
+                                        <div id="selectFilters" class="@rounds.filter(_.isBinary).map(r => "round" + r.id.get).mkString(" ")">
+                                        @b3.select(
+                                            editRoundForm("minJurors"),
+                                            Seq("0", "1", "2", "3", "4", "5", "6").map(x => (x, x)),
+                                            '_label -> "Selected by at least X jurors", 'readonly -> noEdit)
+                                        </div>
+
+                                        <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.id.get).mkString(" ")">
+                                        @b3.select(
+                                            editRoundForm("minAvgRate"),
+                                            (0 to 20).map(x => (x.toString, x.toString)),
+                                            '_label -> "Average image rating is at least", 'readonly -> noEdit)
+                                        </div>
+                                    </div>
+                                        @b3.select(
+                                            editRoundForm("categoryClause"),
+                                            Seq(
+                                                ("No", "Absent"),
+                                                ("1", "Images should be IN the category"),
+                                                ("-1", "Images should be NOT IN the category")
+                                            ),
+                                            '_label -> "Category Filter", 'readonly -> noEdit)
+
+                                    <div id="categoryDiv" @if(round.category.isEmpty) {
+                                        style="display: none"}>
+                                    @b3.text(editRoundForm("source"), '_label -> "Category", 'readonly -> noEdit)
+                                    </div>
+
+                                        @if(regions.nonEmpty) {
+                                            @b3.select(
+                                                editRoundForm("regions"),
+                                                regions.toSeq.sortBy(_._1), '_label -> "Regions", 'multiple -> true, 'readonly -> noEdit)
+                                        }
+
+                                        @b3.select(
+                                            editRoundForm("minMpx"),
+                                            Seq("No", "1", "2").map(x => (x, x)),
+                                            '_label -> "Minimum MegaPixels", 'readonly -> noEdit)
+
+                                        @b3.select(
+                                            editRoundForm("minSize"),
+                                            Seq("No", "1", "2").map(x => (x, x)),
+                                            '_label -> "Minimum Megabytes", 'readonly -> noEdit)
+
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        @b3.select(editRoundForm("distribution"),
+                            (0 to 4).map(x => (x.toString,
+                                    Seq(
+                                        "Each image to all jurors",
+                                        "Each image to 1 juror",
+                                        "Each image to 2 jurors",
+                                        "Each image to 3 jurors",
+                                        "Each image to 4 jurors"
+                                    )(x))),
+                            '_label -> "Image distribution", 'readonly -> noEdit)
+
+                        @b3.select(
+                            editRoundForm("rates"),
+                            Round.rates.map(x => (x.id.toString, x.name)),
+                            '_label -> "Selection type", 'readonly -> noEdit)
+
+                            <!--
+                            @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Min selected")
+
+                            @select(editRoundForm("limitMax"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Max selected")
+
+                            @select(editRoundForm("recommended"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Recommended selected") -->
+
+                        }
+                    </fieldset>
+
+                    <div class="form-actions">
+                        <input type="submit" class="btn btn-primary" value="@Messages("Save")">
+                        <a href="@routes.Rounds.rounds(editRoundForm("contest").value.map(_.toLong))" class="btn">@Messages("Cancel")</a>
+                    </div>
                 </div>
-            </div>
 
-    </div>
-}
-}
+        </div>
+    }
+    }
