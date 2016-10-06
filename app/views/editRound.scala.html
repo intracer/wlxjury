@@ -7,7 +7,9 @@
         regions: Map[String, String] = Map.empty
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
-    @import b3.vertical.fieldConstructor
+    @implicitFieldConstructor = @{
+        b3.horizontal.fieldConstructor("col-md-4", "col-md-8")
+    }
     @import helper._
     @import org.intracer.wmua.Round
 
@@ -53,24 +55,24 @@
                                             @b3.select(editRoundForm("previousRound"), rounds.map(r => (r.id.map(_.toString).get, r.description)),
                                                 '_label -> "Previous round", '_help -> "", 'class -> "form-control", 'readonly -> noEdit,
                                                 '_default -> "No")
+
+                                            <div id="prevRoundFilters" @if(round.previous.isEmpty) {
+                                                style="display: none"}>
+                                                <div id="selectFilters" class="@rounds.filter(_.isBinary).map(r => "round" + r.id.get).mkString(" ")">
+                                                @b3.select(
+                                                    editRoundForm("minJurors"),
+                                                    Seq("0", "1", "2", "3", "4", "5", "6").map(x => (x, x)),
+                                                    '_label -> "Selected by at least X jurors", 'readonly -> noEdit)
+                                                </div>
+
+                                                <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.id.get).mkString(" ")">
+                                                @b3.select(
+                                                    editRoundForm("minAvgRate"),
+                                                    (0 to 20).map(x => (x.toString, x.toString)),
+                                                    '_label -> "Average image rating is at least", 'readonly -> noEdit)
+                                                </div>
+                                            </div>
                                         }
-
-                                    <div id="prevRoundFilters" @if(round.previous.isEmpty) {
-                                        style="display: none"}>
-                                        <div id="selectFilters" class="@rounds.filter(_.isBinary).map(r => "round" + r.id.get).mkString(" ")">
-                                        @b3.select(
-                                            editRoundForm("minJurors"),
-                                            Seq("0", "1", "2", "3", "4", "5", "6").map(x => (x, x)),
-                                            '_label -> "Selected by at least X jurors", 'readonly -> noEdit)
-                                        </div>
-
-                                        <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.id.get).mkString(" ")">
-                                        @b3.select(
-                                            editRoundForm("minAvgRate"),
-                                            (0 to 20).map(x => (x.toString, x.toString)),
-                                            '_label -> "Average image rating is at least", 'readonly -> noEdit)
-                                        </div>
-                                    </div>
                                         @b3.select(
                                             editRoundForm("categoryClause"),
                                             Seq(
@@ -132,9 +134,12 @@
                         }
                     </fieldset>
 
-                    <div class="form-actions">
-                        <input type="submit" class="btn btn-primary" value="@Messages("Save")">
-                        <a href="@routes.Rounds.rounds(editRoundForm("contest").value.map(_.toLong))" class="btn">@Messages("Cancel")</a>
+                    <div class="form-actions" style="margin-top: 10px">
+                        <input type="submit" class="btn btn-primary btn-default" style="width: 25%;
+                            margin-right: 10px" value="@Messages("Save")">
+                        <a href="@routes.Rounds.rounds(editRoundForm("contest").value.map(_.toLong))">
+                            <button type="button" class="btn btn-default" style="width: 25%;" >@Messages("Cancel")</button>
+                        </a>
                     </div>
                 </div>
 
