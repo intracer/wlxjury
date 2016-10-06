@@ -24,7 +24,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
   }
 
   def contestImage(id: Long, contest: Long) =
-    Image(id, contest, s"File:Image$id.jpg", Some(s"url$id"), None, 640, 480, Some(s"12-345-$id"))
+    Image(id, contest, s"File:Image$id.jpg", Some(s"url$id"), None, 640, 480, Some(s"12-345-$id"), size = Some(1234))
 
   def imageInfo(id: Long) = new Page(Some(id), Namespace.FILE, s"File:Image$id.jpg", images = Seq(
     new org.scalawiki.dto.Image(s"File:Image$id.jpg", Some(s"url$id"), Some(s"pageUrl$id"), Some(1234), Some(640), Some(480))
