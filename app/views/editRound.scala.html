@@ -116,16 +116,21 @@
                             jurors.map(u => (u.id.get.toString, u.description)).sortBy(_._2),
                             '_label -> "Jurors", 'multiple -> true, 'readonly -> noEdit)
                     } else {
+
                         <div class="panel panel-default">
-                            <div class="panel-heading" id="headingImageFiltering">
-                                Jurors
+                            <div class="panel-heading" id="headingJurors">
+                                <a role="button" data-toggle="collapse" href="#collapseJurors" aria-expanded="false" aria-controls="collapseJurors">
+                                    <h3 class="panel-title">Jurors</h3>
+                                </a>
                             </div>
 
-                            <div class="panel-body">
+                            <div id="collapseJurors" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingJurors">
+                                <div class="panel-body">
 
-                            @statOpt.map { stat =>
-                                @roundStatTable(user, stat.round, stat)
-                            }
+                                @statOpt.map { stat =>
+                                    @roundStatTable(user, stat.round, stat)
+                                }
+                                </div>
                             </div>
                         </div>
                     }
