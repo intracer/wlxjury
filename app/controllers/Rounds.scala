@@ -8,6 +8,7 @@ import play.api.data.Forms._
 import play.api.mvc.Controller
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
+import scalikejdbc._
 
 import scala.util.Try
 
@@ -45,16 +46,32 @@ object Rounds extends Controller with Secured {
         val round = roundId.flatMap(RoundJdbc.find).getOrElse(
           new Round(id = None, contest = contestId, number = number)
         )
-        val editRound = EditRound(round, None)
-
-        val filledRound = editRoundForm.fill(editRound)
 
         val rounds = RoundJdbc.findByContest(contestId)
 
         val regions = Contests.regions(contestId)
 
-        Ok(views.html.editRound(user, filledRound, round, rounds, Some(round.contest), regions))
+        val allJurors = loadJurors(contestId)
+
+        val editRound = EditRound(round, allJurors.flatMap(_.id), None)
+
+        val filledRound = editRoundForm.fill(editRound)
+
+        Ok(views.html.editRound(user, filledRound, round, rounds, Some(round.contest), allJurors, regions))
   }, User.ADMIN_ROLES)
+
+  def loadJurors(contestId: Long): Seq[User] = {
+    UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, Seq("jury")).and.eq(UserJdbc.u.contest, contestId))
+  }
+
+  def loadJurors(contestId: Long, jurorIds: Seq[Long]): Seq[User] = {
+    UserJdbc.findAllBy(
+      sqls
+        .in(UserJdbc.u.id, jurorIds).and
+        .in(UserJdbc.u.roles, Seq("jury")).and
+        .eq(UserJdbc.u.contest, contestId)
+    )
+  }
 
   def saveRound() = withAuth({
     user =>
@@ -65,12 +82,14 @@ object Rounds extends Controller with Secured {
             // binding failure, you retrieve the form containing errors,
             val contestId: Option[Long] = formWithErrors.data.get("contest").map(_.toLong)
             val rounds = contestId.map(RoundJdbc.findByContest).getOrElse(Seq.empty)
-            BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user).get, rounds, contestId))
+            val jurors = loadJurors(contestId.get)
+
+            BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user).get, rounds, contestId, jurors))
           },
           editForm => {
             val round = editForm.round
             if (round.id.isEmpty) {
-              createNewRound(user, round)
+              createNewRound(user, round, editForm.jurors)
             } else {
               round.id.foreach(roundId => RoundJdbc.updateRound(roundId, round))
             }
@@ -79,7 +98,7 @@ object Rounds extends Controller with Secured {
         )
   }, User.ADMIN_ROLES)
 
-  def createNewRound(user: User, round: Round): Round = {
+  def createNewRound(user: User, round: Round, jurorIds: Seq[Long]): Round = {
 
     //  val contest: Contest = Contest.byId(round.contest).head
 
@@ -89,7 +108,9 @@ object Rounds extends Controller with Secured {
 
     val prevRound = created.previous.flatMap(RoundJdbc.find)
 
-    Tools.distributeImages(created, created.jurors, prevRound,
+    val jurors = loadJurors(round.contest, jurorIds)
+
+    Tools.distributeImages(created, jurors, prevRound,
       selectedAtLeast = created.prevSelectedBy,
       selectMinAvgRating = created.prevMinAvgRate,
       sourceCategory = created.category,
@@ -249,7 +270,8 @@ object Rounds extends Controller with Secured {
       "categoryClause" -> text,
       "source" -> optional(text),
       "regions" -> seq(text),
-      "minSize" -> text
+      "minSize" -> text,
+      "jurors" -> seq(text)
     )(applyEdit)(unapplyEdit)
   )
 
@@ -262,7 +284,8 @@ object Rounds extends Controller with Secured {
                 categoryClause: String,
                 category: Option[String],
                 regions: Seq[String],
-                minImageSize: String
+                minImageSize: String,
+                jurors: Seq[String]
                ): EditRound = {
     val round = new Round(id, num, name, contest, Set(roles), distribution, Round.ratesById(rates),
       limitMin, limitMax, recommended,
@@ -275,15 +298,15 @@ object Rounds extends Controller with Secured {
       regions = if (regions.nonEmpty) Some(regions.mkString(",")) else None,
       minImageSize = Try(minImageSize.toInt).toOption
     )
-    EditRound(round, returnTo)
+    EditRound(round, jurors.map(_.toLong), returnTo)
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Int, Option[String], Long, String, Int, Int, Option[Int],
     Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String],
-    Seq[String], String)] = {
+    Seq[String], String, Seq[String])] = {
     val round = editRound.round
-    Some(
-      (round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
+    Some((
+      round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
         round.limitMin, round.limitMax, round.recommended, editRound.returnTo,
         round.minMpx.fold("No")(_.toString),
         round.previous,
@@ -292,9 +315,14 @@ object Rounds extends Controller with Secured {
         round.categoryClause.fold("No")(_.toString),
         round.category,
         round.regionIds,
-        round.minImageSize.fold("No")(_.toString))
-    )
+        round.minImageSize.fold("No")(_.toString),
+        editRound.jurors.map(_.toString)
+        ))
   }
 }
 
-case class EditRound(round: Round, returnTo: Option[String])
+case class EditRound(
+                      round: Round,
+                      jurors: Seq[Long],
+                      returnTo: Option[String]
+                    )

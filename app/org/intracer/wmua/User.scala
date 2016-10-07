@@ -41,6 +41,8 @@ case class User(fullname: String,
       (contest.contains(round.contest) &&
         hasAnyRole(Set("organizer", "admin", "root")) ||
         (roles.contains("jury") && round.juryOrgView))
+
+  def description: String = Seq(fullname, wikiAccount.fold("")(u => "User:" + u), email).mkString(" / ")
 }
 
 object User {
