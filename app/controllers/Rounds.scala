@@ -254,6 +254,10 @@ object Rounds extends Controller with Secured {
   def nonEmptySeq[T]: Constraint[Seq[T]] = Constraint[Seq[T]]("constraint.required") { o =>
     if (o.nonEmpty) Valid else Invalid(ValidationError("error.required"))
   }
+
+  private val jurorsMappingKV = "jurors" -> seq(text).verifying(nonEmptySeq)
+  val jurorsMapping = single(jurorsMappingKV)
+
   val editRoundForm = Form(
     mapping(
       "id" -> optional(longNumber),
@@ -275,7 +279,7 @@ object Rounds extends Controller with Secured {
       "source" -> optional(text),
       "regions" -> seq(text),
       "minSize" -> text,
-      "jurors" -> seq(text).verifying(nonEmptySeq)
+      jurorsMappingKV
     )(applyEdit)(unapplyEdit)
   )
 
