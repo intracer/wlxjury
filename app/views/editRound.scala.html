@@ -4,7 +4,7 @@
 @(
         user: User,
         editRoundForm: Form[controllers.EditRound],
-        editing: Boolean = false,
+        newRound: Boolean = false,
         rounds: Seq[Round],
         contestId: Option[Long] = None,
         jurors: Seq[User],
@@ -21,10 +21,10 @@
             <div class="col-md-6">
 
 
-                @if(editing) {
-                    <h3>@Messages("Edit round")</h3>
-                } else {
+                @if(newRound) {
                     <h3>@Messages("Create round")</h3>
+                } else {
+                    <h3>@Messages("Edit round")</h3>
                 }
 
                 @b3.form(routes.Rounds.saveRound) {
@@ -43,7 +43,7 @@
 
                         @b3.text(editRoundForm("name"), '_label -> "Round name (optional)")
 
-                        @defining(editing) { noEdit =>
+                        @defining(!newRound) { noEdit =>
 
                             <div class="panel panel-default">
                                 <div class="panel-heading" id="headingImageFiltering">
@@ -107,11 +107,22 @@
                                     </div>
                                 </div>
                             </div>
-                        @b3.select(
-                            editRoundForm("jurors"),
-                            jurors.map(u => (u.id.get.toString, u.description)).sortBy(_._2),
-                            '_label -> "Jurors", 'multiple -> true, 'readonly -> noEdit)
+                        @if(newRound) {
+                            @b3.select(
+                                editRoundForm("jurors"),
+                                jurors.map(u => (u.id.get.toString, u.description)).sortBy(_._2),
+                                '_label -> "Jurors", 'multiple -> true, 'readonly -> noEdit)
+                        } else {
+                            <div class="panel panel-default">
+                                <div class="panel-heading" id="headingImageFiltering">
+                                    Jurors
+                                </div>
 
+                                <div class="panel-body">
+                                    @Html(jurors.map(u => "<li>" + u.description).mkString)
+                                </div>
+                            </div>
+                        }
 
                         @b3.select(editRoundForm("distribution"),
                             (0 to 4).map(x => (x.toString,

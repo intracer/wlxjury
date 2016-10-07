@@ -52,13 +52,13 @@ object Rounds extends Controller with Secured {
 
         val regions = Contests.regions(contestId)
 
-        val allJurors = loadJurors(contestId)
+        val jurors = round.id.fold(loadJurors(contestId))(UserJdbc.findByRoundSelection)
 
-        val editRound = EditRound(round, allJurors.flatMap(_.id), None)
+        val editRound = EditRound(round, jurors.flatMap(_.id), None)
 
         val filledRound = editRoundForm.fill(editRound)
 
-        Ok(views.html.editRound(user, filledRound, round.id.isDefined, rounds, Some(round.contest), allJurors, regions))
+        Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contest), jurors, regions))
   }, User.ADMIN_ROLES)
 
   def loadJurors(contestId: Long): Seq[User] = {
@@ -85,7 +85,7 @@ object Rounds extends Controller with Secured {
             val rounds = contestId.map(RoundJdbc.findByContest).getOrElse(Seq.empty)
             val jurors = loadJurors(contestId.get)
 
-            BadRequest(views.html.editRound(user, formWithErrors, editing = false, rounds, contestId, jurors))
+            BadRequest(views.html.editRound(user, formWithErrors, newRound = true, rounds, contestId, jurors))
           },
           editForm => {
               val round = editForm.round
