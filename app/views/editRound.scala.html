@@ -4,7 +4,7 @@
 @(
         user: User,
         editRoundForm: Form[controllers.EditRound],
-        round: Round,
+        editing: Boolean = false,
         rounds: Seq[Round],
         contestId: Option[Long] = None,
         jurors: Seq[User],
@@ -21,7 +21,7 @@
             <div class="col-md-6">
 
 
-                @if(round.id.isDefined) {
+                @if(editing) {
                     <h3>@Messages("Edit round")</h3>
                 } else {
                     <h3>@Messages("Create round")</h3>
@@ -43,7 +43,7 @@
 
                         @b3.text(editRoundForm("name"), '_label -> "Round name (optional)")
 
-                        @defining(round.id.isDefined) { noEdit =>
+                        @defining(editing) { noEdit =>
 
                             <div class="panel panel-default">
                                 <div class="panel-heading" id="headingImageFiltering">
@@ -59,8 +59,7 @@
                                                 '_label -> "Previous round", '_help -> "", 'class -> "form-control", 'readonly -> noEdit,
                                                 '_default -> "No")
 
-                                            <div id="prevRoundFilters" @if(round.previous.isEmpty) {
-                                                style="display: none"}>
+                                            <div id="prevRoundFilters" @if(editRoundForm("previousRound").value.isEmpty) {style="display: none"}>
                                                 <div id="selectFilters" class="@rounds.filter(_.isBinary).map(r => "round" + r.id.get).mkString(" ")">
                                                 @b3.select(
                                                     editRoundForm("minJurors"),
@@ -85,7 +84,7 @@
                                             ),
                                             '_label -> "Category Filter", 'readonly -> noEdit)
 
-                                    <div id="categoryDiv" @if(round.category.isEmpty) {style="display: none"}>
+                                    <div id="categoryDiv" @if(editRoundForm("source").value.isEmpty) {style="display: none"}>
                                     @b3.text(editRoundForm("source"), '_label -> "Category", 'readonly -> noEdit)
                                     </div>
 

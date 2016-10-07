@@ -8,6 +8,7 @@ import play.api.data.Forms._
 import play.api.mvc.Controller
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
+import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import scalikejdbc._
 
 import scala.util.Try
@@ -57,7 +58,7 @@ object Rounds extends Controller with Secured {
 
         val filledRound = editRoundForm.fill(editRound)
 
-        Ok(views.html.editRound(user, filledRound, round, rounds, Some(round.contest), allJurors, regions))
+        Ok(views.html.editRound(user, filledRound, round.id.isDefined, rounds, Some(round.contest), allJurors, regions))
   }, User.ADMIN_ROLES)
 
   def loadJurors(contestId: Long): Seq[User] = {
@@ -84,16 +85,16 @@ object Rounds extends Controller with Secured {
             val rounds = contestId.map(RoundJdbc.findByContest).getOrElse(Seq.empty)
             val jurors = loadJurors(contestId.get)
 
-            BadRequest(views.html.editRound(user, formWithErrors, RoundJdbc.current(user).get, rounds, contestId, jurors))
+            BadRequest(views.html.editRound(user, formWithErrors, editing = false, rounds, contestId, jurors))
           },
           editForm => {
-            val round = editForm.round
-            if (round.id.isEmpty) {
-              createNewRound(user, round, editForm.jurors)
-            } else {
-              round.id.foreach(roundId => RoundJdbc.updateRound(roundId, round))
-            }
-            Redirect(routes.Rounds.rounds(Some(round.contest)))
+              val round = editForm.round
+              if (round.id.isEmpty) {
+                createNewRound(user, round, editForm.jurors)
+              } else {
+                round.id.foreach(roundId => RoundJdbc.updateRound(roundId, round))
+              }
+              Redirect(routes.Rounds.rounds(Some(round.contest)))
           }
         )
   }, User.ADMIN_ROLES)
@@ -250,6 +251,9 @@ object Rounds extends Controller with Secured {
 
   val selectRoundForm = Form("currentRound" -> optional(text))
 
+  def nonEmptySeq[T]: Constraint[Seq[T]] = Constraint[Seq[T]]("constraint.required") { o =>
+    if (o.nonEmpty) Valid else Invalid(ValidationError("error.required"))
+  }
   val editRoundForm = Form(
     mapping(
       "id" -> optional(longNumber),
@@ -271,7 +275,7 @@ object Rounds extends Controller with Secured {
       "source" -> optional(text),
       "regions" -> seq(text),
       "minSize" -> text,
-      "jurors" -> seq(text)
+      "jurors" -> seq(text).verifying(nonEmptySeq)
     )(applyEdit)(unapplyEdit)
   )
 
