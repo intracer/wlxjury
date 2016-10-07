@@ -127,4 +127,22 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
   override def countByContest(contest: Long): Int = withSQL {
     select(sqls.count).from(RoundJdbc as c).where.eq(column.contest, contest)
   }.map(rs => rs.int(1)).single().apply().get
+
+  case class RoundStatRow(juror: Long, rate: Int, count: Int)
+
+  def roundUserStat(roundId: Long): Seq[RoundStatRow] =
+    sql"""SELECT u.id, s.rate, count(1) FROM users u
+      JOIN selection s ON s.jury_id = u.id
+    WHERE s.round = $roundId
+    GROUP BY u.id, s.rate""".map(rs =>
+      RoundStatRow(rs.int(1), rs.int(2), rs.int(3))
+    ).list().apply()
+
+  def roundRateStat(roundId: Long): Seq[(Int, Int)] =
+    sql"""SELECT rate, count(1) FROM
+(SELECT DISTINCT s.page_id, s.rate FROM users u
+  JOIN selection s ON s.jury_id = u.id
+  WHERE s.round = $roundId) t
+  GROUP BY rate""".map(rs => (rs.int(1), rs.int(2))).list().apply()
+
 }

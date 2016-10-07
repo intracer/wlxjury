@@ -1,64 +1,16 @@
 @import org.intracer.wmua.User
 @import org.intracer.wmua.Round
-@(
-        user: User,
-        jurors: Seq[User],
-        round: Round,
-        rounds: Seq[Round],
-        byUserCount: Map[Long, Int],
-        byUserRateCount: Map[Long, Map[Int, Int]],
-        total: Int,
-        totalByRate: Map[Int, Int],
-        byJurorNum: Map[Int, Int]
-        )(implicit flash: Flash, lang: Lang, messages: Messages)
+@(user: User, round: Round, stat: RoundStat)(implicit flash: Flash, lang: Lang, messages: Messages)
 
-    @roundLinks(round: Round, user: User, rate: Int) = {
-        @defining(byUserRateCount.getOrElse(user.id.get, Map.empty).getOrElse(rate, 0)) { count =>
-                    <div class="btn-group">
-                        @if(round.isBinary || rate == 0) {
-                            <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
-                                <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
-                                    <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
-                                </button>
-                            </a>
-                        } else {
-                            <a href="/byrate/round/@round.id/user/@user.id/page/1">
-                                <button type="button" class="btn btn-default btn-xs">
-                                    <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
-                                </button>
-                            </a>
-                        }
-                        @if(round.isBinary || rate == 0) {
-                            <a href="/filelist/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
-                                <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
-                                    <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
-                                </button>
-                            </a>
-                        } else {
-                            <a href="/filelist/round/@round.id/user/@user.id/page/1">
-                                <button type="button" class="btn btn-default btn-xs">
-                                    <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
-                                </button>
-                            </a>
-                        }
-                    </div>
-        @if(round.isBinary) { @count } else {
-            @byUserRateCount.getOrElse(user.id.get, Map.empty).toSeq.collect({
-                case (x, y) if rate > 0 && x > 0 || rate == 0 && x == 0 => y
-            }).sum
 
-        }
-        }
-    }
-
-    @main(Messages("statistics"), user, user.id.get, user, Some(round), currentRounds = Seq(round), rounds, gallery = false) {
+    @main(Messages("statistics"), user, user.id.get, user, Some(round), currentRounds = Seq(round), stat.rounds, gallery = false) {
 
         @if(user.canViewOrgInfo(round)) {
             <div class="row" >
                 <nav>
                 <div class="col-md-12 text-center">
                     <ul class="pagination pagination-centered" style="margin-top: 10px; margin-bottom: 5px;">
-                    @for(r <- rounds) {
+                    @for(r <- stat.rounds) {
                         <li><a href="/roundstat/@r.id" @if(r.id == round.id){style="font-weight: bold"}> Round @r.description </a>
                         </li>
                     }
@@ -68,178 +20,7 @@
             </div>
         }
 
-        <div class="row" >
-
-            <table class="table table-striped table-condensed">
-                <thead>
-                    <tr>
-                        <th>
-                            Name
-                        </th>
-                        <th>
-                            Email
-                        </th>
-                        <th>
-                            Images
-                        </th>
-
-                        @if(round.isBinary) {
-                            <th>
-                                @Messages("selected")
-                            </th>
-                            <th>
-                                @Messages("unrated")
-                            </th>
-                            <th>
-                                @Messages("rejected")
-                            </th>
-                        } else {
-                            <th>
-                                @Messages("rated")
-                            </th>
-                            <th>
-                                @Messages("unrated")
-                            </th>
-                        }
-                    </tr>
-                </thead>
-                <tbody>
-                @for(user <- jurors) {
-                    <tr>
-                        <td>
-                        @user.fullname
-                        </td>
-                        <td>
-                        @user.email
-                        </td>
-                        <td>
-                            @defining(byUserCount.getOrElse(user.id.get, 0)) { count =>
-
-                                    @if(round.isBinary) {
-                                        <a href="/gallery/round/@round.id/user/@user.id/page/1"
-                                        <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
-                                            <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
-                                        </button>
-                                        </a>
-                                        <a href="/filelist/round/@round.id/user/@user.id/page/1">
-                                            <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
-                                                <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
-                                            </button>
-                                        </a>
-                                    }
-                                @count
-                            }
-                        </td>
-                        @if(round.isBinary) {
-                            <td>
-                            @roundLinks(round, user, 1)
-                            </td>
-                            <td>
-                            @roundLinks(round, user, 0)
-                            </td>
-                            <td>
-                            @roundLinks(round, user, -1)
-                            </td>
-                        } else {
-                            <td>
-                                @roundLinks(round, user, 1)
-                            </td>
-                            <td>
-                                @roundLinks(round, user, 0)
-                            </td>
-                        }
-                    </tr>
-                }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="2">
-                            @Messages("Total")
-                        </th>
-                        <th>
-                        @if(round.isBinary) {
-                            <a href="@routes.Gallery.query("byrate", None, 1, "all", round.id.get)">
-                                <button type="button" class="btn btn-default btn-xs @if(total == 0) {disabled}">
-                                    <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
-                                </button>
-                            </a>
-                            <a href="@routes.Gallery.query("filelist", None, 1, "all", round.id.get)">
-                                <button type="button" class="btn btn-default btn-xs @if(total == 0) {disabled}">
-                                    <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
-                                </button>
-                            </a>
-                        }
-                            @total
-                        </th>
-                        @if(!round.isBinary) {
-                            <th>
-                            </th>
-                        }
-                        <th>
-                            <div class="btn-group">
-                            @if(round.isBinary) {
-                                <a href="@routes.Gallery.query("byrate", None, 1, "all", round.id.get, Some(1))">
-                                    <button type="button" class="btn btn-default btn-xs @if(total == 0){disabled}">
-                                        <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
-                                    </button>
-                                </a>
-                                <a href="@routes.Gallery.query("filelist", None, 1, "all", round.id.get, Some(1))">
-                                    <button type="button" class="btn btn-default btn-xs @if(total == 0){disabled}">
-                                        <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
-                                    </button>
-                                </a>
-                            } else {
-                                <a href="@routes.Gallery.query("byrate", None, 1, "all", round.id.get, None)">
-                                    <button type="button" class="btn btn-default btn-xs">
-                                        <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
-                                    </button>
-                                </a>
-                                <a href="@routes.Gallery.query("filelist", None, 1, "all", round.id.get, None)">
-                                    <button type="button" class="btn btn-default btn-xs">
-                                        <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
-                                    </button>
-                                </a>
-                            }
-                            </div>
-                            @if(round.isBinary) {
-                                @totalByRate.getOrElse(1, 0)
-                            }
-                        </th>
-                        <th style="text-align: center">
-                            <!-- <a href="/gallery/user/0/rate/0/page/1"> -->
-                            @if(round.isBinary) {
-                                @{total - totalByRate.getOrElse(1, 0)}
-                            }
-                            <!-- </a> -->
-                        </th>
-                    </tr>
-                </tfoot>
-
-            </table>
-
-@if(false) {
-    <table class="table table-striped table-condensed">
-        <thead>
-            <tr>
-                <th>
-                    Selected by number of jurors
-                </th>
-                <th>
-                    Number of images
-                </th>
-            </tr>
-        </thead>
-        @for(number <- byJurorNum.keys.toSeq.sortBy(x => -x)) {
-            <tr>
-                <td>
-                @number
-                </td>
-                <td>
-                    <a href="/gallery/round/@round.id/users/@number/page/1@rateParam(Some(1))">@byJurorNum(number)</a>
-                </td>
-            </tr>
-        }
-    </table>
-}
+        <div class="row">
+            @roundStatTable(user, round, stat)
         </div>
     }

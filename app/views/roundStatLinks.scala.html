@@ -1,0 +1,42 @@
+@import org.intracer.wmua.User
+@import org.intracer.wmua.Round
+@(round: Round, user: User, rate: Int, byUserRateCount: Map[Long, Map[Int, Int]])
+@defining(byUserRateCount.getOrElse(user.id.get, Map.empty).getOrElse(rate, 0)) { count =>
+    <div class="btn-group">
+        @if(round.isBinary || rate == 0) {
+            <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
+                <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
+                    <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
+                </button>
+            </a>
+        } else {
+            <a href="/byrate/round/@round.id/user/@user.id/page/1">
+                <button type="button" class="btn btn-default btn-xs">
+                    <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
+                </button>
+            </a>
+        }
+        @if(round.isBinary || rate == 0) {
+            <a href="/filelist/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
+                <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
+                    <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
+                </button>
+            </a>
+        } else {
+            <a href="/filelist/round/@round.id/user/@user.id/page/1">
+                <button type="button" class="btn btn-default btn-xs">
+                    <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
+                </button>
+            </a>
+        }
+    </div>
+@if(round.isBinary) {
+    @count
+} else {
+    @byUserRateCount.getOrElse(user.id.get, Map.empty).toSeq.collect({
+        case (x, y) if rate > 0 && x > 0 || rate == 0 && x == 0 => y
+    }).sum
+
+}
+}
+

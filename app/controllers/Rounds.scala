@@ -1,6 +1,8 @@
 package controllers
 
+import db.scalikejdbc.RoundJdbc.RoundStatRow
 import db.scalikejdbc._
+import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import org.intracer.wmua.cmd.SetCurrentRound
 import play.api.data.Form
@@ -58,7 +60,9 @@ object Rounds extends Controller with Secured {
 
         val filledRound = editRoundForm.fill(editRound)
 
-        Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contest), jurors, regions))
+        val stat = round.id.map(id => getRoundStat(id, round))
+
+        Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contest), jurors, regions, stat))
   }, User.ADMIN_ROLES)
 
   def loadJurors(contestId: Long): Seq[User] = {
@@ -88,13 +92,13 @@ object Rounds extends Controller with Secured {
             BadRequest(views.html.editRound(user, formWithErrors, newRound = true, rounds, contestId, jurors))
           },
           editForm => {
-              val round = editForm.round
-              if (round.id.isEmpty) {
-                createNewRound(user, round, editForm.jurors)
-              } else {
-                round.id.foreach(roundId => RoundJdbc.updateRound(roundId, round))
-              }
-              Redirect(routes.Rounds.rounds(Some(round.contest)))
+            val round = editForm.round
+            if (round.id.isEmpty) {
+              createNewRound(user, round, editForm.jurors)
+            } else {
+              round.id.foreach(roundId => RoundJdbc.updateRound(roundId, round))
+            }
+            Redirect(routes.Rounds.rounds(Some(round.contest)))
           }
         )
   }, User.ADMIN_ROLES)
@@ -201,27 +205,9 @@ object Rounds extends Controller with Secured {
             if (!user.canViewOrgInfo(round)) {
               onUnAuthorized(user)
             } else {
-              val rounds = RoundJdbc.findByContest(round.contest)
+              val stat = getRoundStat(roundId, round)
 
-              val selection = if (round.hasCriteriaRate) {
-                SelectionJdbc.byRoundWithCriteria(round.id.get)
-              } else {
-                SelectionJdbc.byRound(round.id.get)
-              }
-
-              val byUserCount = selection.groupBy(_.juryId).mapValues(_.size)
-              val byUserRateCount = selection.groupBy(_.juryId).mapValues(_.groupBy(_.rate).mapValues(_.size))
-
-              val totalCount = selection.map(_.pageId).toSet.size
-              val totalByRateCount = selection.groupBy(_.rate).mapValues(_.map(_.pageId).toSet.size)
-
-              val byJurorNum = selection.filter(_.rate > 0).groupBy(_.pageId).mapValues(_.size).toSeq.map(_.swap).groupBy(_._1).mapValues(_.size)
-
-              val jurors = UserJdbc.findByContest(round.contest).filter { u =>
-                u.id.exists(byUserCount.contains) || u.hasRole(User.JURY_ROLE)
-              }
-
-              Ok(views.html.roundStat(user, jurors, round, rounds, byUserCount, byUserRateCount, totalCount, totalByRateCount, byJurorNum))
+              Ok(views.html.roundStat(user, round, stat))
             }
         }.getOrElse {
           Redirect(routes.Login.error("You don't have permission to access this page"))
@@ -246,6 +232,33 @@ object Rounds extends Controller with Secured {
   //
   ////        Ok(views.html.galleryByRate(user, round, imagesByRate))
   //  })
+
+  def getRoundStat(roundId: Long, round: Round): RoundStat = {
+    val rounds = RoundJdbc.findByContest(round.contest)
+
+    val statRows: Seq[RoundStatRow] = RoundJdbc.roundUserStat(roundId)
+
+    val byJuror: Map[Long, Seq[RoundStatRow]] = statRows.groupBy(_.juror)
+
+    val byUserCount = byJuror.mapValues(_.map(_.count).sum)
+
+    val byUserRateCount = byJuror.mapValues { v =>
+      v.groupBy(_.rate).mapValues {
+        _.headOption.map(_.count).getOrElse(0)
+      }
+    }
+
+    val totalByRate = RoundJdbc.roundRateStat(roundId).toMap
+
+    val total = SelectionQuery(roundId = Some(roundId), grouped = true).count()
+
+    val jurors = UserJdbc.findByContest(round.contest).filter { u =>
+      u.id.exists(byUserCount.contains) || u.hasRole(User.JURY_ROLE)
+    }
+
+    val stat = RoundStat(jurors, round, rounds, byUserCount, byUserRateCount, total, totalByRate)
+    stat
+  }
 
   val imagesForm = Form("images" -> optional(text))
 
@@ -315,22 +328,27 @@ object Rounds extends Controller with Secured {
     val round = editRound.round
     Some((
       round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
-        round.limitMin, round.limitMax, round.recommended, editRound.returnTo,
-        round.minMpx.fold("No")(_.toString),
-        round.previous,
-        round.prevSelectedBy,
-        round.prevMinAvgRate,
-        round.categoryClause.fold("No")(_.toString),
-        round.category,
-        round.regionIds,
-        round.minImageSize.fold("No")(_.toString),
-        editRound.jurors.map(_.toString)
-        ))
+      round.limitMin, round.limitMax, round.recommended, editRound.returnTo,
+      round.minMpx.fold("No")(_.toString),
+      round.previous,
+      round.prevSelectedBy,
+      round.prevMinAvgRate,
+      round.categoryClause.fold("No")(_.toString),
+      round.category,
+      round.regionIds,
+      round.minImageSize.fold("No")(_.toString),
+      editRound.jurors.map(_.toString)
+      ))
   }
 }
 
-case class EditRound(
-                      round: Round,
-                      jurors: Seq[Long],
-                      returnTo: Option[String]
+case class RoundStat(jurors: Seq[User],
+                     round: Round,
+                     rounds: Seq[Round],
+                     byUserCount: Map[Long, Int],
+                     byUserRateCount: Map[Long, Map[Int, Int]],
+                     total: Int,
+                     totalByRate: Map[Int, Int])
+
+case class EditRound(round: Round, jurors: Seq[Long], returnTo: Option[String]
                     )

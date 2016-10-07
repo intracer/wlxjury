@@ -8,7 +8,8 @@
         rounds: Seq[Round],
         contestId: Option[Long] = None,
         jurors: Seq[User],
-        regions: Map[String, String] = Map.empty
+        regions: Map[String, String] = Map.empty,
+        statOpt: Option[RoundStat] = None
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @implicitFieldConstructor = @{
@@ -18,7 +19,7 @@
 
 @mainAdmin(Messages("edit round"), user, user.id.get, contestId = contestId) {
     <div class="row" >
-        <div class="col-md-6">
+        <div class="col-md-8">
 
 
             @if(newRound) {
@@ -121,7 +122,10 @@
                             </div>
 
                             <div class="panel-body">
-                            @Html(jurors.map(u => "<li>" + u.description).mkString)
+
+                            @statOpt.map { stat =>
+                                @roundStatTable(user, stat.round, stat)
+                            }
                             </div>
                         </div>
                     }
