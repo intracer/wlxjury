@@ -8,59 +8,6 @@ import scala.concurrent.Await
 
 object ImageDistributor {
 
-  def distributeImages(contestId: Long, round: Round) {
-
-    val allImages: Seq[Image] = getImages(contestId, round)
-
-    val allJurors = round.jurors
-
-    val currentSelection = ImageJdbc.byRoundMerged(round.id.get)
-
-    val oldImagesSelection = currentSelection.filter(iwr => iwr.selection.nonEmpty).toSet
-    val oldImageIds = oldImagesSelection.map(iwr => iwr.pageId)
-    val oldJurorIds = oldImagesSelection.flatMap(iwr => iwr.jurors)
-
-    val images = allImages.filterNot(i => oldImageIds.contains(i.pageId))
-    val jurors = allJurors.filterNot(j => oldJurorIds.contains(j.id.get))
-
-    val selection: Seq[Selection] = round.distribution match {
-      case 0 =>
-        jurors.flatMap { juror =>
-          images.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
-        }
-      case 1 =>
-        images.zipWithIndex.map {
-          case (img, i) => new Selection(0, img.pageId, 0, jurors(i % jurors.size).id.get, round.id.get, DateTime.now)
-        }
-      //          jurors.zipWithIndex.flatMap { case (juror, i) =>
-      //            images.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
-      //          }
-      case 2 =>
-        images.zipWithIndex.flatMap {
-          case (img, i) => Seq(
-            new Selection(0, img.pageId, 0, jurors(i % jurors.size).id.get, round.id.get, DateTime.now),
-            new Selection(0, img.pageId, 0, jurors((i + 1) % jurors.size).id.get, round.id.get, DateTime.now)
-          )
-        }
-
-      case 3 =>
-        images.zipWithIndex.flatMap {
-          case (img, i) => Seq(
-            new Selection(0, img.pageId, 0, jurors(i % jurors.size).id.get, round.id.get, DateTime.now),
-            new Selection(0, img.pageId, 0, jurors((i + 1) % jurors.size).id.get, round.id.get, DateTime.now),
-            new Selection(0, img.pageId, 0, jurors((i + 2) % jurors.size).id.get, round.id.get, DateTime.now)
-          )
-        }
-      //          jurors.zipWithIndex.flatMap { case (juror, i) =>
-      //            imagesTwice.slice(i * perJuror, (i + 1) * perJuror).map(img => new Selection(0, img.pageId, 0, juror.id, round.id, DateTime.now))
-      //          }
-    }
-    println("saving selection: " + selection.size)
-    SelectionJdbc.batchInsert(selection)
-    println(s"saved selection")
-
-  }
-
   def getImages(contestId: Long, round: Round): Seq[Image] = {
     val allImages: Seq[Image] = if (round.number == 1) {
       val fromDb = ImageJdbc.findByContest(contestId)

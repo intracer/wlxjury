@@ -171,7 +171,7 @@ object Rounds extends Controller with Secured {
 //          for (contestId <- contest.id;
 //               currentRoundId <- ContestJuryJdbc.currentRound(contestId);
 //               round <- RoundJdbc.find(currentRoundId)) {
-//            distributeImages(contest, round)
+//            Tools.distributeImages(round, round.jurors, None)
 //          }
         }
 

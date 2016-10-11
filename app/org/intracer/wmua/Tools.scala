@@ -180,7 +180,7 @@ object Tools {
 
     val round = RoundJdbc.find(133L).get
 
-    ImageDistributor.distributeImages(contest.id.get, round)
+    distributeImages(round, round.jurors, None)
   }
 
   def addUsers(contest: ContestJury, number: Int) = {
