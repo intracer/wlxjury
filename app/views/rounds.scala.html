@@ -55,7 +55,7 @@
                             <td> <a href="@routes.Rounds.editRound(id = round.id, contestId = contest.id.get)">@round.number</a> </td>
                             <td> @round.name </td>
                                 <!--                            <td>              @round.roles.mkString(",") </td> -->
-                            <td>@((Seq("Each image to all jurors") ++ (1 to 4).map(i => s"Each image to $i juror(s)")).apply(round.distribution)) </td>
+                            <td>@Option(round.distribution).filter(_ != 0).fold("Each image to all jurors")(i => s"Each image to $i juror(s)") </td>
                             <td>@round.rates.name </td>
                                 <!--                            <td>              @round.limitMin </td>
                             <td>@round.limitMax </td>
