@@ -18,16 +18,18 @@
 
         @defining(if(round.rates.id <= 10) "-big.png" else ".png"){ sizeSuffix =>
 
+        @defining(if(round.rates.id <= 5) 1 else 2) { k =>
+
             $('#rate-image').raty({
                 score: @score,
-                half: true,
+                half: @(k == 2),
                 cancel: true,
                 starHalf: 'star-half@sizeSuffix ',
                 starOff: 'star-off@sizeSuffix ',
                 starOn: 'star-on@sizeSuffix ',
                 cancelOff: 'cancel-off@sizeSuffix ',
                 cancelOn: 'cancel-on@sizeSuffix ',
-                number: @(round.rates.id / 2),
+                number: @(round.rates.id / k),
                 precision: false,
                 space: false,
                 hints:[ '', '', '', '', '', '', '', '', '', '' ],
@@ -35,7 +37,7 @@
                     readOnly : 'true'
                 } else {
                     click : function(score, evt) {
-                        document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&")';
+                        document.location.href = '@url' + Math.round(score*@k) + '?module=@module@rateParam(rate, "", "&")';
                         return false;
                     }
                 }
@@ -134,6 +136,7 @@
         });
 
 
+        }
         }
     })
     </script>
