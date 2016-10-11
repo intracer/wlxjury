@@ -90,7 +90,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           userId.map(id => "s.jury_id = " + id),
           roundId.map(id => "s.round = " + id),
           rate.map(r => "s.rate = " + r),
-          rated.orElse(Some(grouped).filter(_ == true)).map(_ => "s.rate > 0")
+          rated.map(_ => "s.rate > 0")
           //          limit.flatMap(_.startPageId).filter(_ => count).map(_ => "s.rate > 0")
         )
 

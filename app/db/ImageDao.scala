@@ -26,7 +26,7 @@ trait ImageDao {
 
   def byRatingMerged(rate: Int, round: Long): Seq[ImageWithRating]
 
-  def byRoundMerged(round: Long, pageSize: Int = Int.MaxValue, offset: Int = 0): Seq[ImageWithRating]
+  def byRoundMerged(round: Long, pageSize: Int = Int.MaxValue, offset: Int = 0, rated: Option[Boolean] = None): Seq[ImageWithRating]
 
   def byRoundSummed(roundId: Long, pageSize: Int = Int.MaxValue, offset: Int = 0, startPageId: Option[Long] = None): Seq[ImageWithRating]
 

@@ -150,7 +150,7 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
 
   def roundsStat(contestId: Long): Seq[(Long, Int, Int)] =
     sql"""SELECT r.id, s.rate, count(DISTINCT(s.page_id))
-          from rounds r
+          FROM rounds r
   JOIN selection s ON r.id = s.round
   WHERE
   r.contest = $contestId
@@ -183,12 +183,12 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
   }
 
   def imageRank(pageId: Long, sql: String) = {
-      sql"""select rank
-            from (select @rownum :=@rownum + 1 'rank', page_id
-            from (SELECT @rownum := 0) r, ($sql) t) t2
-            where page_id = $pageId;"""
+    sql"""SELECT rank
+            FROM (SELECT @rownum :=@rownum + 1 'rank', page_id
+            FROM (SELECT @rownum := 0) r, ($sql) t) t2
+            WHERE page_id = $pageId;"""
 
-    }
+  }
 
   def byUserImageWithRatingRanked(
                                    userId: Long,
@@ -292,13 +292,14 @@ object ImageJdbc extends SQLSyntaxSupport[Image] with ImageDao {
     merged.values.toSeq
   }
 
-  def byRoundMerged(round: Long, pageSize: Int = Int.MaxValue, offset: Int = 0): Seq[ImageWithRating] =
+  def byRoundMerged(round: Long, pageSize: Int = Int.MaxValue, offset: Int = 0, rated: Option[Boolean] = None): Seq[ImageWithRating] =
     SelectionQuery(
-    roundId = Some(round),
-    grouped = true,
-    order = Map("rate" -> -1),
-    limit = Some(Limit(pageSize = Some(pageSize), offset = Some(offset)))
-  ).list()
+      roundId = Some(round),
+      grouped = true,
+      order = Map("rate" -> -1),
+      rated = rated,
+      limit = Some(Limit(pageSize = Some(pageSize), offset = Some(offset)))
+    ).list()
 
   def byRoundSummed(roundId: Long, pageSize: Int = Int.MaxValue, offset: Int = 0, startPageId: Option[Long] = None): Seq[ImageWithRating] =
     SelectionQuery(

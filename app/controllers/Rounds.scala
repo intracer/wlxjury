@@ -115,13 +115,8 @@ object Rounds extends Controller with Secured {
 
     val jurors = loadJurors(round.contest, jurorIds)
 
-    Tools.distributeImages(created, jurors, prevRound,
-      selectedAtLeast = created.prevSelectedBy,
-      selectMinAvgRating = created.prevMinAvgRate,
-      sourceCategory = created.category,
-      includeCategory = created.categoryClause.map(_ > 0),
-      includeRegionIds = created.regionIds.toSet
-    )
+    Tools.distributeImages(created, jurors, prevRound)
+
     SetCurrentRound(round.contest, None, created).apply()
 
     created
@@ -173,11 +168,11 @@ object Rounds extends Controller with Secured {
 
           //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 
-          for (contestId <- contest.id;
-               currentRoundId <- ContestJuryJdbc.currentRound(contestId);
-               round <- RoundJdbc.find(currentRoundId)) {
-            distributeImages(contest, round)
-          }
+//          for (contestId <- contest.id;
+//               currentRoundId <- ContestJuryJdbc.currentRound(contestId);
+//               round <- RoundJdbc.find(currentRoundId)) {
+//            distributeImages(contest, round)
+//          }
         }
 
         Redirect(routes.Rounds.rounds())

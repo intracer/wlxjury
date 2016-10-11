@@ -43,7 +43,18 @@ object Tools {
     )
   }
 
-  def distributeImages(
+  def distributeImages(created: Round,
+                              jurors: Seq[User],
+                              prevRound: Option[Round]) = {
+    distributeImagesWithFilters(created, jurors, prevRound, selectedAtLeast = created.prevSelectedBy,
+      selectMinAvgRating = created.prevMinAvgRate,
+      sourceCategory = created.category,
+      includeCategory = created.categoryClause.map(_ > 0),
+      includeRegionIds = created.regionIds.toSet)
+  }
+
+
+  def distributeImagesWithFilters(
                         round: Round,
                         jurors: Seq[User],
                         prevRound: Option[Round],
@@ -82,7 +93,7 @@ object Tools {
     val existingImageIds = currentSelection.map(_.pageId)
     val existingJurorIds = currentSelection.flatMap(_.jurors)
     val mpxAtLeast = round.minMpx
-    val sizeAtLeast = round.minImageSize.map(_  * 1024 * 1024)
+    val sizeAtLeast = round.minImageSize.map(_ * 1024 * 1024)
 
     val contestId = round.contest
     val imagesAll = prevRound.fold[Seq[ImageWithRating]](
@@ -90,7 +101,7 @@ object Tools {
         new ImageWithRating(i, Seq.empty)
       )
     )(r =>
-      ImageJdbc.byRoundMerged(r.id.get)
+      ImageJdbc.byRoundMerged(r.id.get, rated = Some(true))
     )
     println("Total images: " + imagesAll.size)
 
