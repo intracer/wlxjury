@@ -109,5 +109,41 @@ class ImageDistributorSpec extends Specification with InMemDb {
         imagesPerJuror.toSet === Set(distribution * numImages / numJurors)
       }
     }
+
+    "create second round 1 juror to image in the first" in {
+      inMemDbApp {
+        val distribution = 1
+
+        val images = createImages(9, contest1, contest2)
+
+        val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.binaryRound, active = true)
+        val dbRound = roundDao.create(round)
+
+        val dbJurors = createJurors(contest1, 3)
+        val juryIds = dbJurors.map(_.id.get)
+
+        ImageDistributor.distributeImages(contest1, dbRound)
+
+        val selection = selectionDao.findAll()
+        val byJuror = selection.groupBy(_.juryId)
+
+        val selectedPageIds = for ((juryId, numSelected) <- juryIds.zipWithIndex;
+              i <- 0 until numSelected) yield {
+          val pageId = byJuror(juryId)(i).pageId
+          SelectionJdbc.rate(pageId, juryId, dbRound.id.get, 1)
+          pageId
+        }
+
+        val round2 = Round(None, 2, Some("Round 2"), contest1, Set("jury"), 0, Round.ratesById(10), active = true)
+        val dbRound2 = roundDao.create(round2)
+
+        ImageDistributor.distributeImages(contest1, dbRound2)
+
+        val selection2 = selectionDao.findAll().filter(_.round == dbRound2.id.get)
+
+        selection2.map(_.pageId).toSet === selectedPageIds.toSet
+      }
+    }
+
   }
 }
