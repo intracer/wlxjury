@@ -64,7 +64,7 @@ case class SelectMinAvgRating(rate: Int, round: Round) extends ImageFilterGen {
 }
 
 case class SelectedAtLeast(by: Int) extends ImageFilterGen {
-  def apply = imageRatingFilter(i => i.selection.count(_.rate > 0) >= by)
+  def apply = imageRatingFilter(i => i.rate >= by)
 }
 
 case class MegaPixelsAtLeast(mpx: Int) extends ImageFilterGen {
