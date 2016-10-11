@@ -223,30 +223,6 @@ object Tools {
     absent.foreach(println)
   }
 
-  def addItalyR3() = {
-    val images = ImageJdbc.byRoundMerged(106).map(_.image).toArray
-
-    val mapped = images.map(i => i.copy(pageId = i.pageId + 169660173900L))
-
-    ImageJdbc.batchInsert(mapped)
-  }
-
-  def makeGuest() = {
-    val prevRound = RoundJdbc.find(89).get
-    val currentRound = RoundJdbc.find(104).get
-
-    val unrated = ImageJdbc.byRatingMerged(0, prevRound.id.get).toArray
-    val rejected = ImageJdbc.byRatingMerged(-1, prevRound.id.get).toArray
-    val all = unrated ++ rejected
-
-    val juror = UserJdbc.find(581).get
-
-    val selection =
-      all.map(img => new Selection(0, img.pageId, 0, juror.id.get, currentRound.id.get, DateTime.now))
-
-    SelectionJdbc.batchInsert(selection)
-  }
-
   def removeIneligible() = {
     val category = "Category:Obviously ineligible submissions for ESPC 2015 in Ukraine"
     val query = commons.page(category)
