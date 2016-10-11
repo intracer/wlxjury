@@ -18,7 +18,7 @@
         @if(round.isBinary) {
             <span class="glyphicon glyphicon-ok icon-white" aria-hidden="true"></span>
         } else {
-            @for(i <- 1 to round.rates.id / 2) {<img alt="@i" src="@showStar(i, selection.rate, round.rates.id <= 10)">}
+            @for(i <- 1 to round.rates.id / (if (round.rates.id > 5) 2 else 1)) {<img alt="@i" src="@showStar(i, selection.rate, round.rates.id <= 10, round.rates.id > 5)">}
             @selection.rate
         }
     </span>
