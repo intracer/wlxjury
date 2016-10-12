@@ -164,7 +164,7 @@ object Gallery extends Controller with Secured with Instrumented {
         val offset = page * pageSize
         pager.page = page + 1
         query.copy(limit = Some(Limit(Some(pageSize), Some(offset))))
-    }
+    }.copy(limit = query.limit.filter(_ => !userDetails))
 
     withPageIdOffset.list()
   }
