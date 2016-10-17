@@ -233,7 +233,9 @@ object Rounds extends Controller with Secured {
 
     val statRows: Seq[RoundStatRow] = RoundJdbc.roundUserStat(roundId)
 
-    val byJuror: Map[Long, Seq[RoundStatRow]] = statRows.groupBy(_.juror)
+    val byJuror: Map[Long, Seq[RoundStatRow]] = statRows.groupBy(_.juror).filter{
+      case (juror, rows) => rows.map(_.count).sum > 0
+    }
 
     val byUserCount = byJuror.mapValues(_.map(_.count).sum)
 
@@ -248,7 +250,7 @@ object Rounds extends Controller with Secured {
     val total = SelectionQuery(roundId = Some(roundId), grouped = true).count()
 
     val jurors = UserJdbc.findByContest(round.contest).filter { u =>
-      u.id.exists(byUserCount.contains) || u.hasRole(User.JURY_ROLE)
+      u.id.exists(byUserCount.contains)
     }
 
     val stat = RoundStat(jurors, round, rounds, byUserCount, byUserRateCount, total, totalByRate)
