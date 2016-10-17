@@ -216,7 +216,13 @@ object Gallery extends Controller with Secured with Instrumented {
 
         roundOption.fold(Redirect(routes.Gallery.list(user.id.get, 1, region, roundId, rate))) { round =>
 
-          val files = filesByUserId(user.id.get, rate, round, Pager.startPageId(pageId))
+          val query = getQuery(user.id.get, rate, round)
+
+          val rank = query.imageRank(pageId)
+
+          val offset = Math.max(0, rank - 3)
+
+          val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()
 
           val index = files.indexWhere(_.pageId == pageId)
 
