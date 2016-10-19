@@ -81,7 +81,7 @@
     });
     }
     } else {
-    @for(i <- 0 to round.rates.id) {
+    @for(i <- 0 to Math.min(round.rates.id, 9)) {
     $(document).on('keydown', null, '@i', function (e) {
         e.preventDefault() ;
         window.location = "/large/round/@round.id.get/region/@region/pageid/@files(index).pageId/select/@i" + "@{rateParam(rate)}";
