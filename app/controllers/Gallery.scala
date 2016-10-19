@@ -50,10 +50,10 @@ object Gallery extends Controller with Secured with Instrumented {
     listGeneric(moduleByUserId(asUserId), asUserId, startPageId(pageId), region, roundId, rate)
 
   def byRate(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0) =
-    listGeneric("byrate", asUserId, pageOffset(page), region, roundId)
+    listGeneric("byrate", asUserId, pageOffset(page), region, roundId, rated = Some(true))
 
   def byRateAt(asUserId: Long, pageId: Long, region: String = "all", roundId: Long = 0) =
-    listGeneric("byrate", asUserId, startPageId(pageId), region, roundId, None)
+    listGeneric("byrate", asUserId, startPageId(pageId), region, roundId, None, rated = Some(true))
 
   def fileList(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0, format: String = "wiki", rate: Option[Int]) =
     listGeneric("filelist", asUserId, pageOffset(page), region, roundId, rate)
@@ -70,7 +70,8 @@ object Gallery extends Controller with Secured with Instrumented {
                    pager: Pager,
                    region: String = "all",
                    roundId: Long = 0,
-                   rate: Option[Int] = None) = withAuth {
+                   rate: Option[Int] = None,
+                   rated: Option[Boolean] = None) = withAuth {
     user =>
       implicit request =>
         timerList.time {
@@ -86,7 +87,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val asUser = getAsUser(asUserId, user)
 
-            val sortedFiles = filesByUserId(asUserId, rate, round, pager, userDetails = module == "filelist")
+            val sortedFiles = filesByUserId(asUserId, rate, round, pager, userDetails = module == "filelist", rated)
 
             val filesInRegion = regionFiles(region, sortedFiles)
 
@@ -152,8 +153,8 @@ object Gallery extends Controller with Secured with Instrumented {
                      rate: Option[Int],
                      round: Round,
                      pager: Pager,
-                     userDetails: Boolean = false): Seq[ImageWithRating] = {
-    val query = getQuery(userId, rate, round, Some(pager), userDetails)
+                     userDetails: Boolean = false, rated: Option[Boolean] = None): Seq[ImageWithRating] = {
+    val query = getQuery(userId, rate, round, Some(pager), userDetails, rated)
     pager.setCount(query.count())
 
     val withPageIdOffset = pager.startPageId.fold(query) {
@@ -169,11 +170,12 @@ object Gallery extends Controller with Secured with Instrumented {
     withPageIdOffset.list()
   }
 
-  def getQuery(userId: Long, rate: Option[Int], round: Round, pager: Option[Pager] = None, userDetails: Boolean = false): SelectionQuery = {
+  def getQuery(userId: Long, rate: Option[Int], round: Round, pager: Option[Pager] = None, userDetails: Boolean = false, rated: Option[Boolean] = None): SelectionQuery = {
     val userIdOpt = Some(userId).filter(_ != 0)
     val query = ImageDbNew.SelectionQuery(
       userId = userIdOpt,
       rate = rate,
+      rated = rated,
       roundId = round.id,
       order = Map("rate" -> -1, "s.page_id" -> 1),
       grouped = userIdOpt.isEmpty && !userDetails,
