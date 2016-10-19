@@ -19,7 +19,9 @@
 
         @defining(round.flatMap(_.id).getOrElse(0L)) { roundId =>
 
-            @regionNav((region: String) => routes.Gallery.list(user = asUserId, round = roundId, region = region, page = 1, rate = rate).url, round, region, byRegion)
+                @if(false) {
+                @regionNav((region: String) => routes.Gallery.list(user = asUserId, round = roundId, region = region, page = 1, rate = rate).url, round, region, byRegion)
+            }
 
         <div class="row" >
 

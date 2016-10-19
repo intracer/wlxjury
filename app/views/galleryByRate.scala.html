@@ -46,7 +46,9 @@
         @defining(maybeRound.get) { round =>
             @defining(round.id.getOrElse(0)) { roundId =>
 
-                @regionNav((region: String) => s"/byrate/round/$roundId/user/$asUserId/region/$region/page/1", maybeRound, region, byRegion)
+                    @if(false) {
+                        @regionNav((region: String) => s"/byrate/round/$roundId/user/$asUserId/region/$region/page/1", maybeRound, region, byRegion)
+                    }
 
             <div class="row" >
 
