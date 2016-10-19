@@ -10676,8 +10676,10 @@ function UGTileDesign(){
 				htmlAdd += "<div class='ug-tile-icon " + iconPlayClass + "' style='display:none'></div>";
 
 				if(g_options.jury) {
-					htmlAdd += "<div class='ug-tile-icon ug-icon-select' style='display:none'></div>";
-					htmlAdd += "<div class='ug-tile-icon ug-icon-reject' style='display:none'></div>";
+					if(g_options.binary) {
+						htmlAdd += "<div class='ug-tile-icon ug-icon-select' style='display:none'></div>";
+						htmlAdd += "<div class='ug-tile-icon ug-icon-reject' style='display:none'></div>";
+					}
 				}
 			}
 

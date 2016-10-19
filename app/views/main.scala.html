@@ -56,7 +56,8 @@
                         tiles_justified_row_height: 200,
                         tile_overlay_opacity: 0.3,
                         tile_enable_overlay: true,
-                        jury: @(user.id.get == asUserId && selectedRound.exists(_.active) && user.roles.contains("jury"))
+                        jury: @(user.id.get == asUserId && selectedRound.exists(_.active) && user.roles.contains("jury")),
+                        binary: @selectedRound.exists(_.isBinary)
                     });
                 });
         </script>
