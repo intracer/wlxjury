@@ -364,8 +364,7 @@ object Gallery extends Controller with Secured with Instrumented {
     val end = Math.min(files.size, right + extraRight)
     val monument = files(index).image.monumentId.flatMap(id => if (id.trim.nonEmpty) MonumentJdbc.find(id) else None)
 
-    val comments = CommentJdbc.findByRoundAndSubject(round.id.get, files(index).pageId)
-
+    val comments = CommentJdbc.findBySubject(files(index).pageId)
 
     Ok(
       views.html.large.large(
