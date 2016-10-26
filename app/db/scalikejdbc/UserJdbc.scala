@@ -176,7 +176,7 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
         column.email -> user.email.trim.toLowerCase,
         column.wikiAccount -> user.wikiAccount,
         column.password -> user.password,
-        column.roles -> user.roles.head,
+        column.roles -> user.roles.headOption.getOrElse(""),
         column.contest -> user.contest,
         column.lang -> user.lang,
         column.createdAt -> user.createdAt)
