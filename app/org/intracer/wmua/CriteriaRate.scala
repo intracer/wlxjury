@@ -11,6 +11,7 @@ object CriteriaRate extends SQLSyntaxSupport[CriteriaRate] {
   val c = CriteriaRate.syntax("c")
 
   def apply(c: SyntaxProvider[CriteriaRate])(rs: WrappedResultSet): CriteriaRate = apply(c.resultName)(rs)
+
   def apply(c: ResultName[CriteriaRate])(rs: WrappedResultSet): CriteriaRate = new CriteriaRate(
     id = rs.long(c.id),
     selection = rs.long(c.selection),
@@ -18,11 +19,19 @@ object CriteriaRate extends SQLSyntaxSupport[CriteriaRate] {
     rate = rs.int(c.rate)
   )
 
-  def updateRate(selection: Long, criteria: Long, rate: Int)(implicit session: DBSession = autoSession): Unit = withSQL {
-    update(CriteriaRate).set(column.rate -> rate).where.
-      eq(column.selection, selection).and.
-      eq(column.criteria, criteria)
-  }.update().apply()
+  def updateRate(selection: Long, criteria: Long, rate: Int)(implicit session: DBSession = autoSession): Unit = {
+    withSQL {
+      update(CriteriaRate).set(column.rate -> rate).where.
+        eq(column.selection, selection).and.
+        eq(column.criteria, criteria)
+    }.update().apply()
+
+    sql"""UPDATE selection s
+          SET rate =
+         (SELECT sum(rate) FROM criteria_rate WHERE selection = $selection)
+         WHERE s.id = $selection"""
+      .update().apply()
+  }
 
   def getRates(selection: Long)(implicit session: DBSession = autoSession): Seq[CriteriaRate] = withSQL {
     select.from(CriteriaRate as c).where.
