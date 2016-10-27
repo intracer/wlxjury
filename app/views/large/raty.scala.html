@@ -60,7 +60,7 @@
             readOnly : 'true'
             } else {
             click : function(score, evt) {
-                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&", Some(1))';
+                document.location.href = '@url' + Math.round(score*@k) + '?module=@module@rateParam(rate, "", "&", Some(1))';
                 return false;
             }
             }
@@ -83,7 +83,7 @@
             readOnly : 'true'
             } else {
             click : function(score, evt) {
-                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&", Some(2))';
+                document.location.href = '@url' + Math.round(score*@k) + '?module=@module@rateParam(rate, "", "&", Some(2))';
                 return false;
             }
             }
@@ -106,7 +106,7 @@
             readOnly : 'true'
             } else {
             click : function(score, evt) {
-                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&", Some(3))';
+                document.location.href = '@url' + Math.round(score*@k) + '?module=@module@rateParam(rate, "", "&", Some(3))';
                 return false;
             }
             }
@@ -129,7 +129,7 @@
             readOnly : 'true'
             } else {
             click : function(score, evt) {
-                document.location.href = '@url' + Math.round(score*2) + '?module=@module@rateParam(rate, "", "&", Some(4))';
+                document.location.href = '@url' + Math.round(score*@k) + '?module=@module@rateParam(rate, "", "&", Some(4))';
                 return false;
             }
             }
