@@ -37,9 +37,11 @@
                         }
                     }
 
-                    @for(round <- if(user.roles.contains("jury")) currentRounds else selectedRound.toSeq) {
+                    @for(round <- selectedRound.toSeq) {
 
-                        <li class="navbar-brand" style="margin-left: 10px">@Messages(round.description)</li>
+                        @if(!(currentRounds.size > 1 && round.hasCriteria)) {
+                            <li class="navbar-brand" style="margin-left: 10px">@Messages(round.description)</li>
+                        }
 
                             <!-- Link to statistics view, if user has rights -->
                         @if(user.canViewOrgInfo(round)) {
@@ -50,12 +52,12 @@
                         @if((asUserId == 0 || asUserId == user.id.get) && round.roles.intersect(user.roles).nonEmpty) {
 
                             <!-- Show rounds dropdown -->
-                        @if(user.canViewOrgInfo(round)) {
+                        @if(user.canViewOrgInfo(round) || (currentRounds.size > 1 && round.hasCriteria)) {
                             <li role="presentation" class="brand" style="margin-left: 10px">
                             @(new UiSelectionDto[Long](
                                 itemUrlFunction = (roundId: Long) => routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate),
                                 selectedItemId = selectedRound.flatMap(_.id).get,
-                                items = RoundJdbc.findByContest(user.currentContest.getOrElse(0L)).filter(user.canViewOrgInfo).map {
+                                items = RoundJdbc.findByContest(user.currentContest.getOrElse(0L)).map {
                                     r => (r.id.get, SelectionItem(r.description, localized = false))
                                 }
                             ).toDropDown())
