@@ -95,7 +95,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val rates = rateDistribution(user, round)
 
-         //   val ranks = ImageWithRating.rankImages(sortedFiles, round)
+            //   val ranks = ImageWithRating.rankImages(sortedFiles, round)
             val useTable = !round.isBinary || asUserId == 0
 
             module match {
@@ -109,8 +109,8 @@ object Gallery extends Controller with Secured with Instrumented {
                   filesInRegion, ranks, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
                 )
               case "byrate" =>
-              //  if (region != "grouped") {
-                  Ok(views.html.galleryByRate(user, asUserId, asUser, filesInRegion, pager, maybeRound, rounds, rate, region, byReg, rates))
+                //  if (region != "grouped") {
+                Ok(views.html.galleryByRate(user, asUserId, asUser, filesInRegion, pager, maybeRound, rounds, rate, region, byReg, rates))
               //    Ok(views.html.galleryByRateRegions(user, asUserId, asUser, sortedFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
               //  }
             }
@@ -198,7 +198,7 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def selectWS(roundId: Long, pageId: Long, select: Int, region: String = "all",
-                     rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth {
+               rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth {
     user =>
       implicit request =>
 
@@ -242,7 +242,7 @@ object Gallery extends Controller with Secured with Instrumented {
             }
           }
 
-          checkLargeIndex(user, rate, index, pageId, files, region, round.id.get, module)
+          checkLargeIndex(user, rate, index, pageId, files, region, round, module)
         }
   }
 
@@ -271,15 +271,21 @@ object Gallery extends Controller with Secured with Instrumented {
                        pageId: Long,
                        files: Seq[ImageWithRating],
                        region: String,
-                       roundId: Long,
+                       round: Round,
                        module: String): Result = {
-    val newIndex = if (index >= files.size - 1)
-      files.size - 2
-    else index + 1
+    val newIndex = if (!round.hasCriteria) {
+      if (index >= files.size - 1)
+        files.size - 2
+      else index + 1
+    } else {
+      index
+    }
 
     val newPageId = if (newIndex < 0)
       files.lastOption.fold(-1L)(_.pageId)
     else files(newIndex).pageId
+
+    val roundId = round.id.get
 
     if (newIndex >= 0) {
       Redirect(routes.Gallery.large(asUser.id.get, newPageId, region, roundId, rate, module))
