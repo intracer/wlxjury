@@ -86,9 +86,13 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     ).where.eq(column.id, id)
   }.update().apply()
 
-  override def activeRounds(contestId: Long): Seq[Round] = {
-    ContestJuryJdbc.currentRound(contestId).flatMap(find).toSeq
-  }
+  override def activeRounds(contestId: Long): Seq[Round] = withSQL {
+    select.from(RoundJdbc as c)
+      .where.append(isNotDeleted).and
+      .eq(c.contest, contestId).and
+      .eq(c.active, true)
+      .orderBy(c.id)
+  }.map(RoundJdbc(c)).list().apply()
 
   override def current(user: User): Option[Round] = {
     for (contest <- user.currentContest.flatMap(ContestJuryJdbc.byId);
