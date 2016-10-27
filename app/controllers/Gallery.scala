@@ -133,7 +133,7 @@ object Gallery extends Controller with Secured with Instrumented {
     val notAuthorized = maybeRound.isEmpty ||
       (!user.hasRole("root") && userContest != roundContest) ||
       (user.roles.intersect(Set("admin", "organizer", "root")).isEmpty
-        && !ContestJuryJdbc.find(userContest).exists(_.currentRound == maybeRound.flatMap(_.id))
+        && !RoundJdbc.activeRounds(userContest).exists(_.id == maybeRound.flatMap(_.id))
         && !maybeRound.exists(_.juryOrgView))
     notAuthorized
   }
