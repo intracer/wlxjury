@@ -1,7 +1,7 @@
 package org.intracer.wmua.cmd
 
 import db.scalikejdbc.SelectionJdbc
-import org.intracer.wmua.{Round, Image, User, Selection}
+import org.intracer.wmua._
 import org.joda.time.DateTime
 
 case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) {
@@ -23,6 +23,18 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
     println("saving selection: " + selection.size)
     SelectionJdbc.batchInsert(selection)
     println(s"saved selection")
+
+    addCriteriaRates(selection)
   }
 
+  def addCriteriaRates(selection: Seq[Selection]): Unit = {
+    if (round.hasCriteria) {
+      val criteriaIds = Seq(1, 2, 3, 4) // TODO load form DB
+      val rates = selection.flatMap { s =>
+          criteriaIds.map(id => new CriteriaRate(0, s.id, id, 0))
+        }
+
+      CriteriaRate.batchInsert(rates)
+    }
+  }
 }

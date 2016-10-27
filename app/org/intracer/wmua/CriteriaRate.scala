@@ -29,4 +29,20 @@ object CriteriaRate extends SQLSyntaxSupport[CriteriaRate] {
       eq(column.selection, selection)
   }.map(CriteriaRate(c)).list().apply()
 
+  def batchInsert(rates: Seq[CriteriaRate]) {
+    val column = CriteriaRate.column
+    DB localTx { implicit session =>
+      val batchParams: Seq[Seq[Any]] = rates.map(i => Seq(
+        i.selection,
+        i.criteria,
+        i.rate))
+      withSQL {
+        insert.into(CriteriaRate).namedValues(
+          column.selection -> sqls.?,
+          column.criteria -> sqls.?,
+          column.rate -> sqls.?
+        )
+      }.batch(batchParams: _*).apply()
+    }
+  }
 }
