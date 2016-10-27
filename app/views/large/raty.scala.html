@@ -44,15 +44,15 @@
             });
 
         $('#rate-image1').raty({
-            score: @{byCriteria.getOrElse(1, 0)/2.0},
-            half: true,
+            score: @{byCriteria.getOrElse(1, 0)/k},
+            half: @(k == 2),
             cancel: true,
             starHalf: 'star-half@sizeSuffix ',
             starOff: 'star-off@sizeSuffix ',
             starOn: 'star-on@sizeSuffix ',
             cancelOff: 'cancel-off@sizeSuffix ',
             cancelOn: 'cancel-on@sizeSuffix ',
-            number: @(round.rates.id / 2),
+            number: @(round.rates.id / k),
             precision: false,
             space: false,
             hints:[ '', '', '', '', '', '', '', '', '', '' ],
@@ -67,15 +67,15 @@
         });
 
         $('#rate-image2').raty({
-            score: @{byCriteria.getOrElse(2, 0)/2.0},
-            half: true,
+            score: @{byCriteria.getOrElse(2, 0)/k},
+            half: @(k == 2),
             cancel: true,
             starHalf: 'star-half@sizeSuffix ',
             starOff: 'star-off@sizeSuffix ',
             starOn: 'star-on@sizeSuffix ',
             cancelOff: 'cancel-off@sizeSuffix ',
             cancelOn: 'cancel-on@sizeSuffix ',
-            number: @(round.rates.id / 2),
+            number: @(round.rates.id / k),
             precision: false,
             space: false,
             hints:[ '', '', '', '', '', '', '', '', '', '' ],
@@ -90,15 +90,15 @@
         });
 
         $('#rate-image3').raty({
-            score: @{byCriteria.getOrElse(3, 0)/2.0},
-            half: true,
+            score: @{byCriteria.getOrElse(3, 0)/k},
+            half: @(k == 2),
             cancel: true,
             starHalf: 'star-half@sizeSuffix ',
             starOff: 'star-off@sizeSuffix ',
             starOn: 'star-on@sizeSuffix ',
             cancelOff: 'cancel-off@sizeSuffix ',
             cancelOn: 'cancel-on@sizeSuffix ',
-            number: @(round.rates.id / 2),
+            number: @(round.rates.id / k),
             precision: false,
             space: false,
             hints:[ '', '', '', '', '', '', '', '', '', '' ],
@@ -113,15 +113,15 @@
         });
 
         $('#rate-image4').raty({
-            score: @{byCriteria.getOrElse(4, 0)/2.0},
-            half: true,
+            score: @{byCriteria.getOrElse(4, 0)/k},
+            half: @(k == 2),
             cancel: true,
             starHalf: 'star-half@sizeSuffix ',
             starOff: 'star-off@sizeSuffix ',
             starOn: 'star-on@sizeSuffix ',
             cancelOff: 'cancel-off@sizeSuffix ',
             cancelOn: 'cancel-on@sizeSuffix ',
-            number: @(round.rates.id / 2),
+            number: @(round.rates.id / k),
             precision: false,
             space: false,
             hints:[ '', '', '', '', '', '', '', '', '', '' ],
