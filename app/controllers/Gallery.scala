@@ -330,13 +330,13 @@ object Gallery extends Controller with Secured with Instrumented {
 
       val page = index / (Pager.pageSize + 1) + 1
 
-      val byCriteria = if (round.hasCriteriaRate) {
-        val criterias = {
+      val byCriteria = if (round.hasCriteria) {
+        val criteria = {
           val selection = SelectionJdbc.findBy(pageId, asUserId, roundId).get
           CriteriaRate.getRates(selection.id)
         }
 
-        criterias.map { c => c.criteria.toInt -> c.rate }.toMap
+        criteria.map { c => c.criteria.toInt -> c.rate }.toMap
       } else Map.empty[Int, Int]
 
       show2(index, files, user, asUserId, rate, page, round, region, module, selection, byCriteria)
