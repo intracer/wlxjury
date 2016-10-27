@@ -5,7 +5,7 @@
  *
  * @author  : Washington Botelho
  * @doc     : http://wbotelhos.com/raty
- * @version : 2.7.0
+ * @version : 2.7.1
  *
  */
 
@@ -98,8 +98,8 @@
 
         for (var j = 0; j < steps; j++) {
           var
-            hint = group[j],
-            last = group[group.length - 1];
+              hint = group[j],
+              last = group[group.length - 1];
 
           if (last === undefined) {
             last = null;
@@ -169,8 +169,8 @@
 
       that.stars.on('click.raty', function(evt) {
         var
-          execute = true,
-          score   = (that.opt.half || that.opt.precision) ? that.self.data('score') : (this.alt || $(this).data('alt'));
+            execute = true,
+            score   = (that.opt.half || that.opt.precision) ? that.self.data('score') : (this.alt || $(this).data('alt'));
 
         if (that.opt.click) {
           execute = that.opt.click.call(that, +score, evt);
@@ -263,8 +263,8 @@
 
       that.cancel.on('mouseover.raty', function(evt) {
         var
-          starOff = that.opt.path + that.opt.starOff,
-          icon    = that.opt.cancelOn;
+            starOff = that.opt.path + that.opt.starOff,
+            icon    = that.opt.cancelOn;
 
         if (that.opt.starType === 'img') {
           that.stars.attr('src', starOff);
@@ -316,8 +316,8 @@
     _createStars: function() {
       for (var i = 1; i <= this.opt.number; i++) {
         var
-          name  = methods._nameForIndex.call(this, i),
-          attrs = { alt: i, src: this.opt.path + this.opt[name] };
+            name  = methods._nameForIndex.call(this, i),
+            attrs = { alt: i, src: this.opt.path + this.opt[name] };
 
         if (this.opt.starType !== 'img') {
           attrs = { 'data-alt': i, 'class': attrs.src }; // TODO: use $.data.
@@ -346,9 +346,9 @@
 
       for (var i = 1; i <= this.stars.length; i++) {
         var
-          icon,
-          star   = this.stars[i - 1],
-          turnOn = methods._turnOn.call(this, i, score);
+            icon,
+            star   = this.stars[i - 1],
+            turnOn = methods._turnOn.call(this, i, score);
 
         if (this.opt.iconRange && this.opt.iconRange.length > hash) {
           var irange = this.opt.iconRange[hash];
@@ -372,8 +372,8 @@
 
     _getFirstDecimal: function(number) {
       var
-        decimal = number.toString().split('.')[1],
-        result  = 0;
+          decimal = number.toString().split('.')[1],
+          result  = 0;
 
       if (decimal) {
         result = parseInt(decimal.charAt(0), 10);
@@ -395,8 +395,8 @@
 
       if (this.opt.half) {
         var
-          size    = methods._getWidth.call(this),
-          percent = parseFloat((evt.pageX - $(icon).offset().left) / size);
+            size    = methods._getWidth.call(this),
+            percent = parseFloat((evt.pageX - $(icon).offset().left) / size);
 
         score = score - 1 + percent;
       }
@@ -410,11 +410,11 @@
       }
 
       var
-        decimal = methods._getFirstDecimal.call(this, score),
-        integer = Math.ceil(score),
-        group   = this.opt.hints[(integer || 1) - 1],
-        hint    = group,
-        set     = !evt || this.move;
+          decimal = methods._getFirstDecimal.call(this, score),
+          integer = Math.ceil(score),
+          group   = this.opt.hints[(integer || 1) - 1],
+          hint    = group,
+          set     = !evt || this.move;
 
       if (this.opt.precision) {
         if (set) {
@@ -467,7 +467,7 @@
       }
     },
 
-     _roundHalfScore: function(score) {
+    _roundHalfScore: function(score) {
       var integer = parseInt(score, 10),
           decimal = methods._getFirstDecimal.call(this, score);
 
@@ -480,8 +480,8 @@
 
     _roundStars: function(score, evt) {
       var
-        decimal = (score % 1).toFixed(2),
-        name    ;
+          decimal = (score % 1).toFixed(2),
+          name    ;
 
       if (evt || this.move) {
         name = decimal > 0.5 ? 'starOn' : 'starHalf';
@@ -497,8 +497,8 @@
 
       if (name) {
         var
-          icon = this.opt[name],
-          star = this.stars[Math.ceil(score) - 1];
+            icon = this.opt[name],
+            star = this.stars[Math.ceil(score) - 1];
 
         methods._setIcon.call(this, star, icon);
       }                                                         // Full down: [x.00 .. x.25]
@@ -523,8 +523,8 @@
     _setTitle: function(score, evt) {
       if (score) {
         var
-          integer = parseInt(Math.ceil(score), 10),
-          star    = this.stars[integer - 1];
+            integer = parseInt(Math.ceil(score), 10),
+            star    = this.stars[integer - 1];
 
         star.title = methods._getHint.call(this, score, evt);
       }
@@ -640,8 +640,8 @@
     move: function(score) {
       return this.each(function() {
         var
-          integer  = parseInt(score, 10),
-          decimal  = methods._getFirstDecimal.call(this, score);
+            integer  = parseInt(score, 10),
+            decimal  = methods._getFirstDecimal.call(this, score);
 
         if (integer >= this.opt.number) {
           integer = this.opt.number - 1;
@@ -649,11 +649,11 @@
         }
 
         var
-          width   = methods._getWidth.call(this),
-          steps   = width / 10,
-          star    = $(this.stars[integer]),
-          percent = star.offset().left + steps * decimal,
-          evt     = $.Event('mousemove', { pageX: percent });
+            width   = methods._getWidth.call(this),
+            steps   = width / 10,
+            star    = $(this.stars[integer]),
+            percent = star.offset().left + steps * decimal,
+            evt     = $.Event('mousemove', { pageX: percent });
 
         this.move = true;
 
@@ -669,7 +669,7 @@
 
         if (self.data('readonly') !== readonly) {
           if (readonly) {
-            self.off('.raty').children('img').off('.raty');
+            self.off('.raty').children(this.opt.starType).off('.raty');
 
             methods._lock.call(this);
           } else {
