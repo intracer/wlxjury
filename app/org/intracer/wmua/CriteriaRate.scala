@@ -28,7 +28,7 @@ object CriteriaRate extends SQLSyntaxSupport[CriteriaRate] {
 
     sql"""UPDATE selection s
           SET rate =
-         (SELECT sum(rate)*(truncate(count(1)/4, 0)) FROM criteria_rate WHERE selection = $selection AND rate>0)
+          IFNULL((SELECT sum(rate)*(truncate(count(1)/4, 0)) FROM criteria_rate WHERE selection = $selection AND rate>0), 0)
          WHERE s.id = $selection"""
       .update().apply()
   }
