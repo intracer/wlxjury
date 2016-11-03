@@ -301,7 +301,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
       val round = maybeRound.get
 
-      val query = getQuery(asUserId, rate, round)
+      val query = getQuery(asUserId, rate, round, regions = Set(region).filter(_ != "all"))
 
       val rank = query.imageRank(pageId)
 
