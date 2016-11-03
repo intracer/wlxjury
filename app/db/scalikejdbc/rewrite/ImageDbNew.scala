@@ -25,7 +25,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                             roundId: Option[Long] = None,
                             rate: Option[Int] = None,
                             rated: Option[Boolean] = None,
-                            criteriaId: Option[Long] = None,
+                            regions: Set[String] = Set.empty,
                             limit: Option[Limit] = None,
                             grouped: Boolean = false,
                             groupWithDetails: Boolean = false,
@@ -53,7 +53,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         " group by s.page_id"
       } else ""
 
-      val sql = columns + imagesJoinSelection + where(count) + groupBy + orderBy()
+      val sql = columns + join + where(count) + groupBy + orderBy()
 
       val result = if (count)
         "select count(t.pi_on_i) from (" + sql + ") t"
@@ -79,10 +79,16 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       SQL(sql).map(_.int(1)).single().apply().getOrElse(0)
     }
 
-    val imagesJoinSelection =
+    val imagesJoinSelection: String =
       """ from images i
         |join selection s
         |on i.page_id = s.page_id""".stripMargin
+
+    def join: String = {
+      imagesJoinSelection + (if (regions.nonEmpty)
+        "\n join monument m on i.monument_id = m.id"
+      else "")
+    }
 
     def where(count: Boolean = false): String = {
       val conditions =
@@ -90,7 +96,10 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           userId.map(id => "s.jury_id = " + id),
           roundId.map(id => "s.round = " + id),
           rate.map(r => "s.rate = " + r),
-          rated.map(_ => "s.rate > 0")
+          rated.map(_ => "s.rate > 0"),
+          regions.headOption.map { _ =>
+            "m.adm0 in (" + regions.mkString(", ") + ")"
+          }
           //          limit.flatMap(_.startPageId).filter(_ => count).map(_ => "s.rate > 0")
         )
 

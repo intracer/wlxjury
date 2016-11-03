@@ -19,7 +19,7 @@
 
         @defining(round.flatMap(_.id).getOrElse(0L)) { roundId =>
 
-                @if(false) {
+                @if(byRegion.nonEmpty) {
                 @regionNav((region: String) => routes.Gallery.list(user = asUserId, round = roundId, region = region, page = 1, rate = rate).url, round, region, byRegion)
             }
 

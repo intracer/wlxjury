@@ -87,11 +87,11 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val asUser = getAsUser(asUserId, user)
 
-            val sortedFiles = filesByUserId(asUserId, rate, round, pager, userDetails = module == "filelist", rated)
+            val regions = Set(region).filter(_ != "all")
 
-            val filesInRegion = regionFiles(region, sortedFiles)
+            val files = filesByUserId(asUserId, rate, round, pager, userDetails = module == "filelist", rated, regions)
 
-            val byReg = byRegion(sortedFiles)
+            val byReg = byRegion(files)
 
             val rates = rateDistribution(user, round)
 
@@ -101,16 +101,16 @@ object Gallery extends Controller with Secured with Instrumented {
             module match {
               case "gallery" =>
                 Ok(views.html.gallery(user, asUserId, asUser,
-                  filesInRegion, pager, maybeRound, rounds, rate, region, byReg, rates)
+                  files, pager, maybeRound, rounds, rate, region, byReg, rates)
                 )
               case "filelist" =>
-                val ranks = ImageWithRating.rankImages(sortedFiles, round)
+                val ranks = ImageWithRating.rankImages(files, round)
                 Ok(views.html.fileList(user, asUserId, asUser,
-                  filesInRegion, ranks, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
+                  files, ranks, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
                 )
               case "byrate" =>
                 //  if (region != "grouped") {
-                Ok(views.html.galleryByRate(user, asUserId, asUser, filesInRegion, pager, maybeRound, rounds, rate, region, byReg, rates))
+                Ok(views.html.galleryByRate(user, asUserId, asUser, files, pager, maybeRound, rounds, rate, region, byReg, rates))
               //    Ok(views.html.galleryByRateRegions(user, asUserId, asUser, sortedFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
               //  }
             }
@@ -153,8 +153,10 @@ object Gallery extends Controller with Secured with Instrumented {
                      rate: Option[Int],
                      round: Round,
                      pager: Pager,
-                     userDetails: Boolean = false, rated: Option[Boolean] = None): Seq[ImageWithRating] = {
-    val query = getQuery(userId, rate, round, Some(pager), userDetails, rated)
+                     userDetails: Boolean = false,
+                     rated: Option[Boolean] = None,
+                     regions: Set[String] = Set.empty): Seq[ImageWithRating] = {
+    val query = getQuery(userId, rate, round, Some(pager), userDetails, rated, regions)
     pager.setCount(query.count())
 
     val withPageIdOffset = pager.startPageId.fold(query) {
@@ -170,13 +172,21 @@ object Gallery extends Controller with Secured with Instrumented {
     withPageIdOffset.list()
   }
 
-  def getQuery(userId: Long, rate: Option[Int], round: Round, pager: Option[Pager] = None, userDetails: Boolean = false, rated: Option[Boolean] = None): SelectionQuery = {
+  def getQuery(
+                userId: Long,
+                rate: Option[Int],
+                round: Round,
+                pager: Option[Pager] = None,
+                userDetails: Boolean = false,
+                rated: Option[Boolean] = None,
+                regions: Set[String] = Set.empty): SelectionQuery = {
     val userIdOpt = Some(userId).filter(_ != 0)
     val query = ImageDbNew.SelectionQuery(
       userId = userIdOpt,
       rate = rate,
       rated = rated,
       roundId = round.id,
+      regions = regions,
       order = Map("rate" -> -1, "s.page_id" -> 1),
       grouped = userIdOpt.isEmpty && !userDetails,
       groupWithDetails = userDetails,
