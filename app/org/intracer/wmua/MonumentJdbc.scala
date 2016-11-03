@@ -70,10 +70,12 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     }
   }
 
-  def findAll()(implicit session: DBSession = autoSession): List[Monument] = withSQL {
-    select.from(MonumentJdbc as c)
+  def findAll(limit: Option[Int] = None)(implicit session: DBSession = autoSession): List[Monument] = withSQL {
+    val q: PagingSQLBuilder[List[Monument]] = select.from(MonumentJdbc as c)
       //      .where.append(isNotDeleted)
       .orderBy(c.id)
+
+    limit.fold(q)(l => q.limit(l))
   }.map(MonumentJdbc(c)).list().apply()
 
   def find(id: String)(implicit session: DBSession = autoSession): Option[Monument] = withSQL {

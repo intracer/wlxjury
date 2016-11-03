@@ -55,7 +55,7 @@ class GlobalRefactor(val commons: MwBot) {
       val monumentQuery = MonumentQuery.create(contest)
       val monuments = monumentQuery.byMonumentTemplate()
 
-      val fromDb = MonumentJdbc.findAll
+      val fromDb = MonumentJdbc.findAll()
       val inDbIds = fromDb.map(_.id).toSet
 
       val newMonuments = monuments.filterNot(m => inDbIds.contains(m.id))

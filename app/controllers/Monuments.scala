@@ -10,7 +10,7 @@ object Monuments extends Controller {
   def list = Action {
     implicit request =>
 
-      val monuments = MonumentJdbc.findAll().take(20)
+      val monuments = MonumentJdbc.findAll(Some(20))
       Ok(views.html.monuments(monuments))
   }
 
