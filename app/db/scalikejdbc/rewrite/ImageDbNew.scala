@@ -36,7 +36,11 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     val reader: WrappedResultSet => ImageWithRating =
       if (grouped) Readers.groupedReader else Readers.rowReader
 
-    def query(count: Boolean = false, idOnly: Boolean = false, noLimit: Boolean = false): String = {
+    def query(
+               count: Boolean = false,
+               idOnly: Boolean = false,
+               noLimit: Boolean = false,
+               byRegion: Boolean = false): String = {
 
       val columns: String = if (count || idOnly) {
         "select i.page_id as pi_on_i" + (if (grouped)
@@ -98,7 +102,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           rate.map(r => "s.rate = " + r),
           rated.map(_ => "s.rate > 0"),
           regions.headOption.map { _ =>
-            "m.adm0 in (" + regions.mkString(", ") + ")"
+            "m.adm0 in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
           }
           //          limit.flatMap(_.startPageId).filter(_ => count).map(_ => "s.rate > 0")
         )
@@ -209,6 +213,10 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           selection = Seq(new Selection(0, image.pageId, sum, 0, round = 0)),
           count
         )
+      }
+
+      def regionStatReader(rs: WrappedResultSet): (String, Int) = {
+        rs.string(1) -> rs.int(2)
       }
     }
 

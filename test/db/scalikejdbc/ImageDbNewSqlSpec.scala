@@ -65,6 +65,18 @@ class ImageDbNewSqlSpec extends Specification with InMemDb {
       )
     }
 
+    "by region" in {
+      check(SelectionQuery(regions = Set("12")),
+        s"""select $allFields from images i
+            join selection s
+            on i.page_id = s.page_id
+            join monument m
+            on i.monument_id = m.id
+            where
+            m.adm0 in ('12')"""
+      )
+    }
+
     "by user, round, rate" in {
       check(SelectionQuery(userId = Some(2), roundId = Some(3), rate = Some(1)),
         s"""select $allFields from images i
