@@ -42,27 +42,34 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                noLimit: Boolean = false,
                byRegion: Boolean = false): String = {
 
-      val columns: String = if (count || idOnly) {
-        "select i.page_id as pi_on_i" + (if (grouped)
+      val columns: String = "select  " + (if (count || idOnly) {
+        "i.page_id as pi_on_i" + (if (grouped)
           ",  sum(s.rate) as rate, count(s.rate) as rate_count"
         else "")
       } else {
-        if (!grouped)
-          sqls"""select ${i.result.*}, ${s.result.*} """.value
+        if (byRegion)
+          "m.adm0, count(DISTINCT i.page_id)"
+        else if (!grouped)
+          sqls"""${i.result.*}, ${s.result.*} """.value
         else
-          sqls"""select sum(s.rate) as rate, count(s.rate) as rate_count, ${i.result.*} """.value
-      }
+          sqls"""sum(s.rate) as rate, count(s.rate) as rate_count, ${i.result.*} """.value
+      })
 
-      val groupBy = if (grouped) {
+      val groupBy = if (byRegion) {
+        " group by m.adm0"
+      } else if (grouped) {
         " group by s.page_id"
       } else ""
 
-      val sql = columns + join + where(count) + groupBy + orderBy()
+      val sql = columns + join(monuments = regions.nonEmpty || byRegion) +
+        where(count) +
+        groupBy +
+        (if (! (count || byRegion)) orderBy() else "")
 
       val result = if (count)
         "select count(t.pi_on_i) from (" + sql + ") t"
       else
-        sql + (if (noLimit) "" else limitSql())
+        sql + (if (noLimit || byRegion) "" else limitSql())
 
       result
     }
@@ -79,6 +86,10 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       single(imageRankSql(pageId, query(idOnly = true, noLimit = true)))
     }
 
+    def byRegionStat(): Map[String, Int] = {
+      SQL(query(byRegion = true)).map(rs => rs.string(1) -> rs.int(2)).list().apply().toMap
+    }
+
     def single(sql: String): Int = {
       SQL(sql).map(_.int(1)).single().apply().getOrElse(0)
     }
@@ -88,8 +99,8 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         |join selection s
         |on i.page_id = s.page_id""".stripMargin
 
-    def join: String = {
-      imagesJoinSelection + (if (regions.nonEmpty)
+    def join(monuments: Boolean): String = {
+      imagesJoinSelection + (if (monuments)
         "\n join monument m on i.monument_id = m.id"
       else "")
     }

@@ -89,9 +89,13 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val regions = Set(region).filter(_ != "all")
 
-            val files = filesByUserId(asUserId, rate, round, pager, userDetails = module == "filelist", rated, regions)
+            val userDetails = module == "filelist"
+            val query = getQuery(asUserId, rate, round, Some(pager), userDetails, rated, regions)
+            pager.setCount(query.count())
 
-            val byReg = byRegion(files)
+            val files = filesByUserId(query, pager, userDetails)
+
+            val byReg = query.copy(regions = Set.empty).byRegionStat()
 
             val rates = rateDistribution(user, round)
 
@@ -125,7 +129,7 @@ object Gallery extends Controller with Secured with Instrumented {
                        module: String,
                        pager: Pager = Pager.pageOffset(1)): Seq[ImageWithRating] = {
     val userDetails = module == "filelist"
-    filesByUserId(asUserId, rate, round, pager, userDetails)
+    filesByUserId(getQuery(asUserId, rate, round, Some(pager), userDetails), pager, userDetails)
   }
 
   def isNotAuthorized(user: User, maybeRound: Option[Round], roundContest: Long): Boolean = {
@@ -148,16 +152,9 @@ object Gallery extends Controller with Secured with Instrumented {
     }
   }
 
-  def filesByUserId(
-                     userId: Long,
-                     rate: Option[Int],
-                     round: Round,
+  def filesByUserId(query: SelectionQuery,
                      pager: Pager,
-                     userDetails: Boolean = false,
-                     rated: Option[Boolean] = None,
-                     regions: Set[String] = Set.empty): Seq[ImageWithRating] = {
-    val query = getQuery(userId, rate, round, Some(pager), userDetails, rated, regions)
-    pager.setCount(query.count())
+                     userDetails: Boolean = false): Seq[ImageWithRating] = {
 
     val withPageIdOffset = pager.startPageId.fold(query) {
       pageId =>
@@ -181,7 +178,8 @@ object Gallery extends Controller with Secured with Instrumented {
                 rated: Option[Boolean] = None,
                 regions: Set[String] = Set.empty): SelectionQuery = {
     val userIdOpt = Some(userId).filter(_ != 0)
-    val query = ImageDbNew.SelectionQuery(
+
+    ImageDbNew.SelectionQuery(
       userId = userIdOpt,
       rate = rate,
       rated = rated,
@@ -192,7 +190,6 @@ object Gallery extends Controller with Secured with Instrumented {
       groupWithDetails = userDetails,
       limit = pager.map(p => Limit(Some(p.pageSize), p.offset, p.startPageId))
     )
-    query
   }
 
   def large(asUserId: Long, pageId: Long, region: String = "all", roundId: Long, rate: Option[Int], module: String) = withAuth {
@@ -254,24 +251,6 @@ object Gallery extends Controller with Secured with Instrumented {
 
           checkLargeIndex(user, rate, index, pageId, files, region, round, module)
         }
-  }
-
-  def regionFiles(region: String, files: Seq[ImageWithRating]): Seq[ImageWithRating] = {
-    region match {
-      case "all" | "grouped" => files
-      case id => files.filter(_.image.monumentId.exists(_.startsWith(id)))
-    }
-  }
-
-  def byRegion(files: Seq[ImageWithRating]): Map[String, Int] = {
-    val stat = files.groupBy(_.image.monumentId.map(_.split("-")(0))).collect {
-      case (Some(id), images) => (id, images.size)
-    }
-
-    if (stat.nonEmpty)
-      stat + ("all" -> files.size)
-    else
-      stat
   }
 
   def checkLargeIndex(
