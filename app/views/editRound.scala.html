@@ -110,12 +110,14 @@
                                 </div>
                             </div>
                         </div>
-                    @if(newRound) {
-                        @b3.select(
-                            editRoundForm("jurors"),
-                            jurors.map(u => (u.id.get.toString, u.description)).sortBy(_._2),
-                            '_label -> "Jurors", 'multiple -> true, 'readonly -> noEdit)
-                    } else {
+
+                        <div @if(noEdit) {style="display: none"}>
+                            @b3.select(
+                                editRoundForm("jurors"),
+                                jurors.map(u => (u.id.get.toString, u.description)).sortBy(_._2),
+                                '_label -> "Jurors", 'multiple -> true, 'readonly -> noEdit)
+                        </div>
+                        @if(!newRound) {
 
                         <div class="panel panel-default">
                             <div class="panel-heading" id="headingJurors">
@@ -140,7 +142,7 @@
                             Seq(("0", "Each image to all jurors")) ++
                                     (1 until numJurors).map(x => (x.toString, s"Each image to $x juror(s)")),
                             '_label -> "Image distribution",
-                            'disabled -> (noEdit || numJurors == 0))
+                            'readonly -> (noEdit || numJurors == 0))
                     }
 
                     @b3.select(
