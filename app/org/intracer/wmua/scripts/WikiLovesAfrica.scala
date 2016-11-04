@@ -25,7 +25,8 @@ object WikiLovesAfrica {
 
       val (prevRound, round) = AddNextRound(contestId, roundNumber = 2, distribution = 0, rates = 10).apply()
 
-      Tools.distributeImagesWithFilters(round, round.jurors, Some(prevRound), selectedAtLeast = Some(1))
+      val images = Tools.getFilteredImages(round, round.jurors, Some(prevRound), selectedAtLeast = Some(1))
+      Tools.distributeImages(round, round.jurors, images)
 
       SetCurrentRound(contestId, Some(prevRound), round).apply()
     }

@@ -41,20 +41,27 @@ object Tools {
       warningThresholdMillis = 3000L,
       warningLogLevel = 'warn
     )
+
+    addCriteria()
   }
 
   def distributeImages(created: Round,
                               jurors: Seq[User],
-                              prevRound: Option[Round]) = {
-    distributeImagesWithFilters(created, jurors, prevRound, selectedAtLeast = created.prevSelectedBy,
+                              prevRound: Option[Round]): Unit = {
+    val images = getFilteredImages(created, jurors, prevRound, selectedAtLeast = created.prevSelectedBy,
       selectMinAvgRating = created.prevMinAvgRate,
       sourceCategory = created.category,
       includeCategory = created.categoryClause.map(_ > 0),
       includeRegionIds = created.regionIds.toSet)
+
+    distributeImages(created, jurors, images)
   }
 
+  def distributeImages(round: Round, jurors: Seq[User], images: Seq[Image]): Unit = {
+    DistributeImages(round, images, jurors).apply()
+  }
 
-  def distributeImagesWithFilters(
+  def getFilteredImages(
                         round: Round,
                         jurors: Seq[User],
                         prevRound: Option[Round],
@@ -71,7 +78,7 @@ object Tools {
                         excludeJurorId: Set[Long] = Set.empty,
                         sourceCategory: Option[String] = None,
                         includeCategory: Option[Boolean] = None
-                      ) = {
+                      ): Seq[Image] = {
 
 
     val catIds = sourceCategory.map { category =>
@@ -128,7 +135,7 @@ object Tools {
     val images = filterChain(imagesAll).map(_.image)
     println("Images after filtering: " + images.size)
 
-    DistributeImages(round, images, jurors).apply()
+    images
   }
 
   def insertMonumentsWLM() = {
@@ -253,5 +260,15 @@ object Tools {
           id => SelectionJdbc.setRound(id, 133L, 77L, 138L)
         }
     }
+  }
+
+  def addCriteria() = {
+    val roundId = 315
+    val round = RoundJdbc.find(roundId).get
+    val images = Seq.empty
+    val jurors = UserJdbc.findByRoundSelection(roundId)
+    val selection = SelectionJdbc.byRound(roundId)
+
+    DistributeImages(round, images, jurors).addCriteriaRates(selection)
   }
 }
