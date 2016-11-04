@@ -56,9 +56,8 @@
                             <div id="collapseImageFiltering" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingImageFiltering">
                                 <div class="panel-body">
                                     @if(rounds.nonEmpty) {
-                                        @b3.select(editRoundForm("previousRound"), rounds.map(r => (r.id.map(_.toString).get, r.description)),
-                                            '_label -> "Previous round", '_help -> "", 'class -> "form-control", 'readonly -> noEdit,
-                                            '_default -> "No")
+                                        @b3.select(editRoundForm("previousRound"), ("" -> "No") +: rounds.map(r => (r.id.map(_.toString).get, r.description)),
+                                            '_label -> "Previous round", '_help -> "", 'class -> "form-control", 'readonly -> noEdit)
 
                                         <div id="prevRoundFilters" @if(editRoundForm("previousRound").value.isEmpty) {
                                             style="display: none"}>
