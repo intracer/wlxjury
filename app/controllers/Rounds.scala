@@ -2,15 +2,15 @@ package controllers
 
 import db.scalikejdbc.RoundJdbc.RoundStatRow
 import db.scalikejdbc._
-import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
+import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import org.intracer.wmua._
 import org.intracer.wmua.cmd.SetCurrentRound
+import play.api.Play.current
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.mvc.Controller
-import play.api.Play.current
-import play.api.i18n.Messages.Implicits._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
+import play.api.i18n.Messages.Implicits._
+import play.api.mvc.Controller
 import scalikejdbc._
 
 import scala.util.Try
@@ -46,7 +46,7 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         val number = RoundJdbc.findByContest(contestId).size + 1
-        val round = roundId.flatMap(RoundJdbc.find).getOrElse(
+        val round: Round = roundId.flatMap(RoundJdbc.find).getOrElse(
           new Round(id = None, contest = contestId, number = number)
         )
 
@@ -62,7 +62,11 @@ object Rounds extends Controller with Secured {
 
         val stat = round.id.map(id => getRoundStat(id, round))
 
-        Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contest), jurors, regions, stat))
+        val prevRound = round.previous.flatMap(RoundJdbc.find)
+
+        val images = round.id.fold(Seq.empty[Image])(id => Tools.getFilteredImages(round, jurors, prevRound))
+
+        Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contest), jurors, regions, stat, images))
   }, User.ADMIN_ROLES)
 
   def loadJurors(contestId: Long): Seq[User] = {

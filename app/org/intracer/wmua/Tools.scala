@@ -45,16 +45,20 @@ object Tools {
     addCriteria()
   }
 
-  def distributeImages(created: Round,
-                              jurors: Seq[User],
-                              prevRound: Option[Round]): Unit = {
-    val images = getFilteredImages(created, jurors, prevRound, selectedAtLeast = created.prevSelectedBy,
-      selectMinAvgRating = created.prevMinAvgRate,
-      sourceCategory = created.category,
-      includeCategory = created.categoryClause.map(_ > 0),
-      includeRegionIds = created.regionIds.toSet)
+  def distributeImages(round: Round,
+                       jurors: Seq[User],
+                       prevRound: Option[Round]): Unit = {
+    val images = getFilteredImages(round, jurors, prevRound)
 
-    distributeImages(created, jurors, images)
+    distributeImages(round, jurors, images)
+  }
+
+  def getFilteredImages(round: Round, jurors: Seq[User], prevRound: Option[Round]): Seq[Image] = {
+    getFilteredImages(round, jurors, prevRound, selectedAtLeast = round.prevSelectedBy,
+      selectMinAvgRating = round.prevMinAvgRate,
+      sourceCategory = round.category,
+      includeCategory = round.categoryClause.map(_ > 0),
+      includeRegionIds = round.regionIds.toSet)
   }
 
   def distributeImages(round: Round, jurors: Seq[User], images: Seq[Image]): Unit = {

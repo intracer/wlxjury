@@ -1,5 +1,6 @@
 @import org.intracer.wmua.Round
 @import org.intracer.wmua.User
+@import org.intracer.wmua.Image
 
 @(
         user: User,
@@ -9,7 +10,8 @@
         contestId: Option[Long] = None,
         jurors: Seq[User],
         regions: Map[String, String] = Map.empty,
-        statOpt: Option[RoundStat] = None
+        statOpt: Option[RoundStat] = None,
+        newImages: Seq[Image] = Seq.empty
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @implicitFieldConstructor = @{
@@ -148,6 +150,10 @@
                         editRoundForm("rates"),
                         Round.rates.map(x => (x.id.toString, x.name)),
                         '_label -> "Selection type", 'readonly -> noEdit)
+
+                            @if(newImages.nonEmpty) {
+                                @newImages.size new Images
+                            }
 
                         <!--
                         @select(editRoundForm("limitMin"), (1 to 50).map(x => (x.toString, x.toString)), '_label -> "Min selected")
