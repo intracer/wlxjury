@@ -94,25 +94,25 @@ object ImageWithRatingSeqFilter {
                    ): Seq[ImageFilterGen] = {
 
     val setMap = Map(
-      includeRegionIds -> IncludeRegionIds(includeRegionIds),
-      excludeRegionIds -> ExcludeRegionIds(excludeRegionIds),
-      includePageIds -> IncludePageIds(includePageIds),
-      excludePageIds -> ExcludePageIds(excludePageIds),
-      includeTitles -> IncludeTitles(includeTitles),
-      excludeTitles -> ExcludeTitles(excludeTitles),
-      includeJurorId -> IncludeJurorId(includeJurorId),
-      excludeJurorId -> ExcludeJurorId(excludeJurorId)
+      IncludeRegionIds(includeRegionIds) -> includeRegionIds,
+      ExcludeRegionIds(excludeRegionIds) -> excludeRegionIds,
+      IncludePageIds(includePageIds) -> includePageIds,
+      ExcludePageIds(excludePageIds) -> excludePageIds,
+      IncludeTitles(includeTitles) -> includeTitles,
+      ExcludeTitles(excludeTitles) -> excludeTitles,
+      IncludeJurorId(includeJurorId) -> includeJurorId,
+      ExcludeJurorId(excludeJurorId) -> excludeJurorId
     )
 
     val optionMap = Map(
-      selectMinAvgRating -> selectMinAvgRating.map(top => SelectMinAvgRating(top, round.get)),
-      selectTopByRating -> selectTopByRating.map(top => SelectTopByRating(top, round.get)),
-      selectedAtLeast -> selectedAtLeast.map(n => SelectedAtLeast(n)),
-      mpxAtLeast -> mpxAtLeast.map(MegaPixelsAtLeast(_)),
-      sizeAtLeast -> sizeAtLeast.map(SizeAtLeast(_))
+      selectMinAvgRating.map(top => SelectMinAvgRating(top, round.get)) -> selectMinAvgRating,
+      selectTopByRating.map(top => SelectTopByRating(top, round.get)) -> selectTopByRating,
+      selectedAtLeast.map(n => SelectedAtLeast(n)) -> selectedAtLeast,
+      mpxAtLeast.map(MegaPixelsAtLeast(_)) -> mpxAtLeast,
+      sizeAtLeast.map(SizeAtLeast(_)) -> sizeAtLeast
     )
 
-    (setMap.filterKeys(_.nonEmpty).values ++ optionMap.values.flatten).toSeq
+    (setMap.filter(_._2.nonEmpty).keys ++ optionMap.filter(_._2.nonEmpty).keys.flatten).toSeq
   }
 
   def makeFunChain(gens: Seq[ImageFilterGen]): (Seq[ImageWithRating] => Seq[ImageWithRating]) =
