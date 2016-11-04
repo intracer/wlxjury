@@ -124,7 +124,7 @@ object Tools {
       includeTitles = includeTitles,
       excludeTitles = excludeTitles,
       includeJurorId = includeJurorId,
-      excludeJurorId = excludeJurorId ++ existingJurorIds,
+      excludeJurorId = excludeJurorId /*++ existingJurorIds*/,
       selectMinAvgRating = prevRound.flatMap(_ => selectMinAvgRating.filter(x => !prevRound.exists(_.isBinary))),
       selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
       selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),

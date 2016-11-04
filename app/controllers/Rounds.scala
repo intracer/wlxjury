@@ -97,11 +97,19 @@ object Rounds extends Controller with Secured {
             BadRequest(views.html.editRound(user, formWithErrors, newRound = !hasRoundId, rounds, contestId, jurors))
           },
           editForm => {
-            val round = editForm.round
+            val round = editForm.round.copy(active = true, regions = None)
             if (round.id.isEmpty) {
               createNewRound(user, round, editForm.jurors)
             } else {
-              round.id.foreach(roundId => RoundJdbc.updateRound(roundId, round))
+              round.id.foreach{ roundId =>
+                RoundJdbc.updateRound(roundId, round)
+                if (editForm.newImages) {
+                  val prevRound = round.previous.flatMap(RoundJdbc.find)
+
+                  val jurors = UserJdbc.findByRoundSelection(roundId)
+                  Tools.distributeImages(round, jurors, prevRound)
+                }
+              }
             }
             Redirect(routes.Rounds.rounds(Some(round.contest)))
           }
@@ -294,7 +302,8 @@ object Rounds extends Controller with Secured {
       "source" -> optional(text),
       "regions" -> seq(text),
       "minSize" -> text,
-      jurorsMappingKV
+      jurorsMappingKV,
+      "newImages" -> boolean
     )(applyEdit)(unapplyEdit)
   )
 
@@ -308,7 +317,8 @@ object Rounds extends Controller with Secured {
                 category: Option[String],
                 regions: Seq[String],
                 minImageSize: String,
-                jurors: Seq[String]
+                jurors: Seq[String],
+                newImages: Boolean
                ): EditRound = {
     val round = new Round(id, num, name, contest, Set(roles), distribution, Round.ratesById(rates),
       limitMin, limitMax, recommended,
@@ -321,12 +331,12 @@ object Rounds extends Controller with Secured {
       regions = if (regions.nonEmpty) Some(regions.mkString(",")) else None,
       minImageSize = Try(minImageSize.toInt).toOption
     )
-    EditRound(round, jurors.map(_.toLong), returnTo)
+    EditRound(round, jurors.map(_.toLong), returnTo, newImages)
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Int, Option[String], Long, String, Int, Int, Option[Int],
     Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String],
-    Seq[String], String, Seq[String])] = {
+    Seq[String], String, Seq[String], Boolean)] = {
     val round = editRound.round
     Some((
       round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
@@ -339,7 +349,8 @@ object Rounds extends Controller with Secured {
       round.category,
       round.regionIds,
       round.minImageSize.fold("No")(_.toString),
-      editRound.jurors.map(_.toString)
+      editRound.jurors.map(_.toString),
+      editRound.newImages
       ))
   }
 }
@@ -352,5 +363,4 @@ case class RoundStat(jurors: Seq[User],
                      total: Int,
                      totalByRate: Map[Int, Int])
 
-case class EditRound(round: Round, jurors: Seq[Long], returnTo: Option[String]
-                    )
+case class EditRound(round: Round, jurors: Seq[Long], returnTo: Option[String], newImages: Boolean = false)
