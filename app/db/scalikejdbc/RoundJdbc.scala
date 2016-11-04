@@ -76,12 +76,12 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
   override def updateRound(id: Long, round: Round) = withSQL {
     update(RoundJdbc).set(
       column.name -> round.name,
-      column.roles -> round.roles,
-      column.distribution -> round.distribution,
-      column.rates -> round.rates.id,
-      column.limitMin -> round.limitMin,
-      column.limitMax -> round.limitMax,
-      column.recommended -> round.recommended,
+//      column.roles -> round.roles,
+//      column.distribution -> round.distribution,
+//      column.rates -> round.rates.id,
+//      column.limitMin -> round.limitMin,
+//      column.limitMax -> round.limitMax,
+//      column.recommended -> round.recommended,
       column.active -> round.active
     ).where.eq(column.id, id)
   }.update().apply()
