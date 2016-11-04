@@ -88,9 +88,9 @@ object Rounds extends Controller with Secured {
             val contestId: Option[Long] = formWithErrors.data.get("contest").map(_.toLong)
             val rounds = contestId.map(RoundJdbc.findByContest).getOrElse(Seq.empty)
             val jurors = loadJurors(contestId.get)
-            val roundId = formWithErrors.data.get("id")
+            val hasRoundId = formWithErrors.data.get("id").exists(_.nonEmpty)
 
-            BadRequest(views.html.editRound(user, formWithErrors, newRound = roundId.isEmpty, rounds, contestId, jurors))
+            BadRequest(views.html.editRound(user, formWithErrors, newRound = !hasRoundId, rounds, contestId, jurors))
           },
           editForm => {
             val round = editForm.round
