@@ -325,7 +325,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
       val page = index / (Pager.pageSize + 1) + 1
 
-      val byCriteria = if (round.hasCriteria) {
+      val byCriteria = if (round.hasCriteria && asUserId != 0) {
         val criteria = {
           val selection = SelectionJdbc.findBy(pageId, asUserId, roundId).get
           CriteriaRate.getRates(selection.id)
