@@ -1,0 +1,1 @@
+alter table rounds add column half_star boolean;

@@ -19,7 +19,7 @@
     @main_large(module,
     user,
     asUserId,
-    files(index).totalRate(round) / (if (round.rates.id > 5) 2.0 else 1.0),
+    files(index).totalRate(round) / (if (round.rates.id > 5 && !round.halfStar.contains(false)) 2.0 else 1.0),
     s"/large/round/${round.id.get}/region/$region/pageid/${files(index).pageId}/select/",
     readOnly = !user.roles.contains("jury") || !round.active || user.id.get != asUserId,
     files = files,

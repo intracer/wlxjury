@@ -20,9 +20,9 @@
             <span style="margin-left: 5px;
                 margin-right: 10px;">
             @if(round.rates.id != 2) {
-                @defining(if(round.rates.id <= 5) round.rates.id else round.rates.id / 2) { starsNum =>
+                @defining(if(round.rates.id <= 5 || round.halfStar.contains(false)) round.rates.id else round.rates.id / 2) { starsNum =>
                     @for(i <- 1 to starsNum) {
-                        <img alt="@i" src="@showStar(i, file.totalRate(round).toInt, round.rates.id <= 10, round.rates.id > 5)">
+                        <img alt="@i" src="@showStar(i, file.totalRate(round).toInt, round.rates.id <= 10, round.rates.id > 5 && !round.halfStar.contains(false))">
                     }
                     @file.rateString(round)
                 }

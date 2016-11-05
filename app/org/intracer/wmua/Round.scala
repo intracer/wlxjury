@@ -30,7 +30,8 @@ case class Round(id: Option[Long],
                  categoryClause: Option[Int] = None,
                  regions: Option[String] = None,
                  minImageSize: Option[Int] = None,
-                 hasCriteria: Boolean = false) {
+                 hasCriteria: Boolean = false,
+                 halfStar: Option[Boolean] = None) {
 
   def jurors = UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contest, contest))
 
