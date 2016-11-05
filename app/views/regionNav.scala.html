@@ -4,7 +4,7 @@
         byRegion: Map[String, Int]
         )(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@if(byRegion.nonEmpty) {
+@if(byRegion.size > 1) {
     <div class="row" >
         <nav>
         <div class="col-md-12 text-center"  style="margin-bottom: 5px;">
