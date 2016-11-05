@@ -39,7 +39,7 @@
 
                     @for(round <- selectedRound.toSeq) {
 
-                        @if(!(currentRounds.size > 1)) {
+                        @if(!(user.canViewOrgInfo(round) || currentRounds.size > 1)) {
                             <li class="navbar-brand" style="margin-left: 10px">@Messages(round.description)</li>
                         }
 
