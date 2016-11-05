@@ -9,6 +9,7 @@
                     rate == 0 && x == 0
         => y
     }).sum) { count =>
+        @if(count != 0) {
         <div class="btn-group">
             @if(round.isBinary || rate == 0) {
                 <a href="/gallery/round/@round.id/user/@user.id/page/1@rateParam(Some(rate))">
@@ -37,7 +38,8 @@
                 </a>
             }
         </div>
-    @if(count != 0) {@count}
+    @count
+    }
 
     }
 
