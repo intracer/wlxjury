@@ -11,7 +11,7 @@
                 <div class="col-md-12 text-center">
                     <ul class="pagination pagination-centered" style="margin-top: 10px; margin-bottom: 5px;">
                     @for(r <- stat.rounds) {
-                        <li><a href="/roundstat/@r.id" @if(r.id == round.id){style="font-weight: bold"}> Round @r.description </a>
+                        <li><a href="/roundstat/@r.id" @if(r.id == round.id){style="font-weight: bold"}> @r.description </a>
                         </li>
                     }
                     </ul>
