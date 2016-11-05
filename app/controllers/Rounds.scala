@@ -97,7 +97,7 @@ object Rounds extends Controller with Secured {
             BadRequest(views.html.editRound(user, formWithErrors, newRound = !hasRoundId, rounds, contestId, jurors))
           },
           editForm => {
-            val round = editForm.round.copy(active = true, regions = None)
+            val round = editForm.round.copy(active = true)
             if (round.id.isEmpty) {
               createNewRound(user, round, editForm.jurors)
             } else {
