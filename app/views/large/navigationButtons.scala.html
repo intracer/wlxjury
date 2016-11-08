@@ -50,12 +50,12 @@
 @buttonSelect() = {
     @if(files(index).rate <=0 ) {
         <a role="button" class="btn btn-default btn-sm active btn-success" href="/large/round/@round.id.get/region/@region/pageid/@files(index).pageId/select/1@{rateParam(rate)}" title="@Messages("select.image") &lt;Space&gt;">
-            <span class="glyphicon glyphicon-ok icon-white" aria-hidden="true"></span>
+            <span class="glyphicon glyphicon-thumbs-up icon-white" aria-hidden="true"></span>
         </a>
     }
     @if(files(index).rate >=0 ) {
         <a role="button" class="btn btn-default btn-sm active btn-danger" href="/large/round/@round.id.get/region/@region/pageid/@files(index).pageId/select/-1@{rateParam(rate)}" title="@Messages("reject.image") &lt;Delete&gt;">
-            <span class="glyphicon glyphicon-ban-circle icon-white" aria-hidden="true"></span>
+            <span class="glyphicon glyphicon-thumbs-down icon-white" aria-hidden="true"></span>
         </a>
     }
 }
