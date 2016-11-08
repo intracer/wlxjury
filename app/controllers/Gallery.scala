@@ -40,8 +40,9 @@ object Gallery extends Controller with Secured with Instrumented {
     * @param rate     filter by rate. For select/reject rounds it is selected: 1, rejected: -1, unrated: 0
     * @return
     */
-  def query(module: String, asUserId: Option[Long], page: Int = 1, region: String = "all", roundId: Long = 0, rate: Option[Int]) =
-    listGeneric(module, asUserId.getOrElse(0), pageOffset(page), region, roundId, rate)
+  def query(module: String, asUserId: Option[Long], page: Int = 1, region: String = "all", roundId: Long = 0,
+            rate: Option[Int], rated: Option[Boolean] = None) =
+    listGeneric(module, asUserId.getOrElse(0), pageOffset(page), region, roundId, rate, rated)
 
   def list(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0, rate: Option[Int]) =
     listGeneric(moduleByUserId(asUserId), asUserId, pageOffset(page), region, roundId, rate)
@@ -49,11 +50,11 @@ object Gallery extends Controller with Secured with Instrumented {
   def listAtId(asUserId: Long, pageId: Long, region: String = "all", roundId: Long = 0, rate: Option[Int]) =
     listGeneric(moduleByUserId(asUserId), asUserId, startPageId(pageId), region, roundId, rate)
 
-  def byRate(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0) =
-    listGeneric("byrate", asUserId, pageOffset(page), region, roundId, rated = Some(true))
+  def byRate(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0, rated: Option[Boolean] = None) =
+    listGeneric("byrate", asUserId, pageOffset(page), region, roundId, rated = rated)
 
-  def byRateAt(asUserId: Long, pageId: Long, region: String = "all", roundId: Long = 0) =
-    listGeneric("byrate", asUserId, startPageId(pageId), region, roundId, None, rated = Some(true))
+  def byRateAt(asUserId: Long, pageId: Long, region: String = "all", roundId: Long = 0, rated: Option[Boolean] = None) =
+    listGeneric("byrate", asUserId, startPageId(pageId), region, roundId, None, rated = rated)
 
   def fileList(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0, format: String = "wiki", rate: Option[Int]) =
     listGeneric("filelist", asUserId, pageOffset(page), region, roundId, rate)
@@ -114,7 +115,7 @@ object Gallery extends Controller with Secured with Instrumented {
                 )
               case "byrate" =>
                 //  if (region != "grouped") {
-                Ok(views.html.galleryByRate(user, asUserId, asUser, files, pager, maybeRound, rounds, rate, region, byReg, rates))
+                Ok(views.html.galleryByRate(user, asUserId, asUser, files, pager, maybeRound, rounds, rate, region, byReg, rates, rated))
               //    Ok(views.html.galleryByRateRegions(user, asUserId, asUser, sortedFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
               //  }
             }

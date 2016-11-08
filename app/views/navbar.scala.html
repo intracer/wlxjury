@@ -15,7 +15,8 @@
         //        menu: Html = Html.empty,
         pager: Html = Html(""),
         contestId: Option[Long] = None,
-        rates: RateDistribution = new RateDistribution(Map.empty))(implicit lang: Lang, messages: Messages)
+        rates: RateDistribution = new RateDistribution(Map.empty),
+        rated: Option[Boolean] = None)(implicit lang: Lang, messages: Messages)
 
 <!-- Navigation bar on the top of the page -->
 <nav class="navbar navbar-inverse" role="navigation" style="margin-bottom: 10px;">
@@ -134,6 +135,16 @@
                                         Some(1) -> SelectionItem("selected"),
                                         Some(0) -> SelectionItem("unrated"),
                                         Some(-1) -> SelectionItem("rejected")
+                                    ),
+                                    Some(None -> SelectionItem("all"))
+                                ).toDropDown())
+                            } else {
+                                @(new UiSelectionDto[Option[Boolean]](
+                                    routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.id.get, None, _),
+                                    rated,
+                                    Seq(
+                                        Some(true) -> SelectionItem("rated"),
+                                        Some(false) -> SelectionItem("unrated")
                                     ),
                                     Some(None -> SelectionItem("all"))
                                 ).toDropDown())

@@ -18,7 +18,7 @@
                     </button>
                 </a>
             } else {
-                <a href="/byrate/round/@round.id/user/@user.id/page/1">
+                <a href="@routes.Gallery.query(round = round.id.get, user = user.id, rated = Some(true))">
                     <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
                         <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
                     </button>

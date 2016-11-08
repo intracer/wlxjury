@@ -14,17 +14,17 @@ POST        /auth                                                               
 
 GET         /auth                                                                   controllers.Login.login()
 
-GET         /query                                                                  controllers.Gallery.query(module:String ?= "byrate", user: Option[Long] ?= None, page: Int ?= 1, region: String ?= "all", round: Long ?= 0, rate: Option[Int] ?= None)
+GET         /query                                                                  controllers.Gallery.query(module:String ?= "byrate", user: Option[Long] ?= None, page: Int ?= 1, region: String ?= "all", round: Long ?= 0, rate: Option[Int] ?= None, rated: Option[Boolean] ?= None)
 
-GET         /byrate/user/:user/page/:page                                           controllers.Gallery.byRate(user: Long, page: Int, region: String = "all", round: Long = 0)
+GET         /byrate/user/:user/page/:page                                           controllers.Gallery.byRate(user: Long, page: Int, region: String = "all", round: Long = 0, rated: Option[Boolean] ?= None)
 
-GET         /byrate/user/:user/region/:region/page/:page                            controllers.Gallery.byRate(user: Long, page: Int, region: String, round: Long = 0)
+GET         /byrate/user/:user/region/:region/page/:page                            controllers.Gallery.byRate(user: Long, page: Int, region: String, round: Long = 0, rated: Option[Boolean] ?= None)
 
-GET         /byrate/round/:round/user/:user/page/:page                              controllers.Gallery.byRate(user: Long, page: Int, region: String = "all", round: Long)
+GET         /byrate/round/:round/user/:user/page/:page                              controllers.Gallery.byRate(user: Long, page: Int, region: String = "all", round: Long, rated: Option[Boolean] ?= None)
 
-GET         /byrate/round/:round/user/:user/region/:region/page/:page               controllers.Gallery.byRate(user: Long, page: Int, region: String, round: Long)
+GET         /byrate/round/:round/user/:user/region/:region/page/:page               controllers.Gallery.byRate(user: Long, page: Int, region: String, round: Long, rated: Option[Boolean] ?= None)
 
-GET         /byrate/round/:round/user/:user/region/:region/pageid/:pageid           controllers.Gallery.byRateAt(user: Long, pageid: Long, region: String, round: Long)
+GET         /byrate/round/:round/user/:user/region/:region/pageid/:pageid           controllers.Gallery.byRateAt(user: Long, pageid: Long, region: String, round: Long, rated: Option[Boolean] ?= None)
 
 GET         /gallery/user/:user/page/:page                                          controllers.Gallery.list(user: Long, page: Int, region: String = "all", round: Long = 0, rate: Option[Int] ?= None)
 

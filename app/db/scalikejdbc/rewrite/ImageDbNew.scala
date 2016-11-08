@@ -111,7 +111,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           userId.map(id => "s.jury_id = " + id),
           roundId.map(id => "s.round = " + id),
           rate.map(r => "s.rate = " + r),
-          rated.map(_ => "s.rate > 0"),
+          rated.map(r => if (r) "s.rate > 0" else "s.rate = 0"),
           regions.headOption.map { _ =>
             "m.adm0 in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
           }

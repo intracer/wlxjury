@@ -10,7 +10,7 @@
         rate: Option[Int] = None,
         region: String = "all",
         byRegion: Map[String, Int],
-        rates: RateDistribution)(implicit flash: Flash, lang: Lang, messages: Messages)
+        rates: RateDistribution, rated: Option[Boolean])(implicit flash: Flash, lang: Lang, messages: Messages)
 
     @showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
     @defining(maybeRound.get) { round =>
@@ -40,7 +40,7 @@
 
     @main("byrate", user, asUserId, asUser, maybeRound, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),
         rounds, true, rate, region,
-        pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate"), rates
+        pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate"), rates, rated
     ) {
 
         @defining(maybeRound.get) { round =>
