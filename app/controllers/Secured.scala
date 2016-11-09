@@ -14,8 +14,7 @@ trait Secured {
 
   def onUnAuthorized(user: User) = Results.Redirect(routes.Login.error("You don't have permission to access this page"))
 
-  def withAuth(f: => User => Request[AnyContent] => Result,
-               roles: Set[String] = User.ADMIN_ROLES ++ Set("jury", "organizer")) = {
+  def withAuth(roles: Set[String] = User.ADMIN_ROLES ++ Set("jury", "organizer"))(f: => User => Request[AnyContent] => Result) = {
     Security.Authenticated(user, onUnAuthenticated) { user =>
       if (roles.intersect(user.roles).nonEmpty)
         Action(request => f(user)(request))

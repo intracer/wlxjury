@@ -12,7 +12,7 @@ import play.api.mvc.Results._
 
 object Login extends Controller with Secured {
 
-  def index = withAuth {
+  def index = withAuth() {
     user =>
       implicit request =>
         indexRedirect(user)
@@ -71,7 +71,7 @@ object Login extends Controller with Secured {
     Redirect(routes.Login.login()).withNewSession
   }
 
-  def error(message: String) = withAuth {
+  def error(message: String) = withAuth() {
     user =>
       implicit request =>
         Ok(views.html.error(message, user, user.id.get, user))

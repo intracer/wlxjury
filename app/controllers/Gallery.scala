@@ -59,7 +59,7 @@ object Gallery extends Controller with Secured with Instrumented {
   def fileList(asUserId: Long, page: Int = 1, region: String = "all", roundId: Long = 0, format: String = "wiki", rate: Option[Int]) =
     listGeneric("filelist", asUserId, pageOffset(page), region, roundId, rate)
 
-  def listCurrent(page: Int = 1, region: String = "all", rate: Option[Int]) = withAuth {
+  def listCurrent(page: Int = 1, region: String = "all", rate: Option[Int]) = withAuth() {
     user =>
       implicit request =>
         Redirect(routes.Gallery.list(user.id.get, page, region, 0, rate))
@@ -72,7 +72,7 @@ object Gallery extends Controller with Secured with Instrumented {
                    region: String = "all",
                    roundId: Long = 0,
                    rate: Option[Int] = None,
-                   rated: Option[Boolean] = None) = withAuth {
+                   rated: Option[Boolean] = None) = withAuth() {
     user =>
       implicit request =>
         timerList.time {
@@ -193,20 +193,20 @@ object Gallery extends Controller with Secured with Instrumented {
     )
   }
 
-  def large(asUserId: Long, pageId: Long, region: String = "all", roundId: Long, rate: Option[Int], module: String) = withAuth {
+  def large(asUserId: Long, pageId: Long, region: String = "all", roundId: Long, rate: Option[Int], module: String) = withAuth() {
     user =>
       implicit request =>
         show(pageId, user, asUserId, rate, region, roundId, module)
   }
 
-  def largeCurrentUser(pageId: Long, region: String = "all", rate: Option[Int], module: String) = withAuth {
+  def largeCurrentUser(pageId: Long, region: String = "all", rate: Option[Int], module: String) = withAuth() {
     user =>
       implicit request =>
         show(pageId, user, user.id.get, rate, region, 0, module)
   }
 
   def selectWS(roundId: Long, pageId: Long, select: Int, region: String = "all",
-               rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth {
+               rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth() {
     user =>
       implicit request =>
 
@@ -216,7 +216,7 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def selectByPageId(roundId: Long, pageId: Long, select: Int, region: String = "all",
-                     rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth {
+                     rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth() {
     user =>
       implicit request =>
 

@@ -18,7 +18,7 @@ object ImageDiscussion extends Controller with Secured {
     )(CommentBody.apply)(CommentBody.unapply)
   )
 
-  def addComment(pageId: Long, region: String = "all", rate: Option[Int], module: String, round: Option[Long]) = withAuth {
+  def addComment(pageId: Long, region: String = "all", rate: Option[Int], module: String, round: Option[Long]) = withAuth() {
     user =>
       implicit request =>
         val roundId = round.getOrElse(RoundJdbc.current(user).flatMap(_.id).get)

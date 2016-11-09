@@ -15,13 +15,13 @@ import spray.util.pimpFuture
 
 object Contests extends Controller with Secured {
 
-  def list() = withAuth({
+  def list() = withAuth(User.ADMIN_ROLES) {
     user =>
       implicit request =>
         val contests = findContests
 
         Ok(views.html.contests(user, contests, editContestForm, importContestsForm))
-  }, User.ADMIN_ROLES)
+  }
 
   def findContests: List[ContestJury] = {
     val messages = applicationMessages
@@ -30,7 +30,7 @@ object Contests extends Controller with Secured {
     contests
   }
 
-  def saveContest() = withAuth({
+  def saveContest() = withAuth(Set(User.ROOT_ROLE)){
     user =>
       implicit request =>
 
@@ -43,9 +43,9 @@ object Contests extends Controller with Secured {
             createContest(formContest)
             Redirect(routes.Contests.list())
           })
-  }, Set(User.ROOT_ROLE))
+  }
 
-  def importContests() = withAuth({
+  def importContests() = withAuth(Set(User.ROOT_ROLE)){
     user =>
       implicit request =>
 
@@ -74,7 +74,7 @@ object Contests extends Controller with Secured {
             }
             Redirect(routes.Contests.list())
           })
-  }, Set(User.ROOT_ROLE))
+  }
 
   def importListPage(formContest: String): Seq[Contest] = {
     val wiki = Global.commons.pageText(formContest).await
@@ -100,7 +100,7 @@ object Contests extends Controller with Secured {
     )
   }
 
-  def images(contestId: Long, inProgress: Boolean = false) = withAuth({
+  def images(contestId: Long, inProgress: Boolean = false) = withAuth(User.ADMIN_ROLES){
     user =>
       implicit request =>
         val contest = ContestJuryJdbc.byId(contestId).get
@@ -110,7 +110,7 @@ object Contests extends Controller with Secured {
 
         val filledForm = importImagesForm.fill((contest.images.getOrElse(""), ""))
         Ok(views.html.contest_images(filledForm, contest, user, sourceImageNum, dbImagesNum, inProgress))
-  }, User.ADMIN_ROLES)
+  }
 
   def getNumberOfImages(contest: ContestJury): Long = {
     contest.images.fold(0L) {
@@ -119,7 +119,7 @@ object Contests extends Controller with Secured {
     }
   }
 
-  def importImages(contestId: Long) = withAuth({ user =>
+  def importImages(contestId: Long) = withAuth(User.ADMIN_ROLES) { user =>
     implicit request =>
       val contest = ContestJuryJdbc.byId(contestId).get
       val dbImagesNum = ImageJdbc.countByContest(contestId)
@@ -142,7 +142,7 @@ object Contests extends Controller with Secured {
 
           Redirect(routes.Contests.images(contestId))
         })
-  }, User.ADMIN_ROLES)
+  }
 
   def regions(contestId: Long): Map[String, String] = {
     ContestJuryJdbc.byId(contestId)

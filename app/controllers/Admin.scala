@@ -21,7 +21,7 @@ object Admin extends Controller with Secured {
 
   val sendMail = new SendMail
 
-  def users(contestIdParam: Option[Long] = None) = withAuth({
+  def users(contestIdParam: Option[Long] = None) = withAuth(User.ADMIN_ROLES) {
     user =>
       implicit request =>
         val usersView = for (contestId <- user.currentContest.orElse(contestIdParam);
@@ -33,7 +33,7 @@ object Admin extends Controller with Secured {
           Ok(views.html.users(user, withWiki, editUserForm.copy(data = Map("roles" -> "jury")), contest))
         }
         usersView.getOrElse(Redirect(routes.Login.index())) // TODO message
-  }, User.ADMIN_ROLES)
+  }
 
   def wikiAccountInfo(users: Seq[User]): Seq[User] = {
     val names = users.flatMap(_.wikiAccount)
@@ -67,7 +67,7 @@ object Admin extends Controller with Secured {
     }
   }
 
-  def editUser(id: Long) = withAuth({
+  def editUser(id: Long) = withAuth(Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$id")){
     user =>
       implicit request =>
 
@@ -79,9 +79,9 @@ object Admin extends Controller with Secured {
 
           Ok(views.html.editUser(user, filledForm, RoundJdbc.current(user), user.currentContest))
         }
-  }, Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$id"))
+  }
 
-  def saveUser() = withAuth({
+  def saveUser() = withAuth(){
     user =>
       implicit request =>
 
@@ -145,23 +145,23 @@ object Admin extends Controller with Secured {
             }
           }
         )
-  })
+  }
 
   def originalRoles(formUser: User): Set[String] = {
     val origUser = UserJdbc.find(formUser.id.get).get
     origUser.roles
   }
 
-  def showImportUsers(contestIdParam: Option[Long]) = withAuth({
+  def showImportUsers(contestIdParam: Option[Long]) = withAuth(Set(User.ADMIN_ROLE, User.ROOT_ROLE)) {
     user =>
       implicit request =>
 
         val contestId = contestIdParam.orElse(user.currentContest).get
         Ok(views.html.importUsers(user, importUsersForm, contestId))
 
-  }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
+  }
 
-  def importUsers(contestIdParam: Option[Long] = None) = withAuth({
+  def importUsers(contestIdParam: Option[Long] = None) = withAuth(Set(User.ADMIN_ROLE, User.ROOT_ROLE)) {
     user =>
       implicit request =>
         val contestId = contestIdParam.orElse(user.currentContest).get
@@ -182,11 +182,11 @@ object Admin extends Controller with Secured {
             Redirect(routes.Admin.users(Some(contestId)))
           })
 
-  }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
+  }
 
   def appConfig = play.Play.application.configuration
 
-  def editGreeting(contestIdParam: Option[Long], substituteJurors: Boolean = true) = withAuth({
+  def editGreeting(contestIdParam: Option[Long], substituteJurors: Boolean = true) = withAuth(Set(User.ADMIN_ROLE, User.ROOT_ROLE)) {
     user =>
       implicit request =>
 
@@ -212,7 +212,7 @@ object Admin extends Controller with Secured {
           user, greetingTemplateForm.fill(greeting), contestId, variables(contest, user, recipient), substitution
         ))
 
-  }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
+  }
 
 
   def getGreeting(contest: ContestJury): Greeting = {
@@ -244,7 +244,7 @@ object Admin extends Controller with Secured {
     )
   }
 
-  def saveGreeting(contestIdParam: Option[Long] = None) = withAuth({
+  def saveGreeting(contestIdParam: Option[Long] = None) = withAuth(Set(User.ADMIN_ROLE, User.ROOT_ROLE)){
     user =>
       implicit request =>
         val contestId = contestIdParam.orElse(user.currentContest).get
@@ -258,8 +258,7 @@ object Admin extends Controller with Secured {
             Redirect(routes.Admin.users(Some(contestId)))
           })
 
-  }, Set(User.ADMIN_ROLE, User.ROOT_ROLE))
-
+  }
 
   def createNewUser(user: User, formUser: User): Unit = {
     val contest: Option[ContestJury] = formUser.currentContest.flatMap(ContestJuryJdbc.byId)
@@ -321,7 +320,7 @@ object Admin extends Controller with Secured {
     )(Greeting.apply)(Greeting.unapply)
   )
 
-  def resetPassword(id: Long) = withAuth({
+  def resetPassword(id: Long) = withAuth(User.ADMIN_ROLES) {
     user =>
       implicit request =>
         val editedUser = UserJdbc.find(id).get
@@ -343,7 +342,7 @@ object Admin extends Controller with Secured {
 
         Redirect(routes.Admin.editUser(id)).flashing("password-reset" -> s"Password reset. New Password sent to ${editedUser.email}")
 
-  }, User.ADMIN_ROLES)
+  }
 
 
 }
