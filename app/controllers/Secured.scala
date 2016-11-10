@@ -28,6 +28,7 @@ trait Secured {
 
 trait Permission {
   def authorized(user: User): Boolean
+  def isRoot(user: User): Boolean = RolePermission(Set(User.ROOT_ROLE)).authorized(user)
 }
 
 case class RolePermission(roles: Set[String]) extends Permission {
@@ -37,8 +38,8 @@ case class RolePermission(roles: Set[String]) extends Permission {
 
 case class ContestPermission(roles: Set[String], contestId: Option[Long]) extends Permission {
   override def authorized(user: User): Boolean =
-    contestId.fold(RolePermission(Set(User.ROOT_ROLE)).authorized(user)) { id =>
-      roles.intersect(user.roles).nonEmpty && user.contest.contains(id)
+    contestId.fold(isRoot(user)) { id =>
+      isRoot(user) || roles.intersect(user.roles).nonEmpty && user.contest.contains(id)
     }
 }
 
