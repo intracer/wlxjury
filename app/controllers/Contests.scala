@@ -15,7 +15,7 @@ import spray.util.pimpFuture
 
 object Contests extends Controller with Secured {
 
-  def list() = withAuth(User.ADMIN_ROLES) {
+  def list() = withAuth(RolePermission(Set(User.ROOT_ROLE))) {
     user =>
       implicit request =>
         val contests = findContests
@@ -30,7 +30,7 @@ object Contests extends Controller with Secured {
     contests
   }
 
-  def saveContest() = withAuth(Set(User.ROOT_ROLE)){
+  def saveContest() = withAuth(RolePermission(Set(User.ROOT_ROLE))) {
     user =>
       implicit request =>
 
@@ -45,7 +45,7 @@ object Contests extends Controller with Secured {
           })
   }
 
-  def importContests() = withAuth(Set(User.ROOT_ROLE)){
+  def importContests() = withAuth(RolePermission(Set(User.ROOT_ROLE))) {
     user =>
       implicit request =>
 
@@ -100,7 +100,7 @@ object Contests extends Controller with Secured {
     )
   }
 
-  def images(contestId: Long, inProgress: Boolean = false) = withAuth(User.ADMIN_ROLES){
+  def images(contestId: Long, inProgress: Boolean = false) = withAuth(ContestPermission(User.ADMIN_ROLES, Some(contestId))){
     user =>
       implicit request =>
         val contest = ContestJuryJdbc.byId(contestId).get
@@ -119,7 +119,7 @@ object Contests extends Controller with Secured {
     }
   }
 
-  def importImages(contestId: Long) = withAuth(User.ADMIN_ROLES) { user =>
+  def importImages(contestId: Long) = withAuth(ContestPermission(User.ADMIN_ROLES, Some(contestId))) { user =>
     implicit request =>
       val contest = ContestJuryJdbc.byId(contestId).get
       val dbImagesNum = ImageJdbc.countByContest(contestId)

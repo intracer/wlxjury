@@ -17,7 +17,7 @@ import scala.util.Try
 
 object Rounds extends Controller with Secured {
 
-  def rounds(contestIdParam: Option[Long] = None) = withAuth(User.ADMIN_ROLES) {
+  def rounds(contestIdParam: Option[Long] = None) = withAuth(ContestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
         val roundsView = for (contestId <- user.currentContest.orElse(contestIdParam);
@@ -42,7 +42,7 @@ object Rounds extends Controller with Secured {
         roundsView.getOrElse(Redirect(routes.Login.index())) // TODO message
   }
 
-  def editRound(roundId: Option[Long], contestId: Long) = withAuth(User.ADMIN_ROLES) {
+  def editRound(roundId: Option[Long], contestId: Long) = withAuth(RolePermission(User.ADMIN_ROLES)) {
     user =>
       implicit request =>
         val number = RoundJdbc.findByContest(contestId).size + 1
@@ -82,7 +82,7 @@ object Rounds extends Controller with Secured {
     )
   }
 
-  def saveRound() = withAuth(User.ADMIN_ROLES) {
+  def saveRound() = withAuth(RolePermission(User.ADMIN_ROLES)) {
     user =>
       implicit request =>
 
@@ -135,7 +135,7 @@ object Rounds extends Controller with Secured {
     created
   }
 
-  def setRound() = withAuth(User.ADMIN_ROLES) {
+  def setRound() = withAuth(RolePermission(User.ADMIN_ROLES)) {
     user =>
       implicit request =>
         val newRoundId = selectRoundForm.bindFromRequest.get
@@ -150,7 +150,7 @@ object Rounds extends Controller with Secured {
         Redirect(routes.Rounds.rounds())
   }
 
-  def startRound() = withAuth(User.ADMIN_ROLES) {
+  def startRound() = withAuth(RolePermission(User.ADMIN_ROLES)) {
     user =>
       implicit request =>
 
@@ -171,7 +171,7 @@ object Rounds extends Controller with Secured {
     Tools.distributeImages(round, round.jurors, None)
   }
 
-  def setImages() = withAuth(User.ADMIN_ROLES) {
+  def setImages() = withAuth(RolePermission(User.ADMIN_ROLES)) {
     user =>
       implicit request =>
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
@@ -191,7 +191,7 @@ object Rounds extends Controller with Secured {
 
   }
 
-  def currentRoundStat() = withAuth(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES){
+  def currentRoundStat() = withAuth(RolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)){
     user =>
       implicit request =>
         RoundJdbc.current(user).map {
@@ -202,7 +202,7 @@ object Rounds extends Controller with Secured {
         }
   }
 
-  def roundStat(roundId: Long) = withAuth(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES) {
+  def roundStat(roundId: Long) = withAuth(RolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) {
     user =>
       implicit request =>
 

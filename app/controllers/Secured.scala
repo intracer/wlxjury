@@ -14,13 +14,30 @@ trait Secured {
 
   def onUnAuthorized(user: User) = Results.Redirect(routes.Login.error("You don't have permission to access this page"))
 
-  def withAuth(roles: Set[String] = User.ADMIN_ROLES ++ Set("jury", "organizer"))(f: => User => Request[AnyContent] => Result) = {
+  def withAuth(permission: Permission = RolePermission(User.ADMIN_ROLES ++ Set("jury", "organizer")))
+              (f: => User => Request[AnyContent] => Result) = {
     Security.Authenticated(user, onUnAuthenticated) { user =>
-      if (roles.intersect(user.roles).nonEmpty)
+      if (permission.authorized(user))
         Action(request => f(user)(request))
       else
         Action(request => onUnAuthorized(user))
     }
   }
 
+}
+
+trait Permission {
+  def authorized(user: User): Boolean
+}
+
+case class RolePermission(roles: Set[String]) extends Permission {
+  override def authorized(user: User): Boolean =
+    roles.intersect(user.roles).nonEmpty
+}
+
+case class ContestPermission(roles: Set[String], contestId: Option[Long]) extends Permission {
+  override def authorized(user: User): Boolean =
+    contestId.fold(RolePermission(Set(User.ROOT_ROLE)).authorized(user)) { id =>
+      roles.intersect(user.roles).nonEmpty && user.contest.contains(id)
+    }
 }

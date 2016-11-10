@@ -21,7 +21,7 @@ object Admin extends Controller with Secured {
 
   val sendMail = new SendMail
 
-  def users(contestIdParam: Option[Long] = None) = withAuth(User.ADMIN_ROLES) {
+  def users(contestIdParam: Option[Long] = None) = withAuth(ContestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
         val usersView = for (contestId <- user.currentContest.orElse(contestIdParam);
@@ -67,7 +67,7 @@ object Admin extends Controller with Secured {
     }
   }
 
-  def editUser(id: Long) = withAuth(Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$id")){
+  def editUser(id: Long) = withAuth(RolePermission(Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$id"))) {
     user =>
       implicit request =>
 
@@ -152,7 +152,7 @@ object Admin extends Controller with Secured {
     origUser.roles
   }
 
-  def showImportUsers(contestIdParam: Option[Long]) = withAuth(Set(User.ADMIN_ROLE, User.ROOT_ROLE)) {
+  def showImportUsers(contestIdParam: Option[Long]) = withAuth(ContestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
 
@@ -161,7 +161,7 @@ object Admin extends Controller with Secured {
 
   }
 
-  def importUsers(contestIdParam: Option[Long] = None) = withAuth(Set(User.ADMIN_ROLE, User.ROOT_ROLE)) {
+  def importUsers(contestIdParam: Option[Long] = None) = withAuth(ContestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
         val contestId = contestIdParam.orElse(user.currentContest).get
@@ -186,7 +186,7 @@ object Admin extends Controller with Secured {
 
   def appConfig = play.Play.application.configuration
 
-  def editGreeting(contestIdParam: Option[Long], substituteJurors: Boolean = true) = withAuth(Set(User.ADMIN_ROLE, User.ROOT_ROLE)) {
+  def editGreeting(contestIdParam: Option[Long], substituteJurors: Boolean = true) = withAuth(ContestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
 
@@ -244,7 +244,7 @@ object Admin extends Controller with Secured {
     )
   }
 
-  def saveGreeting(contestIdParam: Option[Long] = None) = withAuth(Set(User.ADMIN_ROLE, User.ROOT_ROLE)){
+  def saveGreeting(contestIdParam: Option[Long] = None) = withAuth(ContestPermission(User.ADMIN_ROLES, contestIdParam)){
     user =>
       implicit request =>
         val contestId = contestIdParam.orElse(user.currentContest).get
@@ -320,7 +320,7 @@ object Admin extends Controller with Secured {
     )(Greeting.apply)(Greeting.unapply)
   )
 
-  def resetPassword(id: Long) = withAuth(User.ADMIN_ROLES) {
+  def resetPassword(id: Long) = withAuth(RolePermission(Set(User.ROOT_ROLE))) {
     user =>
       implicit request =>
         val editedUser = UserJdbc.find(id).get
