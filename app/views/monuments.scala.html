@@ -4,7 +4,7 @@
 @import java.net.URLEncoder
 @(monuments: Seq[Monument], region: String = "all")(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@main("gallery", null, 0, null, None, Seq.empty, Seq.empty, gallery = false, None, region, Html(""))  {
+@main("gallery", null, 0, null, None, Seq.empty, gallery = false, None, region, Html(""))  {
 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/bootstrap-multiselect.js")"></script>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/bootstrap-multiselect.css")" type="text/css"/>

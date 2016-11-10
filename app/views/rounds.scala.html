@@ -13,7 +13,7 @@
     @import db.scalikejdbc.SelectionJdbc
 
     @mainAdmin(Messages("rounds"), adminUser, adminUser.id.get,
-        currentRounds = round.toSeq, selectedRound = round, contestId = contest.id) {
+        rounds = rounds, selectedRound = round, contestId = contest.id) {
         <div class="row" >
             <h3>@Messages("Contest: " + contest.fullName)</h3>
 

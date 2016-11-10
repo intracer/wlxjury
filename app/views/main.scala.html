@@ -4,8 +4,7 @@
         asUserId: Long = 0,
         asUser: org.intracer.wmua.User = null,
         selectedRound: Option[org.intracer.wmua.Round] = None,
-        currentRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
-        allRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
+        rounds: Seq[org.intracer.wmua.Round] = Seq.empty,
         gallery: Boolean = false,
         rate: Option[Int] = None,
         region: String = "all",
@@ -68,7 +67,7 @@
 
     <body @if(gallery){class="gallery"}>
 
-        @navbar(title, user, asUserId, asUser, selectedRound, currentRounds, allRounds, gallery, rate, region, pager,
+        @navbar(title, user, asUserId, asUser, selectedRound, rounds, gallery, rate, region, pager,
             contestId = selectedRound.map(_.contest), rates, rated)
 
      <div class="container-fluid" style="margin-left: 0; margin-right :0;">

@@ -38,8 +38,7 @@
     }
     }
 
-    @main("byrate", user, asUserId, asUser, maybeRound, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),
-        rounds, true, rate, region,
+    @main("byrate", user, asUserId, asUser, maybeRound, rounds, true, rate, region,
         pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate"), rates, rated
     ) {
 

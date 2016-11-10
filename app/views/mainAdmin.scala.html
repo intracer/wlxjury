@@ -6,8 +6,7 @@
         asUserId: Long = 0,
         asUser: User = null,
         selectedRound: Option[Round] = None,
-        currentRounds: Seq[Round] = Seq.empty,
-        allRounds: Seq[Round] = Seq.empty,
+        rounds: Seq[Round] = Seq.empty,
         gallery: Boolean = false,
         rate: Option[Int] = None,
         region: String = "all",
@@ -116,7 +115,7 @@
     <body @if(gallery) {
         class="gallery"}>
 
-        @navbar(title, user, asUserId, asUser, selectedRound, currentRounds, allRounds, gallery, rate, region, pager, contestId)
+        @navbar(title, user, asUserId, asUser, selectedRound, rounds, gallery, rate, region, pager, contestId)
 
         <div class="container">
 

@@ -1,4 +1,3 @@
-@import db.scalikejdbc.RoundJdbc
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
@@ -39,8 +38,7 @@
 }
 }
 
-@main("byrate", user, asUserId, asUser, maybeRound, RoundJdbc.activeRounds(user.currentContest.getOrElse(0L)),
-    rounds, true, None, region,
+@main("byrate", user, asUserId, asUser, maybeRound, rounds, true, None, region,
     pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate")
 ) {
 

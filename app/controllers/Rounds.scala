@@ -269,6 +269,10 @@ object Rounds extends Controller with Secured {
     stat
   }
 
+  def removeImage(imageId: Long, roundId: Long) = {
+
+  }
+
   val imagesForm = Form("images" -> optional(text))
 
   val selectRoundForm = Form("currentRound" -> optional(text))

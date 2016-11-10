@@ -7,8 +7,7 @@
         asUserId: Long = 0,
         asUser: org.intracer.wmua.User = null,
         selectedRound: Option[org.intracer.wmua.Round],
-        currentRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
-        allRounds: Seq[org.intracer.wmua.Round] = Seq.empty,
+        rounds: Seq[org.intracer.wmua.Round] = Seq.empty,
         gallery: Boolean = false,
         rate: Option[Int] = None,
         region: String = "all",
@@ -40,7 +39,7 @@
 
                     @for(round <- selectedRound.toSeq) {
 
-                        @if(!(user.canViewOrgInfo(round) || currentRounds.size > 1)) {
+                        @if(!(user.canViewOrgInfo(round) || rounds.size > 1)) {
                             <li class="navbar-brand" style="margin-left: 10px">@Messages(round.description)</li>
                         }
 
@@ -53,14 +52,12 @@
                         @if((asUserId == 0 || asUserId == user.id.get) && round.roles.intersect(user.roles).nonEmpty) {
 
                             <!-- Show rounds dropdown -->
-                        @if(user.canViewOrgInfo(round) || (currentRounds.size > 1)) {
+                        @if(user.canViewOrgInfo(round) || (rounds.size > 1)) {
                             <li role="presentation" class="brand" style="margin-left: 10px">
                             @(new UiSelectionDto[Long](
                                 itemUrlFunction = (roundId: Long) => routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate),
                                 selectedItemId = selectedRound.flatMap(_.id).get,
-                                items = (if(user.canViewOrgInfo(round))
-                                    RoundJdbc.findByContest(user.currentContest.getOrElse(0L))
-                                 else currentRounds).map {
+                                items = rounds.map {
                                         r => (r.id.get, SelectionItem(r.description, localized = false))
                                     }
                             ).toDropDown())
@@ -113,7 +110,7 @@
                             @(new UiSelectionDto[Long](
                                 { roundId: Long => routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate) },
                                 round.id.get,
-                                allRounds.filter(user.canViewOrgInfo).map(r => (r.id.get, SelectionItem(r.description, localized = false)))
+                                rounds.map(r => (r.id.get, SelectionItem(r.description, localized = false)))
                             ).toDropDown())
                             </li>
 

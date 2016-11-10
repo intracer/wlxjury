@@ -79,12 +79,16 @@ object Gallery extends Controller with Secured with Instrumented {
           val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
 
           val roundContest = maybeRound.map(_.contest).getOrElse(0L)
+          val round = maybeRound.get
+          val rounds = if (user.canViewOrgInfo(round)) {
+            RoundJdbc.findByContest(roundContest)
+          } else {
+            RoundJdbc.activeRounds(roundContest)
+          }
 
-          if (isNotAuthorized(user, maybeRound, roundContest)) {
+          if (isNotAuthorized(user, maybeRound, roundContest, rounds)) {
             onUnAuthorized(user)
           } else {
-            val round = maybeRound.get
-            val rounds = RoundJdbc.findByContest(roundContest)
 
             val asUser = getAsUser(asUserId, user)
 
@@ -133,12 +137,12 @@ object Gallery extends Controller with Secured with Instrumented {
     filesByUserId(getQuery(asUserId, rate, round, Some(pager), userDetails), pager, userDetails)
   }
 
-  def isNotAuthorized(user: User, maybeRound: Option[Round], roundContest: Long): Boolean = {
+  def isNotAuthorized(user: User, maybeRound: Option[Round], roundContest: Long, rounds: Seq[Round]): Boolean = {
     val userContest = user.currentContest.getOrElse(0L)
     val notAuthorized = maybeRound.isEmpty ||
       (!user.hasRole("root") && userContest != roundContest) ||
       (user.roles.intersect(Set("admin", "organizer", "root")).isEmpty
-        && !RoundJdbc.activeRounds(userContest).exists(_.id == maybeRound.flatMap(_.id))
+        && !rounds.exists(_.id == maybeRound.flatMap(_.id))
         && !maybeRound.exists(_.juryOrgView))
     notAuthorized
   }

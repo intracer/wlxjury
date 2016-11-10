@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.UserJdbc
+import db.scalikejdbc.{RoundJdbc, UserJdbc}
 import org.intracer.wmua.User
 import play.api.mvc._
 
@@ -39,5 +39,12 @@ case class ContestPermission(roles: Set[String], contestId: Option[Long]) extend
   override def authorized(user: User): Boolean =
     contestId.fold(RolePermission(Set(User.ROOT_ROLE)).authorized(user)) { id =>
       roles.intersect(user.roles).nonEmpty && user.contest.contains(id)
+    }
+}
+
+case class RoundPermission(roles: Set[String], roundId: Long) extends Permission {
+  override def authorized(user: User): Boolean =
+    RoundJdbc.find(roundId).exists { round =>
+      roles.intersect(user.roles).nonEmpty && user.contest.contains(round.contest)
     }
 }
