@@ -198,7 +198,7 @@ object Rounds extends Controller with Secured {
           round =>
             Redirect(routes.Rounds.roundStat(round.id.get))
         }.getOrElse {
-          Redirect(routes.Login.error("You don't have permission to access this page"))
+          Redirect(routes.Login.error("There is no active rounds in your contest"))
         }
   }
 
@@ -217,7 +217,7 @@ object Rounds extends Controller with Secured {
               Ok(views.html.roundStat(user, round, stat))
             }
         }.getOrElse {
-          Redirect(routes.Login.error("You don't have permission to access this page"))
+          Redirect(routes.Login.error("Round not found"))
         }
   }
 
