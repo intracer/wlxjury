@@ -158,8 +158,8 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def filesByUserId(query: SelectionQuery,
-                     pager: Pager,
-                     userDetails: Boolean = false): Seq[ImageWithRating] = {
+                    pager: Pager,
+                    userDetails: Boolean = false): Seq[ImageWithRating] = {
 
     val withPageIdOffset = pager.startPageId.fold(query) {
       pageId =>
@@ -224,49 +224,42 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
 
-        val rounds = RoundJdbc.activeRounds(user.currentContest.getOrElse(0L))
-
-        val roundOption = rounds.find(_.id.exists(_ == roundId)).filter(_.active)
+        val roundOption = RoundJdbc.find(roundId).filter(_.active)
 
         roundOption.fold(Redirect(routes.Gallery.list(user.id.get, 1, region, roundId, rate))) { round =>
 
-          val query = getQuery(user.id.get, rate, round)
-
-          val rank = query.imageRank(pageId)
-
-          val offset = Math.max(0, rank - 3)
-
-          val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()
-
-          val index = files.indexWhere(_.pageId == pageId)
-
-          val maybeFile = files.find(_.pageId == pageId)
-
-          maybeFile.foreach { file =>
-            if (criteria.isEmpty) {
-              file.rate = select
-              SelectionJdbc.rate(pageId = file.pageId, juryId = user.id.get, round = round.id.get, rate = select)
-            } else {
-
-              val selection = SelectionJdbc.findBy(pageId, user.id.get, roundId).get
-
-              CriteriaRate.updateRate(selection.id, criteria.get, select)
-            }
+          if (criteria.isEmpty) {
+            SelectionJdbc.rate(pageId = pageId, juryId = user.id.get, round = round.id.get, rate = select)
+          } else {
+            val selection = SelectionJdbc.findBy(pageId, user.id.get, roundId).get
+            CriteriaRate.updateRate(selection.id, criteria.get, select)
           }
-
-          checkLargeIndex(user, rate, index, pageId, files, region, round, module)
+          checkLargeIndex(user, rate, pageId, region, round, module)
         }
   }
 
-  def checkLargeIndex(
-                       asUser: User,
-                       rate: Option[Int],
-                       index: Int,
-                       pageId: Long,
-                       files: Seq[ImageWithRating],
-                       region: String,
-                       round: Round,
-                       module: String): Result = {
+  //  def removeImage(imageId: Long, roundId: Long) = withAuth(RoundPermission(User.ADMIN_ROLES, roundId)) {
+  //    SelectionJdbc.removeImage(imageId, roundId)
+  //  }
+
+
+  def checkLargeIndex(asUser: User,
+                      rate: Option[Int],
+                      pageId: Long,
+                      region: String,
+                      round: Round,
+                      module: String): Result = {
+
+    val query = getQuery(asUser.id.get, rate, round)
+
+    val rank = query.imageRank(pageId)
+
+    val offset = Math.max(0, rank - 3)
+
+    val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()
+
+    val index = files.indexWhere(_.pageId == pageId)
+
     val newIndex = if (!round.hasCriteria) {
       if (index >= files.size - 1)
         files.size - 2
@@ -303,19 +296,14 @@ object Gallery extends Controller with Secured with Instrumented {
             module: String)(implicit request: Request[Any]): Result = {
     timerShow.time {
       val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
-
       val round = maybeRound.get
 
       val query = getQuery(asUserId, rate, round, regions = Set(region).filter(_ != "all"))
-
       val rank = query.imageRank(pageId)
-
       val offset = Math.max(0, rank - 3)
-
       val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()
 
       val index = files.indexWhere(_.pageId == pageId)
-
       if (index < 0) {
         return Redirect(if (files.nonEmpty) {
           routes.Gallery.large(asUserId, files.head.pageId, region, round.id.get, rate, module)
