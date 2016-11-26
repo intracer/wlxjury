@@ -14,9 +14,7 @@
         newImages: Seq[Image] = Seq.empty
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@implicitFieldConstructor = @{
-    b3.horizontal.fieldConstructor("col-md-4", "col-md-8")
-}
+@implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-4", "col-md-8") }
 @import helper._
 
 @mainAdmin(Messages("edit round"), user, user.id.get, contestId = contestId) {

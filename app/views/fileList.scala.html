@@ -1,4 +1,5 @@
 @import db.scalikejdbc.UserJdbc
+@import controllers.Global._
 @(
         user: org.intracer.wmua.User, /* logged in user */
         asUserId: Long, /* viewing files of user with asUserId id  */
@@ -16,31 +17,13 @@
         rates: RateDistribution
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@wrapInIf(tag: String, condition: Boolean)(content: Html) = {
-@if(condition) {
-    <@tag>
-    @content
-    </@tag>
-} else {
-    @content
-}
-}
+@wrapInIf(tag: String, condition: Boolean)(content: Html) = {@if(condition) {<@tag> @content </@tag>} else {@content}}
 
-@cell(content: Html) = {
-@wrapInIf("td", wrapInTable)(content)
-}
+@cell(content: Html) = {@wrapInIf("td", wrapInTable)(content)}
 
-@row(content: Html) = {
-@wrapInIf("tr", wrapInTable)(content)
-}
+@row(content: Html) = {@wrapInIf("tr", wrapInTable)(content)}
 
-@ratedOrSelected(round: org.intracer.wmua.Round) = {
-@if(round.isBinary) {
-    Selected
-} else {
-    Rating
-}
-}
+@ratedOrSelected(round: org.intracer.wmua.Round) = {@if(round.isBinary) {Selected} else {Rating}}
 
 @main("filelist", user, asUserId, asUser, round, rounds, gallery = false, rate, region) {
 
@@ -64,12 +47,8 @@
         @if(wrapInTable) {
             <table class="table table-striped table-condensed">
                 <thead>
-                    <th>
-                        Rank
-                    </th>
-                    <th>
-                        File
-                    </th>
+                    <th> Rank </th>
+                    <th> File </th>
                     <th>
                         @if(asUserId == 0) {Overall <br>}
                         @ratedOrSelected(round.get)
@@ -77,34 +56,29 @@
 
                     @if(asUserId == 0) {
                         @for(juror <- jurors) {
-                            <th>
-                            @juror.fullname
-                            </th>
+                            <th> @juror.fullname </th>
                         }
                     }
-
                 </thead>
                 <tbody>
                 }
 
-        @for((file, rank)<- files.zip(ranks)) {
+        @for((file, rank) <- files.zip(ranks)) {
             @row {
                 @if(wrapInTable) {
-                    <td>
-                        @rank
-                    </td>
+                    <td> @rank </td>
                 }
 
                 @cell {
 
                     @outputFormat match {
-                        case "wiki" => {
-                            <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
-                        }
+                        case "wiki" =>
+                    <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
+
                         case "html" => {
                             @defining(
                                 s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img
-            src="${controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)}"></a>"""
+            src="${resizeTo(file.image, gallerySizeX, gallerySizeY)}"></a>"""
                             ) { str => @str <br/> }
                         }
                     }
@@ -132,21 +106,15 @@
         </tbody>
             @if(asUserId == 0) {
                 <tfoot>
-                    <th>
-                        Rank
-                    </th>
-                    <th>
-                        File
-                    </th>
+                    <th> Rank </th>
+                    <th> File </th>
                     <th>
                         @if(asUserId == 0) {Overall <br>}
                         @ratedOrSelected(round.get)
                     </th>
 
                     @for(juror <- jurors) {
-                        <th>
-                        @juror.fullname
-                        </th>
+                        <th> @juror.fullname </th>
                     }
                 </tfoot>
             }
