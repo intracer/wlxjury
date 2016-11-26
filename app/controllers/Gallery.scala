@@ -95,7 +95,7 @@ object Gallery extends Controller with Secured with Instrumented {
             val regions = Set(region).filter(_ != "all")
 
             val userDetails = module == "filelist"
-            val query = getQuery(asUserId, rate, round, Some(pager), userDetails, rated, regions)
+            val query = getQuery(asUserId, rate, round.id, Some(pager), userDetails, rated, regions)
             pager.setCount(query.count())
 
             val files = filesByUserId(query, pager, userDetails)
@@ -130,11 +130,11 @@ object Gallery extends Controller with Secured with Instrumented {
   def getSortedImages(
                        asUserId: Long,
                        rate: Option[Int],
-                       round: Round,
+                       roundId: Option[Long],
                        module: String,
                        pager: Pager = Pager.pageOffset(1)): Seq[ImageWithRating] = {
     val userDetails = module == "filelist"
-    filesByUserId(getQuery(asUserId, rate, round, Some(pager), userDetails), pager, userDetails)
+    filesByUserId(getQuery(asUserId, rate, roundId, Some(pager), userDetails), pager, userDetails)
   }
 
   def isNotAuthorized(user: User, maybeRound: Option[Round], roundContest: Long, rounds: Seq[Round]): Boolean = {
@@ -177,7 +177,7 @@ object Gallery extends Controller with Secured with Instrumented {
   def getQuery(
                 userId: Long,
                 rate: Option[Int],
-                round: Round,
+                roundId: Option[Long],
                 pager: Option[Pager] = None,
                 userDetails: Boolean = false,
                 rated: Option[Boolean] = None,
@@ -188,7 +188,7 @@ object Gallery extends Controller with Secured with Instrumented {
       userId = userIdOpt,
       rate = rate,
       rated = rated,
-      roundId = round.id,
+      roundId = roundId,
       regions = regions,
       order = Map("rate" -> -1, "s.page_id" -> 1),
       grouped = userIdOpt.isEmpty && !userDetails,
@@ -238,10 +238,14 @@ object Gallery extends Controller with Secured with Instrumented {
         }
   }
 
-  //  def removeImage(imageId: Long, roundId: Long) = withAuth(RoundPermission(User.ADMIN_ROLES, roundId)) {
-  //    SelectionJdbc.removeImage(imageId, roundId)
-  //  }
-
+  def removeImage(pageId: Long, roundId: Long, region: String = "all", rate: Option[Int], module: String) =
+    withAuth(RoundPermission(User.ADMIN_ROLES, roundId)) {
+      user =>
+        implicit request =>
+          SelectionJdbc.removeImage(pageId, roundId)
+          val round = RoundJdbc.find(roundId).get
+          checkLargeIndex(user, rate, pageId, region, round, module)
+    }
 
   def checkLargeIndex(asUser: User,
                       rate: Option[Int],
@@ -250,7 +254,7 @@ object Gallery extends Controller with Secured with Instrumented {
                       round: Round,
                       module: String): Result = {
 
-    val query = getQuery(asUser.id.get, rate, round)
+    val query = getQuery(asUser.id.get, rate, round.id)
 
     val rank = query.imageRank(pageId)
 
@@ -298,7 +302,7 @@ object Gallery extends Controller with Secured with Instrumented {
       val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
       val round = maybeRound.get
 
-      val query = getQuery(asUserId, rate, round, regions = Set(region).filter(_ != "all"))
+      val query = getQuery(asUserId, rate, round.id, regions = Set(region).filter(_ != "all"))
       val rank = query.imageRank(pageId)
       val offset = Math.max(0, rank - 3)
       val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()

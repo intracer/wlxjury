@@ -206,8 +206,13 @@ object SelectionJdbc extends SQLSyntaxSupport[Selection] with SelectionDao {
       .append(isNotDeleted)
   }.map(_.int(1)).single().apply().get
 
-  def destroyAll(pageId: Long)(implicit session: DBSession = autoSession): Unit = withSQL {
+  def destroyAll(pageId: Long): Unit = withSQL {
     update(SelectionJdbc).set(column.deletedAt -> DateTime.now).where.eq(column.pageId, pageId)
   }.update.apply()
 
+  def removeImage(pageId: Long, roundId: Long): Unit = withSQL {
+    delete.from(SelectionJdbc as s).where
+      .eq(s.pageId, pageId).and
+      .eq(s.round, roundId)
+  }.update().apply()
 }
