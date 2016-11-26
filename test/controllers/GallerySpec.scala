@@ -61,7 +61,7 @@ class GallerySpec extends Specification with InMemDb {
         createSelection(images.slice(0, 3), rate = 0)
 
         /// test
-        val result = Gallery.getSortedImages(user.id.get, None, round, "gallery")
+        val result = Gallery.getSortedImages(user.id.get, None, round.id, "gallery")
 
         /// check
         result.size === 3
@@ -87,7 +87,7 @@ class GallerySpec extends Specification with InMemDb {
 
         for (rate <- -1 to 1) yield {
           /// test
-          val result = Gallery.getSortedImages(user.id.get, Some(rate), round, "gallery")
+          val result = Gallery.getSortedImages(user.id.get, Some(rate), round.id, "gallery")
 
           /// check
           result.size === 2
@@ -113,7 +113,7 @@ class GallerySpec extends Specification with InMemDb {
         }
 
         /// test
-        val result = Gallery.getSortedImages(user.id.get, None, round, "gallery")
+        val result = Gallery.getSortedImages(user.id.get, None, round.id, "gallery")
 
         /// check
         result.size === 6
@@ -136,7 +136,7 @@ class GallerySpec extends Specification with InMemDb {
         selectionDao.batchInsert(selections)
 
         /// test
-        val result = Gallery.getSortedImages(user.id.get, None, round, "gallery")
+        val result = Gallery.getSortedImages(user.id.get, None, round.id, "gallery")
 
         /// check
         result.size === 6
@@ -170,7 +170,7 @@ class GallerySpec extends Specification with InMemDb {
         selectionDao.batchInsert(selectedByX)
 
         /// test
-        val result = Gallery.getSortedImages(0, None, round, "gallery")
+        val result = Gallery.getSortedImages(0, None, round.id, "gallery")
 
         /// check
         result.size === 4
@@ -209,7 +209,7 @@ class GallerySpec extends Specification with InMemDb {
         selectionDao.batchInsert(selections)
 
         /// test
-        val result = Gallery.getSortedImages(0, None, round, "filelist")
+        val result = Gallery.getSortedImages(0, None, round.id, "filelist")
 
         /// check
         result.size === 2
@@ -242,7 +242,7 @@ class GallerySpec extends Specification with InMemDb {
         selectionDao.batchInsert(selectedByX)
 
         /// test
-        val result = Gallery.getSortedImages(0, None, round, "filelist")
+        val result = Gallery.getSortedImages(0, None, round.id, "filelist")
 
         /// check
         result.size === 4
