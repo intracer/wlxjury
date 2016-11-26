@@ -70,8 +70,10 @@
                 }
 
                 @cell {
-                    @outputFormat match { case "wiki" =>
+                    @outputFormat match {
+                        case "wiki" => {
                             <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
+                        }
                       case "html" => {
                             @defining(
                                 s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank">
