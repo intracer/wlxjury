@@ -94,6 +94,10 @@
                                         @b3.select(
                                             editRoundForm("regions"),
                                             regions.toSeq.sortBy(_._1), '_label -> "Regions", 'multiple -> true, 'readonly -> noEdit)
+
+                                        @b3.text(
+                                            editRoundForm("monumentIds"),
+                                            '_label -> "Monument ids (comma separated)", 'readonly -> noEdit)
                                     }
 
                                     @b3.select(

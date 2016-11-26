@@ -1,0 +1,1 @@
+alter table rounds add column monuments text;

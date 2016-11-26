@@ -31,7 +31,8 @@ case class Round(id: Option[Long],
                  regions: Option[String] = None,
                  minImageSize: Option[Int] = None,
                  hasCriteria: Boolean = false,
-                 halfStar: Option[Boolean] = None) {
+                 halfStar: Option[Boolean] = None,
+                 monuments: Option[String] = None) {
 
   def jurors = UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contest, contest))
 
@@ -48,6 +49,8 @@ case class Round(id: Option[Long],
   def isBinary = rates.id == Round.binaryRound.id
 
   def regionIds = regions.map(_.split(",").toSeq).getOrElse(Seq.empty[String])
+
+  def monumentIds = monuments.map(_.split(",").toSeq).getOrElse(Seq.empty[String])
 
 }
 

@@ -26,6 +26,10 @@ case class IncludeRegionIds(regionIds: Set[String]) extends ImageFilterGen {
   override def apply = imageFilter(_.region.exists(regionIds.contains))
 }
 
+case class IncludeMonumentIds(monumentIds: Set[String]) extends ImageFilterGen {
+  override def apply = imageFilter(_.monumentId.exists(monumentIds.contains))
+}
+
 case class ExcludeRegionIds(regionIds: Set[String]) extends ImageFilterGen {
   override def apply = imageFilter(!_.region.exists(regionIds.contains))
 }
@@ -80,6 +84,7 @@ object ImageWithRatingSeqFilter {
   def funGenerators(round: Option[Round] = None,
                     includeRegionIds: Set[String] = Set.empty,
                     excludeRegionIds: Set[String] = Set.empty,
+                    includeMonumentIds: Set[String] = Set.empty,
                     includePageIds: Set[Long] = Set.empty,
                     excludePageIds: Set[Long] = Set.empty,
                     includeTitles: Set[String] = Set.empty,
@@ -96,6 +101,7 @@ object ImageWithRatingSeqFilter {
     val setMap = Map(
       IncludeRegionIds(includeRegionIds) -> includeRegionIds,
       ExcludeRegionIds(excludeRegionIds) -> excludeRegionIds,
+      IncludeMonumentIds(includeMonumentIds) -> includeMonumentIds,
       IncludePageIds(includePageIds) -> includePageIds,
       ExcludePageIds(excludePageIds) -> excludePageIds,
       IncludeTitles(includeTitles) -> includeTitles,

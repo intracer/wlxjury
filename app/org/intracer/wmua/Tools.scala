@@ -58,7 +58,9 @@ object Tools {
       selectMinAvgRating = round.prevMinAvgRate,
       sourceCategory = round.category,
       includeCategory = round.categoryClause.map(_ > 0),
-      includeRegionIds = round.regionIds.toSet)
+      includeRegionIds = round.regionIds.toSet,
+      includeMonumentIds = round.monumentIds.toSet
+    )
   }
 
   def distributeImages(round: Round, jurors: Seq[User], images: Seq[Image]): Unit = {
@@ -71,6 +73,7 @@ object Tools {
                         prevRound: Option[Round],
                         includeRegionIds: Set[String] = Set.empty,
                         excludeRegionIds: Set[String] = Set.empty,
+                        includeMonumentIds: Set[String] = Set.empty,
                         includePageIds: Set[Long] = Set.empty,
                         excludePageIds: Set[Long] = Set.empty,
                         includeTitles: Set[String] = Set.empty,
@@ -119,6 +122,7 @@ object Tools {
     val funGens = ImageWithRatingSeqFilter.funGenerators(prevRound,
       includeRegionIds = includeRegionIds,
       excludeRegionIds = excludeRegionIds,
+      includeMonumentIds = includeMonumentIds,
       includePageIds = includePageIds ++ includeFromCats.toSet,
       excludePageIds = excludePageIds ++ existingImageIds ++ excludeFromCats.toSet,
       includeTitles = includeTitles,

@@ -302,7 +302,8 @@ object Rounds extends Controller with Secured {
       "regions" -> seq(text),
       "minSize" -> text,
       jurorsMappingKV,
-      "newImages" -> boolean
+      "newImages" -> boolean,
+      "monumentIds" -> optional(text)
     )(applyEdit)(unapplyEdit)
   )
 
@@ -317,7 +318,8 @@ object Rounds extends Controller with Secured {
                 regions: Seq[String],
                 minImageSize: String,
                 jurors: Seq[String],
-                newImages: Boolean
+                newImages: Boolean,
+                monumentIds: Option[String]
                ): EditRound = {
     val round = new Round(id, num, name, contest, Set(roles), distribution, Round.ratesById(rates),
       limitMin, limitMax, recommended,
@@ -328,14 +330,15 @@ object Rounds extends Controller with Secured {
       categoryClause = Try(categoryClause.toInt).toOption,
       category = category,
       regions = if (regions.nonEmpty) Some(regions.mkString(",")) else None,
-      minImageSize = Try(minImageSize.toInt).toOption
+      minImageSize = Try(minImageSize.toInt).toOption,
+      monuments = monumentIds
     )
     EditRound(round, jurors.map(_.toLong), returnTo, newImages)
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Int, Option[String], Long, String, Int, Int, Option[Int],
     Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String],
-    Seq[String], String, Seq[String], Boolean)] = {
+    Seq[String], String, Seq[String], Boolean, Option[String])] = {
     val round = editRound.round
     Some((
       round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
@@ -349,7 +352,8 @@ object Rounds extends Controller with Secured {
       round.regionIds,
       round.minImageSize.fold("No")(_.toString),
       editRound.jurors.map(_.toString),
-      editRound.newImages
+      editRound.newImages,
+      round.monuments
       ))
   }
 }

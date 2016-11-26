@@ -42,7 +42,8 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     regions = rs.stringOpt(c.regions),
     minImageSize = rs.intOpt(c.minImageSize),
     hasCriteria = rs.booleanOpt(c.hasCriteria).getOrElse(false),
-    halfStar = rs.booleanOpt(c.halfStar)
+    halfStar = rs.booleanOpt(c.halfStar),
+    monuments = rs.stringOpt(c.monuments)
   )
 
   override def create(round: Round): Round = {
@@ -68,7 +69,8 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
         column.categoryClause -> round.categoryClause,
         column.regions -> round.regions,
         column.minImageSize -> round.minImageSize,
-        column.halfStar -> round.halfStar
+        column.halfStar -> round.halfStar,
+        column.monuments -> round.monuments
       )
     }.updateAndReturnGeneratedKey().apply()
 
