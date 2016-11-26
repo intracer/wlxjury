@@ -70,15 +70,13 @@
                 }
 
                 @cell {
-
-                    @outputFormat match {
-                        case "wiki" =>
-                    <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
-
-                        case "html" => {
+                    @outputFormat match { case "wiki" =>
+                            <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
+                      case "html" => {
                             @defining(
-                                s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank"><img
-            src="${resizeTo(file.image, gallerySizeX, gallerySizeY)}"></a>"""
+                                s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank">
+                                   |    <img src="${resizeTo(file.image, gallerySizeX, gallerySizeY)}">
+                                   |</a>""".stripMargin
                             ) { str => @str <br/> }
                         }
                     }
