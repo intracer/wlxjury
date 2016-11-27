@@ -1,14 +1,14 @@
 package controllers
 
 import db.scalikejdbc.{RoundJdbc, UserJdbc}
-import org.intracer.wmua.{Round, User}
+import org.intracer.wmua.User
+import play.api.Play.current
 import play.api.data.Forms._
 import play.api.data._
-import play.api.i18n.{Lang, Messages}
-import play.api.mvc._
-import play.api.Play.current
+import play.api.i18n.Lang
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Results._
+import play.api.mvc._
 
 object Login extends Controller with Secured {
 

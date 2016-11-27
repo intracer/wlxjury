@@ -14,6 +14,8 @@ POST        /auth                                                               
 
 GET         /auth                                                                   controllers.Login.login()
 
+GET         /error                                                                  controllers.Login.error(message: String ?= "Unknown error")
+
 GET         /query                                                                  controllers.Gallery.query(module:String ?= "byrate", user: Option[Long] ?= None, page: Int ?= 1, region: String ?= "all", round: Long ?= 0, rate: Option[Int] ?= None, rated: Option[Boolean] ?= None)
 
 GET         /byrate/user/:user/page/:page                                           controllers.Gallery.byRate(user: Long, page: Int, region: String = "all", round: Long = 0, rated: Option[Boolean] ?= None)
@@ -103,8 +105,6 @@ GET         /roundstat/:round                                                   
 GET         /monuments                                                              controllers.Monuments.list()
 
 GET         /monuments/id/:id                                                       controllers.Monuments.byId(id)
-
-GET         /error                                                                  controllers.Login.error(message: String ?= "Unknown error")
 
 GET         /webjars/*file                                                          controllers.WebJarAssets.at(file)
 

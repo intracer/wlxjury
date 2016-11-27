@@ -33,19 +33,19 @@ trait Permission {
 
 case class RolePermission(roles: Set[String]) extends Permission {
   override def authorized(user: User): Boolean =
-    roles.intersect(user.roles).nonEmpty
+    user.hasAnyRole(roles)
 }
 
 case class ContestPermission(roles: Set[String], contestId: Option[Long]) extends Permission {
   override def authorized(user: User): Boolean =
     contestId.fold(isRoot(user)) { id =>
-      isRoot(user) || roles.intersect(user.roles).nonEmpty && user.contest.contains(id)
+      isRoot(user) || user.hasAnyRole(roles) && user.contest.contains(id)
     }
 }
 
 case class RoundPermission(roles: Set[String], roundId: Long) extends Permission {
   override def authorized(user: User): Boolean =
     RoundJdbc.find(roundId).exists { round =>
-      roles.intersect(user.roles).nonEmpty && user.contest.contains(round.contest)
+      user.hasAnyRole(roles) && user.contest.contains(round.contest)
     }
 }

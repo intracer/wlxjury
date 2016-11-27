@@ -1,13 +1,11 @@
+@import org.intracer.wmua.User
 @(
         message: String,
-        user: org.intracer.wmua.User = null,
+        user: User = null,
         asUserId: Long = 0,
-        asUser: org.intracer.wmua.User = null
+        asUser: User = null
 )(implicit lang: Lang, messages: Messages)
 
 @main("error", user, asUserId, asUser) {
-
-    <div class="alert alert-danger">
-        @Messages(message)
-    </div>
+    <div class="alert alert-danger"> @Messages(message) </div>
 }

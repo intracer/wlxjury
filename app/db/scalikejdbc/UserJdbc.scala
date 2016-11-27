@@ -29,10 +29,6 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     sb.toString()
   }
 
-  def hash(user: User, password: String): String = {
-    sha1(password)
-  }
-
   def login(username: String, password: String): Option[User] = {
     byUserName(username).filter(user => {
       val passwordTrimmed = password.trim
@@ -40,6 +36,10 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
       val dbHash = user.password.get
       inputHash == dbHash
     })
+  }
+
+  def hash(user: User, password: String): String = {
+    sha1(password)
   }
 
   def sha1(input: String) = {
