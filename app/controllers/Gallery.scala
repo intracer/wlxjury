@@ -239,7 +239,7 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def removeImage(pageId: Long, roundId: Long, region: String = "all", rate: Option[Int], module: String) =
-    withAuth(RoundPermission(User.ADMIN_ROLES, roundId)) {
+    withAuth(roundPermission(User.ADMIN_ROLES, roundId)) {
       user =>
         implicit request =>
           SelectionJdbc.removeImage(pageId, roundId)

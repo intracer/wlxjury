@@ -6,6 +6,8 @@ import play.api.mvc._
 
 trait Secured {
 
+  type Permission = User => Boolean
+
   def user(request: RequestHeader): Option[User] = {
     request.session.get(Security.username).map(_.trim.toLowerCase).flatMap(UserJdbc.byUserName)
   }
@@ -14,37 +16,27 @@ trait Secured {
 
   def onUnAuthorized(user: User) = Results.Redirect(routes.Login.error("You don't have permission to access this page"))
 
-  def withAuth(permission: Permission = RolePermission(User.ADMIN_ROLES ++ Set("jury", "organizer")))
+  def withAuth(permission: Permission = rolePermission(User.ADMIN_ROLES ++ Set("jury", "organizer")))
               (f: => User => Request[AnyContent] => Result) = {
     Security.Authenticated(user, onUnAuthenticated) { user =>
-      if (permission.authorized(user))
-        Action(request => f(user)(request))
+      Action(request => if (permission(user))
+        f(user)(request)
       else
-        Action(request => onUnAuthorized(user))
+        onUnAuthorized(user)
+      )
     }
   }
 
-}
+  def rolePermission(roles: Set[String])(user: User) = user.hasAnyRole(roles)
 
-trait Permission {
-  def authorized(user: User): Boolean
-  def isRoot(user: User): Boolean = RolePermission(Set(User.ROOT_ROLE)).authorized(user)
-}
+  def isRoot(user: User): Boolean = rolePermission(Set(User.ROOT_ROLE))(user)
 
-case class RolePermission(roles: Set[String]) extends Permission {
-  override def authorized(user: User): Boolean =
-    user.hasAnyRole(roles)
-}
-
-case class ContestPermission(roles: Set[String], contestId: Option[Long]) extends Permission {
-  override def authorized(user: User): Boolean =
+  def contestPermission(roles: Set[String], contestId: Option[Long])(user: User): Boolean =
     contestId.fold(isRoot(user)) { id =>
       isRoot(user) || user.hasAnyRole(roles) && user.contest.contains(id)
     }
-}
 
-case class RoundPermission(roles: Set[String], roundId: Long) extends Permission {
-  override def authorized(user: User): Boolean =
+  def roundPermission(roles: Set[String], roundId: Long)(user: User): Boolean =
     RoundJdbc.find(roundId).exists { round =>
       user.hasAnyRole(roles) && user.contest.contains(round.contest)
     }
