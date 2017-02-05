@@ -8,7 +8,7 @@ trait Secured {
 
   type Permission = User => Boolean
 
-  def user(request: RequestHeader): Option[User] = {
+  def userFromRequest(request: RequestHeader): Option[User] = {
     request.session.get(Security.username).map(_.trim.toLowerCase).flatMap(UserJdbc.byUserName)
   }
 
@@ -18,7 +18,7 @@ trait Secured {
 
   def withAuth(permission: Permission = rolePermission(User.ADMIN_ROLES ++ Set("jury", "organizer")))
               (f: => User => Request[AnyContent] => Result) = {
-    Security.Authenticated(user, onUnAuthenticated) { user =>
+    Security.Authenticated(userFromRequest, onUnAuthenticated) { user =>
       Action(request => if (permission(user))
         f(user)(request)
       else

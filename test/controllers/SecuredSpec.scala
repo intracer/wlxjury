@@ -32,7 +32,7 @@ class SecuredSpec extends Specification with Mockito with InMemDb {
 
         val request: RequestHeader = mockRequest(username)
 
-        new Secured {}.user(request) === Some(created)
+        new Secured {}.userFromRequest(request) === Some(created)
       }
     }
 
@@ -46,7 +46,7 @@ class SecuredSpec extends Specification with Mockito with InMemDb {
 
         val request: RequestHeader = mockRequest(username + " other")
 
-        new Secured {}.user(request) === None
+        new Secured {}.userFromRequest(request) === None
       }
     }
 
