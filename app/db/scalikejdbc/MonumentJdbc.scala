@@ -1,4 +1,4 @@
-package org.intracer.wmua
+package db.scalikejdbc
 
 import org.scalawiki.wlx.dto.Monument
 import scalikejdbc._
