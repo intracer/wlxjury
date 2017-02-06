@@ -25,13 +25,11 @@ class SecuredSpec extends Specification with Mockito with InMemDb {
     "load from db" in {
       inMemDbApp {
         val username = "user@server.com"
-
         val user = User("fullname", username, None, Set("jury"), Some("password hash"), Some(10))
 
         val created = userDao.create(user)
 
         val request: RequestHeader = mockRequest(username)
-
         new Secured {}.userFromRequest(request) === Some(created)
       }
     }
@@ -39,13 +37,11 @@ class SecuredSpec extends Specification with Mockito with InMemDb {
     "be None if not in db" in {
       inMemDbApp {
         val username = "user login"
-
         val user = User("fullname", username, None, Set("jury"), Some("password hash"), Some(10))
 
         val created = userDao.create(user)
 
         val request: RequestHeader = mockRequest(username + " other")
-
         new Secured {}.userFromRequest(request) === None
       }
     }

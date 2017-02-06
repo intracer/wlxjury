@@ -4,12 +4,21 @@ import db.scalikejdbc.{RoundJdbc, UserJdbc}
 import org.intracer.wmua.User
 import play.api.mvc._
 
+/**
+  * Base trait for secured controllers
+  */
 trait Secured {
 
   type Permission = User => Boolean
 
+  /**
+    * @param request HTTP request with username set in session
+    * @return optional user from database
+    */
   def userFromRequest(request: RequestHeader): Option[User] = {
-    request.session.get(Security.username).map(_.trim.toLowerCase).flatMap(UserJdbc.byUserName)
+    request.session.get(Security.username)
+      .map(_.trim.toLowerCase)
+      .flatMap(UserJdbc.byUserName)
   }
 
   def onUnAuthenticated(request: RequestHeader) = Results.Redirect(routes.Login.login())

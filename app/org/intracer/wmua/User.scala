@@ -7,10 +7,10 @@ import play.api.data.validation.{Constraints, Invalid, Valid}
 
 case class User(fullname: String,
                 email: String,
-                id: Option[Long],
+                id: Option[Long] = None,
                 roles: Set[String] = Set.empty,
                 password: Option[String] = None,
-                contest: Option[Long],
+                contest: Option[Long] = None,
                 lang: Option[String] = None,
                 createdAt: Option[DateTime] = None,
                 deletedAt: Option[DateTime] = None,
