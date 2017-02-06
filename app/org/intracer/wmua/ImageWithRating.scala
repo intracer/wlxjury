@@ -9,7 +9,7 @@ case class ImageWithRating(
                             rank: Option[Int] = None,
                             rank2: Option[Int] = None) extends Ordered[ImageWithRating] {
 
-  val ownJuryRating = new OwnRating(selection.headOption.getOrElse(new Selection(0, image.pageId, 0, 0, 0)))
+  val ownJuryRating = new OwnRating(selection.headOption.getOrElse(Selection(0, image.pageId, 0, 0, 0)))
 
   def unSelect(): Unit =
     ownJuryRating.unSelect()
@@ -49,6 +49,10 @@ case class ImageWithRating(
 
   def jurors = selection.map(s => s.juryId).toSet
 
+  def jurorRate(juror: User): Option[Int] = selection.find(_.juryId == juror.id.get).map(_.rate)
+
+  def jurorRateStr(juror: User): String = jurorRate(juror).fold("")(_.toString)
+
   def ratedJurors(round: Round): Int =
     if (round.isBinary) {
       round._allJurors
@@ -60,7 +64,14 @@ case class ImageWithRating(
       round.activeJurors
     else selection.count(_.rate > 0)
 
-  def rateString(round: Round) = if (ratedJurors(round) == 0) "0" else s"${Formatter.fmt.format(totalRate(round))} ($rateSum / ${ratedJurors(round)})"
+  def rateString(round: Round): String = {
+    if (round.isBinary) {
+      selection.count(_.rate > 0).toString
+    } else {
+      if (ratedJurors(round) == 0) "0"
+      else s"${Formatter.fmt.format(totalRate(round))} ($rateSum / ${ratedJurors(round)})"
+    }
+  }
 
   def pageId = image.pageId
 
@@ -71,7 +82,7 @@ case class ImageWithRating(
 
 object ImageWithRating {
 
-  def rankImages(orderedImages: Seq[ImageWithRating], round: Round) = {
+  def rankImages(orderedImages: Seq[ImageWithRating], round: Round): Seq[String] = {
     rank(orderedImages.map(_.rateSum))
   }
 
@@ -89,8 +100,6 @@ object ImageWithRating {
           start + "-" + (start + size - 1)
     }
   }
-
-
 }
 
 class Rating

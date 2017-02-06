@@ -1,4 +1,4 @@
-@import db.scalikejdbc.UserJdbc
+@import org.intracer.wmua.User
 @import controllers.Global._
 @(
         user: org.intracer.wmua.User, /* logged in user */
@@ -6,6 +6,7 @@
         asUser: org.intracer.wmua.User, /* viewing files of user asUser  */
         files: Seq[org.intracer.wmua.ImageWithRating],
         ranks: Seq[String],
+        jurors: Seq[User],
         pager: Pager, /* not used */
         round: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
@@ -42,8 +43,6 @@
 
     <div contenteditable="true">
 
-    @defining(UserJdbc.findByRoundSelection(roundId)) { jurors =>
-
         @if(wrapInTable) {
             <table class="table table-striped table-condensed">
                 <thead>
@@ -53,11 +52,8 @@
                         @if(asUserId == 0) {Overall <br>}
                         @ratedOrSelected(round.get)
                     </th>
-
-                    @if(asUserId == 0) {
-                        @for(juror <- jurors) {
-                            <th> @juror.fullname </th>
-                        }
+                    @for(juror <- jurors) {
+                        <th> @juror.fullname </th>
                     }
                 </thead>
                 <tbody>
@@ -74,7 +70,7 @@
                         case "wiki" => {
                             <a href="https://commons.wikimedia.org/wiki/@file.title" target="_blank">@file.title</a> <br/>
                         }
-                      case "html" => {
+                        case "html" => {
                             @defining(
                                 s"""<a href="https://commons.wikimedia.org/wiki/${file.title}" target="_blank">
                                    |    <img src="${resizeTo(file.image, gallerySizeX, gallerySizeY)}">
@@ -85,42 +81,30 @@
                 }
 
                 @if(wrapInTable) {
-                    <td>@if(round.map(_.isBinary).get) {
-                        @file.selection.count(_.rate > 0)
-                    } else {
-                        @file.rateString(round.get)
-                    }</td>
+                    <td>@file.rateString(round.get)</td>
                 }
-                @if(asUserId == 0) {
-                    @for(juror <- jurors) {
-                        <td>
-                        @file.selection.find(_.juryId == juror.id.get).map(_.rate.toString).getOrElse("")
-                        </td>
-                    }
+                @for(juror <- jurors) {
+                    <td> @file.jurorRateStr(juror) </td>
                 }
-
             }
         }
 
         @if(wrapInTable) {
         </tbody>
-            @if(asUserId == 0) {
-                <tfoot>
-                    <th> Rank </th>
-                    <th> File </th>
-                    <th>
-                        @if(asUserId == 0) {Overall <br>}
-                        @ratedOrSelected(round.get)
-                    </th>
+            <tfoot>
+                <th> Rank </th>
+                <th> File </th>
+                <th>
+                    @if(asUserId == 0) {Overall <br>}
+                    @ratedOrSelected(round.get)
+                </th>
 
-                    @for(juror <- jurors) {
-                        <th> @juror.fullname </th>
-                    }
-                </tfoot>
-            }
+                @for(juror <- jurors) {
+                    <th> @juror.fullname </th>
+                }
+            </tfoot>
         </table>
         }
-    }
     </div>
     </div>
     </div>

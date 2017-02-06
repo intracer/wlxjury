@@ -114,8 +114,15 @@ object Gallery extends Controller with Secured with Instrumented {
                 )
               case "filelist" =>
                 val ranks = ImageWithRating.rankImages(files, round)
+
+                val jurors = if (user.canViewOrgInfo(round)) {
+                  UserJdbc.findByRoundSelection(roundId)
+                } else {
+                  Seq(user)
+                }
+
                 Ok(views.html.fileList(user, asUserId, asUser,
-                  files, ranks, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
+                  files, ranks, jurors, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
                 )
               case "byrate" =>
                 //  if (region != "grouped") {
