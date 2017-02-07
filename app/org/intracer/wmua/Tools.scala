@@ -146,14 +146,6 @@ object Tools {
     images
   }
 
-  def insertMonumentsWLM() = {
-    val wlmContest = Contest.WLMUkraine(2014, "09-15", "10-15")
-
-    val monumentQuery = MonumentQuery.create(wlmContest)
-    val allMonuments = monumentQuery.byMonumentTemplate(wlmContest.listTemplate.getOrElse(""), None)
-    println(allMonuments.size)
-  }
-
   def updateResolution(contest: ContestJury) = {
 
     val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)

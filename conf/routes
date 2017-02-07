@@ -106,7 +106,7 @@ GET         /monuments                                                          
 
 GET         /monuments/id/:id                                                       controllers.Monuments.byId(id)
 
-GET         /webjars/*file                                                          controllers.WebJarAssets.at(file)
+GET         /webjars/*file                                                          @controllers.WebJarAssets.at(file)
 
 GET         /contests                                                               controllers.Contests.list()
 
