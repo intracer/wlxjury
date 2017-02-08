@@ -1,7 +1,9 @@
 package controllers
 
 import java.io.{StringWriter, Writer}
+
 import com.github.tototoshi.csv.CSVWriter
+import org.intracer.wmua.{ImageWithRating, Round, User}
 
 object Csv {
 
@@ -25,4 +27,20 @@ object Csv {
     csv.close()
   }
 
+  def exportRates(files: Seq[ImageWithRating], jurors: Seq[User], round: Round): Seq[Seq[String]] = {
+    val header = Seq("Rank", "File", "Overall") ++ jurors.map(_.fullname)
+
+    val ranks = ImageWithRating.rankImages(files, round)
+    val rows = for ((file, rank) <- files.zip(ranks))
+      yield Seq(rank, file.image.title, file.rateString(round)) ++ jurors.map(file.jurorRateStr)
+
+    header +: rows
+  }
+
+  def addBom(data: Seq[Seq[String]]): Seq[Seq[String]] = {
+    val BOM = "\ufeff"
+    val header = data.head
+    val headerWithBom = (BOM + header.head) +: header.tail
+    headerWithBom +: data.tail
+  }
 }

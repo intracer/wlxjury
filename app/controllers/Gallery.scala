@@ -122,7 +122,7 @@ object Gallery extends Controller with Secured with Instrumented {
                 } else {
                   Seq(asUser)
                 }
-                val data = exportRates(files, jurors, round)
+                val data = Csv.exportRates(files, jurors, round)
                 val name = "WLXJury_Round_" + round.description
                 csvStream(data, name)
 
@@ -148,24 +148,13 @@ object Gallery extends Controller with Secured with Instrumented {
         }
   }
 
-  def exportRates(files: Seq[ImageWithRating], jurors: Seq[User], round: Round): Seq[Seq[String]] = {
-    val BOM = "\ufeff"
-
-    val header = Seq(BOM + "Rank", "File", "Overall") ++ jurors.map(_.fullname)
-
-    val ranks = ImageWithRating.rankImages(files, round)
-    val rows = for ((file, rank) <- files.zip(ranks))
-      yield Seq(rank, file.image.title, file.rateString(round)) ++ jurors.map(file.jurorRateStr)
-
-    header +: rows
-  }
-
   def csvStream(lines: Seq[Seq[String]], filename: String): Result = {
-    val source = Source[Seq[String]](lines.toList).map { line =>
+    val withBom = Csv.addBom(lines).toList
+    val source = Source[Seq[String]](withBom).map { line =>
       ByteString(Csv.writeRow(line))
     }
     Result(
-      ResponseHeader(OK, Map("Content-Disposition" -> ("attachment; filename=\"" + filename +".csv\""))),
+      ResponseHeader(OK, Map("Content-Disposition" -> ("attachment; filename=\"" + filename + ".csv\""))),
       HttpEntity.Streamed(source, None, Some(ContentTypes.`text/csv(UTF-8)`.value))
     )
   }
