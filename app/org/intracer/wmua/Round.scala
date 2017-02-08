@@ -34,23 +34,26 @@ case class Round(id: Option[Long],
                  halfStar: Option[Boolean] = None,
                  monuments: Option[String] = None) {
 
-  def jurors = UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contest, contest))
+  def jurors: Seq[User] =
+    UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contest, contest))
 
-  def activeJurors = if (!optionalRate) _allJurors else _activeJurors
+  def activeJurors: Int = if (!optionalRate) _allJurors else _activeJurors
 
   lazy val _activeJurors = SelectionJdbc.activeJurors(id.get)
 
   lazy val _allJurors = SelectionJdbc.allJurors(id.get)
 
-  def allImages = ImageJdbc.byRoundMerged(id.get)
+  def allImages: Seq[ImageWithRating] = ImageJdbc.byRoundMerged(id.get)
 
-  def description: String = name.flatMap(s => if (s.trim.isEmpty) None else Some(s)).fold(number.toString)(s => s)
+  def description: String = name
+    .filter(_.trim.nonEmpty)
+    .getOrElse(number.toString)
 
-  def isBinary = rates.id == Round.binaryRound.id
+  def isBinary: Boolean = rates.id == Round.binaryRound.id
 
-  def regionIds = regions.map(_.split(",").toSeq).getOrElse(Seq.empty[String])
+  def regionIds: Seq[String] = regions.map(_.split(",").toSeq).getOrElse(Nil)
 
-  def monumentIds = monuments.map(_.split(",").toSeq).getOrElse(Seq.empty[String])
+  def monumentIds: Seq[String] = monuments.map(_.split(",").toSeq).getOrElse(Nil)
 
 }
 

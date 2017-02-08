@@ -42,7 +42,7 @@ scalaVersion := "2.11.8"
 
 val scalikejdbcVersion = "2.4.2"
 val scalikejdbcPlayVersion = "2.5.1"
-val scalawikiVersion = "0.5-M4"
+val scalawikiVersion = "0.5-M5"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -64,6 +64,7 @@ libraryDependencies ++= Seq(
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
   "com.typesafe.play" %% "play-mailer" % "5.0.0",
   "org.flywaydb" %% "flyway-play" % "3.0.1",
+  "com.github.tototoshi" %% "scala-csv" % "1.3.4",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
   jdbc, cache, filters,
   specs2 % Test,
