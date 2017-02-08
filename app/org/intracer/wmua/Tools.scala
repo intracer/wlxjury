@@ -181,7 +181,7 @@ object Tools {
   }
 
   def initImages(): Unit = {
-    val contest = ContestJuryJdbc.find(77L).get
+    val contest = ContestJuryJdbc.findById(77L).get
 
     globalRefactor.appendImages(contest.images.get, "", contest)
 

@@ -1,6 +1,5 @@
 package db.scalikejdbc
 
-import db.ContestJuryDao
 import org.intracer.wmua.ContestJury
 import org.specs2.mutable.Specification
 
@@ -8,7 +7,7 @@ class ContestSpec extends Specification with InMemDb {
 
   sequential
 
-  val contestDao: ContestJuryDao = ContestJuryJdbc
+  val contestDao = ContestJuryJdbc
 
   "fresh database" should {
     "be empty" in {
@@ -24,7 +23,7 @@ class ContestSpec extends Specification with InMemDb {
         val contest = contestDao.create(None, "WLE", 2015, "Ukraine", images, None, None)
         (contest.name, contest.year, contest.country, contest.images) ===("WLE", 2015, "Ukraine", images)
 
-        val dbC = contestDao.find(contest.id.get)
+        val dbC = contestDao.findById(contest.id.get)
         dbC === Some(contest)
 
         val contests = contestDao.findAll()

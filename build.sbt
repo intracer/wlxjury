@@ -59,6 +59,7 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % scalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % scalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % scalikejdbcPlayVersion,
+  "org.skinny-framework" %% "skinny-orm" % "2.3.4",
   "org.scalawiki" %% "scalawiki-core" % scalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % scalawikiVersion,
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",

@@ -44,7 +44,7 @@ object Global {
     val country = countryOpt.fold(category.replace("Category:Images from Wiki Loves Earth 2014 in ", ""))(identity)
 
     //"Ukraine"
-    val contestOpt = ContestJuryJdbc.byCountry.get(country).flatMap(_.headOption)
+    val contestOpt = ContestJuryJdbc.where('country -> country).apply().headOption
 
     for (contest <- contestOpt) {
       globalRefactor.initContest(category, contest)

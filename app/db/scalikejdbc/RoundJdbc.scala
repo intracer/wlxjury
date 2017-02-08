@@ -99,7 +99,7 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
   }.map(RoundJdbc(c)).list().apply()
 
   override def current(user: User): Option[Round] = {
-    for (contest <- user.currentContest.flatMap(ContestJuryJdbc.byId);
+    for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById);
          roundId <- contest.currentRound;
          round <- find(roundId))
       yield round

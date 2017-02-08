@@ -21,7 +21,7 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         val roundsView = for (contestId <- user.currentContest.orElse(contestIdParam);
-                              contest <- ContestJuryJdbc.byId(contestId)) yield {
+                              contest <- ContestJuryJdbc.findById(contestId)) yield {
           val rounds = RoundJdbc.findByContest(contestId)
           val currentRound = rounds.find(_.id == contest.currentRound)
 
@@ -155,7 +155,7 @@ object Rounds extends Controller with Secured {
       implicit request =>
 
         for (contestId <- user.currentContest;
-             contest <- ContestJuryJdbc.byId(contestId)) {
+             contest <- ContestJuryJdbc.findById(contestId)) {
           val rounds = RoundJdbc.findByContest(contestId)
 
           for (currentRound <- rounds.find(_.id == contest.currentRound);
@@ -175,7 +175,7 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
-        for (contest <- user.currentContest.flatMap(ContestJuryJdbc.byId)) {
+        for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById)) {
           ContestJuryJdbc.updateImages(contest.id.get, imagesSource)
 
           //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)

@@ -1,7 +1,7 @@
 package controllers
 
 import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
-import db.{ContestJuryDao, ImageDao}
+import db.ImageDao
 import org.intracer.wmua.{Image, JuryTestHelpers}
 import org.scalawiki.dto.{Namespace, Page, Revision}
 import org.scalawiki.query.SinglePageQuery
@@ -16,7 +16,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
 
   sequential
 
-  val contestDao: ContestJuryDao = ContestJuryJdbc
+  val contestDao = ContestJuryJdbc
   val imageDao: ImageDao = ImageJdbc
 
   def inMemDbApp[T](block: => T): T = {

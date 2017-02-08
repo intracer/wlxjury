@@ -103,7 +103,7 @@ object Contests extends Controller with Secured {
   def images(contestId: Long, inProgress: Boolean = false) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))){
     user =>
       implicit request =>
-        val contest = ContestJuryJdbc.byId(contestId).get
+        val contest = ContestJuryJdbc.findById(contestId).get
 
         val sourceImageNum = getNumberOfImages(contest)
         val dbImagesNum = ImageJdbc.countByContest(contestId)
@@ -121,7 +121,7 @@ object Contests extends Controller with Secured {
 
   def importImages(contestId: Long) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) { user =>
     implicit request =>
-      val contest = ContestJuryJdbc.byId(contestId).get
+      val contest = ContestJuryJdbc.findById(contestId).get
       val dbImagesNum = ImageJdbc.countByContest(contestId)
 
       importImagesForm.bindFromRequest.fold(
@@ -145,7 +145,7 @@ object Contests extends Controller with Secured {
   }
 
   def regions(contestId: Long): Map[String, String] = {
-    ContestJuryJdbc.byId(contestId)
+    ContestJuryJdbc.findById(contestId)
       .filter(_.country == "Ukraine")
       .map(_ => KOATUU.regions)
       .getOrElse(Map.empty)

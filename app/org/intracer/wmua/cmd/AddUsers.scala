@@ -11,7 +11,7 @@ case class AddUsers(
 
 
   def apply() = {
-    val contest = ContestJuryJdbc.find(contestId).get
+    val contest = ContestJuryJdbc.findById(contestId).get
 
     val country = contest.country.replaceAll("[ \\-\\&]", "")
 

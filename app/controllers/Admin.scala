@@ -25,7 +25,7 @@ object Admin extends Controller with Secured {
     user =>
       implicit request =>
         val usersView = for (contestId <- user.currentContest.orElse(contestIdParam);
-                             contest <- ContestJuryJdbc.byId(contestId)) yield {
+                             contest <- ContestJuryJdbc.findById(contestId)) yield {
           val users = UserJdbc.findByContest(contestId)
 
           val withWiki = wikiAccountInfo(users)
@@ -170,7 +170,7 @@ object Admin extends Controller with Secured {
           formWithErrors => // binding failure, you retrieve the form containing errors,
             BadRequest(views.html.importUsers(user, importUsersForm, contestId)),
           formUsers => {
-            val contest = ContestJuryJdbc.byId(contestId)
+            val contest = ContestJuryJdbc.findById(contestId)
             val parsed = User.parseList(formUsers)
               .map(_.copy(
                 lang = user.lang,
@@ -191,7 +191,7 @@ object Admin extends Controller with Secured {
       implicit request =>
 
         val contestId = contestIdParam.orElse(user.currentContest).get
-        val contest = ContestJuryJdbc.byId(contestId).get
+        val contest = ContestJuryJdbc.findById(contestId).get
 
         val greeting = getGreeting(contest)
 
@@ -261,7 +261,7 @@ object Admin extends Controller with Secured {
   }
 
   def createNewUser(user: User, formUser: User): Unit = {
-    val contest: Option[ContestJury] = formUser.currentContest.flatMap(ContestJuryJdbc.byId)
+    val contest: Option[ContestJury] = formUser.currentContest.flatMap(ContestJuryJdbc.findById)
     createUser(user, formUser, contest)
   }
 
@@ -326,7 +326,7 @@ object Admin extends Controller with Secured {
         val editedUser = UserJdbc.find(id).get
 
         val password = UserJdbc.randomString(8)
-        val contest: Option[ContestJury] = editedUser.currentContest.flatMap(ContestJuryJdbc.byId)
+        val contest: Option[ContestJury] = editedUser.currentContest.flatMap(ContestJuryJdbc.findById)
         val contestName = contest.fold("")(_.name)
         val hash = UserJdbc.hash(editedUser, password)
 

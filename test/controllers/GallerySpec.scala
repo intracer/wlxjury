@@ -9,7 +9,7 @@ class GallerySpec extends Specification with InMemDb {
 
   sequential
 
-  val contestDao: ContestJuryDao = ContestJuryJdbc
+  val contestDao = ContestJuryJdbc
   val roundDao: RoundDao = RoundJdbc
   val userDao: UserDao = UserJdbc
   val imageDao: ImageDao = ImageJdbc

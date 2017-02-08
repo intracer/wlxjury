@@ -203,7 +203,7 @@ class GlobalRefactor(val commons: MwBot) {
 
         contests.foreach {
           contest =>
-            val dbContest = ContestJuryJdbc.byCountry(contest.country).filter(c => c.year == year && c.name == contestName).head
+            val dbContest = ContestJuryJdbc.where('country -> contest.country, 'year -> year, 'name -> contestName).apply().head
             //GlobalRefactor.appendImages(contest.images.get, dbContest)
             addAdmin(dbContest)
         }

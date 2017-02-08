@@ -2,11 +2,11 @@ package db.scalikejdbc
 
 import _root_.play.api.i18n.Messages
 import controllers.Greeting
-import db.ContestJuryDao
 import org.intracer.wmua.ContestJury
 import scalikejdbc._
+import skinny.orm.SkinnyCRUDMapper
 
-object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao {
+object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
 
   var messages: Messages = _
 
@@ -14,20 +14,9 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
 
   implicit def session: DBSession = autoSession
 
-  val c = ContestJuryJdbc.syntax("c")
+  override lazy val defaultAlias = createAlias("m")
 
-  override def currentRound(id: Long): Option[Long] =
-    find(id).flatMap(_.currentRound)
-
-  override def byCountry = findAll().groupBy(_.country)
-
-  //findAll().map(_.groupBy(_.country))
-
-  override def byId(id: Long) = find(id)
-
-  def apply(c: SyntaxProvider[ContestJury])(rs: WrappedResultSet): ContestJury = apply(c.resultName)(rs)
-
-  def apply(c: ResultName[ContestJury])(rs: WrappedResultSet): ContestJury = new ContestJury(
+  override def extract(rs: WrappedResultSet, c: ResultName[ContestJury]): ContestJury = ContestJury(
     id = rs.longOpt(c.id),
     name = rs.string(c.name),
     year = rs.int(c.year),
@@ -39,54 +28,21 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
       rs.stringOpt(c.column("greeting")),
       rs.booleanOpt(c.column("use_greeting")).getOrElse(true)
     )
-    //, messages
   )
 
-  override def find(id: Long): Option[ContestJury] =
-    withSQL {
-      select.from(ContestJuryJdbc as c).where.eq(c.id, id)
-    }.map(ContestJuryJdbc(c)).single().apply()
+  def updateImages(id: Long, images: Option[String]): Int =
+    ContestJuryJdbc.updateById(id)
+      .withAttributes('images -> images)
 
-  override def find(name: String, country: String, year: Int): Option[ContestJury]  = {
-    withSQL {
-      select.from(ContestJuryJdbc as c).where
-        .eq(c.name, name).and
-        .eq(c.country, country).and
-        .eq(c.year, year)
-    }.map(ContestJuryJdbc(c)).single().apply()
-  }
+  def updateGreeting(id: Long, greeting: Greeting): Int =
+    ContestJuryJdbc.updateById(id)
+      .withAttributes('greeting -> greeting.text, 'use_greeting -> greeting.use)
 
-  override def findAll(): List[ContestJury] =
-    withSQL {
-      select.from(ContestJuryJdbc as c)
-        .orderBy(c.id)
-    }.map(ContestJuryJdbc(c)).list().apply()
+  def setCurrentRound(id: Long, round: Option[Long]): Int =
+    ContestJuryJdbc.updateById(id)
+      .withAttributes('currentRound -> round)
 
-  override def countAll(): Long =
-    withSQL {
-      select(sqls.count).from(ContestJuryJdbc as c)
-    }.map(rs => rs.long(1)).single().apply().get
-
-  override def updateImages(id: Long, images: Option[String]): Int = withSQL {
-    update(ContestJuryJdbc).set(
-      column.images -> images
-    ).where.eq(column.id, id)
-  }.update().apply()
-
-  def updateGreeting(id: Long, greeting: Greeting): Int = withSQL {
-    update(ContestJuryJdbc).set(
-      column.c("greeting") -> greeting.text,
-      column.c("use_greeting") -> greeting.use
-    ).where.eq(column.id, id)
-  }.update().apply()
-
-  override def setCurrentRound(id: Long, round: Option[Long]): Int = withSQL {
-    update(ContestJuryJdbc).set(
-      column.currentRound -> round
-    ).where.eq(column.id, id)
-  }.update().apply()
-
-  override def create(id: Option[Long],
+  def create(id: Option[Long],
                       name: String,
                       year: Int,
                       country: String,
@@ -114,7 +70,7 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
       greeting = Greeting(None, true))
   }
 
-  override def batchInsert(contests: Seq[ContestJury]): Seq[Int] = {
+  def batchInsert(contests: Seq[ContestJury]): Seq[Int] = {
     val column = ContestJuryJdbc.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] = contests.map(c => Seq(
@@ -129,7 +85,7 @@ object ContestJuryJdbc extends SQLSyntaxSupport[ContestJury] with ContestJuryDao
       withSQL {
         insert.into(ContestJuryJdbc).namedValues(
           column.id -> sqls.?,
-          column.name-> sqls.?,
+          column.name -> sqls.?,
           column.year -> sqls.?,
           column.country -> sqls.?,
           column.images -> sqls.?,

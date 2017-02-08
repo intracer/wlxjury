@@ -13,7 +13,7 @@ object WikiLovesAfrica {
   def juror(country: String, n: Int) = "WLAJuror" + n
 
   def main(args: Array[String]) {
-    for (contest <- ContestJuryJdbc.find(contestType, country, year)) {
+    for (contest <- ContestJuryJdbc.where('name -> contestType, 'country -> country, 'year -> year).apply().headOption) {
       val contestId = contest.id.get
 
       val cmds = Seq(
