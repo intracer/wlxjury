@@ -46,7 +46,7 @@ trait Secured {
     }
 
   def roundPermission(roles: Set[String], roundId: Long)(user: User): Boolean =
-    RoundJdbc.find(roundId).exists { round =>
+    RoundJdbc.findById(roundId).exists { round =>
       contestPermission(roles, Some(round.contest))(user)
     }
 }

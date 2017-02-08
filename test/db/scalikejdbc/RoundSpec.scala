@@ -1,6 +1,6 @@
 package db.scalikejdbc
 
-import db.{RoundDao, UserDao}
+import db.UserDao
 import org.intracer.wmua.{Round, User}
 import org.specs2.mutable.Specification
 
@@ -8,7 +8,7 @@ class RoundSpec extends Specification with InMemDb {
 
   sequential
 
-  val roundDao: RoundDao = RoundJdbc
+  val roundDao = RoundJdbc
   val userDao: UserDao = UserJdbc
 
   "fresh database" should {
@@ -30,7 +30,7 @@ class RoundSpec extends Specification with InMemDb {
 
         created === round.copy(id = id)
 
-        val found = roundDao.find(id.get)
+        val found = roundDao.findById(id.get)
         found === Some(created)
 
         val all = roundDao.findAll()

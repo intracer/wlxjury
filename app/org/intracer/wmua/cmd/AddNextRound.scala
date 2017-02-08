@@ -5,7 +5,7 @@ import org.intracer.wmua.Round
 
 case class AddNextRound(
                          contestId: Long,
-                         roundNumber: Int,
+                         roundNumber: Long,
                          distribution: Int = 0,
                          rates: Int = 1,
                          name: Option[String] = None) {

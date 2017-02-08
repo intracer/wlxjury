@@ -46,7 +46,7 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
         val number = RoundJdbc.findByContest(contestId).size + 1
-        val round: Round = roundId.flatMap(RoundJdbc.find).getOrElse(
+        val round: Round = roundId.flatMap(RoundJdbc.findById).getOrElse(
           new Round(id = None, contest = contestId, number = number)
         )
 
@@ -62,7 +62,7 @@ object Rounds extends Controller with Secured {
 
         val stat = round.id.map(id => getRoundStat(id, round))
 
-        val prevRound = round.previous.flatMap(RoundJdbc.find)
+        val prevRound = round.previous.flatMap(RoundJdbc.findById)
 
         val images = round.id.fold(Seq.empty[Image])(id => Tools.getFilteredImages(round, jurors, prevRound))
 
@@ -104,7 +104,7 @@ object Rounds extends Controller with Secured {
               round.id.foreach{ roundId =>
                 RoundJdbc.updateRound(roundId, round)
                 if (editForm.newImages) {
-                  val prevRound = round.previous.flatMap(RoundJdbc.find)
+                  val prevRound = round.previous.flatMap(RoundJdbc.findById)
 
                   val jurors = UserJdbc.findByRoundSelection(roundId)
                   Tools.distributeImages(round, jurors, prevRound)
@@ -124,7 +124,7 @@ object Rounds extends Controller with Secured {
 
     val created = RoundJdbc.create(round.copy(number = count + 1))
 
-    val prevRound = created.previous.flatMap(RoundJdbc.find)
+    val prevRound = created.previous.flatMap(RoundJdbc.findById)
 
     val jurors = loadJurors(round.contest, jurorIds)
 
@@ -141,7 +141,7 @@ object Rounds extends Controller with Secured {
         val newRoundId = selectRoundForm.bindFromRequest.get
 
         newRoundId.map(_.toLong).foreach { id =>
-          val round = RoundJdbc.find(id)
+          val round = RoundJdbc.findById(id)
           round.foreach { r =>
             SetCurrentRound(r.contest, None, r).apply()
           }
@@ -206,7 +206,7 @@ object Rounds extends Controller with Secured {
     user =>
       implicit request =>
 
-        RoundJdbc.find(roundId).map {
+        RoundJdbc.findById(roundId).map {
           round =>
 
             if (!user.canViewOrgInfo(round)) {
@@ -283,7 +283,7 @@ object Rounds extends Controller with Secured {
   val editRoundForm = Form(
     mapping(
       "id" -> optional(longNumber),
-      "number" -> number,
+      "number" -> longNumber,
       "name" -> optional(text),
       "contest" -> longNumber,
       "roles" -> text,
@@ -307,7 +307,7 @@ object Rounds extends Controller with Secured {
     )(applyEdit)(unapplyEdit)
   )
 
-  def applyEdit(id: Option[Long], num: Int, name: Option[String], contest: Long, roles: String, distribution: Int,
+  def applyEdit(id: Option[Long], num: Long, name: Option[String], contest: Long, roles: String, distribution: Int,
                 rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int], returnTo: Option[String],
                 minMpx: String,
                 previousRound: Option[Long],
@@ -336,7 +336,7 @@ object Rounds extends Controller with Secured {
     EditRound(round, jurors.map(_.toLong), returnTo, newImages)
   }
 
-  def unapplyEdit(editRound: EditRound): Option[(Option[Long], Int, Option[String], Long, String, Int, Int, Option[Int],
+  def unapplyEdit(editRound: EditRound): Option[(Option[Long], Long, Option[String], Long, String, Int, Int, Option[Int],
     Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String],
     Seq[String], String, Seq[String], Boolean, Option[String])] = {
     val round = editRound.round

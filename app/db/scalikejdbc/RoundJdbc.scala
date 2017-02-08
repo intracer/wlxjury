@@ -1,11 +1,10 @@
 package db.scalikejdbc
 
-import db.RoundDao
-import org.intracer.wmua.{ContestJury, Round, User}
-import org.joda.time.DateTime
+import org.intracer.wmua.{Round, User}
 import scalikejdbc._
+import skinny.orm.SkinnyCRUDMapper
 
-object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
+object RoundJdbc extends SkinnyCRUDMapper[Round] {
 
   implicit def session: DBSession = autoSession
 
@@ -13,12 +12,11 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
 
   val c = RoundJdbc.syntax("c")
 
-  //  private val autoSession = AutoSession
-  private def isNotDeleted = sqls.isNull(c.deletedAt)
+  override lazy val defaultAlias = createAlias("r")
 
-  def apply(c: SyntaxProvider[Round])(rs: WrappedResultSet): Round = apply(c.resultName)(rs)
+  lazy val r = defaultAlias
 
-  def apply(c: ResultName[Round])(rs: WrappedResultSet): Round = new Round(
+  override def extract(rs: WrappedResultSet, c: ResultName[Round]): Round = Round(
     id = Some(rs.long(c.id)),
     name = Option(rs.string(c.name)),
     number = rs.int(c.number),
@@ -46,7 +44,7 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     monuments = rs.stringOpt(c.monuments)
   )
 
-  override def create(round: Round): Round = {
+  def create(round: Round): Round = {
     val id = withSQL {
       insert.into(RoundJdbc).namedValues(
         column.number -> round.number,
@@ -77,65 +75,38 @@ object RoundJdbc extends SQLSyntaxSupport[Round] with RoundDao {
     round.copy(id = Some(id))
   }
 
-  override def updateRound(id: Long, round: Round) = withSQL {
-    update(RoundJdbc).set(
-      column.name -> round.name,
-//      column.roles -> round.roles,
-//      column.distribution -> round.distribution,
-//      column.rates -> round.rates.id,
-//      column.limitMin -> round.limitMin,
-//      column.limitMax -> round.limitMax,
-//      column.recommended -> round.recommended,
-      column.active -> round.active
-    ).where.eq(column.id, id)
-  }.update().apply()
+  def updateRound(id: Long, round: Round) =
+    updateById(id)
+      .withAttributes(
+        'name -> round.name,
+        'active -> round.active
+      )
 
-  override def activeRounds(contestId: Long): Seq[Round] = withSQL {
-    select.from(RoundJdbc as c)
-      .where.append(isNotDeleted).and
-      .eq(c.contest, contestId).and
-      .eq(c.active, true)
-      .orderBy(c.id)
-  }.map(RoundJdbc(c)).list().apply()
+  def activeRounds(contestId: Long): Seq[Round] =
+    where('contest -> contestId, 'active -> true)
+      .orderBy(r.id).apply()
 
-  override def current(user: User): Option[Round] = {
+  def current(user: User): Option[Round] = {
     for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById);
          roundId <- contest.currentRound;
-         round <- find(roundId))
+         round <- findById(roundId))
       yield round
   }
 
-  override def findAll(): List[Round] = withSQL {
-    select.from(RoundJdbc as c)
-      .where.append(isNotDeleted)
-      .orderBy(c.id)
-  }.map(RoundJdbc(c)).list().apply()
+  def findByContest(contest: Long): Seq[Round] =
+    where('contest -> contest)
+      .orderBy(r.id).apply()
 
-  override def findByContest(contest: Long): Seq[Round] = withSQL {
-    select.from(RoundJdbc as c)
-      .where.append(isNotDeleted).and.eq(c.contest, contest)
-      .orderBy(c.id)
-  }.map(RoundJdbc(c)).list().apply()
+   def setActive(id: Long, active: Boolean): Unit =
+    updateById(id)
+      .withAttributes('active -> active)
 
-  override def find(id: Long): Option[Round] = withSQL {
-    select.from(RoundJdbc as c).where.eq(c.id, id).and.append(isNotDeleted)
-  }.map(RoundJdbc(c)).single().apply()
+  def setInActiveAllInContest(contestId: Long): Unit =
+    updateBy(sqls.eq(r.contest, contestId))
+      .withAttributes('active -> false)
 
-  override def setActive(id: Long, active: Boolean): Unit = withSQL {
-    update(RoundJdbc).set(
-      column.active -> active
-    ).where.eq(column.id, id)
-  }.update().apply()
-
-  def setInActiveAllInContest(contestId: Long): Unit = withSQL {
-    update(RoundJdbc).set(
-      column.active -> false
-    ).where.eq(column.contest, contestId)
-  }.update().apply()
-
-  override def countByContest(contest: Long): Int = withSQL {
-    select(sqls.count).from(RoundJdbc as c).where.eq(column.contest, contest)
-  }.map(rs => rs.int(1)).single().apply().get
+  def countByContest(contest: Long): Long =
+    countBy(sqls.eq(r.contest, contest))
 
   case class RoundStatRow(juror: Long, rate: Int, count: Int)
 

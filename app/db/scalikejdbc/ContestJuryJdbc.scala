@@ -31,15 +31,18 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
   )
 
   def updateImages(id: Long, images: Option[String]): Int =
-    ContestJuryJdbc.updateById(id)
+    updateById(id)
       .withAttributes('images -> images)
 
   def updateGreeting(id: Long, greeting: Greeting): Int =
-    ContestJuryJdbc.updateById(id)
-      .withAttributes('greeting -> greeting.text, 'use_greeting -> greeting.use)
+    updateById(id)
+      .withAttributes(
+        'greeting -> greeting.text,
+        'use_greeting -> greeting.use
+      )
 
   def setCurrentRound(id: Long, round: Option[Long]): Int =
-    ContestJuryJdbc.updateById(id)
+    updateById(id)
       .withAttributes('currentRound -> round)
 
   def create(id: Option[Long],

@@ -11,7 +11,7 @@ class ImageDbNewSpec extends Specification with InMemDb {
   sequential
 
   val contestDao = ContestJuryJdbc
-  val roundDao: RoundDao = RoundJdbc
+  val roundDao = RoundJdbc
   val userDao: UserDao = UserJdbc
   val imageDao: ImageDao = ImageJdbc
   val selectionDao: SelectionDao = SelectionJdbc

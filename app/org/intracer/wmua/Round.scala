@@ -6,7 +6,7 @@ import org.joda.time.DateTime
 import org.scalawiki.dto.Page
 
 case class Round(id: Option[Long],
-                 number: Int,
+                 number: Long,
                  name: Option[String] = None,
                  contest: Long,
                  roles: Set[String] = Set("jury"),

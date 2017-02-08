@@ -80,7 +80,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
         timerList.time {
-          val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
+          val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.findById(roundId)
 
           val roundContest = maybeRound.map(_.contest).getOrElse(0L)
           val round = maybeRound.get
@@ -256,7 +256,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
 
-        val roundOption = RoundJdbc.find(roundId).filter(_.active)
+        val roundOption = RoundJdbc.findById(roundId).filter(_.active)
 
         roundOption.fold(Redirect(routes.Gallery.list(user.id.get, 1, region, roundId, rate))) { round =>
 
@@ -275,7 +275,7 @@ object Gallery extends Controller with Secured with Instrumented {
       user =>
         implicit request =>
           SelectionJdbc.removeImage(pageId, roundId)
-          val round = RoundJdbc.find(roundId).get
+          val round = RoundJdbc.findById(roundId).get
           checkLargeIndex(user, rate, pageId, region, round, module)
     }
 
@@ -331,7 +331,7 @@ object Gallery extends Controller with Secured with Instrumented {
             roundId: Long,
             module: String)(implicit request: Request[Any]): Result = {
     timerShow.time {
-      val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.find(roundId)
+      val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.findById(roundId)
       val round = maybeRound.get
 
       val query = getQuery(asUserId, rate, round.id, regions = Set(region).filter(_ != "all"))
