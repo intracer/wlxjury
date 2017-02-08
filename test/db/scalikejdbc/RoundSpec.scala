@@ -1,6 +1,5 @@
 package db.scalikejdbc
 
-import db.UserDao
 import org.intracer.wmua.{Round, User}
 import org.specs2.mutable.Specification
 
@@ -9,7 +8,7 @@ class RoundSpec extends Specification with InMemDb {
   sequential
 
   val roundDao = RoundJdbc
-  val userDao: UserDao = UserJdbc
+  val userDao = UserJdbc
 
   "fresh database" should {
     "be empty" in {

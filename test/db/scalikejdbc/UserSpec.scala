@@ -1,6 +1,5 @@
 package db.scalikejdbc
 
-import db.UserDao
 import org.intracer.wmua.User
 import org.joda.time.DateTime
 import org.specs2.mutable.Specification
@@ -9,7 +8,7 @@ class UserSpec extends Specification with InMemDb {
 
   sequential
 
-  val userDao: UserDao = UserJdbc
+  val userDao = UserJdbc
 
   "fresh database" should {
     "be empty" in {
@@ -32,7 +31,7 @@ class UserSpec extends Specification with InMemDb {
         val expected = user.copy(id = id, roles = user.roles ++ Set("USER_ID_" + id.get))
         created === expected
 
-        val found = userDao.find(id.get)
+        val found = userDao.findById(id.get)
         found === Some(created)
 
         val all = userDao.findAll()

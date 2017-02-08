@@ -71,7 +71,7 @@ object Admin extends Controller with Secured {
     user =>
       implicit request =>
 
-        val editedUser = UserJdbc.find(id).get
+        val editedUser = UserJdbc.findById(id).get
 
         havingEditRights(user, editedUser) {
 
@@ -148,7 +148,7 @@ object Admin extends Controller with Secured {
   }
 
   def originalRoles(formUser: User): Set[String] = {
-    val origUser = UserJdbc.find(formUser.id.get).get
+    val origUser = UserJdbc.findById(formUser.id.get).get
     origUser.roles
   }
 
@@ -323,7 +323,7 @@ object Admin extends Controller with Secured {
   def resetPassword(id: Long) = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
     user =>
       implicit request =>
-        val editedUser = UserJdbc.find(id).get
+        val editedUser = UserJdbc.findById(id).get
 
         val password = UserJdbc.randomString(8)
         val contest: Option[ContestJury] = editedUser.currentContest.flatMap(ContestJuryJdbc.findById)

@@ -1,6 +1,5 @@
 package controllers
 
-import db.UserDao
 import db.scalikejdbc.{InMemDb, UserJdbc}
 import org.intracer.wmua.User
 import org.specs2.mock.Mockito
@@ -11,7 +10,7 @@ class SecuredSpec extends Specification with Mockito with InMemDb {
 
   sequential
 
-  val userDao: UserDao = UserJdbc
+  val userDao = UserJdbc
 
   def mockRequest(username: String): RequestHeader = {
     val request = mock[RequestHeader]

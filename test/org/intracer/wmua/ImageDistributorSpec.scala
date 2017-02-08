@@ -1,7 +1,7 @@
 package org.intracer.wmua
 
 import db.scalikejdbc._
-import db.{ImageDao, SelectionDao, UserDao}
+import db.{ImageDao, SelectionDao}
 import org.specs2.mutable.Specification
 
 class ImageDistributorSpec extends Specification with InMemDb {
@@ -9,7 +9,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
   sequential
 
   val imageDao: ImageDao = ImageJdbc
-  val userDao: UserDao = UserJdbc
+  val userDao = UserJdbc
   val roundDao = RoundJdbc
   val selectionDao: SelectionDao = SelectionJdbc
 

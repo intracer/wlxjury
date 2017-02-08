@@ -1,16 +1,14 @@
 package db.scalikejdbc
 
-import java.math.BigInteger
-import java.security.MessageDigest
-
-import db.UserDao
 import org.intracer.wmua.User
 import org.joda.time.DateTime
 import play.api.data.validation.{Constraints, Invalid, Valid}
+import play.api.libs.Codecs
 import scalikejdbc._
+import skinny.orm.SkinnyCRUDMapper
 
-object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
-  //  def apply(id: Int, fullname: String, login: String, password: String): User =
+object UserJdbc extends SkinnyCRUDMapper[User] {
+
   implicit def session: DBSession = autoSession
 
   override val tableName = "users"
@@ -38,18 +36,11 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     })
   }
 
-  def hash(user: User, password: String): String = {
+  def hash(user: User, password: String): String =
     sha1(password)
-  }
 
-  def sha1(input: String) = {
-
-    val digest = MessageDigest.getInstance("SHA-1")
-
-    digest.update(input.getBytes, 0, input.length())
-
-    new BigInteger(1, digest.digest()).toString(16)
-  }
+  def sha1(input: String): String =
+    Codecs.sha1(input.getBytes)
 
   def byUserName(username: String): Option[User] = {
     val unameTrimmed = username.trim.toLowerCase
@@ -60,7 +51,20 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     users.headOption
   }
 
-  def apply(c: SyntaxProvider[User])(rs: WrappedResultSet): User = apply(c.resultName)(rs)
+  override lazy val defaultAlias = createAlias("u")
+
+  override def extract(rs: WrappedResultSet, c: ResultName[User]): User = User(
+    id = Some(rs.int(c.id)),
+    fullname = rs.string(c.fullname),
+    email = rs.string(c.email),
+    roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
+    contest = rs.longOpt(c.contest),
+    password = Some(rs.string(c.password)),
+    lang = rs.stringOpt(c.lang),
+    wikiAccount = rs.stringOpt(c.wikiAccount),
+    createdAt = rs.timestampOpt(c.createdAt).map(_.toJodaDateTime),
+    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
+  )
 
   def apply(c: ResultName[User])(rs: WrappedResultSet): User = new User(
     id = Some(rs.int(c.id)),
@@ -75,22 +79,8 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
   )
 
-  override def find(id: Long): Option[User] = withSQL {
-    select.from(UserJdbc as u).where.eq(u.id, id).and.append(isNotDeleted)
-  }.map(UserJdbc(u)).single().apply()
-
-  override def findAll(): Seq[User] = withSQL {
-    select.from(UserJdbc as u)
-      .where.append(isNotDeleted)
-      .orderBy(u.id)
-  }.map(UserJdbc(u)).list().apply()
-
-  override def findByContest(contest: Long): Seq[User] = withSQL {
-    select.from(UserJdbc as u)
-      .where.append(isNotDeleted).and.
-      eq(column.contest, contest)
-      .orderBy(u.id)
-  }.map(UserJdbc(u)).list().apply()
+  def findByContest(contest: Long): Seq[User] =
+    where('contest -> contest).orderBy(u.id).apply()
 
   def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
     import SelectionJdbc.s
@@ -104,57 +94,28 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
   }.map(UserJdbc(u)).list().apply()
 
 
-  override def countByEmail(id: Long, email: String): Long = withSQL {
-    select(sqls.count).from(UserJdbc as u).where.eq(column.email, email).and.ne(column.id, id)
-  }.map(rs => rs.long(1)).single().apply().get
+  def countByEmail(id: Long, email: String): Long =
+    countBy(sqls
+      .eq(column.email, email).and
+      .ne(column.id, id))
 
-  override def findByEmail(email: String): Seq[User] = {
-    val users = withSQL {
-      select.from(UserJdbc as u)
-        .where.append(isNotDeleted).and.eq(column.email, email)
-        .orderBy(u.id)
-    }.map(UserJdbc(u)).list().apply()
-    users
-  }
+  def findByEmail(email: String): Seq[User] =
+    where('email -> email)
+      .orderBy(u.id).apply()
 
-  def findByAccount(account: String): Seq[User] = {
-    val users = withSQL {
-      select.from(UserJdbc as u)
-        .where.append(isNotDeleted).and.eq(column.wikiAccount, account)
-        .orderBy(u.id)
-    }.map(UserJdbc(u)).list().apply()
-    users
-  }
+  def findByAccount(account: String): Seq[User] =
+    where('wikiAccount -> account)
+      .orderBy(u.id).apply()
 
-  override def countAll(): Long = withSQL {
-    select(sqls.count).from(UserJdbc as u).where.append(isNotDeleted)
-  }.map(rs => rs.long(1)).single().apply().get
-
-  def findAllBy(where: SQLSyntax): List[User] = withSQL {
-    select.from(UserJdbc as u)
-      .where.append(isNotDeleted).and.append(sqls"$where")
-      .orderBy(u.id)
-  }.map(UserJdbc(u)).list().apply()
-
-  //  def findByRoles(roles: Set[String]): List[User] = withSQL {
-  //    select.from(User as c)
-  //      .where.in(column.roles, roles)
-  //      .orderBy(c.id)
-  //  }.map(User(c)).list.apply()
-
-  def countBy(where: SQLSyntax): Long = withSQL {
-    select(sqls.count).from(UserJdbc as u).where.append(isNotDeleted).and.append(sqls"$where")
-  }.map(_.long(1)).single().apply().get
-
-  override def create(
-                       fullname: String,
-                       email: String,
-                       password: String,
-                       roles: Set[String],
-                       contest: Option[Long] = None,
-                       lang: Option[String] = None,
-                       createdAt: Option[DateTime] = Some(DateTime.now)
-                     ): User = {
+  def create(
+              fullname: String,
+              email: String,
+              password: String,
+              roles: Set[String],
+              contest: Option[Long] = None,
+              lang: Option[String] = None,
+              createdAt: Option[DateTime] = Some(DateTime.now)
+            ): User = {
     val id = withSQL {
       insert.into(UserJdbc).namedValues(
         column.fullname -> fullname,
@@ -166,10 +127,11 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
-    User(id = Some(id), fullname = fullname, email = email, password = Some(password), roles = roles ++ Set("USER_ID_" + id), contest = contest, createdAt = createdAt)
+    User(id = Some(id), fullname = fullname, email = email, password = Some(password),
+      roles = roles ++ Set("USER_ID_" + id), contest = contest, createdAt = createdAt)
   }
 
-  override def create(user: User): User = {
+  def create(user: User): User = {
     val id = withSQL {
       insert.into(UserJdbc).namedValues(
         column.fullname -> user.fullname,
@@ -185,25 +147,19 @@ object UserJdbc extends SQLSyntaxSupport[User] with UserDao {
     user.copy(id = Some(id), roles = user.roles ++ Set("USER_ID_" + id))
   }
 
-  override def updateUser(id: Long, fullname: String, wikiAccount: Option[String], email: String, roles: Set[String], lang: Option[String]): Unit = withSQL {
-    update(UserJdbc).set(
-      column.fullname -> fullname,
-      column.email -> email,
-      column.wikiAccount -> wikiAccount,
-      column.roles -> roles.head,
-      column.lang -> lang
-    ).where.eq(column.id, id)
-  }.update().apply()
+  def updateUser(id: Long, fullname: String, wikiAccount: Option[String],
+                          email: String, roles: Set[String], lang: Option[String]): Unit =
+    updateById(id)
+      .withAttributes(
+        'fullname -> fullname,
+        'email -> email,
+        'wikiAccount -> wikiAccount,
+        'roles -> roles.head,
+        'lang -> lang
+      )
 
-  override def updateHash(id: Long, hash: String): Unit = withSQL {
-    update(UserJdbc).set(
-      column.password -> hash
-    ).where.eq(column.id, id)
-  }.update().apply()
-
-
-  override def destroy(filename: String, email: String): Unit = withSQL {
-    update(UserJdbc).set(column.deletedAt -> DateTime.now).where.eq(column.email, email)
-  }.update().apply()
+  def updateHash(id: Long, hash: String): Unit =
+    updateById(id)
+      .withAttributes('password -> hash)
 
 }

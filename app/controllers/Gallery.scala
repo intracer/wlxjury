@@ -183,7 +183,7 @@ object Gallery extends Controller with Secured with Instrumented {
     if (asUserId == 0) {
       null
     } else if (asUserId != user.id.get) {
-      UserJdbc.find(asUserId).get
+      UserJdbc.findById(asUserId).get
     } else {
       user
     }
