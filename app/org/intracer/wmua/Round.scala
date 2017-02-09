@@ -37,7 +37,7 @@ case class Round(id: Option[Long],
   def jurors: Seq[User] =
     UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contest, contest))
 
-  def activeJurors: Int = if (!optionalRate) _allJurors else _activeJurors
+  def activeJurors: Long = if (!optionalRate) _allJurors else _activeJurors
 
   lazy val _activeJurors = SelectionJdbc.activeJurors(id.get)
 

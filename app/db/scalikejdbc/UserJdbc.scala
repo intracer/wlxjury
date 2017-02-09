@@ -93,7 +93,6 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
       .orderBy(u.id)
   }.map(UserJdbc(u)).list().apply()
 
-
   def countByEmail(id: Long, email: String): Long =
     countBy(sqls
       .eq(column.email, email).and
@@ -107,14 +106,13 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
     where('wikiAccount -> account)
       .orderBy(u.id).apply()
 
-  def create(
-              fullname: String,
-              email: String,
-              password: String,
-              roles: Set[String],
-              contest: Option[Long] = None,
-              lang: Option[String] = None,
-              createdAt: Option[DateTime] = Some(DateTime.now)
+  def create(fullname: String,
+             email: String,
+             password: String,
+             roles: Set[String],
+             contest: Option[Long] = None,
+             lang: Option[String] = None,
+             createdAt: Option[DateTime] = Some(DateTime.now)
             ): User = {
     val id = withSQL {
       insert.into(UserJdbc).namedValues(
@@ -148,7 +146,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
   }
 
   def updateUser(id: Long, fullname: String, wikiAccount: Option[String],
-                          email: String, roles: Set[String], lang: Option[String]): Unit =
+                 email: String, roles: Set[String], lang: Option[String]): Unit =
     updateById(id)
       .withAttributes(
         'fullname -> fullname,
@@ -161,5 +159,4 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
   def updateHash(id: Long, hash: String): Unit =
     updateById(id)
       .withAttributes('password -> hash)
-
 }

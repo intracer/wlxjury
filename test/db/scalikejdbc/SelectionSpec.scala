@@ -1,6 +1,5 @@
 package db.scalikejdbc
 
-import db.SelectionDao
 import org.intracer.wmua.Selection
 import org.joda.time.DateTime
 import org.specs2.mutable.Specification
@@ -9,7 +8,7 @@ class SelectionSpec extends Specification with InMemDb {
 
   sequential
 
-  val selectionDao: SelectionDao = SelectionJdbc
+  val selectionDao = SelectionJdbc
   val time = DateTime.now
 
   def sameTime(s: Seq[Selection]) = s.map(_.copy(createdAt = time))
@@ -35,7 +34,7 @@ class SelectionSpec extends Specification with InMemDb {
 
         created === s.copy(id = id)
 
-        val dbi = selectionDao.find(id)
+        val dbi = selectionDao.findById(id)
         dbi === Some(created)
 
         val selections = selectionDao.findAll()

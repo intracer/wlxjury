@@ -257,7 +257,7 @@ object Tools {
         val intersection = thisCountry intersect ids
 
         intersection.foreach {
-          id => SelectionJdbc.setRound(id, 133L, 77L, 138L)
+          id => SelectionJdbc.setRound(id, 133L, 138L)
         }
     }
   }

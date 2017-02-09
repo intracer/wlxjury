@@ -53,7 +53,7 @@ case class ImageWithRating(
 
   def jurorRateStr(juror: User): String = jurorRate(juror).fold("")(_.toString)
 
-  def ratedJurors(round: Round): Int =
+  def ratedJurors(round: Round): Long =
     if (round.isBinary) {
       round._allJurors
     } else if (selection.headOption.exists(_.juryId == 0) && !round.optionalRate)
