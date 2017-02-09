@@ -12,7 +12,7 @@ class GallerySpec extends Specification with InMemDb {
   val contestDao = ContestJuryJdbc
   val roundDao = RoundJdbc
   val userDao = UserJdbc
-  val imageDao: ImageDao = ImageJdbc
+  val imageDao = ImageJdbc
   val selectionDao = SelectionJdbc
 
   var contest: ContestJury = _

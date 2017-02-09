@@ -221,7 +221,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         val sum = rs.intOpt(1).getOrElse(0)
         val count = rs.intOpt(2).getOrElse(0)
         ImageWithRating(image,
-          selection = Seq(new Selection(0, image.pageId, sum, 0, round = 0)),
+          selection = Seq(Selection(0, image.pageId, sum, 0, round = 0)),
           count
         )
       }

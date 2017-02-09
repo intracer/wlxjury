@@ -1,6 +1,5 @@
 package db.scalikejdbc
 
-import db.ImageDao
 import org.intracer.wmua.Image
 import org.specs2.mutable.Specification
 
@@ -8,7 +7,7 @@ class ImageSpec extends Specification with InMemDb {
 
   sequential
 
-  val imageDao: ImageDao = ImageJdbc
+  val imageDao = ImageJdbc
 
   def contestImage(id: Long, contest: Long) =
     Image(id, contest, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
@@ -31,7 +30,7 @@ class ImageSpec extends Specification with InMemDb {
 
         imageDao.batchInsert(Seq(image))
 
-        val dbi = imageDao.find(id)
+        val dbi = imageDao.findById(id)
         dbi === Some(image)
 
         val images = imageDao.findAll()
