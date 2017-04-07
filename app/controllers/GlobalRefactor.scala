@@ -1,16 +1,15 @@
 package controllers
 
-import akka.actor.{Actor, ActorRef, Props}
 import db.scalikejdbc._
 import org.intracer.wmua._
 import org.intracer.wmua.cmd.{ImageEnricher, FetchImageInfo, ImageTextFromCategory}
 import org.joda.time.DateTime
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
-import org.scalawiki.dto.cmd.query.list.{ListArg, ListArgs}
+import org.scalawiki.dto.cmd.query.list.ListArgs
 import org.scalawiki.dto.cmd.query.{Generator, Query}
 import org.scalawiki.dto.{Namespace, Page}
-import org.scalawiki.query.{DslQuery, QueryProgress, SinglePageQuery}
+import org.scalawiki.query.{DslQuery, SinglePageQuery}
 import org.scalawiki.wikitext.TemplateParser
 import org.scalawiki.wlx.dto.Contest
 import org.scalawiki.wlx.query.MonumentQuery
@@ -291,7 +290,6 @@ class GlobalRefactor(val commons: MwBot) {
     println(s"admin user: $name / $password")
     UserJdbc.create(user)
   }
-
 
   def categoriesToContests(contest: String, year: Int, parent: String, categories: Seq[Page]): Seq[ContestJury] = {
 
