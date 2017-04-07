@@ -1,13 +1,11 @@
 @(loginForm: Form[(String, String)])(implicit flash: Flash, lang: Lang, messages: Messages)
-
 @mainAdmin(Messages("application.name")) {
 
 <fieldset class="col-md-6 col-md-offset-3">
 
-    <legend>@Messages("signin.signin")</legend>
+    <legend>@Messages("signUp")</legend>
 
     @helper.form(action = routes.Login.auth()) {
-
 
         @if(loginForm.hasGlobalErrors) {
             <div class="alert alert-danger" role="alert">
@@ -24,17 +22,32 @@
                 <label for="password" class="control-label">@Messages("signin.your.password")</label>
                 <input type="password" class="form-control input-lg" id="password" name="password" placeholder="Password">
             </div>
+            <div class="form-group">
+                <label for="password" class="control-label">@Messages("repeat.your.password")</label>
+                <input type="password" class="form-control input-lg" id="password" name="password" placeholder="Password">
+            </div>
         </fieldset>
         <div class="form-group">
             <div>
-                <button id="submit" type="submit" value="submit" class="btn btn-lg btn-primary btn-block">@Messages("signin.signin")</button>
+                <button id="submit" type="submit" value="submit" class="btn btn-lg btn-primary btn-block">@Messages("signUp")</button>
             </div>
         </div>
     }
 
+    @if(false) {
     <div>
-        <p class="not-a-member">@Messages("not.a.member") <a href="/signup">@Messages("sign.up.now")</a>
+        <p class="not-a-member">@Messages("not.a.member") <a href="">@Messages("sign.up.now")</a>
+            | <a href="" title="@Messages("forgot.your.password")">@Messages("forgot.your.password")</a></p>
     </div>
 
+    <div class="social-providers">
+        <p>@Messages("or.use.social")</p>
+
+        <a href="" class="provider mediawiki" title="MediaWiki"><img src="@routes.Assets.at(s"images/MediaWiki_logo_1.svg.png")" width="64px" height="64px" alt="MediaWiki"></a>
+    </div>
+    }
+
+
 </fieldset>
+
 }

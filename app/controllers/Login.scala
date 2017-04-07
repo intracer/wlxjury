@@ -44,7 +44,12 @@ object Login extends Controller with Secured {
 
   def login = Action {
     implicit request =>
-      Ok(views.html.index(loginForm))
+      val users = UserJdbc.count()
+      if (users > 0) {
+        Ok(views.html.index(loginForm))
+      } else {
+        Ok(views.html.signUp(signUpForm))
+      }
   }
 
   def auth() = Action {
@@ -52,11 +57,30 @@ object Login extends Controller with Secured {
 
       loginForm.bindFromRequest.fold(
         formWithErrors => // binding failure, you retrieve the form containing errors,
-          BadRequest(views.html.index(formWithErrors)),
-        value => {
-          // binding success, you get the actual value
-          val user = UserJdbc.login(value._1, value._2).get
-          val result = indexRedirect(user).withSession(Security.username -> value._1.trim)
+          BadRequest(views.html.index(formWithErrors)), {
+          case (login, password) =>
+            // binding success, you get the actual value
+            val user = UserJdbc.login(login, password).get
+            val result = indexRedirect(user).withSession(Security.username -> login)
+            user.lang.fold(result)(l => result.withLang(Lang(l)))
+        }
+      )
+  }
+
+  def signUp() = Action {
+    implicit request =>
+
+      signUpForm.bindFromRequest.fold(
+        formWithErrors => // binding failure, you retrieve the form containing errors,
+          BadRequest(views.html.signUp(formWithErrors)), { case (login: String, password: String) =>
+          val newUser = new User(fullname = "", email = login, password = Some(password))
+          val users = UserJdbc.count()
+          val user = if (users > 0) {
+            Admin.createNewUser(newUser, newUser)
+          } else {
+            Admin.createNewUser(newUser, newUser)
+          }
+          val result = indexRedirect(user).withSession(Security.username -> password)
           user.lang.fold(result)(l => result.withLang(Lang(l)))
         }
       )
@@ -85,6 +109,16 @@ object Login extends Controller with Secured {
       case (l, p) => UserJdbc.login(l, p).isDefined
     })
   )
+
+  val signUpForm = Form(
+    tuple(
+      "login" -> nonEmptyText(),
+      "password" -> nonEmptyText()
+    ) verifying("invalid.user.or.password", fields => fields match {
+      case (l, _) => UserJdbc.findByAccount(l).isEmpty
+    })
+  )
+
 }
 
 

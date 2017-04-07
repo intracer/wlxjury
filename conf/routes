@@ -14,6 +14,8 @@ POST        /auth                                                               
 
 GET         /auth                                                                   controllers.Login.login()
 
+GET         /signup                                                                 controllers.Login.signUp()
+
 GET         /error                                                                  controllers.Login.error(message: String ?= "Unknown error")
 
 GET         /query                                                                  controllers.Gallery.query(module:String ?= "byrate", user: Option[Long] ?= None, page: Int ?= 1, region: String ?= "all", round: Long ?= 0, rate: Option[Int] ?= None, rated: Option[Boolean] ?= None)
