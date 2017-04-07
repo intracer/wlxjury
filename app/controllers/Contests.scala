@@ -2,7 +2,7 @@ package controllers
 
 import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
 import org.intracer.wmua.cmd.FetchImageInfo
-import org.intracer.wmua.{ContestJury, Image, User}
+import org.intracer.wmua.{ContestJury, User}
 import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.CountryParser
 import org.scalawiki.wlx.dto.Contest
@@ -24,10 +24,7 @@ object Contests extends Controller with Secured {
   }
 
   def findContests: List[ContestJury] = {
-    val messages = applicationMessages
-    val contests = ContestJuryJdbc.findAll()
-    //.map(_.copy(messages = messages))
-    contests
+    ContestJuryJdbc.findAll()    //.map(_.copy(messages = applicationMessages))
   }
 
   def saveContest() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
