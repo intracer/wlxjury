@@ -81,7 +81,7 @@ object Admin extends Controller with Secured {
         }
   }
 
-  def saveUser() = withAuth(){
+  def saveUser() = withAuth() {
     user =>
       implicit request =>
 
@@ -244,7 +244,7 @@ object Admin extends Controller with Secured {
     )
   }
 
-  def saveGreeting(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)){
+  def saveGreeting(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
         val contestId = contestIdParam.orElse(user.currentContest).get
@@ -260,25 +260,25 @@ object Admin extends Controller with Secured {
 
   }
 
-  def createNewUser(user: User, formUser: User): Unit = {
+  def createNewUser(user: User, formUser: User): User = {
     val contest: Option[ContestJury] = formUser.currentContest.flatMap(ContestJuryJdbc.findById)
     createUser(user, formUser, contest)
   }
 
-  def createUser(creator: User, formUser: User, contestOpt: Option[ContestJury]) = {
-      val password = UserJdbc.randomString(12)
-      val hash = UserJdbc.hash(formUser, password)
+  def createUser(creator: User, formUser: User, contestOpt: Option[ContestJury]): User = {
+    val password = UserJdbc.randomString(12)
+    val hash = UserJdbc.hash(formUser, password)
 
-      val toCreate = formUser.copy(password = Some(hash), contest = contestOpt.flatMap(_.id).orElse(creator.contest))
+    val toCreate = formUser.copy(password = Some(hash), contest = contestOpt.flatMap(_.id).orElse(creator.contest))
 
-      val createdUser = UserJdbc.create(toCreate)
+    val createdUser = UserJdbc.create(toCreate)
 
-      contestOpt.foreach { contest =>
-        if (contest.greeting.use) {
-          sendMail(creator, createdUser, contest, password)
-        }
+    contestOpt.foreach { contest =>
+      if (contest.greeting.use) {
+        sendMail(creator, createdUser, contest, password)
       }
-      createdUser
+    }
+    createdUser
   }
 
   def sendMail(creator: User, recipient: User, contest: ContestJury, password: String): String = {
