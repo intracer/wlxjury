@@ -27,14 +27,19 @@ case class User(fullname: String,
 
   def hasAnyRole(otherRoles: Set[String]) = roles.intersect(otherRoles).nonEmpty
 
-  def sameContest(other: User): Boolean =
-    (for (c <- contest; oc <- other.contest) yield c == oc)
+  def sameContest(other: User): Boolean = inContest(other.contest)
+
+  def inContest(contestId: Option[Long]): Boolean =
+    (for (c <- contest; oc <- contestId) yield c == oc)
       .getOrElse(false)
 
-  def canEdit(otherUser: User) =
-    hasRole(User.ADMIN_ROLE) && sameContest(otherUser) ||
-      id == otherUser.id ||
+  def isAdmin(contestId: Option[Long]) =
+    hasRole(User.ADMIN_ROLE) && inContest(contestId) ||
       hasRole(User.ROOT_ROLE)
+
+  def canEdit(otherUser: User) =
+    isAdmin(otherUser.contest) ||
+      id == otherUser.id
 
   def canViewOrgInfo(round: Round) =
     hasRole("root") ||
