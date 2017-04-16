@@ -1,4 +1,5 @@
 @(loginForm: Form[(String, String)])(implicit flash: Flash, lang: Lang, messages: Messages)
+@import b3.inline.fieldConstructor
 
 @mainAdmin(Messages("application.name")) {
 
@@ -8,23 +9,15 @@
 
     @helper.form(action = routes.Login.auth()) {
 
-
         @if(loginForm.hasGlobalErrors) {
             <div class="alert alert-danger" role="alert">
             @Messages(loginForm.errors.head.message)
             </div>
         }
 
-        <fieldset>
-            <div class="form-group">
-                <label for="login" class="control-label">@Messages("signin.your.login")</label>
-                <input type="text" class="form-control input-lg" id="login" name="login" placeholder="@Messages("login")">
-            </div>
-            <div class="form-group">
-                <label for="password" class="control-label">@Messages("signin.your.password")</label>
-                <input type="password" class="form-control input-lg" id="password" name="password" placeholder="Password">
-            </div>
-        </fieldset>
+        @b3.text(loginForm("login"), '_hiddenLabel -> Messages("signin.your.login"), 'placeholder -> Messages("login"), 'class -> "form-control input-lg")
+        @b3.password(loginForm("password"), '_hiddenLabel -> Messages("signin.your.password"), 'placeholder -> Messages("signin.your.password"), 'class -> "form-control input-lg")
+
         <div class="form-group">
             <div>
                 <button id="submit" type="submit" value="submit" class="btn btn-lg btn-primary btn-block">@Messages("signin.signin")</button>
@@ -35,6 +28,5 @@
     <div>
         <p class="not-a-member">@Messages("not.a.member") <a href="/signup">@Messages("sign.up.now")</a>
     </div>
-
 </fieldset>
 }
