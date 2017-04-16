@@ -15,7 +15,7 @@ case class User(fullname: String,
                 createdAt: Option[DateTime] = None,
                 deletedAt: Option[DateTime] = None,
                 wikiAccount: Option[String] = None,
-                wikiEmail: Boolean = false,
+                hasWikiEmail: Boolean = false,
                 accountValid: Boolean = true
                ) {
 

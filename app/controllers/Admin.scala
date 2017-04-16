@@ -17,24 +17,35 @@ import spray.util.pimpFuture
 import scala.collection.immutable.ListMap
 import scala.util.Try
 
+/**
+  * Controller for admin views
+  */
 object Admin extends Controller with Secured {
 
   val sendMail = new SendMail
 
+  /**
+    * @param contestIdParam optional contest Id. If not set, contest of the admin user is used
+    * @return List of users in admin view
+    */
   def users(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
-        val usersView = for (contestId <- user.currentContest.orElse(contestIdParam);
-                             contest <- ContestJuryJdbc.findById(contestId)) yield {
+        (for (contestId <- user.currentContest.orElse(contestIdParam);
+              contest <- ContestJuryJdbc.findById(contestId)) yield {
           val users = UserJdbc.findByContest(contestId)
-
           val withWiki = wikiAccountInfo(users)
 
           Ok(views.html.users(user, withWiki, editUserForm.copy(data = Map("roles" -> "jury")), contest))
-        }
-        usersView.getOrElse(Redirect(routes.Login.index())) // TODO message
+        }).getOrElse(Redirect(routes.Login.index())) // TODO message
   }
 
+  /**
+    * Checks if wiki accounts are valid and can be emailed via wiki acount
+    *
+    * @param users list of users to fetch wiki project account information
+    * @return users with hasWikiEmail and accountValid flags set
+    */
   def wikiAccountInfo(users: Seq[User]): Seq[User] = {
     val names = users.flatMap(_.wikiAccount)
 
@@ -53,12 +64,20 @@ object Admin extends Controller with Secured {
       val account = accounts.find(a => a.login == u.wikiAccount)
 
       u.copy(
-        wikiEmail = account.flatMap(_.emailable).getOrElse(false),
+        hasWikiEmail = account.flatMap(_.emailable).getOrElse(false),
         accountValid = account.isDefined
       )
     }
   }
 
+  /**
+    * Executes code block if currentUser is allowed to edit other user, redirects to Login page otherwise
+    *
+    * @param currentUser currently logged user
+    * @param otherUser   other user to edit
+    * @param block       code block that operates on other user
+    * @return view returned from code block or Login page if not allowed
+    */
   def havingEditRights(currentUser: User, otherUser: User)(block: => Result): Result = {
     if (!currentUser.canEdit(otherUser)) {
       Redirect(routes.Login.index()) // TODO message
@@ -67,11 +86,17 @@ object Admin extends Controller with Secured {
     }
   }
 
-  def editUser(id: Long) = withAuth(rolePermission(Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$id"))) {
+  /**
+    * Shows edit user form
+    *
+    * @param userId userId of the user to edit
+    * @return edit user form view
+    */
+  def editUser(userId: Long) = withAuth(rolePermission(Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$userId"))) {
     user =>
       implicit request =>
 
-        val editedUser = UserJdbc.findById(id).get
+        val editedUser = UserJdbc.findById(userId).get
 
         havingEditRights(user, editedUser) {
 
@@ -81,6 +106,11 @@ object Admin extends Controller with Secured {
         }
   }
 
+  /**
+    * Saves user on user editing form submitting
+    *
+    * @return list of users
+    */
   def saveUser() = withAuth() {
     user =>
       implicit request =>
@@ -117,12 +147,12 @@ object Admin extends Controller with Secured {
                   // only admin can update roles
                   val newRoles = if (user.hasAnyRole(User.ADMIN_ROLES)) {
                     if (!user.hasRole(User.ROOT_ROLE) && formUser.roles.contains(User.ROOT_ROLE)) {
-                      originalRoles(formUser)
+                      userRolesFromDb(formUser)
                     } else {
                       formUser.roles
                     }
                   } else {
-                    originalRoles(formUser)
+                    userRolesFromDb(formUser)
                   }
 
                   UserJdbc.updateUser(userId, formUser.fullname, formUser.wikiAccount, formUser.email, newRoles, formUser.lang)
@@ -147,9 +177,15 @@ object Admin extends Controller with Secured {
         )
   }
 
-  def originalRoles(formUser: User): Set[String] = {
-    val origUser = UserJdbc.findById(formUser.id.get).get
-    origUser.roles
+  /**
+    *
+    * @param user user with id
+    * @return user roles from database
+    */
+  def userRolesFromDb(user: User): Set[String] = {
+    (for (userId <- user.id;
+          dbUser <- UserJdbc.findById(userId))
+      yield dbUser.roles).getOrElse(Set.empty)
   }
 
   def showImportUsers(contestIdParam: Option[Long]) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
@@ -158,7 +194,6 @@ object Admin extends Controller with Secured {
 
         val contestId = contestIdParam.orElse(user.currentContest).get
         Ok(views.html.importUsers(user, importUsersForm, contestId))
-
   }
 
   def importUsers(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
@@ -190,30 +225,29 @@ object Admin extends Controller with Secured {
     user =>
       implicit request =>
 
-        val contestId = contestIdParam.orElse(user.currentContest).get
-        val contest = ContestJuryJdbc.findById(contestId).get
+        (for (contestId <- contestIdParam.orElse(user.currentContest);
+             contest <- ContestJuryJdbc.findById(contestId)) yield {
 
-        val greeting = getGreeting(contest)
+          val greeting = getGreeting(contest)
 
-        val recipient = new User(fullname = "Recipient Full Name", email = "Recipient email", id = None, contest = contest.id)
+          val recipient = new User(fullname = "Recipient Full Name", email = "Recipient email", id = None, contest = contest.id)
 
-        val substitution = if (substituteJurors) {
-          val users = UserJdbc.findByContest(contestId)
-          users.map {
-            recipient =>
-              fillGreeting(greeting.text.get, contest, user, recipient.copy(password = Some("***PASSWORD***")))
+          val substitution = if (substituteJurors) {
+            val users = UserJdbc.findByContest(contestId)
+            users.map {
+              recipient =>
+                fillGreeting(greeting.text.get, contest, user, recipient.copy(password = Some("***PASSWORD***")))
+            }
+          } else {
+            Seq.empty
           }
-        } else {
-          Seq.empty
-        }
 
 
-        Ok(views.html.greetingTemplate(
-          user, greetingTemplateForm.fill(greeting), contestId, variables(contest, user, recipient), substitution
-        ))
-
+          Ok(views.html.greetingTemplate(
+            user, greetingTemplateForm.fill(greeting), contestId, variables(contest, user, recipient), substitution
+          ))
+        }).getOrElse(Redirect(routes.Login.index()))
   }
-
 
   def getGreeting(contest: ContestJury): Greeting = {
     val defaultGreeting = appConfig.getString("wlxjury.greeting")
@@ -343,8 +377,6 @@ object Admin extends Controller with Secured {
         Redirect(routes.Admin.editUser(id)).flashing("password-reset" -> s"Password reset. New Password sent to ${editedUser.email}")
 
   }
-
-
 }
 
 case class Greeting(text: Option[String], use: Boolean)
