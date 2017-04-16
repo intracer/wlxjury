@@ -62,13 +62,14 @@ signin.your.password=Ваш пароль
 
 forgot.password=Forgot password ?
 
-signup.signup=Sign Up
+signup.signup=Реєстрація
 signup.successfull=Sign Up - Successful !
 signup.new=New ?
 signup.reset.password=Reset your password
 signup.generate.password=Generate a password
 signup.msg.created=You will receive a confirmation email soon. Check your email to activate your account.
 signup.valid.email=Invalid Email
+signup.repeat.your.password=Повторіть пароль
 
 resetpassword=Reset Password
 resetpassword.mailsent=A mail has been sent, please check your mail.

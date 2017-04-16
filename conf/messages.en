@@ -72,6 +72,7 @@ signup.reset.password=Reset your password
 signup.generate.password=Generate a password
 signup.msg.created=You will receive a confirmation email soon. Check your email to activate your account.
 signup.valid.email=Invalid Email
+signup.repeat.your.password=Repeat your password
 
 resetpassword=Reset Password
 resetpassword.mailsent=A mail has been sent, please check your mail.
@@ -168,6 +169,7 @@ previous.image = Previous image
 next.image = Next image
 select.image = Select image
 reject.image = Reject image
+remove.image = Remove image from the round
 up.key = Up
 down.key = Down
 format.boolean=
