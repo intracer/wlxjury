@@ -300,7 +300,7 @@ object Admin extends Controller with Secured {
   }
 
   def createUser(creator: User, formUser: User, contestOpt: Option[ContestJury]): User = {
-    val password = UserJdbc.randomString(12)
+    val password = formUser.password.getOrElse(UserJdbc.randomString(12))
     val hash = UserJdbc.hash(formUser, password)
 
     val toCreate = formUser.copy(password = Some(hash), contest = contestOpt.flatMap(_.id).orElse(creator.contest))

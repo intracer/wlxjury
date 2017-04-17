@@ -52,38 +52,43 @@ object Login extends Controller with Secured {
       }
   }
 
-  def auth() = Action {
-    implicit request =>
+  def auth() = Action { implicit request =>
 
-      loginForm.bindFromRequest.fold(
-        formWithErrors => // binding failure, you retrieve the form containing errors,
-          BadRequest(views.html.index(formWithErrors)), {
-          case (login, password) =>
-            // binding success, you get the actual value
-            val user = UserJdbc.login(login, password).get
-            val result = indexRedirect(user).withSession(Security.username -> login)
-            user.lang.fold(result)(l => result.withLang(Lang(l)))
-        }
-      )
+    loginForm.bindFromRequest.fold(
+      formWithErrors =>
+        BadRequest(views.html.index(formWithErrors)), {
+        case (login, password) =>
+          val user = UserJdbc.login(login, password).get
+          val result = indexRedirect(user).withSession(Security.username -> login)
+          user.lang.fold(result)(l => result.withLang(Lang(l)))
+      }
+    )
   }
 
-  def signUp() = Action {
-    implicit request =>
+  def signUpView() = Action { implicit request =>
+    Ok(views.html.signUp(signUpForm))
+  }
 
-      signUpForm.bindFromRequest.fold(
-        formWithErrors => // binding failure, you retrieve the form containing errors,
-          BadRequest(views.html.signUp(formWithErrors)), { case (login: String, password: String) =>
-          val newUser = new User(fullname = "", email = login, password = Some(password))
+  def signUp() = Action { implicit request =>
+
+    signUpForm.bindFromRequest.fold(
+      formWithErrors =>
+        BadRequest(views.html.signUp(formWithErrors)), {
+        case (login: String, password: String, _) =>
+
           val users = UserJdbc.count()
-          val user = if (users > 0) {
-            Admin.createNewUser(newUser, newUser)
-          } else {
-            Admin.createNewUser(newUser, newUser)
-          }
+          val roles = if (users > 0)
+            Set.empty[String]
+          else
+            Set(User.ROOT_ROLE)
+
+          val newUser = new User(fullname = "", email = login, password = Some(password), roles = roles)
+
+          val user = Admin.createNewUser(newUser, newUser)
           val result = indexRedirect(user).withSession(Security.username -> password)
           user.lang.fold(result)(l => result.withLang(Lang(l)))
-        }
-      )
+      }
+    )
   }
 
   /**
@@ -113,9 +118,10 @@ object Login extends Controller with Secured {
   val signUpForm = Form(
     tuple(
       "login" -> nonEmptyText(),
-      "password" -> nonEmptyText()
+      "password" -> nonEmptyText(),
+      "repeat.password" -> nonEmptyText()
     ) verifying("invalid.user.or.password", fields => fields match {
-      case (l, _) => UserJdbc.findByAccount(l).isEmpty
+      case (_, p1, p2) => p1 == p2
     })
   )
 

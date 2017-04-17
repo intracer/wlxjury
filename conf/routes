@@ -14,7 +14,8 @@ POST        /auth                                                               
 
 GET         /auth                                                                   controllers.Login.login()
 
-GET         /signup                                                                 controllers.Login.signUp()
+GET         /signup                                                                 controllers.Login.signUpView()
+POST        /signup                                                                 controllers.Login.signUp()
 
 GET         /error                                                                  controllers.Login.error(message: String ?= "Unknown error")
 
