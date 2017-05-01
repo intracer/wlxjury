@@ -114,8 +114,8 @@ object ImageWithRatingSeqFilter {
       selectMinAvgRating.map(top => SelectMinAvgRating(top, round.get)) -> selectMinAvgRating,
       selectTopByRating.map(top => SelectTopByRating(top, round.get)) -> selectTopByRating,
       selectedAtLeast.map(n => SelectedAtLeast(n)) -> selectedAtLeast,
-      mpxAtLeast.map(MegaPixelsAtLeast(_)) -> mpxAtLeast,
-      sizeAtLeast.map(SizeAtLeast(_)) -> sizeAtLeast
+      mpxAtLeast.map(MegaPixelsAtLeast) -> mpxAtLeast,
+      sizeAtLeast.map(SizeAtLeast) -> sizeAtLeast
     )
 
     (setMap.filter(_._2.nonEmpty).keys ++ optionMap.filter(_._2.nonEmpty).keys.flatten).toSeq
