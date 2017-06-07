@@ -4,7 +4,7 @@ import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
 import org.intracer.wmua.cmd.FetchImageInfo
 import org.intracer.wmua.{ContestJury, User}
 import org.scalawiki.dto.Namespace
-import org.scalawiki.wlx.CountryParser
+import org.scalawiki.wlx.{CampaignList, CountryParser}
 import org.scalawiki.wlx.dto.Contest
 import play.api.Play.current
 import play.api.data.Form
@@ -13,14 +13,20 @@ import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Controller
 import spray.util.pimpFuture
 
+import scala.concurrent.Future
+
 object Contests extends Controller with Secured {
+
+  def fetchYears(): Future[Seq[Contest]] =
+    CampaignList.yearsContests()
 
   def list() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
     user =>
       implicit request =>
         val contests = findContests
+        val fetched = fetchYears().await
 
-        Ok(views.html.contests(user, contests, editContestForm, importContestsForm))
+        Ok(views.html.contests(user, contests, fetched, editContestForm, importContestsForm))
   }
 
   def findContests: List[ContestJury] = {
@@ -34,7 +40,7 @@ object Contests extends Controller with Secured {
         editContestForm.bindFromRequest.fold(
           formWithErrors => {
             val contests = findContests
-            BadRequest(views.html.contests(user, contests, formWithErrors, importContestsForm))
+            BadRequest(views.html.contests(user, contests, Seq.empty, formWithErrors, importContestsForm))
           },
           formContest => {
             createContest(formContest)
@@ -49,7 +55,7 @@ object Contests extends Controller with Secured {
         importContestsForm.bindFromRequest.fold(
           formWithErrors => {
             val contests = findContests
-            BadRequest(views.html.contests(user, contests, editContestForm, formWithErrors))
+            BadRequest(views.html.contests(user, contests, Seq.empty, editContestForm, formWithErrors))
           },
           formContest => {
             val imported =

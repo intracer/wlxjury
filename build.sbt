@@ -38,11 +38,11 @@ debianPackageDependencies in Debian ++= Seq("java8-runtime")
 
 debianPackageRecommends in Debian ++= Seq("virtual-mysql-server")
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.11"
 
 val scalikejdbcVersion = "2.5.2"
 val scalikejdbcPlayVersion = "2.5.1"
-val scalawikiVersion = "0.5-M5"
+val scalawikiVersion = "0.5-SNAPSHOT"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -62,6 +62,8 @@ libraryDependencies ++= Seq(
   "org.skinny-framework" %% "skinny-orm" % "2.3.4",
   "org.scalawiki" %% "scalawiki-core" % scalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % scalawikiVersion,
+  "com.typesafe.akka" %% "akka-stream" % "2.4.18",
+  "com.typesafe.akka" %% "akka-http" % "10.0.6",
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
   "com.typesafe.play" %% "play-mailer" % "5.0.0",
   "org.flywaydb" %% "flyway-play" % "3.0.1",

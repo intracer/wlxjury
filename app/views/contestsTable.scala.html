@@ -1,0 +1,14 @@
+@import org.scalawiki.wlx.dto.Contest
+@import org.scalawiki.wlx.dto.ContestType
+@(contests: Seq[Contest])
+
+<table class="table table-striped table-condensed">
+    @for(contestType <- ContestType.all) {
+        <tr>
+            <td>@contestType.name</td>
+            @for(yearContests <- contests.groupBy(_.contestType).getOrElse(contestType, Seq.empty)) {
+                <td>@yearContests.year</td>
+            }
+        </tr>
+    }
+</table>
