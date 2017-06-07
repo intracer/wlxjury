@@ -111,7 +111,7 @@ GET         /monuments/id/:id                                                   
 
 GET         /webjars/*file                                                          @controllers.WebJarAssets.at(file)
 
-GET         /contests                                                               controllers.Contests.list()
+GET         /contests                                                               controllers.Contests.list(contestType: Option[String] ?= None, year: Option[Int] ?= None, country: Option[String] ?= None)
 
 POST        /contests/save                                                          controllers.Contests.saveContest()
 

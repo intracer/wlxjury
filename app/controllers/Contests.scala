@@ -4,8 +4,8 @@ import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
 import org.intracer.wmua.cmd.FetchImageInfo
 import org.intracer.wmua.{ContestJury, User}
 import org.scalawiki.dto.Namespace
+import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}
 import org.scalawiki.wlx.{CampaignList, CountryParser}
-import org.scalawiki.wlx.dto.Contest
 import play.api.Play.current
 import play.api.data.Form
 import play.api.data.Forms._
@@ -17,20 +17,29 @@ import scala.concurrent.Future
 
 object Contests extends Controller with Secured {
 
-  def fetchYears(): Future[Seq[Contest]] =
-    CampaignList.yearsContests()
+  def fetchContests(contestType: Option[String], year: Option[Int], country: Option[String]): Future[Seq[Contest]] = {
+    if (contestType.isEmpty) {
+      CampaignList.yearsContests()
+    } else {
+      (for (ct <- contestType; y <- year) yield {
+        val contest = Contest(ContestType.byCode(ct).get, NoAdmDivision(), y)
+        CampaignList.contestsFromCategory(contest.imagesCategory)
+      }).getOrElse(Future.successful(Seq.empty[Contest]))
+    }
+  }
 
-  def list() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
+
+  def list(contestType: Option[String], year: Option[Int], country: Option[String]) = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
     user =>
       implicit request =>
         val contests = findContests
-        val fetched = fetchYears().await
+        val fetched = fetchContests(contestType, year, country).await
 
         Ok(views.html.contests(user, contests, fetched, editContestForm, importContestsForm))
   }
 
   def findContests: List[ContestJury] = {
-    ContestJuryJdbc.findAll()    //.map(_.copy(messages = applicationMessages))
+    ContestJuryJdbc.findAll() //.map(_.copy(messages = applicationMessages))
   }
 
   def saveContest() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
@@ -103,7 +112,7 @@ object Contests extends Controller with Secured {
     )
   }
 
-  def images(contestId: Long, inProgress: Boolean = false) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))){
+  def images(contestId: Long, inProgress: Boolean = false) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
     user =>
       implicit request =>
         val contest = ContestJuryJdbc.findById(contestId).get

@@ -2,6 +2,7 @@
 @(
         user: org.intracer.wmua.User,
         contests: Seq[org.intracer.wmua.ContestJury],
+        fetched: Seq[org.scalawiki.wlx.dto.Contest],
         editContestForm: Form[org.intracer.wmua.ContestJury],
         importForm: Form[String]
 )(implicit flash: Flash, lang: Lang, messages: Messages)
@@ -31,6 +32,8 @@
     </div>
     <div class="row" >
         <h3>@Messages("contests")</h3>
+
+        @contestsTable(fetched)
 
         <table class="table table-striped table-condensed" style="background-color: #CCCCCC;">
 
