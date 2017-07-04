@@ -10,6 +10,7 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.Messages.Implicits._
 import play.api.i18n.{Lang, Messages}
+import play.api.libs.mailer.Email
 import play.api.mvc.Results._
 import play.api.mvc.{Controller, Result}
 import spray.util.pimpFuture
@@ -22,7 +23,7 @@ import scala.util.Try
   */
 object Admin extends Controller with Secured {
 
-  val sendMail = new SendMail
+  val sendMail = new SendMailSMTP
 
   /**
     * @param contestIdParam optional contest Id. If not set, contest of the admin user is used
@@ -315,17 +316,11 @@ object Admin extends Controller with Secured {
     createdUser
   }
 
-  def sendMail(creator: User, recipient: User, contest: ContestJury, password: String): String = {
+  def sendMail(creator: User, recipient: User, contest: ContestJury, password: String): Unit = {
     val greeting = getGreeting(contest)
     val subject = Messages("welcome.subject", contest.name)
     val message = fillGreeting(greeting.text.get, contest, creator, recipient.copy(password = Some(password)))
-    sendMail.sendMail(
-      fromName = creator.fullname,
-      fromEmail = creator.email,
-      to = Seq(recipient.email),
-      bcc = Seq(creator.email),
-      subject = subject,
-      message = message)
+    sendMail.sendMail(creator, recipient, subject, message)
   }
 
   val editUserForm = Form(
