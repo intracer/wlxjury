@@ -5,6 +5,8 @@ import javax.mail.internet.InternetAddress
 import org.joda.time.DateTime
 import play.api.data.validation.{Constraints, Invalid, Valid}
 
+import scala.util.Try
+
 case class User(fullname: String,
                 email: String,
                 id: Option[Long] = None,
@@ -72,13 +74,28 @@ object User {
   val emailConstraint = Constraints.emailAddress
 
   def parseList(usersText: String): Seq[User] = {
-    InternetAddress.parse(usersText.replaceAll("\n", ","), false).map { internetAddress =>
-      val address = internetAddress.getAddress
 
-      Constraints.emailAddress(address) match {
-        case Valid => User(id = None, contest = None, fullname = Option(internetAddress.getPersonal).getOrElse(""), email = internetAddress.getAddress)
-        case Invalid(errors) => User(id = None, contest = None, fullname = "", email = "", wikiAccount = Some(internetAddress.getAddress))
+    def fromUserName(str: String): Option[User] = {
+      val withoutPrefix = str.replaceFirst("User:", "")
+      Some(withoutPrefix).filter(_.trim.nonEmpty).map { _ =>
+        User(id = None, contest = None, fullname = "", email = "", wikiAccount = Some(withoutPrefix))
       }
+    }
+
+    def fromInternetAddress(internetAddress: InternetAddress): Option[User] = {
+      Constraints.emailAddress(internetAddress.getAddress) match {
+        case Valid =>
+          Some(User(id = None, contest = None,
+            fullname = Option(internetAddress.getPersonal).getOrElse(""),
+            email = internetAddress.getAddress))
+        case Invalid(_) => None
+      }
+    }
+
+    usersText.split("[,|\n|]|,[ ]*\n").flatMap { str =>
+      Try {
+        InternetAddress.parse(str, false)
+      }.toOption.flatMap(_.headOption.flatMap(fromInternetAddress)).orElse(fromUserName(str))
     }
   }
 }

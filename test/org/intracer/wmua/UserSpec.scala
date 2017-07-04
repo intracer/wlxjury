@@ -1,44 +1,8 @@
-package db.scalikejdbc
+package org.intracer.wmua
 
-import org.intracer.wmua.User
-import org.joda.time.DateTime
 import org.specs2.mutable.Specification
 
-class UserSpec extends Specification with InMemDb {
-
-  sequential
-
-  val userDao = UserJdbc
-
-  "fresh database" should {
-    "be empty" in {
-      inMemDbApp {
-        val users = userDao.findAll()
-        users.size === 0
-      }
-    }
-
-    "insert user" in {
-      inMemDbApp {
-
-        val user = User("fullname", "email", None, Set("jury"), Some("password hash"), Some(10),
-          Some("en"), createdAt = Some(DateTime.now))
-
-        val created = userDao.create(user)
-
-        val id = created.id
-
-        val expected = user.copy(id = id, roles = user.roles ++ Set("USER_ID_" + id.get))
-        created === expected
-
-        val found = userDao.findById(id.get)
-        found === Some(created)
-
-        val all = userDao.findAll()
-        all === Seq(created)
-      }
-    }
-  }
+class UserSpec extends Specification {
 
   "parseList" should {
 
@@ -52,6 +16,13 @@ class UserSpec extends Specification with InMemDb {
       list === users
     }
 
+    "parse one email with name" in {
+      val list: Seq[User] = User.parseList("Name Surname <123@abc.com>")
+      val users: Seq[User] = Seq(User(email = "123@abc.com", id = None, contest = None, fullname = "Name Surname"))
+      list === users
+    }
+
+
     "parse emails" in {
       val emails = Seq("123@abc.com", "234@bcd.com", "345@cde.com")
 
@@ -64,6 +35,15 @@ class UserSpec extends Specification with InMemDb {
       val accounts = Seq("Ilya", "Antanana", "Ahonc", "Base")
 
       User.parseList(accounts.mkString("\n")) === accounts.map { account =>
+        User(id = None, contest = None, fullname = "", email = "", wikiAccount = Some(account))
+      }
+    }
+
+    "parse prefixed accounts" in {
+      val withoutUser = Seq("Ilya", "Antanana", "Ahonc", "Base")
+      val withUser = withoutUser.map("User:" + _)
+
+      User.parseList(withUser.mkString("\n")) === withoutUser.map { account =>
         User(id = None, contest = None, fullname = "", email = "", wikiAccount = Some(account))
       }
     }
@@ -104,4 +84,6 @@ class UserSpec extends Specification with InMemDb {
       )
     }
   }
+
+
 }
