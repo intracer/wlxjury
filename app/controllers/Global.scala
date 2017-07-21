@@ -27,8 +27,6 @@ object Global {
 
   val metrics = new MetricRegistry()
 
-  val projectRoot = Play.application().path()
-
   lazy val commons = MwBot.fromHost(COMMONS_WIKIMEDIA_ORG)
 
   def onStart(app: Application) {
