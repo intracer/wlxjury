@@ -131,8 +131,8 @@ class GlobalRefactor(val commons: MwBot) {
               image =>
                 ImageJdbc.updateMonumentId(image.pageId, image.monumentId.get)
             }
-        }
-    }
+        } recover { case e: Exception => println(e) }
+    } recover { case e: Exception => println(e) }
   }
 
   def defaultParam(text: String, templateName: String): Option[String] =
@@ -179,9 +179,9 @@ class GlobalRefactor(val commons: MwBot) {
 
   def getCategories(parent: String): Future[Seq[Page]] = {
 
-    val geenratorArg = ListArgs.toDsl("categorymembers", Some(parent), None, Set(Namespace.CATEGORY), Some("max")).get
+    val generatorArg = ListArgs.toDsl("categorymembers", Some(parent), None, Set(Namespace.CATEGORY), Some("max")).get
     val action = Action(Query(
-      Generator(geenratorArg)
+      Generator(generatorArg)
     ))
     new DslQuery(action, commons).run()
   }
