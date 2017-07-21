@@ -1,5 +1,6 @@
 package org.intracer.wmua
 
+import com.typesafe.config.ConfigFactory
 import controllers.GlobalRefactor
 import db.scalikejdbc._
 import org.intracer.wmua.cmd.{DistributeImages, ImageWithRatingSeqFilter}
@@ -26,8 +27,9 @@ object Tools {
     val url: String = "jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
     println(s"URL:" + url)
 
-    val user = Play.current.configuration.getString("db.default.user").get
-    val password = Play.current.configuration.getString("db.default.user").get
+    val config = ConfigFactory.load()
+    val user = config.getString("db.default.username")
+    val password = config.getString("db.default.password")
 
     ConnectionPool.singleton(url, user, password)
 
@@ -42,7 +44,8 @@ object Tools {
       warningLogLevel = 'warn
     )
 
-    addCriteria()
+    addMonuments()
+//    addCriteria()
   }
 
   def distributeImages(round: Round,
@@ -86,7 +89,6 @@ object Tools {
                         sourceCategory: Option[String] = None,
                         includeCategory: Option[Boolean] = None
                       ): Seq[Image] = {
-
 
     val catIds = sourceCategory.map { category =>
       val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
@@ -260,6 +262,14 @@ object Tools {
           id => SelectionJdbc.setRound(id, 133L, 138L)
         }
     }
+  }
+
+  def addMonuments() = {
+      val category = "Category:Images from Wiki Loves Earth 2017 in Ukraine"
+      val query = commons.page(category)
+      val contest = ContestJuryJdbc.findById(196).get
+
+      new GlobalRefactor(commons).updateMonuments(query, contest)
   }
 
   def addCriteria() = {
