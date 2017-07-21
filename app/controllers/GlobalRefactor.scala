@@ -103,11 +103,11 @@ class GlobalRefactor(val commons: MwBot) {
   }
 
   def updateMonuments(query: SinglePageQuery, contest: ContestJury) = {
+    val monumentIdTemplate = contest.monumentIdTemplate.get
 
     val future = query.imageInfoByGenerator("categorymembers", "cm",
       props = Set("timestamp", "user", "size", "url"),
       titlePrefix = None)
-
 
     future.map {
       //bot.page("User:Ilya/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
@@ -121,7 +121,7 @@ class GlobalRefactor(val commons: MwBot) {
           pages =>
 
             val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-            val ids: Seq[String] = monumentIds(pages, Set.empty, contest.monumentIdTemplate.get)
+            val ids: Seq[String] = monumentIds(pages, Set.empty, monumentIdTemplate)
 
             val imagesWithIds = newImagesOrigIds.zip(ids).map {
               case (image, id) => image.copy(monumentId = Some(id))
