@@ -105,33 +105,19 @@ class GlobalRefactor(val commons: MwBot) {
   def updateMonuments(query: SinglePageQuery, contest: ContestJury) = {
     val monumentIdTemplate = contest.monumentIdTemplate.get
 
-    val future = query.imageInfoByGenerator("categorymembers", "cm",
-      props = Set("timestamp", "user", "size", "url"),
-      titlePrefix = None)
+    query.revisionsByGenerator("categorymembers", "cm",
+      Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
+      pages =>
 
-    future.map {
-      //bot.page("User:Ilya/embeddedin").imageInfoByGenerator("images", "im", props = Set("timestamp", "user", "size", "url"), titlePrefix = Some(""))
-      //    query.imageInfoByGenerator("categorymembers", "cm", props = Set("timestamp", "user", "size", "url"), titlePrefix = None).map {
-      filesInCategory =>
-        val newImagesOrigIds: Seq[Image] = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).sortBy(_.pageId)
+        val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
 
-
-        query.revisionsByGenerator("categorymembers", "cm",
-          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
-          pages =>
-
-            val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-            val ids: Seq[String] = monumentIds(pages, Set.empty, monumentIdTemplate)
-
-            val imagesWithIds = newImagesOrigIds.zip(ids).map {
-              case (image, id) => image.copy(monumentId = Some(id))
-            }.filter(_.monumentId.isDefined)
-
-            imagesWithIds.foreach {
-              image =>
-                ImageJdbc.updateMonumentId(image.pageId, image.monumentId.get)
-            }
-        } recover { case e: Exception => println(e) }
+        pages.foreach { page =>
+          for (monumentId <- page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
+              .flatMap(id => if (id.matches(idRegex)) Some(id) else None);
+            pageId <- page.id) {
+            ImageJdbc.updateMonumentId(pageId, monumentId)
+          }
+        }
     } recover { case e: Exception => println(e) }
   }
 
@@ -140,22 +126,6 @@ class GlobalRefactor(val commons: MwBot) {
 
   def namedParam(text: String, templateName: String, paramName: String): Option[String] =
     TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt(paramName))
-
-  def monumentIds(pages: Seq[Page], existingPageIds: Set[Long], monumentIdTemplate: String): Seq[String] = {
-
-    //    pages.flatMap {
-    //      page =>
-    //        page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
-    //          .map(id => page.id.get -> (if (id.length < 100) id else id.substring(0, 100)))
-    //    }.toMap
-
-    pages.sortBy(_.id).filterNot(i => existingPageIds.contains(i.id.get)).map {
-      page =>
-        page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
-          //                .map(id => if (id.matches(idRegex)) Some(id) else Some(id))
-          .map(id => if (id.length < 100) id else id.substring(0, 100)).getOrElse("")
-    }
-  }
 
   def descriptions(pages: Seq[Page], existingPageIds: Set[Long]): Seq[String] = {
     pages.sortBy(_.id).filterNot(i => existingPageIds.contains(i.id.get)).map {
@@ -241,17 +211,17 @@ class GlobalRefactor(val commons: MwBot) {
         val logins = jurors ++ Seq(contest.name + "OrgCom")
         val passwords = logins.map(s => UserJdbc.randomString(8)) // !! i =>
       val users = logins.zip(passwords).map {
-          case (login, password) =>
-            UserJdbc.create(
-              login,
-              login, UserJdbc.sha1(contest.country + "/" + password),
-              if //(login.contains("Jury"))
-              (jurors.contains(login))
-                Set("jury")
-              else Set("organizer"),
-              contest.id,
-              Some("uk"))
-        }
+        case (login, password) =>
+          UserJdbc.create(
+            login,
+            login, UserJdbc.sha1(contest.country + "/" + password),
+            if //(login.contains("Jury"))
+            (jurors.contains(login))
+              Set("jury")
+            else Set("organizer"),
+            contest.id,
+            Some("uk"))
+      }
 
         logins.zip(passwords).foreach {
           case (login, password) =>
