@@ -111,9 +111,9 @@ object Tools {
     val mpxAtLeast = round.minMpx
     val sizeAtLeast = round.minImageSize.map(_ * 1024 * 1024)
 
-    val contestId = round.contest
+    val contest = ContestJuryJdbc.findById(round.contest).get
     val imagesAll = prevRound.fold[Seq[ImageWithRating]](
-      ImageJdbc.findByContest(contestId).map(i =>
+      ImageJdbc.findByContest(contest).map(i =>
         new ImageWithRating(i, Seq.empty)
       )
     )(r =>
@@ -254,7 +254,7 @@ object Tools {
       filesInCategory =>
         val ids = filesInCategory.flatMap(_.id).toSet
 
-        val thisCountry = ImageJdbc.findByContest(77L).map(_.pageId).toSet
+        val thisCountry = ImageJdbc.findByContestId(77L).map(_.pageId).toSet
 
         val intersection = thisCountry intersect ids
 

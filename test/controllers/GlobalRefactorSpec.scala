@@ -61,7 +61,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
 
         g.appendImages(category, "", contest)
 
-        imageDao.findByContest(contestId) === images
+        imageDao.findByContest(contest) === images
       }
     }
 
@@ -94,7 +94,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         g.appendImages(category, "", contest)
 
         eventually {
-          imageDao.findByContest(contestId) === images
+          imageDao.findByContest(contest) === images
         }
       }
     }
@@ -130,7 +130,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         g.appendImages(category, "", contest)
 
         eventually {
-          imageDao.findByContest(contestId) === images
+          imageDao.findByContest(contest) === images
         }
       }
     }
