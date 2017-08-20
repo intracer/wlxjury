@@ -4,9 +4,6 @@
         asUser: org.intracer.wmua.User,
         files: Seq[org.intracer.wmua.ImageWithRating],
         pager: Pager,
-        pages: Int,
-        page: Int,
-        startImage: Int,
         maybeRound: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
         rate: Option[Int] = None,
@@ -68,7 +65,7 @@
                                 </a>
                             </div>
 
-                            @showRateGalery(file, index + startImage)
+                            @showRateGalery(file, index)
 
                         </li>
                     }

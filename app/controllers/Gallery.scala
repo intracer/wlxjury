@@ -139,10 +139,11 @@ object Gallery extends Controller with Secured with Instrumented {
                   files, ranks, jurors, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
                 )
               case "byrate" =>
-                //  if (region != "grouped") {
-                Ok(views.html.galleryByRate(user, asUserId, asUser, files, pager, maybeRound, rounds, rate, region, byReg, rates, rated))
-              //    Ok(views.html.galleryByRateRegions(user, asUserId, asUser, sortedFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
-              //  }
+                if (region != "grouped") {
+                  Ok(views.html.galleryByRate(user, asUserId, asUser, files, pager, maybeRound, rounds, rate, region, byReg, rates, rated))
+                } else {
+                  Ok(views.html.galleryByRateRegions(user, asUserId, asUser, files, pager, maybeRound, rounds, rate, region, byReg))
+                }
             }
           }
         }
