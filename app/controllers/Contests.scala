@@ -33,7 +33,7 @@ object Contests extends Controller with Secured {
     user =>
       implicit request =>
         val contests = findContests
-        val fetched = fetchContests(contestType, year, country).await
+        val fetched = Seq.empty // fetchContests(contestType, year, country).await
 
         Ok(views.html.contests(user, contests, fetched, editContestForm, importContestsForm))
   }
