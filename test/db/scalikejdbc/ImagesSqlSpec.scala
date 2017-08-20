@@ -4,7 +4,7 @@ import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import org.intracer.wmua.Selection
 import org.specs2.mutable.Specification
 
-class ImageDbNewSqlSpec extends Specification with InMemDb {
+class ImagesSqlSpec extends Specification with InMemDb {
 
   val imageFields = "i.page_id as pi_on_i, i.contest as c_on_i, i.title as t_on_i, i.url as u_on_i, i.page_url as pu_on_i, " +
     "i.last_round as lr_on_i, i.width as w_on_i, i.height as h_on_i, i.monument_id as mi_on_i, i.description as d_on_i, i.size as s_on_i"

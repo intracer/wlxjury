@@ -6,7 +6,7 @@ import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import org.intracer.wmua.{Selection, _}
 import org.specs2.mutable.Specification
 
-class ImageDbNewSpec extends Specification with InMemDb {
+class JurorImagesSpec extends Specification with InMemDb {
 
   sequential
 
