@@ -73,7 +73,7 @@ class GlobalRefactor(val commons: MwBot) {
                             idsFilter: Set[String] = Set.empty, max: Long) = {
     val existingPageIds = existing.map(_.pageId).toSet
 
-    val withImageDescriptions = contest.country == "Ukraine"
+    val withImageDescriptions = contest.monumentIdTemplate.isDefined
 
     val titlesSeq: Seq[String] = if (titles.trim.isEmpty)
       Seq.empty
