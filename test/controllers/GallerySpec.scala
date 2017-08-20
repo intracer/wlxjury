@@ -20,13 +20,13 @@ class GallerySpec extends Specification with InMemDb {
   var user: User = _
 
   def contestImage(id: Long, contestId: Long) =
-    Image(id, contestId, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
+    Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
   def contestUser(i: Int, contestId: Long = contest.id.get, role: String = "jury") =
     User("fullname" + i, "email" + i, None, Set(role), contest = Some(contestId))
 
   def setUp(rates: Rates = Round.binaryRound) = {
-    contest = contestDao.create(None, "WLE", 2015, "Ukraine", None, None, None)
+    contest = contestDao.create(None, "WLE", 2015, "Ukraine")
     round = roundDao.create(
       Round(None, 1, contest = contest.id.get, rates = rates, active = true)
     )

@@ -20,13 +20,13 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
   val s2 = SelectionJdbc.syntax("s2")
   val s3 = SelectionJdbc.syntax("s3")
   val c = CriteriaRate.c
+  val cl = CategoryLinkJdbc.cl
 
   def fromPage(page: Page, contest: ContestJury): Option[Image] = {
     try {
       for (imageInfo <- page.images.headOption)
         yield Image(
           page.id.get,
-          contest.id.get,
           page.title,
           imageInfo.url,
           imageInfo.pageUrl,
@@ -45,7 +45,6 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
 
   override def extract(rs: WrappedResultSet, c: ResultName[Image]): Image = Image(
     pageId = rs.long(c.pageId),
-    contest = rs.long(c.contest),
     title = rs.string(c.title),
     url = rs.stringOpt(c.url),
     pageUrl = None,
@@ -56,25 +55,13 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
     size = rs.intOpt(c.size)
   )
 
-  def apply(c: ResultName[Image])(rs: WrappedResultSet): Image = Image(
-    pageId = rs.long(c.pageId),
-    contest = rs.long(c.contest),
-    title = rs.string(c.title),
-    url = rs.stringOpt(c.url),
-    pageUrl = None,
-    width = rs.int(c.width),
-    height = rs.int(c.height),
-    monumentId = rs.stringOpt(c.monumentId),
-    description = rs.stringOpt(c.description),
-    size = rs.intOpt(c.size)
-  )
+  def apply(c: ResultName[Image])(rs: WrappedResultSet): Image = extract(rs, c)
 
   def batchInsert(images: Seq[Image]) {
     val column = ImageJdbc.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] = images.map(i => Seq(
         i.pageId,
-        i.contest,
         i.title,
         i.url,
         i.pageUrl,
@@ -87,7 +74,6 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
       withSQL {
         insert.into(ImageJdbc).namedValues(
           column.pageId -> sqls.?,
-          column.contest -> sqls.?,
           column.title -> sqls.?,
           column.url -> sqls.?,
           column.pageUrl -> sqls.?,
@@ -116,8 +102,31 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
     where('contest -> contestId)
       .orderBy(i.pageId).apply
 
-  def countByContest(contestId: Long): Long =
-    where('contest -> contestId).distinctCount('pageId)
+  def findByContest(contest: ContestJury): List[Image] = {
+    contest.categoryId.map(findByCategory).getOrElse(Nil)
+  }
+
+  def countByContest(contest: ContestJury): Long =
+    contest.categoryId.map(ImageJdbc.countByCategory).getOrElse(0L)
+
+  def findByCategory(categoryId: Long): List[Image] =
+    withSQL {
+      select.from[Image](ImageJdbc as i)
+        .innerJoin(CategoryLinkJdbc as cl)
+        .on(i.pageId, cl.pageId)
+        .where.eq(cl.categoryId, categoryId)
+    }.map(ImageJdbc(i)).list().apply()
+
+  def countByCategory(categoryId: Long): Long = {
+    import sqls.{ distinct, count => _count}
+
+    withSQL {
+      select(_count(distinct(i.pageId))).from(ImageJdbc as i)
+        .innerJoin(CategoryLinkJdbc as cl)
+        .on(i.pageId, cl.pageId)
+        .where.eq(cl.categoryId, categoryId)
+    }.map(_.int(1)).single.apply().get
+  }
 
   def findByMonumentId(monumentId: String): List[Image] =
     where('monumentId -> monumentId)

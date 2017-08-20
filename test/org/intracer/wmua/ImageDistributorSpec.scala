@@ -15,7 +15,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
   val (contest1, contest2) = (10, 20)
 
   def contestImage(id: Long, contest: Long) =
-    Image(id, contest, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
+    Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
   def contestUser(contest: Long, role: String, i: Int) =
     User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), Some(contest), Some("en"))

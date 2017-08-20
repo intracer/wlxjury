@@ -22,7 +22,7 @@ class GlobalRefactor(val commons: MwBot) {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   def initContest(category: String, contest: ContestJury): Any = {
-    val images = ImageJdbc.findByContest(contest.id.get)
+    val images = ImageJdbc.findByContest(contest)
 
     if (images.isEmpty) {
       initImagesFromSource(contest, category, "", Seq.empty, max = 0)
@@ -33,7 +33,7 @@ class GlobalRefactor(val commons: MwBot) {
   }
 
   def appendImages(source: String, imageList: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
-    val existingImages = ImageJdbc.findByContest(contest.id.get)
+    val existingImages = ImageJdbc.findByContest(contest)
 
     initImagesFromSource(contest, source, imageList, existingImages, idsFilter, max)
   }
@@ -65,12 +65,12 @@ class GlobalRefactor(val commons: MwBot) {
   }
 
 
-  def initImagesFromSource(
-                            contest: ContestJury,
-                            source: String,
-                            titles: String,
-                            existing: Seq[Image],
-                            idsFilter: Set[String] = Set.empty, max: Long) = {
+  def initImagesFromSource(contest: ContestJury,
+                           source: String,
+                           titles: String,
+                           existing: Seq[Image],
+                           idsFilter: Set[String] = Set.empty,
+                           max: Long) = {
     val existingPageIds = existing.map(_.pageId).toSet
 
     val withImageDescriptions = contest.monumentIdTemplate.isDefined
@@ -91,7 +91,9 @@ class GlobalRefactor(val commons: MwBot) {
     val result = for (images <- getImages
       .map(_.filter(image => !existingPageIds.contains(image.pageId)))
     ) yield {
+      val categoryId = CategoryJdbc.findOrInsert(source)
       saveNewImages(contest, images)
+      CategoryLinkJdbc.addToCategory(categoryId, images)
     }
 
     Await.result(result, 5.minutes)
@@ -113,8 +115,8 @@ class GlobalRefactor(val commons: MwBot) {
 
         pages.foreach { page =>
           for (monumentId <- page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
-              .flatMap(id => if (id.matches(idRegex)) Some(id) else None);
-            pageId <- page.id) {
+            .flatMap(id => if (id.matches(idRegex)) Some(id) else None);
+               pageId <- page.id) {
             ImageJdbc.updateMonumentId(pageId, monumentId)
           }
         }
