@@ -22,7 +22,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
     running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
   }
 
-  def contestImage(id: Long, contest: Long) =
+  def image(id: Long) =
     Image(id, s"File:Image$id.jpg", Some(s"url$id"), None, 640, 480, Some(s"12-345-$id"), size = Some(1234))
 
   def imageInfo(id: Long) = new Page(Some(id), Namespace.FILE, s"File:Image$id.jpg", images = Seq(
@@ -70,7 +70,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         val category = "Category:Category Name"
         val contestId = 13
         val imageId = 11
-        val images = Seq(contestImage(imageId, contestId).copy(description = Some("descr"), monumentId = Some("")))
+        val images = Seq(image(imageId).copy(description = Some("descr"), monumentId = Some("")))
         val imageInfos = Seq(imageInfo(imageId))
         val revisions = Seq(revision(imageId, "{{Information|description=descr}}"))
 
@@ -87,14 +87,14 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         val commons = mockBot()
         commons.page(category) returns query
 
+        val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None, Some("NaturalMonument"))
+
         val g = new GlobalRefactor(commons)
-
-        val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None)
-
         g.appendImages(category, "", contest)
 
+        val contestWithCategory = contestDao.findById(contest.id.get).get
         eventually {
-          imageDao.findByContest(contest) === images
+          imageDao.findByContest(contestWithCategory) === images
         }
       }
     }
@@ -106,7 +106,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         val contestId = 13
         val imageId = 11
         val descr = s"descr. {{$idTemplate|12-345-$imageId}}"
-        val images = Seq(contestImage(imageId, contestId).copy(description = Some(descr)))
+        val images = Seq(image(imageId).copy(description = Some(descr)))
         val imageInfos = Seq(imageInfo(imageId))
         val revisions = Seq(revision(imageId, s"{{Information|description=$descr}}"))
 
@@ -123,14 +123,14 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         val commons = mockBot()
         commons.page(category) returns query
 
-        val g = new GlobalRefactor(commons)
-
         val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None, Some(idTemplate))
 
+        val g = new GlobalRefactor(commons)
         g.appendImages(category, "", contest)
 
+        val contestWithCategory = contestDao.findById(contest.id.get).get
         eventually {
-          imageDao.findByContest(contest) === images
+          imageDao.findByContest(contestWithCategory) === images
         }
       }
     }

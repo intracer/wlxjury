@@ -147,8 +147,6 @@ object Contests extends Controller with Secured {
 
           val withNewImages = contest.copy(images = Some(source))
 
-          ContestJuryJdbc.updateImages(contestId, Some(source))
-
           val sourceImageNum = getNumberOfImages(withNewImages)
 
           new GlobalRefactor(Global.commons).appendImages(source, list, withNewImages, max = sourceImageNum)

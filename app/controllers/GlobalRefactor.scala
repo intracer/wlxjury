@@ -33,6 +33,9 @@ class GlobalRefactor(val commons: MwBot) {
   }
 
   def appendImages(source: String, imageList: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
+
+    ContestJuryJdbc.updateImages(contest.id.get, Some(source))
+
     val existingImages = ImageJdbc.findByContest(contest)
 
     initImagesFromSource(contest, source, imageList, existingImages, idsFilter, max)
