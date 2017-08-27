@@ -4,6 +4,7 @@ import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import org.scalawiki.dto.Page
 import scalikejdbc._
+import scalikejdbc.interpolation.SQLSyntax.distinct
 import skinny.orm.SkinnyCRUDMapper
 
 object ImageJdbc extends SkinnyCRUDMapper[Image] {
@@ -130,6 +131,14 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
   def findByMonumentId(monumentId: String): List[Image] =
     where('monumentId -> monumentId)
       .orderBy(i.pageId).apply()
+
+  def existingIds(ids: Set[Long]): List[Long] = {
+    import sqls.distinct
+    withSQL {
+      select(distinct(i.pageId)).from(ImageJdbc as i)
+        .where.in(i.pageId, ids.toSeq)
+    }.map(_.long(1)).list.apply()
+  }
 
   def rateDistribution(userId: Long, roundId: Long): Map[Int, Int] =
     sql"""SELECT s.rate, count(1)

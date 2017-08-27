@@ -94,8 +94,12 @@ class GlobalRefactor(val commons: MwBot) {
     val result = for (images <- getImages
       .map(_.filter(image => !existingPageIds.contains(image.pageId)))
     ) yield {
+      val existingIds = ImageJdbc.existingIds(images.map(_.pageId).toSet).toSet
+
+      val notInOtherContests = images.filterNot(image => existingIds.contains(image.pageId))
+
       val categoryId = CategoryJdbc.findOrInsert(source)
-      saveNewImages(contest, images)
+      saveNewImages(contest, notInOtherContests)
       CategoryLinkJdbc.addToCategory(categoryId, images)
     }
 

@@ -160,24 +160,25 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
       }
     }
 
-    "shared images" in {  // TODO fix
+    "shared images different categories" in {
       inMemDbApp {
         val images = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
 
-        val contest1 = contestDao.create(Some(contestId + 1), "WLE", 2015, "Ukraine", Some(category), None, None, Some(idTemplate))
-        val contest2 = contestDao.create(Some(contestId + 2), "WLE", 2015, "Europe", Some(category), None, None, Some(idTemplate))
+        val contest1 = contestDao.create(Some(contestId + 1), "WLE", 2015, "Ukraine", Some(category + 1), None, None, Some(idTemplate))
+        val contest2 = contestDao.create(Some(contestId + 2), "WLE", 2015, "Europe", Some(category + 2), None, None, Some(idTemplate))
 
-        val g = new GlobalRefactor(mockQuery(images, category, contestId + 1))
-        g.appendImages(category, "", contest1)
+        val g = new GlobalRefactor(mockQuery(images, category + 1, contestId + 1))
+        g.appendImages(category + 1, "", contest1)
 
         val contest1WithCategory = contestDao.findById(contest1.id.get).get
         eventually {
           imageDao.findByContest(contest1WithCategory) === images
         }
 
-        val g2 = new GlobalRefactor(mockQuery(images, category, contestId + 2))
+        val g2 = new GlobalRefactor(mockQuery(images, category + 2, contestId + 2))
+        g2.appendImages(category + 2, "", contest2)
+
         val contest2WithCategory = contestDao.findById(contest2.id.get).get
-        g2.appendImages(category, "", contest2WithCategory)
         eventually {
           imageDao.findByContest(contest2WithCategory) === images
         }
