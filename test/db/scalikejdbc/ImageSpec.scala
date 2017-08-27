@@ -85,6 +85,5 @@ class ImageSpec extends Specification with InMemDb {
         imageDao.findByContestId(20) === images2 ++ commonImages
       }
     }
-
   }
 }
