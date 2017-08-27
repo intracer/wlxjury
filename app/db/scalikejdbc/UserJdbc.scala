@@ -1,6 +1,8 @@
 package db.scalikejdbc
 
-import org.intracer.wmua.User
+import db.scalikejdbc.ImageJdbc.{cl, i}
+import db.scalikejdbc.UserJdbc.{autoSession, createAlias}
+import org.intracer.wmua.{User, UserRole}
 import org.joda.time.DateTime
 import play.api.data.validation.{Constraints, Invalid, Valid}
 import play.api.libs.Codecs
@@ -14,6 +16,8 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
   override val tableName = "users"
 
   val u = UserJdbc.syntax("u")
+  val ur = UserRoleJdbc.ur
+  override lazy val defaultAlias = createAlias("u")
 
   def isNotDeleted = sqls.isNull(u.deletedAt)
 
@@ -51,14 +55,12 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
     users.headOption
   }
 
-  override lazy val defaultAlias = createAlias("u")
-
   override def extract(rs: WrappedResultSet, c: ResultName[User]): User = User(
     id = Some(rs.int(c.id)),
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
-    roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
-    contest = rs.longOpt(c.contest),
+//    roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
+//    contest = rs.longOpt(c.contest),
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
@@ -70,8 +72,8 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
     id = Some(rs.int(c.id)),
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
-    roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
-    contest = rs.longOpt(c.contest),
+//    roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
+//    contest = rs.longOpt(c.contest),
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
@@ -79,8 +81,19 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
   )
 
-  def findByContest(contest: Long): Seq[User] =
-    where('contest -> contest).orderBy(u.id).apply()
+//  def findByContest(contest: Long): Seq[User] =
+//    where('contest -> contest).orderBy(u.id).apply()
+
+  def findByContest(contestId: Long): Seq[User] =
+    withSQL {
+      select.from[User](UserJdbc as u)
+        .innerJoin(UserRoleJdbc as ur)
+        .on(u.id, ur.userId)
+        .where.eq(ur.contestId, contestId)
+    }.map(rs => (UserJdbc(u)(rs), UserRoleJdbc(ur)(rs))).list().apply().map {
+      case (u, ur) =>
+        u.copy(contest = Some(contestId), roles = Set(ur.role))
+    }
 
   def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
     import SelectionJdbc.s
@@ -119,8 +132,8 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
         column.fullname -> fullname,
         column.email -> email.trim.toLowerCase,
         column.password -> password,
-        column.roles -> roles.headOption.getOrElse("jury"),
-        column.contest -> contest,
+//        column.roles -> roles.headOption.getOrElse("jury"),
+//        column.contest -> contest,
         column.lang -> lang,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
@@ -136,8 +149,8 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
         column.email -> user.email.trim.toLowerCase,
         column.wikiAccount -> user.wikiAccount,
         column.password -> user.password,
-        column.roles -> user.roles.headOption.getOrElse(""),
-        column.contest -> user.contest,
+//        column.roles -> user.roles.headOption.getOrElse(""),
+//        column.contest -> user.contest,
         column.lang -> user.lang,
         column.createdAt -> user.createdAt)
     }.updateAndReturnGeneratedKey().apply()
@@ -159,4 +172,32 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
   def updateHash(id: Long, hash: String): Unit =
     updateById(id)
       .withAttributes('password -> hash)
+}
+
+object UserRoleJdbc extends SkinnyCRUDMapper[UserRole] {
+  implicit def session: DBSession = autoSession
+  val ur = UserRoleJdbc.syntax("ur")
+  override lazy val defaultAlias = createAlias("ur")
+  override val tableName = "user_roles"
+
+  def addRole(userId: Long, contestId: Option[Long], role: String) = {
+    create(UserRole(userId, contestId, role))
+  }
+
+  def create(userRole: UserRole) = {
+    val id = withSQL {
+      insert.into(UserRoleJdbc).namedValues(
+        column.userId -> userRole.userId,
+        column.contestId -> userRole.contestId,
+        column.role -> userRole.role
+      )
+    }.update().apply()
+  }
+
+  override def extract(rs: WrappedResultSet, c: ResultName[UserRole]): UserRole = UserRole(
+    userId = rs.int(c.userId),
+    contestId = rs.longOpt(c.contestId),
+    role = rs.string(c.role)
+  )
+
 }

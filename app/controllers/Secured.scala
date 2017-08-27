@@ -36,14 +36,14 @@ trait Secured {
     }
   }
 
-  def rolePermission(roles: Set[String])(user: User) = user.hasAnyRole(roles)
+  def rolePermission(roles: Set[String])(user: User) = user.roles.map(_.role).intersect(roles).nonEmpty
+
+  def rolePermission(roles: Set[String], contestId: Option[Long])(user: User) = user.hasAnyRole(roles, contestId)
 
   def isRoot(user: User): Boolean = rolePermission(Set(User.ROOT_ROLE))(user)
 
   def contestPermission(roles: Set[String], contestId: Option[Long])(user: User): Boolean =
-    isRoot(user) || contestId.fold(false) { id =>
-      user.hasAnyRole(roles) && user.contest.contains(id)
-    }
+    isRoot(user) || user.hasAnyRole(roles, contestId)
 
   def roundPermission(roles: Set[String], roundId: Long)(user: User): Boolean =
     RoundJdbc.findById(roundId).exists { round =>

@@ -7,10 +7,12 @@ import play.api.data.validation.{Constraints, Invalid, Valid}
 
 import scala.util.Try
 
+case class UserRole(userId: Long, contestId: Option[Long], role: String)
+
 case class User(fullname: String,
                 email: String,
                 id: Option[Long] = None,
-                roles: Set[String] = Set.empty,
+                roles: Set[UserRole] = Set.empty,
                 password: Option[String] = None,
                 contest: Option[Long] = None,
                 lang: Option[String] = None,
@@ -25,29 +27,26 @@ case class User(fullname: String,
 
   def currentContest = contest
 
-  def hasRole(role: String) = roles.contains(role)
+  def hasRole(role: String, contestId: Option[Long]): Boolean = roles.exists(r => r.role == role && r.contestId == contestId)
 
-  def hasAnyRole(otherRoles: Set[String]) = roles.intersect(otherRoles).nonEmpty
+  def hasAnyRole(otherRoles: Set[String], contestId: Option[Long]): Boolean = otherRoles.exists(hasRole(_, contestId))
 
   def sameContest(other: User): Boolean = inContest(other.contest)
 
-  def inContest(contestId: Option[Long]): Boolean =
-    (for (c <- contest; oc <- contestId) yield c == oc)
-      .getOrElse(false)
+  def inContest(contestId: Option[Long]): Boolean = roles.exists(_.contestId == contestId)
 
   def isAdmin(contestId: Option[Long]) =
-    hasRole(User.ADMIN_ROLE) && inContest(contestId) ||
-      hasRole(User.ROOT_ROLE)
+    hasRole(User.ADMIN_ROLE, contestId) || hasRole(User.ROOT_ROLE, None)
 
-  def canEdit(otherUser: User) =
-    isAdmin(otherUser.contest) ||
-      id == otherUser.id
+  def canEdit(otherUser: User) = {
+    isAdmin(otherUser.contest) || id == otherUser.id
+  }
 
   def canViewOrgInfo(round: Round) =
-    hasRole("root") ||
+    hasRole("root", None) ||
       (contest.contains(round.contest) &&
-        hasAnyRole(Set("organizer", "admin", "root")) ||
-        (roles.contains("jury") && round.juryOrgView))
+        hasAnyRole(Set("organizer", "admin", "root"), Some(round.contest)) ||
+        (hasRole("jury", Some(round.contest)) && round.juryOrgView))
 
   def description: String = Seq(fullname, wikiAccount.fold("")(u => "User:" + u), email).mkString(" / ")
 }
@@ -62,12 +61,12 @@ object User {
   val LANGS = Map("en" -> "English", "ru" -> "Русский", "uk" -> "Українська")
 
   def unapplyEdit(user: User): Option[(Long, String, Option[String], String, Option[String], Option[String], Option[Long], Option[String])] = {
-    Some((user.id.get, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.contest, user.lang))
+    Some((user.id.get, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head.role), user.contest, user.lang))
   }
 
   def applyEdit(id: Long, fullname: String, wikiAccount: Option[String], email: String, password: Option[String],
                 roles: Option[String], contest: Option[Long], lang: Option[String]): User = {
-    new User(fullname, email.trim.toLowerCase, Some(id), roles.fold(Set.empty[String])(Set(_)), password, contest, lang,
+    new User(fullname, email.trim.toLowerCase, Some(id), roles.fold(Set.empty[UserRole])(role => Set(UserRole(id, contest, role))), password, contest, lang,
       wikiAccount = wikiAccount)
   }
 

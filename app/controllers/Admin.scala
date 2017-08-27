@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, RoundJdbc, UserJdbc}
+import db.scalikejdbc.{ContestJuryJdbc, RoundJdbc, UserJdbc, UserRoleJdbc}
 import org.intracer.wmua._
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.Query
@@ -23,6 +23,7 @@ import scala.util.Try
 object Admin extends Controller with Secured {
 
   val sendMail = SMTPOrWikiMail
+
   /**
     * @param contestIdParam optional contest Id. If not set, contest of the admin user is used
     * @return List of users in admin view
@@ -144,8 +145,8 @@ object Admin extends Controller with Secured {
                 } else {
 
                   // only admin can update roles
-                  val newRoles = if (user.hasAnyRole(User.ADMIN_ROLES)) {
-                    if (!user.hasRole(User.ROOT_ROLE) && formUser.roles.contains(User.ROOT_ROLE)) {
+                  val newRoles = if (user.canEdit(formUser)) {
+                    if (!user.hasRole(User.ROOT_ROLE, None) && formUser.roles.map(_.role).contains(User.ROOT_ROLE)) {
                       userRolesFromDb(formUser)
                     } else {
                       formUser.roles
@@ -225,7 +226,7 @@ object Admin extends Controller with Secured {
       implicit request =>
 
         (for (contestId <- contestIdParam.orElse(user.currentContest);
-             contest <- ContestJuryJdbc.findById(contestId)) yield {
+              contest <- ContestJuryJdbc.findById(contestId)) yield {
 
           val greeting = getGreeting(contest)
 
@@ -304,6 +305,10 @@ object Admin extends Controller with Secured {
     val toCreate = formUser.copy(password = Some(hash), contest = contestOpt.flatMap(_.id).orElse(creator.contest))
 
     val createdUser = UserJdbc.create(toCreate)
+
+    formUser.roles.headOption.map { role =>
+      UserRoleJdbc.addRole(createdUser.id.get, contestOpt.flatMap(_.id), role)
+    }
 
     contestOpt.foreach { contest =>
       if (contest.greeting.use) {
