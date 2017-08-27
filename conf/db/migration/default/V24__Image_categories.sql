@@ -24,7 +24,7 @@ alter table contest_jury
 add CONSTRAINT FK_contest_category
 FOREIGN KEY (category_id) REFERENCES category(id);
 
-insert into category(title) select CONCAT('Images from ', name, ' ', year,' in ', country) from contest_jury;
+insert into category(title) select distinct CONCAT('Images from ', name, ' ', year,' in ', country) from contest_jury;
 
 update contest_jury
 set category_id = (SELECT id from
@@ -35,6 +35,4 @@ INSERT into category_members
     select distinct category_id, page_id FROM
       contest_jury, images, category
 where contest_jury.category_id = category.id
-      and images.contest = contest_jury.id
-
--- alter table images drop COLUMN contest;
+      and images.contest = contest_jury.id;
