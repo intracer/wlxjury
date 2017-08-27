@@ -62,10 +62,12 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
   }
 
   "appendImages" should {
+    val category = "Category:Category Name"
+    val contestId = 10
+    val idTemplate = "MonumentId"
+
     "get images empty" in {
       inMemDbApp {
-        val category = "Category:Category Name"
-        val contestId = 13
         val images = Seq.empty[Image]
 
         val commons = mockQuery(images, category, contestId)
@@ -80,12 +82,9 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
       }
     }
 
-    "get images one image with text" in {
+    "get one image with text" in {
       inMemDbApp {
-        val category = "Category:Category Name"
-        val contestId = 13
-        val imageId = 11
-        val images = Seq(image(imageId).copy(description = Some("descr"), monumentId = Some("")))
+        val images = Seq(image(id = 11).copy(description = Some("descr"), monumentId = Some("")))
 
         val commons = mockQuery(images, category, contestId)
 
@@ -101,14 +100,11 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
       }
     }
 
-    "get images one image with descr and monumentId" in {
+    "get one image with descr and monumentId" in {
       inMemDbApp {
-        val category = "Category:Category Name"
-        val idTemplate = "monumentId"
-        val contestId = 13
         val imageId = 11
         val descr = s"descr. {{$idTemplate|12-345-$imageId}}"
-        val images = Seq(image(imageId).copy(description = Some(descr)))
+        val images = Seq(image(id = 11).copy(description = Some(descr)))
 
         val commons = mockQuery(images, category, contestId)
 
@@ -120,6 +116,47 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         val contestWithCategory = contestDao.findById(contest.id.get).get
         eventually {
           imageDao.findByContest(contestWithCategory) === images
+        }
+      }
+    }
+
+    "get several images image with descr and monumentId" in {
+      inMemDbApp {
+        val images = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
+
+        val commons = mockQuery(images, category, contestId)
+
+        val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None, Some(idTemplate))
+
+        val g = new GlobalRefactor(commons)
+        g.appendImages(category, "", contest)
+
+        val contestWithCategory = contestDao.findById(contest.id.get).get
+        eventually {
+          imageDao.findByContest(contestWithCategory) === images
+        }
+      }
+    }
+
+    "update images" in {  // TODO fix
+      inMemDbApp {
+        val images1 = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
+        val images2 = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|22-345-$id}}")))
+
+        val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None, Some(idTemplate))
+
+        val g = new GlobalRefactor(mockQuery(images1, category, contestId))
+        g.appendImages(category, "", contest)
+
+        val contestWithCategory = contestDao.findById(contest.id.get).get
+        eventually {
+          imageDao.findByContest(contestWithCategory) === images1
+        }
+
+        val g2 = new GlobalRefactor(mockQuery(images2, category, contestId))
+        g2.appendImages(category, "", contestWithCategory)
+        eventually {
+          imageDao.findByContest(contestWithCategory) === images2
         }
       }
     }
