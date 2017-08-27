@@ -52,7 +52,6 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
 
     val query = mock[SinglePageQuery]
     query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
-    query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
     queryImageInfo(query, imageInfos)
     queryRevisions(query, revisions)
 
@@ -157,6 +156,30 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         g2.appendImages(category, "", contestWithCategory)
         eventually {
           imageDao.findByContest(contestWithCategory) === images2
+        }
+      }
+    }
+
+    "shared images" in {  // TODO fix
+      inMemDbApp {
+        val images = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
+
+        val contest1 = contestDao.create(Some(contestId + 1), "WLE", 2015, "Ukraine", Some(category), None, None, Some(idTemplate))
+        val contest2 = contestDao.create(Some(contestId + 2), "WLE", 2015, "Europe", Some(category), None, None, Some(idTemplate))
+
+        val g = new GlobalRefactor(mockQuery(images, category, contestId + 1))
+        g.appendImages(category, "", contest1)
+
+        val contest1WithCategory = contestDao.findById(contest1.id.get).get
+        eventually {
+          imageDao.findByContest(contest1WithCategory) === images
+        }
+
+        val g2 = new GlobalRefactor(mockQuery(images, category, contestId + 2))
+        val contest2WithCategory = contestDao.findById(contest2.id.get).get
+        g2.appendImages(category, "", contest2WithCategory)
+        eventually {
+          imageDao.findByContest(contest2WithCategory) === images
         }
       }
     }
