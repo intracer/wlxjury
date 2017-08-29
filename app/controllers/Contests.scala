@@ -107,6 +107,7 @@ object Contests extends Controller with Secured {
       contest.year,
       contest.country,
       contest.images,
+      contest.categoryId,
       contest.currentRound,
       contest.monumentIdTemplate
     )
@@ -118,7 +119,7 @@ object Contests extends Controller with Secured {
         val contest = ContestJuryJdbc.findById(contestId).get
 
         val sourceImageNum = getNumberOfImages(contest)
-        val dbImagesNum = ImageJdbc.countByContest(contestId)
+        val dbImagesNum = ImageJdbc.countByContest(contest)
 
         val filledForm = importImagesForm.fill((contest.images.getOrElse(""), ""))
         Ok(views.html.contest_images(filledForm, contest, user, sourceImageNum, dbImagesNum, inProgress))
@@ -134,7 +135,7 @@ object Contests extends Controller with Secured {
   def importImages(contestId: Long) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) { user =>
     implicit request =>
       val contest = ContestJuryJdbc.findById(contestId).get
-      val dbImagesNum = ImageJdbc.countByContest(contestId)
+      val dbImagesNum = ImageJdbc.countByContest(contest)
 
       importImagesForm.bindFromRequest.fold(
         formWithErrors => {
@@ -145,8 +146,6 @@ object Contests extends Controller with Secured {
           val (source, list) = tuple
 
           val withNewImages = contest.copy(images = Some(source))
-
-          ContestJuryJdbc.updateImages(contestId, Some(source))
 
           val sourceImageNum = getNumberOfImages(withNewImages)
 
@@ -176,7 +175,7 @@ object Contests extends Controller with Secured {
       "useGreeting" -> boolean
     )(
       (id, name, year, country, images, currentRound, monumentIdTemplate, greetingText, useGreeting) =>
-        ContestJury(id, name, year, country, images, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting)))
+        ContestJury(id, name, year, country, images, None, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting)))
     ((c: ContestJury) =>
       Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use))
   )

@@ -33,7 +33,10 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
   def generatorQuery: Future[Seq[Page]] = {
     val (generator, prefix) = if (source.toLowerCase.startsWith("category:")) {
       ("categorymembers", "cm")
-    } else {
+    } else if (source.toLowerCase.startsWith("template:")) {
+      ("embeddedin", "ei")
+    }
+    else {
       ("images", "im")
     }
 

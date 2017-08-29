@@ -8,6 +8,7 @@ case class ContestJury(
                         year: Int,
                         country: String,
                         images: Option[String],
+                        categoryId: Option[Long] = None,
                         currentRound: Option[Long] = None,
                         monumentIdTemplate: Option[String] = None,
                         greeting: Greeting = Greeting(None, true)) {
@@ -16,4 +17,3 @@ case class ContestJury(
 
   def getImages = images.getOrElse("Category:Images from " + name)
 }
-

@@ -14,8 +14,8 @@ class ImageDistributorSpec extends Specification with InMemDb {
 
   val (contest1, contest2) = (10, 20)
 
-  def contestImage(id: Long, contest: Long) =
-    Image(id, contest, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
+  def image(id: Long) =
+    Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
   def contestUser(contest: Long, role: String, i: Int) =
     User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), Some(contest), Some("en"))
@@ -42,11 +42,20 @@ class ImageDistributorSpec extends Specification with InMemDb {
     dbJurors
   }
 
+  def createContests(contestIds: Long*) = contestIds.foreach {
+    id =>
+      val contest = ContestJuryJdbc.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
+      ContestJuryJdbc.updateImages(id, Some("Images from " + contest.name))
+  }
+
   def createImages(number: Int, contest1: Long, contest2: Long) = {
-    val images1 = (101 to 100 + number).map(id => contestImage(id, contest1))
-    val images2 = (100 + number + 1 to 100 + number * 2).map(id => contestImage(id, contest2))
+    val images1 = (101 to 100 + number).map(id => image(id))
+    val images2 = (100 + number + 1 to 100 + number * 2).map(id => image(id))
 
     imageDao.batchInsert(images1 ++ images2)
+
+    CategoryLinkJdbc.addToCategory(ContestJuryJdbc.findById(contest1).flatMap(_.categoryId).get, images1)
+    CategoryLinkJdbc.addToCategory(ContestJuryJdbc.findById(contest2).flatMap(_.categoryId).get, images2)
 
     images1
   }
@@ -56,6 +65,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
       inMemDbApp {
         val distribution = 1
 
+        createContests(contest1, contest2)
         val images = createImages(9, contest1, contest2)
 
         val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
@@ -82,6 +92,8 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val distribution = 2
         val numImages = 9
         val numJurors = 3
+
+        createContests(contest1, contest2)
         val images = createImages(numImages, contest1, contest2)
 
         val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
@@ -113,6 +125,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
       inMemDbApp {
         val distribution = 1
 
+        createContests(contest1, contest2)
         val images = createImages(9, contest1, contest2)
 
         val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.binaryRound, active = true)
@@ -127,7 +140,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val byJuror = selection.groupBy(_.juryId)
 
         val selectedPageIds = for ((juryId, numSelected) <- juryIds.zipWithIndex;
-              i <- 0 until numSelected) yield {
+                                   i <- 0 until numSelected) yield {
           val pageId = byJuror(juryId)(i).pageId
           SelectionJdbc.rate(pageId, juryId, dbRound.id.get, 1)
           pageId
@@ -150,6 +163,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val distribution = 2
         val numImages = 2
         val numJurors = 2
+        createContests(contest1, contest2)
         val images = createImages(numImages, contest1, contest2)
 
         val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
@@ -174,7 +188,6 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val selection2 = selectionDao.findAll().filter(_.round == dbRound2.id.get)
 
         selection2.map(_.pageId).toSet === Set(images(0).pageId)
-
       }
     }
   }

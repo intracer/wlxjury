@@ -3,7 +3,6 @@ package org.intracer.wmua
 import java.text.DecimalFormat
 
 case class Image(pageId: Long,
-                 contest: Long,
                  title: String,
                  url: Option[String] = None,
                  pageUrl: Option[String] = None,
