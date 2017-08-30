@@ -60,7 +60,34 @@ class GlobalRefactor(val commons: MwBot) {
       val fromDb = MonumentJdbc.findAll()
       val inDbIds = fromDb.map(_.id).toSet
 
-      val newMonuments = monuments.filterNot(m => inDbIds.contains(m.id))
+      val newMonuments = monuments
+        .filterNot(m => inDbIds.contains(m.id))
+        .map { m =>
+          if (m.name.length > 512)
+            m.copy(name = m.name.substring(0, 512))
+          else m
+        }
+        .map { m =>
+          if (m.typ.exists(_.length > 255))
+            m.copy(typ = m.typ.map(_.substring(0, 255)))
+          else m
+        }
+        .map { m =>
+          if (m.subType.exists(_.length > 255))
+            m.copy(subType = m.subType.map(_.substring(0, 255)))
+          else m
+        }
+        .map { m =>
+          if (m.year.exists(_.length > 255))
+            m.copy(year = m.year.map(_.substring(0, 255)))
+          else m
+        }
+        .map { m =>
+          if (m.city.exists(_.length > 255))
+            m.copy(city = m.city.map(_.substring(0, 255)))
+          else m
+        }
+
 
       MonumentJdbc.batchInsert(newMonuments)
     }
@@ -103,7 +130,7 @@ class GlobalRefactor(val commons: MwBot) {
       CategoryLinkJdbc.addToCategory(categoryId, images)
     }
 
-    Await.result(result, 5.minutes)
+    Await.result(result, 500.minutes)
   }
 
   def fetchImageDescriptions(contest: ContestJury, source: String, max: Long, imageInfos: Future[Seq[Image]]): Future[Seq[Image]] = {
@@ -111,10 +138,23 @@ class GlobalRefactor(val commons: MwBot) {
     ImageEnricher.zipWithRevData(imageInfos, revInfo)
   }
 
-  def updateMonuments(query: SinglePageQuery, contest: ContestJury) = {
+  def updateMonuments(source: String, contest: ContestJury) = {
+    def generatorParams:(String, String) = {
+      if (source.toLowerCase.startsWith("category:")) {
+        ("categorymembers", "cm")
+      } else if (source.toLowerCase.startsWith("template:")) {
+        ("embeddedin", "ei")
+      }
+      else {
+        ("images", "im")
+      }
+    }
+
     val monumentIdTemplate = contest.monumentIdTemplate.get
 
-    query.revisionsByGenerator("categorymembers", "cm",
+    val (generator, prefix) = generatorParams
+
+    commons.page(source).revisionsByGenerator(generator, prefix,
       Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
       pages =>
 
