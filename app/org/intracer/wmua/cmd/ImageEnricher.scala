@@ -7,21 +7,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object ImageEnricher {
 
-  def zip(images: Seq[Image],
-          extraData: Seq[Image],
-          extraFun: (Image, Image) => Image
-         ): Seq[Image] =
-    images.zip(extraData).map(extraFun.tupled)
+  def zipWithRevData(images: Seq[Image], revData: Seq[Image]): Seq[Image] = {
 
-  def zipWithRevData(images: Seq[Image],
-                     revData: Seq[Image]
-                    ): Seq[Image] =
-    zip(images, revData,
-      (i, r) => i.copy(
+    val revisionsById = revData.groupBy(_.pageId)
+
+    images.map { i =>
+      val revOpt = revisionsById(i.pageId).headOption
+      revOpt.fold(i)(r => i.copy(
         monumentId = r.monumentId,
-        description = r.description
-      )
-    )
+        description = r.description))
+    }
+  }
 
   def zipWithRevData(images: Future[Seq[Image]],
                      revData: Future[Seq[Image]]

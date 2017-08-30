@@ -1,22 +1,20 @@
 package org.intracer.wmua
 
 import com.typesafe.config.ConfigFactory
+import controllers.Global.commons
 import controllers.GlobalRefactor
 import db.scalikejdbc._
 import org.intracer.wmua.cmd.{DistributeImages, ImageWithRatingSeqFilter}
-import org.joda.time.DateTime
 import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
-import org.scalawiki.wlx.dto.{Contest, SpecialNomination}
-import org.scalawiki.wlx.query.MonumentQuery
+import org.scalawiki.wlx.dto.Contest
 import play.api.Play
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
+import spray.util.pimpFuture
 
 import scala.concurrent.Await
-import scala.io.Source
 import scala.concurrent.ExecutionContext.Implicits.global
-import controllers.Global.commons
-import spray.util.pimpFuture
+import scala.io.Source
 
 object Tools {
 
@@ -24,7 +22,8 @@ object Tools {
 
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
-    val url: String = "jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
+    val url: String = "jdbc:mysql://localhost/wlxjury?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8"
+    //"jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
     println(s"URL:" + url)
 
     val config = ConfigFactory.load()
@@ -46,6 +45,15 @@ object Tools {
 
     addMonuments()
 //    addCriteria()
+//    fetchMonumentDb()
+//    byCity()
+  }
+
+  def fetchMonumentDb() = {
+    val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
+
+    val contest = Contest.WLMUkraine(2017)
+    new GlobalRefactor(commons).initLists(contest)
   }
 
   def distributeImages(round: Round,
@@ -265,11 +273,10 @@ object Tools {
   }
 
   def addMonuments() = {
-      val category = "Category:Images from Wiki Loves Earth 2017 in Ukraine"
-      val query = commons.page(category)
-      val contest = ContestJuryJdbc.findById(196).get
+      val contest = ContestJuryJdbc.findById(67).get
+      val source = contest.images.get
 
-      new GlobalRefactor(commons).updateMonuments(query, contest)
+      new GlobalRefactor(commons).updateMonuments(source, contest)
   }
 
   def addCriteria() = {
@@ -281,4 +288,59 @@ object Tools {
 
     DistributeImages(round, images, jurors).addCriteriaRates(selection)
   }
+
+  def byCity() = {
+
+    val contest = ContestJuryJdbc.findById(67).get
+
+    val ukWiki = MwBot.fromHost(MwBot.ukWiki)
+    //    val cities = Seq("Бар (місто)", "Бершадь", "Гайсин", "Гнівань", "Жмеринка", "Іллінці",
+    //      "Калинівка", "Козятин", "Ладижин", "Липовець", "Могилів-Подільський", "Немирів",
+    //      "Погребище", "Тульчин", "Хмільник", "Шаргород", "Ямпіль")
+
+    val cities = Seq("Великі Мости", "Мости Великі",
+      "Дубляни",
+      "Жидачів",
+      "Новий Розділ",
+      "Пустомити",
+      "Стебник"   )
+
+
+    val allImages = ImageJdbc.findByContest(contest)
+
+    val imageDb = allImages.groupBy(_.monumentId.getOrElse(""))
+
+    val allMonuments = MonumentJdbc.findAll()
+
+    val all = allMonuments.filter { m =>
+      val city = m.city.getOrElse("").replaceAll("\\[", " ").replaceAll("\\]", " ")
+      m.photo.isDefined && cities.map(_ + " ").exists(city.contains) && !city.contains("район") && Set("46").contains(m.regionId)
+    }
+
+    def cityShort(city: String) = cities.find(city.contains).getOrElse("").split(" ")(0)
+
+    def page(city: String) = "User:Ilya/Львівська область/" + city
+
+    all.groupBy(m => cityShort(m.city.getOrElse(""))).foreach {
+      case (city, monuments) =>
+
+        val galleries = monuments.map {
+          m =>
+            val images = imageDb.getOrElse(m.id, Nil)
+            val gallery = org.scalawiki.dto.Image.gallery(images.map(_.title))
+
+            s"""== ${m.name.replaceAll("\\[\\[", "[[:uk:")} ==
+               |'''Рік:''' ${m.year.getOrElse("")}, '''Адреса:''' ${m.place.getOrElse("")}, '''Тип:''' ${m.typ.getOrElse("")},
+               |'''Охоронний номер:''' ${m.stateId.getOrElse("")}\n""".stripMargin +
+              gallery
+        }
+        val text = galleries.mkString("\n")
+        val title = page(city)
+        ukWiki.page(title).edit(text)
+    }
+
+    val list = cities.map(city => s"#[[${page(city)}|$city]]").mkString("\n")
+    ukWiki.page("User:Ilya/Львівська область").edit(list)
+  }
+
 }
