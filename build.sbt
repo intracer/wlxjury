@@ -41,7 +41,7 @@ debianPackageRecommends in Debian ++= Seq("virtual-mysql-server")
 scalaVersion := "2.11.11"
 
 val scalikejdbcVersion = "2.5.2"
-val scalikejdbcPlayVersion = "2.5.1"
+val scalikejdbcPlayVersion = "2.5.3"
 val scalawikiVersion = "0.5-M6"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
