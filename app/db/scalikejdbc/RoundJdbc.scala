@@ -97,13 +97,14 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
     where('contest -> contest)
       .orderBy(r.id).apply()
 
-   def setActive(id: Long, active: Boolean): Unit =
+  def setActive(id: Long, active: Boolean): Unit =
     updateById(id)
       .withAttributes('active -> active)
 
-  def setInActiveAllInContest(contestId: Long): Unit =
-    updateBy(sqls.eq(r.contest, contestId))
-      .withAttributes('active -> false)
+  def setInactiveAllInContest(contestId: Long): Unit = withSQL {
+    update(RoundJdbc).set(column.active -> false)
+      .where.eq(column.contest, contestId)
+  }.update().apply()
 
   def countByContest(contest: Long): Long =
     countBy(sqls.eq(r.contest, contest))

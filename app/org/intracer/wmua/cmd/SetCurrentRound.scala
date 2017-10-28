@@ -5,12 +5,12 @@ import org.intracer.wmua.Round
 
 case class SetCurrentRound(contestId: Long, prevRound: Option[Round], round: Round) {
 
-  def apply() = {
+  def apply(): Unit = {
     println(s"Setting current round ${prevRound.fold("")(r => s"from ${r.id.get}")} to ${round.id.get}")
 
 //    prevRound.foreach(r => RoundJdbc.setActive(r.id.get, active = false))
 
-    RoundJdbc.setInActiveAllInContest(contestId)
+    RoundJdbc.setInactiveAllInContest(contestId)
 
     ContestJuryJdbc.setCurrentRound(contestId, round.id)
     RoundJdbc.setActive(round.id.get, active = true)
