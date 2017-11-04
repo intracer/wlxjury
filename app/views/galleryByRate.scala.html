@@ -1,4 +1,5 @@
 @import db.scalikejdbc.RoundJdbc
+@import org.intracer.wmua.Region
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
@@ -9,7 +10,7 @@
         rounds: Seq[org.intracer.wmua.Round],
         rate: Option[Int] = None,
         region: String = "all",
-        byRegion: Map[String, Int],
+        regions: Seq[Region],
         rates: RateDistribution, rated: Option[Boolean])(implicit flash: Flash, lang: Lang, messages: Messages)
 
     @showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
@@ -45,8 +46,8 @@
         @defining(maybeRound.get) { round =>
             @defining(round.id.getOrElse(0)) { roundId =>
 
-                    @if(byRegion.nonEmpty) {
-                        @regionNav((region: String) => s"/byrate/round/$roundId/user/$asUserId/region/$region/page/1", maybeRound, region, byRegion)
+                    @if(regions.nonEmpty) {
+                        @regionNav((region: String) => s"/byrate/round/$roundId/user/$asUserId/region/$region/page/1", maybeRound, region, regions)
                     }
 
             <div class="row" >

@@ -8,6 +8,7 @@ import db.scalikejdbc.rewrite.ImageDbNew
 import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import play.api.http.HttpEntity
+import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc._
 

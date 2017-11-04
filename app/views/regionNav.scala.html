@@ -1,10 +1,11 @@
+@import org.intracer.wmua.Region
 @(      regionToUrl: String => String,
         round: Option[org.intracer.wmua.Round],
-        region: String = "all",
-        byRegion: Map[String, Int]
+        selectedRegion: String = "all",
+        regions: Seq[Region]
         )(implicit flash: Flash, lang: Lang, messages: Messages)
 
-@if(byRegion.size > 1) {
+@if(regions.size > 1) {
     <div class="row" >
         <nav>
         <div class="col-md-12 text-center"  style="margin-bottom: 5px;">
@@ -13,13 +14,13 @@
                     <a href="@regionToUrl("grouped")" >G</a>
                 </li>
 
-                <li @if("all" == region) {style="font-weight: bold"}>
+                <li @if("all" == selectedRegion) {style="font-weight: bold"}>
                     <a href="@regionToUrl("all")" >*</a>
                 </li>
-                @for((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id, 0) > 0) {
-                    <li @if(id == region) {style="font-weight: bold"}>
-                        <a href="@regionToUrl(id)" >
-                            @Messages(id) (@byRegion(id))
+                @for(region <- regions) {
+                    <li @if(region.id == selectedRegion) {style="font-weight: bold"}>
+                        <a href="@regionToUrl(region.id)" >
+                            @region.name (@region.count)
                         </a>
                     </li>
                 }

@@ -1,3 +1,4 @@
+@import org.intracer.wmua.Region
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
@@ -8,7 +9,7 @@
         rounds: Seq[org.intracer.wmua.Round],
         rate: Option[Int],
         region: String = "all",
-        byRegion: Map[String, Int],
+        regions: Seq[Region],
         rates: RateDistribution)(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @import java.net.URLEncoder
@@ -18,8 +19,8 @@
 
         @defining(round.flatMap(_.id).getOrElse(0L)) { roundId =>
 
-                @if(byRegion.nonEmpty) {
-                @regionNav((region: String) => routes.Gallery.list(user = asUserId, round = roundId, region = region, page = 1, rate = rate).url, round, region, byRegion)
+                @if(regions.nonEmpty) {
+                @regionNav((region: String) => routes.Gallery.list(user = asUserId, round = roundId, region = region, page = 1, rate = rate).url, round, region, regions)
             }
 
         <div class="row" >
