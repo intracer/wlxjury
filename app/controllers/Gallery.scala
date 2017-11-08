@@ -105,7 +105,13 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val files = filesByUserId(query, pager, userDetails)
 
-            val byReg = query.copy(regions = Set.empty).byRegionStat()
+            val contest = ContestJuryJdbc.findById(roundContest).get
+
+            val byReg = if (contest.monumentIdTemplate.isDefined) {
+              query.copy(regions = Set.empty).byRegionStat()
+            } else {
+              Seq.empty
+            }
 
             val rates = rateDistribution(user, round)
 
