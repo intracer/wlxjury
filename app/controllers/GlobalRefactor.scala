@@ -47,9 +47,8 @@ class GlobalRefactor(val commons: MwBot) {
     }
   }
 
-  def initLists(contest: Contest) = {
+  def updateLists(contest: Contest) = {
 
-    if (MonumentJdbc.findAll().isEmpty) {
       val ukWiki = MwBot.fromHost("uk.wikipedia.org")
 
       //    listsNew(system, http, ukWiki)
@@ -90,10 +89,7 @@ class GlobalRefactor(val commons: MwBot) {
 
 
       MonumentJdbc.batchInsert(newMonuments)
-    }
-
   }
-
 
   def initImagesFromSource(contest: ContestJury,
                            source: String,

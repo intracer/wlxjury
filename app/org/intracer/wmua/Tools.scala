@@ -57,7 +57,7 @@ object Tools {
     val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
 
     val contest = Contest.WLMUkraine(2017)
-    new GlobalRefactor(commons).initLists(contest)
+    new GlobalRefactor(commons).updateLists(contest)
   }
 
   def distributeImages(round: Round,
