@@ -53,6 +53,7 @@ resolvers += Resolver.jcenterRepo
 libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.5.0",
   "com.adrianhurt" %% "play-bootstrap" % "1.1-P25-B3",
+
   "mysql" % "mysql-connector-java" % "5.1.40",
   "org.scalikejdbc" %% "scalikejdbc" % scalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % scalikejdbcVersion,
@@ -60,19 +61,20 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % scalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % scalikejdbcPlayVersion,
   "org.skinny-framework" %% "skinny-orm" % "2.3.4",
+  "org.flywaydb" %% "flyway-play" % "3.0.1",
+
   "org.scalawiki" %% "scalawiki-core" % scalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % scalawikiVersion,
+
   "com.typesafe.akka" %% "akka-stream" % "2.4.18",
   "com.typesafe.akka" %% "akka-http" % "10.0.6",
+
   "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
   "com.typesafe.play" %% "play-mailer" % "5.0.0",
-  "org.flywaydb" %% "flyway-play" % "3.0.1",
   "com.github.tototoshi" %% "scala-csv" % "1.3.4",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
   jdbc, cache, filters,
-  specs2 % Test,
-  "org.scalamock" %% "scalamock-scalatest-support" % "3.2" % "test"
-)
+  specs2 % Test)
 
 routesGenerator := StaticRoutesGenerator
 
