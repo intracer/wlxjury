@@ -333,7 +333,7 @@ object Rounds extends Controller with Secured {
       minImageSize = Try(minImageSize.toInt).toOption,
       monuments = monumentIds
     )
-    EditRound(round, jurors.map(_.toLong), returnTo, newImages)
+    EditRound(round, jurors.flatMap(s => Try(s.toLong).toOption), returnTo, newImages)
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Long, Option[String], Long, String, Int, Int, Option[Int],
