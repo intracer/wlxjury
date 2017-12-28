@@ -12,10 +12,6 @@ case class Comment(
   room: Long,
   createdAt: String,
   body: String)
-{
-
-
-}
 
 object CommentJdbc extends SQLSyntaxSupport[Comment] {
 

@@ -31,6 +31,7 @@
 
                         <img alt="<a href='https://commons.wikimedia.org/wiki/@URLEncoder.encode(file.title.replace(" ", "_"), "UTF8")' target='_blank'>@file.title</a>"
                         src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeY)"
+                        srcset="@controllers.Global.resizeTo(file.image, (controllers.Global.gallerySizeY*1.5).toInt) 1.5x, @controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeY*2) 2x"
                         data-image="@controllers.Global.resizeTo(file.image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)"
                         data-description="<b>@file.title</b>"
                         data-pageId="@file.pageId"
@@ -38,7 +39,6 @@
                         data-rate="@file.rate"
                         data-largeUrl="/large/round/@roundId/user/@asUserId/region/@region/pageid/@file.pageId@rateParam(rate)"
                         >
-
                     }
             </div>
         </div>

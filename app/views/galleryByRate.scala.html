@@ -62,7 +62,9 @@
                         <div class="thumb">
                             <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.get, None, "byrate")" >
                                 <img class="cropped" alt="@file.title"
-                                src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)">
+                                src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)"
+                                srcset="@controllers.Global.resizeTo(file.image, (controllers.Global.gallerySizeX*1.5).toInt, (controllers.Global.gallerySizeY*1.5).toInt) 1.5x, @controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX*2, controllers.Global.gallerySizeY*2) 2x">
+
                             </a>
                         </div>
 
