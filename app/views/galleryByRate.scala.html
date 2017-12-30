@@ -1,5 +1,6 @@
-@import db.scalikejdbc.RoundJdbc
 @import org.intracer.wmua.Region
+@import controllers.Global
+
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
@@ -62,9 +63,8 @@
                         <div class="thumb">
                             <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.get, None, "byrate")" >
                                 <img class="cropped" alt="@file.title"
-                                src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)"
-                                srcset="@controllers.Global.resizeTo(file.image, (controllers.Global.gallerySizeX*1.5).toInt, (controllers.Global.gallerySizeY*1.5).toInt) 1.5x, @controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX*2, controllers.Global.gallerySizeY*2) 2x">
-
+                                src="@Global.resizeTo(file.image, Global.gallerySizeX, Global.gallerySizeY)"
+                                srcset="@Global.srcSet(file.image, Global.gallerySizeX, Global.gallerySizeY)">
                             </a>
                         </div>
 

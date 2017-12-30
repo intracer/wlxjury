@@ -1,3 +1,5 @@
+@import controllers.Global
+
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
@@ -23,8 +25,9 @@
     @thumbSmall(if(i == index) "thumb_small current" else "thumb_small")
         <div style="margin:5px auto;">
             <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.get, rate, module)">
-                <img class="cropped" alt="@file.title" src="@controllers.Global.resizeTo(file.image, controllers.Global.thumbSizeX, controllers.Global.thumbSizeY)"
-                srcset="@controllers.Global.resizeTo(file.image, (controllers.Global.thumbSizeX*1.5).toInt, (controllers.Global.thumbSizeY*1.5).toInt) 1.5x, @controllers.Global.resizeTo(file.image, controllers.Global.thumbSizeX*2, controllers.Global.thumbSizeY*2) 2x">
+                <img class="cropped" alt="@file.title"
+                src="@Global.resizeTo(file.image, Global.thumbSizeX, Global.thumbSizeY)"
+                srcset="@Global.srcSet(file.image, Global.thumbSizeX, Global.thumbSizeY)">
             </a>
         </div>
     </div>

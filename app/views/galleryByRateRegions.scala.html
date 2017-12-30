@@ -1,3 +1,5 @@
+@import controllers.Global
+
 @import org.intracer.wmua.Region
 @(
         user: org.intracer.wmua.User,
@@ -62,7 +64,8 @@
                             <div class="thumb">
                                 <a href="@routes.Gallery.large(asUserId, file.pageId, currentRegion, round.id.get, None, "byrate")" >
                                     <img class="cropped" alt="@file.title"
-                                    src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)">
+                                    src="@Global.resizeTo(file.image, Global.gallerySizeX, Global.gallerySizeY)"
+                                    srcset="@Global.srcSet(file.image, Global.gallerySizeX, Global.gallerySizeY)">
                                 </a>
                             </div>
 

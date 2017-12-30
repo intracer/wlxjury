@@ -1,3 +1,5 @@
+@import controllers.Global
+
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
@@ -47,8 +49,9 @@
                <div id="mainContent" class="col-xs-10"  style="margin-left:5px; margin-top: 10px; height:100%">
 
                     <a href="https://commons.wikimedia.org/wiki/@files(index).title" target="_blank">
-                        <img id="large_image" alt="@files(index).title" src="@controllers.Global.resizeTo(files(index).image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)" style="max-width:100%; max-height:100%;"
-                        srcset="@controllers.Global.resizeTo(files(index).image, (controllers.Global.largeSizeX*1.5).toInt, (controllers.Global.largeSizeY*1.5).toInt) 1.5x, @controllers.Global.resizeTo(files(index).image, controllers.Global.largeSizeX*2, controllers.Global.largeSizeY*2) 2x">
+                        <img id="large_image" alt="@files(index).title"
+                        src="@Global.resizeTo(files(index).image, Global.largeSizeX, Global.largeSizeY)" style="max-width:100%; max-height:100%;"
+                        srcset="@Global.srcSet(files(index).image, Global.largeSizeX, Global.largeSizeX)">
                     </a>
 
                     @commentsView(files(index).pageId, rate, region, round, module, comments)

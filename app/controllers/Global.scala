@@ -98,4 +98,8 @@ object Global extends GlobalSettings {
       info.url.getOrElse("")
     }
   }
+
+  def srcSet(image: Image, resizeToWidth: Int, resizeToHeight: Int) = {
+    s"${resizeTo(image, (resizeToWidth*1.5).toInt, (resizeToHeight*1.5).toInt)} 1.5x, ${resizeTo(image, resizeToWidth*2, resizeToHeight*2)} 2x"
+  }
 }
