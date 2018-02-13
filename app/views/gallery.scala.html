@@ -1,3 +1,4 @@
+@import org.intracer.wmua.Region
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
@@ -8,7 +9,7 @@
         rounds: Seq[org.intracer.wmua.Round],
         rate: Option[Int],
         region: String = "all",
-        byRegion: Map[String, Int],
+        regions: Seq[Region],
         rates: RateDistribution)(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @import java.net.URLEncoder
@@ -18,8 +19,8 @@
 
         @defining(round.flatMap(_.id).getOrElse(0L)) { roundId =>
 
-                @if(byRegion.nonEmpty) {
-                @regionNav((region: String) => routes.Gallery.list(user = asUserId, round = roundId, region = region, page = 1, rate = rate).url, round, region, byRegion)
+                @if(regions.nonEmpty) {
+                @regionNav((region: String) => routes.Gallery.list(user = asUserId, round = roundId, region = region, page = 1, rate = rate).url, round, region, regions)
             }
 
         <div class="row" >
@@ -30,6 +31,7 @@
 
                         <img alt="<a href='https://commons.wikimedia.org/wiki/@URLEncoder.encode(file.title.replace(" ", "_"), "UTF8")' target='_blank'>@file.title</a>"
                         src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeY)"
+                        srcset="@controllers.Global.resizeTo(file.image, (controllers.Global.gallerySizeY*1.5).toInt) 1.5x, @controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeY*2) 2x"
                         data-image="@controllers.Global.resizeTo(file.image, controllers.Global.largeSizeX, controllers.Global.largeSizeY)"
                         data-description="<b>@file.title</b>"
                         data-pageId="@file.pageId"
@@ -37,7 +39,6 @@
                         data-rate="@file.rate"
                         data-largeUrl="/large/round/@roundId/user/@asUserId/region/@region/pageid/@file.pageId@rateParam(rate)"
                         >
-
                     }
             </div>
         </div>

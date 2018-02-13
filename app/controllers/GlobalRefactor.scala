@@ -22,7 +22,7 @@ class GlobalRefactor(val commons: MwBot) {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   def initContest(category: String, contest: ContestJury): Any = {
-    val images = ImageJdbc.findByContest(contest.id.get)
+    val images = ImageJdbc.findByContest(contest)
 
     if (images.isEmpty) {
       initImagesFromSource(contest, category, "", Seq.empty, max = 0)
@@ -33,7 +33,10 @@ class GlobalRefactor(val commons: MwBot) {
   }
 
   def appendImages(source: String, imageList: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
-    val existingImages = ImageJdbc.findByContest(contest.id.get)
+
+    ContestJuryJdbc.updateImages(contest.id.get, Some(source))
+
+    val existingImages = ImageJdbc.findByContest(contest)
 
     initImagesFromSource(contest, source, imageList, existingImages, idsFilter, max)
   }
@@ -44,9 +47,8 @@ class GlobalRefactor(val commons: MwBot) {
     }
   }
 
-  def initLists(contest: Contest) = {
+  def updateLists(contest: Contest) = {
 
-    if (MonumentJdbc.findAll().isEmpty) {
       val ukWiki = MwBot.fromHost("uk.wikipedia.org")
 
       //    listsNew(system, http, ukWiki)
@@ -57,23 +59,47 @@ class GlobalRefactor(val commons: MwBot) {
       val fromDb = MonumentJdbc.findAll()
       val inDbIds = fromDb.map(_.id).toSet
 
-      val newMonuments = monuments.filterNot(m => inDbIds.contains(m.id))
+      val newMonuments = monuments
+        .filterNot(m => inDbIds.contains(m.id))
+        .map { m =>
+          if (m.name.length > 512)
+            m.copy(name = m.name.substring(0, 512))
+          else m
+        }
+        .map { m =>
+          if (m.typ.exists(_.length > 255))
+            m.copy(typ = m.typ.map(_.substring(0, 255)))
+          else m
+        }
+        .map { m =>
+          if (m.subType.exists(_.length > 255))
+            m.copy(subType = m.subType.map(_.substring(0, 255)))
+          else m
+        }
+        .map { m =>
+          if (m.year.exists(_.length > 255))
+            m.copy(year = m.year.map(_.substring(0, 255)))
+          else m
+        }
+        .map { m =>
+          if (m.city.exists(_.length > 255))
+            m.copy(city = m.city.map(_.substring(0, 255)))
+          else m
+        }
+
 
       MonumentJdbc.batchInsert(newMonuments)
-    }
-
   }
 
-
-  def initImagesFromSource(
-                            contest: ContestJury,
-                            source: String,
-                            titles: String,
-                            existing: Seq[Image],
-                            idsFilter: Set[String] = Set.empty, max: Long) = {
+  def initImagesFromSource(contest: ContestJury,
+                           source: String,
+                           titles: String,
+                           existing: Seq[Image],
+                           idsFilter: Set[String] = Set.empty,
+                           max: Long) = {
     val existingPageIds = existing.map(_.pageId).toSet
 
-    val withImageDescriptions = contest.country == "Ukraine"
+    val withImageDescriptions = contest.monumentIdTemplate.isDefined
 
     val titlesSeq: Seq[String] = if (titles.trim.isEmpty)
       Seq.empty
@@ -91,10 +117,16 @@ class GlobalRefactor(val commons: MwBot) {
     val result = for (images <- getImages
       .map(_.filter(image => !existingPageIds.contains(image.pageId)))
     ) yield {
-      saveNewImages(contest, images)
+      val existingIds = ImageJdbc.existingIds(images.map(_.pageId).toSet).toSet
+
+      val notInOtherContests = images.filterNot(image => existingIds.contains(image.pageId))
+
+      val categoryId = CategoryJdbc.findOrInsert(source)
+      saveNewImages(contest, notInOtherContests)
+      CategoryLinkJdbc.addToCategory(categoryId, images)
     }
 
-    Await.result(result, 5.minutes)
+    Await.result(result, 500.minutes)
   }
 
   def fetchImageDescriptions(contest: ContestJury, source: String, max: Long, imageInfos: Future[Seq[Image]]): Future[Seq[Image]] = {
@@ -102,10 +134,23 @@ class GlobalRefactor(val commons: MwBot) {
     ImageEnricher.zipWithRevData(imageInfos, revInfo)
   }
 
-  def updateMonuments(query: SinglePageQuery, contest: ContestJury) = {
+  def updateMonuments(source: String, contest: ContestJury) = {
+    def generatorParams:(String, String) = {
+      if (source.toLowerCase.startsWith("category:")) {
+        ("categorymembers", "cm")
+      } else if (source.toLowerCase.startsWith("template:")) {
+        ("embeddedin", "ei")
+      }
+      else {
+        ("images", "im")
+      }
+    }
+
     val monumentIdTemplate = contest.monumentIdTemplate.get
 
-    query.revisionsByGenerator("categorymembers", "cm",
+    val (generator, prefix) = generatorParams
+
+    commons.page(source).revisionsByGenerator(generator, prefix,
       Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
       pages =>
 
@@ -113,8 +158,8 @@ class GlobalRefactor(val commons: MwBot) {
 
         pages.foreach { page =>
           for (monumentId <- page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
-              .flatMap(id => if (id.matches(idRegex)) Some(id) else None);
-            pageId <- page.id) {
+            .flatMap(id => if (id.matches(idRegex)) Some(id) else None);
+               pageId <- page.id) {
             ImageJdbc.updateMonumentId(pageId, monumentId)
           }
         }

@@ -1,8 +1,10 @@
 package db.scalikejdbc.rewrite
 
+import controllers.KOATUU
 import db.scalikejdbc.{ImageJdbc, SelectionJdbc}
-import org.intracer.wmua.{Image, ImageWithRating, Selection}
+import org.intracer.wmua.{Image, ImageWithRating, Region, Selection}
 import scalikejdbc.{DBSession, _}
+import _root_.play.api.i18n.Messages
 
 object ImageDbNew extends SQLSyntaxSupport[Image] {
 
@@ -64,7 +66,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       val sql = columns + join(monuments = regions.nonEmpty || byRegion) +
         where(count) +
         groupBy +
-        (if (! (count || byRegion)) orderBy() else "")
+        (if (!(count || byRegion)) orderBy() else "")
 
       val result = if (count)
         "select count(t.pi_on_i) from (" + sql + ") t"
@@ -86,8 +88,14 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       single(imageRankSql(pageId, query(idOnly = true, noLimit = true)))
     }
 
-    def byRegionStat(): Map[String, Int] = {
-      SQL(query(byRegion = true)).map(rs => rs.string(1) -> rs.int(2)).list().apply().toMap
+    def byRegionStat()(implicit messages: Messages): Seq[Region] = {
+      val map = SQL(query(byRegion = true)).map(rs => rs.string(1) -> rs.int(2)).list().apply().toMap
+      regions(map)
+    }
+
+    def regions(byRegion: Map[String, Int])(implicit messages: Messages): Seq[Region] = {
+      for ((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id, 0) > 0)
+        yield Region(id, Messages(id), byRegion(id))
     }
 
     def single(sql: String): Int = {
@@ -126,9 +134,10 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     def orderBy(fields: Map[String, Int] = order) = {
       val dirMap = Map(1 -> "asc", -1 -> "desc")
 
-      fields.headOption.map { _ => " order by " + fields.map {
-        case (name, dir) => name + " " + dirMap(dir)
-      }.mkString(", ")
+      fields.headOption.map { _ =>
+        " order by " + fields.map {
+          case (name, dir) => name + " " + dirMap(dir)
+        }.mkString(", ")
       }.getOrElse("")
     }
 

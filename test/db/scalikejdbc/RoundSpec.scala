@@ -1,5 +1,6 @@
 package db.scalikejdbc
 
+import org.intracer.wmua.cmd.SetCurrentRound
 import org.intracer.wmua.{Round, User}
 import org.specs2.mutable.Specification
 
@@ -10,7 +11,7 @@ class RoundSpec extends Specification with InMemDb {
   val roundDao = RoundJdbc
   val userDao = UserJdbc
 
-  "fresh database" should {
+  "rounds" should {
     "be empty" in {
       inMemDbApp {
         val rounds = roundDao.findAll()
@@ -59,6 +60,27 @@ class RoundSpec extends Specification with InMemDb {
         otherContestJurors.foreach(userDao.create)
 
         round.jurors === dbJurors
+      }
+    }
+
+    "set new current round" in {
+      inMemDbApp {
+        val contestDao = ContestJuryJdbc
+
+        val contest = contestDao.create(None, "WLE", 2015, "Ukraine", None, None, None)
+        val contestId = contest.id.get
+
+        val round = roundDao.create(Round(None, 1, Some("Round 1"), contest.id.get, Set("jury"), 0, Round.ratesById(10)))
+
+        roundDao.findById(round.id.get).map(_.active) === Some(false)
+        roundDao.activeRounds(contestId) === Seq.empty
+        contestDao.findById(contestId).get.currentRound === None
+
+        SetCurrentRound(contestId, None, round).apply()
+
+        roundDao.findById(round.id.get) === Some(round.copy(active = true))
+        roundDao.activeRounds(contestId) === Seq(round.copy(active = true))
+        contestDao.findById(contestId).get.currentRound === round.id
       }
     }
   }

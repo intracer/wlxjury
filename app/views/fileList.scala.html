@@ -1,5 +1,6 @@
 @import org.intracer.wmua.User
 @import controllers.Global._
+@import org.intracer.wmua.Region
 @(
         user: org.intracer.wmua.User, /* logged in user */
         asUserId: Long, /* viewing files of user with asUserId id  */
@@ -12,7 +13,7 @@
         rounds: Seq[org.intracer.wmua.Round],
         rate: Option[Int],
         region: String = "all",
-        byRegion: Map[String, Int],
+        regions: Seq[Region],
         outputFormat: String = "wiki",
         wrapInTable: Boolean,
         rates: RateDistribution
@@ -32,7 +33,7 @@
 
     @defining(round.flatMap(_.id).getOrElse(0L)) { roundId =>
 
-        @regionNav({ region: String => s"/filelist/round/$roundId/user/$asUserId/region/$region/page/1${rateParam(rate).body}" }, round, region, byRegion)
+        @regionNav({ region: String => s"/filelist/round/$roundId/user/$asUserId/region/$region/page/1${rateParam(rate).body}" }, round, region, regions)
 
     <div class="row">
 

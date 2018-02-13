@@ -8,13 +8,10 @@ case class Comment(
   userId: Long,
   username: String,
   round: Long,
+  contestId: Option[Long],
   room: Long,
   createdAt: String,
   body: String)
-{
-
-
-}
 
 object CommentJdbc extends SQLSyntaxSupport[Comment] {
 
@@ -29,23 +26,25 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
     userId = rs.int(c.userId),
     username = rs.string(c.username),
     round = rs.int(c.round),
+    contestId = rs.longOpt(c.contestId),
     room = rs.int(c.room),
     createdAt = rs.string(c.createdAt),//rs.timestamp(c.createdAt).toJodaDateTime,
     body = rs.string(c.body)
   )
 
-  def create(userId: Long, username: String, round: Long, room: Long, body: String, createdAt: String = DateTime.now.toString)(implicit session: DBSession = autoSession): Comment = {
+  def create(userId: Long, username: String, round: Long, contestId: Option[Long], room: Long, body: String, createdAt: String = DateTime.now.toString)(implicit session: DBSession = autoSession): Comment = {
     val id = withSQL {
       insert.into(CommentJdbc).namedValues(
         column.userId -> userId,
         column.username -> username,
         column.round -> round,
         column.room -> room,
+        column.contestId -> contestId,
         column.body -> body,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
-    Comment(id = id, userId = userId, username = username, round = round, room =  room, body = body, createdAt = createdAt)
+    Comment(id = id, userId = userId, username = username, round = round, contestId = contestId, room =  room, body = body, createdAt = createdAt)
   }
 
   def findAll()(implicit session: DBSession = autoSession): List[Comment] = withSQL {
@@ -79,4 +78,11 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
       .orderBy(c.id)
   }.map(CommentJdbc(c)).list().apply()
 
+  def findBySubjectAndContest(subject: Long, contestId: Long)(implicit session: DBSession = autoSession): List[Comment] = withSQL {
+    select.from(CommentJdbc as c)
+      .where
+      .eq(c.room, subject).and
+      .eq(c.contestId, contestId)
+      .orderBy(c.id)
+  }.map(CommentJdbc(c)).list().apply()
 }

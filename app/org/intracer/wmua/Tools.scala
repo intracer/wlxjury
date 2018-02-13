@@ -1,22 +1,22 @@
 package org.intracer.wmua
 
 import com.typesafe.config.ConfigFactory
+import controllers.Global.commons
 import controllers.GlobalRefactor
 import db.scalikejdbc._
 import org.intracer.wmua.cmd.{DistributeImages, ImageWithRatingSeqFilter}
-import org.joda.time.DateTime
 import org.scalawiki.MwBot
-import org.scalawiki.dto.Namespace
-import org.scalawiki.wlx.dto.{Contest, SpecialNomination}
+import org.scalawiki.dto.{Image, Namespace}
+import org.scalawiki.wlx.{ImageDB, ListFiller, MonumentDB}
+import org.scalawiki.wlx.dto.{Contest, Monument}
 import org.scalawiki.wlx.query.MonumentQuery
 import play.api.Play
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
+import spray.util.pimpFuture
 
 import scala.concurrent.Await
-import scala.io.Source
 import scala.concurrent.ExecutionContext.Implicits.global
-import controllers.Global.commons
-import spray.util.pimpFuture
+import scala.io.Source
 
 object Tools {
 
@@ -24,7 +24,8 @@ object Tools {
 
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
-    val url: String = "jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
+    val url: String = "jdbc:mysql://localhost/wlxjury?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8"
+    //"jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
     println(s"URL:" + url)
 
     val config = ConfigFactory.load()
@@ -44,8 +45,19 @@ object Tools {
       warningLogLevel = 'warn
     )
 
-    addMonuments()
-//    addCriteria()
+//    addMonuments()
+//    newlyPictured()
+    //    addCriteria()
+    //    fetchMonumentDb()
+    byCity()
+    //fillLists()
+  }
+
+  def fetchMonumentDb() = {
+    val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
+
+    val contest = Contest.WLMUkraine(2017)
+    new GlobalRefactor(commons).updateLists(contest)
   }
 
   def distributeImages(round: Round,
@@ -71,24 +83,24 @@ object Tools {
   }
 
   def getFilteredImages(
-                        round: Round,
-                        jurors: Seq[User],
-                        prevRound: Option[Round],
-                        includeRegionIds: Set[String] = Set.empty,
-                        excludeRegionIds: Set[String] = Set.empty,
-                        includeMonumentIds: Set[String] = Set.empty,
-                        includePageIds: Set[Long] = Set.empty,
-                        excludePageIds: Set[Long] = Set.empty,
-                        includeTitles: Set[String] = Set.empty,
-                        excludeTitles: Set[String] = Set.empty,
-                        selectMinAvgRating: Option[Int] = None,
-                        selectTopByRating: Option[Int] = None,
-                        selectedAtLeast: Option[Int] = None,
-                        includeJurorId: Set[Long] = Set.empty,
-                        excludeJurorId: Set[Long] = Set.empty,
-                        sourceCategory: Option[String] = None,
-                        includeCategory: Option[Boolean] = None
-                      ): Seq[Image] = {
+                         round: Round,
+                         jurors: Seq[User],
+                         prevRound: Option[Round],
+                         includeRegionIds: Set[String] = Set.empty,
+                         excludeRegionIds: Set[String] = Set.empty,
+                         includeMonumentIds: Set[String] = Set.empty,
+                         includePageIds: Set[Long] = Set.empty,
+                         excludePageIds: Set[Long] = Set.empty,
+                         includeTitles: Set[String] = Set.empty,
+                         excludeTitles: Set[String] = Set.empty,
+                         selectMinAvgRating: Option[Int] = None,
+                         selectTopByRating: Option[Int] = None,
+                         selectedAtLeast: Option[Int] = None,
+                         includeJurorId: Set[Long] = Set.empty,
+                         excludeJurorId: Set[Long] = Set.empty,
+                         sourceCategory: Option[String] = None,
+                         includeCategory: Option[Boolean] = None
+                       ): Seq[Image] = {
 
     val catIds = sourceCategory.map { category =>
       val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
@@ -111,13 +123,13 @@ object Tools {
     val mpxAtLeast = round.minMpx
     val sizeAtLeast = round.minImageSize.map(_ * 1024 * 1024)
 
-    val contestId = round.contest
+    val contest = ContestJuryJdbc.findById(round.contest).get
     val imagesAll = prevRound.fold[Seq[ImageWithRating]](
-      ImageJdbc.findByContest(contestId).map(i =>
+      ImageJdbc.findByContest(contest).map(i =>
         new ImageWithRating(i, Seq.empty)
       )
     )(r =>
-      ImageJdbc.byRoundMerged(r.id.get, rated = Some(true))
+      ImageJdbc.byRoundMerged(r.id.get)
     )
     println("Total images: " + imagesAll.size)
 
@@ -130,7 +142,7 @@ object Tools {
       includeTitles = includeTitles,
       excludeTitles = excludeTitles,
       includeJurorId = includeJurorId,
-      excludeJurorId = excludeJurorId /*++ existingJurorIds*/,
+      excludeJurorId = excludeJurorId /*++ existingJurorIds*/ ,
       selectMinAvgRating = prevRound.flatMap(_ => selectMinAvgRating.filter(x => !prevRound.exists(_.isBinary))),
       selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
       selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
@@ -254,7 +266,7 @@ object Tools {
       filesInCategory =>
         val ids = filesInCategory.flatMap(_.id).toSet
 
-        val thisCountry = ImageJdbc.findByContest(77L).map(_.pageId).toSet
+        val thisCountry = ImageJdbc.findByContestId(77L).map(_.pageId).toSet
 
         val intersection = thisCountry intersect ids
 
@@ -265,11 +277,10 @@ object Tools {
   }
 
   def addMonuments() = {
-      val category = "Category:Images from Wiki Loves Earth 2017 in Ukraine"
-      val query = commons.page(category)
-      val contest = ContestJuryJdbc.findById(196).get
+    val contest = ContestJuryJdbc.findById(64).get
+    val source = contest.images.get
 
-      new GlobalRefactor(commons).updateMonuments(query, contest)
+    new GlobalRefactor(commons).updateMonuments(source, contest)
   }
 
   def addCriteria() = {
@@ -281,4 +292,401 @@ object Tools {
 
     DistributeImages(round, images, jurors).addCriteriaRates(selection)
   }
+
+  def convertImages(images: Seq[Image]) = {
+    images.map { i =>
+      new org.scalawiki.dto.Image(
+        title = i.title,
+        url = i.url,
+        pageUrl = i.pageUrl,
+        size = i.size.map(_.toLong),
+        width = Some(i.width),
+        height = Some(i.height),
+        author = i.author,
+        uploader = None,
+        year = None,
+        date = None,
+        monumentId = i.monumentId,
+        pageId = Some(i.pageId)
+      )
+    }
+  }
+
+  def newlyPictured() = {
+    val contestJury2017 = ContestJuryJdbc.findById(64).get
+    val contestJuryAll = ContestJuryJdbc.findById(66).get
+
+    val allImages = ImageJdbc.findByContest(contestJuryAll)
+    val images2017 = ImageJdbc.findByContest(contestJury2017)
+
+    val allMonuments = MonumentJdbc.findAll()
+
+    val contest1 = Contest.WLEUkraine(2017)
+    //    val mdb = new MonumentDB(contest1, allMonuments)
+    //    val idb = new ImageDB(contest1, convertImages(allImages), Some(mdb))
+
+    val allById = allImages.groupBy(_.monumentId.getOrElse(""))
+    val byId2017 = images2017.groupBy(_.monumentId.getOrElse(""))
+
+    val ids = allById.keySet
+    val newImages = ids.flatMap { id =>
+      val im2017 = byId2017.getOrElse(id, Nil).toSet
+      val imAll = allById.getOrElse(id, Nil).toSet
+
+      if (im2017.size == imAll.size) im2017 else Nil
+    }
+
+    val newImagesById = newImages.groupBy(_.monumentId.getOrElse(""))
+
+    val monumentQuery = MonumentQuery.create(contest1)
+    val monuments = monumentQuery.byMonumentTemplate().filter(m => newImagesById.keySet.contains(m.id))
+
+
+    val galleries = monuments.map {
+      m =>
+        val images = newImagesById.getOrElse(m.id, Set.empty[Image])
+        val gallery = org.scalawiki.dto.Image.gallery(images.map(_.title).toSeq)
+
+        s"""\n== ${m.name.replaceAll("\\[\\[", "[[:uk:")} ==\n""" + gallery
+    }
+
+    val contestTitle =contest1.contestType.name
+    commons.page(s"Commons:$contestTitle in Ukraine 2017 newly pictured").edit(galleries.mkString("\n"))
+  }
+
+
+  def fillLists() = {
+
+    val contestJury = ContestJuryJdbc.findById(67).get
+
+    val allImages = ImageJdbc.findByContest(contestJury)
+
+    val allMonuments = MonumentJdbc.findAll()
+
+    val contest1 = Contest.WLMUkraine(2016)
+    val mdb = new MonumentDB(contest1, allMonuments)
+    val idb = new ImageDB(contest1, convertImages(allImages), Some(mdb))
+
+    ListFiller.fillLists(mdb, idb)
+  }
+
+  def byCity() = {
+
+    val contest = ContestJuryJdbc.findById(67).get
+
+    val codes = Map("80" -> "Київ",
+      "07" -> "Волинська",
+      "68" -> "Хмельницька",
+      "05" -> "Вінницька",
+      "35" -> "Кіровоградська",
+      "65" -> "Херсонська",
+      "63" -> "Харківська",
+      "01" -> "АР Крим",
+      "32" -> "Київська",
+      "61" -> "Тернопільська",
+      "18" -> "Житомирська",
+      "48" -> "Миколаївська",
+      "46" -> "Львівська",
+      "14" -> "Донецька",
+      "44" -> "Луганська",
+      "74" -> "Чернігівська",
+      "12" -> "Дніпропетровська",
+      "73" -> "Чернівецька",
+      "71" -> "Черкаська",
+      "59" -> "Сумська",
+      "26" -> "Івано-Франківська",
+      "56" -> "Рівненська",
+      "85" -> "Севастополь",
+      "23" -> "Запорізька",
+      "53" -> "Полтавська",
+      "21" -> "Закарпатська",
+      "51" -> "Одеська")
+
+    val cityMap = Map("АР Крим" -> Seq(
+      "Алупка",
+      "Алушта",
+      "Армянськ",
+      "Бахчисарай",
+      "Білогірськ",
+      "Джанкой",
+      "Красноперекопськ", "Яни Капу",
+      "Саки",
+      "Старий Крим",
+      "Судак",
+      "Щолкіне"),
+
+      "Донецька область" -> Seq(
+        "Авдіївка",
+        "Амвросіївка",
+        "Білицьке",
+        "Білозерське",
+        "Бунге", "Юнокомунарівськ",
+        "Волноваха",
+        "Вуглегірськ",
+        "Вугледар",
+        "Гірник",
+        "Дебальцеве",
+        "Добропілля",
+        "Докучаєвськ",
+        "Жданівка",
+        "Залізне", "Артемове",
+        "Зугрес",
+        "Іловайськ",
+        "Кальміуське", "Комсомольське",
+        "Красногорівка",
+        "Курахове",
+        "Лиман", "Красний Лиман",
+        "Мар'їнка",
+        "Миколаївка",
+        "Моспине",
+        "Новоазовськ",
+        "Новогродівка",
+        "Родинське",
+        "Світлодарськ",
+        "Святогірськ",
+        "Селидове",
+        "Сіверськ",
+        "Соледар",
+        "Торецьк", "Дзержинськ",
+        "Українськ",
+        "Хрестівка", "Кіровське",
+        "Часів Яр",
+        "Ясинувата"),
+
+      "Луганська область" -> Seq(
+        "Алмазна",
+        "Боково-Хрустальне", "Вахрушеве",
+        "Вознесенівка", "Червонопартизанськ",
+        "Гірське",
+        "Голубівка", "Кіровськ",
+        "Довжанськ", "Свердловськ",
+        "Зимогір'я",
+        "Золоте",
+        "Зоринськ",
+        "Ірміно", "Теплогірськ",
+        "Кипуче", "Артемівськ",
+        "Кремінна",
+        "Лутугине",
+        "Міусинськ",
+        "Молодогвардійськ",
+        "Новодружеськ",
+        "Олександрівськ",
+        "Первомайськ",
+        "Перевальськ",
+        "Петрово-Краснопілля", "Петровське",
+        "Попасна",
+        "Привілля",
+        "Сватове",
+        "Сорокине", "Краснодон",
+        "Старобільськ",
+        "Суходільськ",
+        "Щастя"),
+
+      "Львівська область" -> Seq(
+        "Белз",
+        "Бібрка",
+        "Борислав",
+        "Броди",
+        "Буськ",
+        "Великі Мости",
+        "Винники",
+        "Глиняни",
+        "Городок",
+        "Добромиль",
+        "Дубляни",
+        "Жидачів",
+        "Жовква",
+        "Золочів",
+        "Кам’янка-Бузька",
+        "Комарно",
+        "Миколаїв",
+        "Моршин",
+        "Мостиська",
+        "Новий Калинів",
+        "Новий Розділ",
+        "Новояворівськ",
+        "Перемишляни",
+        "Пустомити",
+        "Рава-Руська",
+        "Радехів",
+        "Рудки",
+        "Самбір",
+        "Сколе",
+        "Сокаль",
+        "Соснівка",
+        "Старий Самбір",
+        "Стебник",
+        "Судова Вишня",
+        "Трускавець",
+        "Турка",
+        "Угнів",
+        "Хирів",
+        "Ходорів",
+        "Яворів"),
+
+      "Миколаївська область" -> Seq(
+        "Баштанка",
+        "Вознесенськ",
+        "Нова Одеса",
+        "Новий Буг",
+        "Очаків",
+        "Снігурівка",
+        "Южноукраїнськ"),
+
+      "Тернопільська область" -> Seq(
+        "Бережани",
+        "Борщів",
+        "Бучач",
+        "Заліщики",
+        "Збараж",
+        "Зборів",
+        "Копичинці",
+        "Кременець",
+        "Ланівці",
+        "Монастирська",
+        "Підгайці",
+        "Почаїв",
+        "Скалат",
+        "Теребовля",
+        "Хоростків",
+        "Чортків",
+        "Шумськ"),
+
+      "Харківська область" -> Seq(
+        "Балаклія",
+        "Барвінкове",
+        "Богодухів",
+        "Валки",
+        "Вовчанськ",
+        "Дергачі",
+        "Зміїв",
+        "Красноград",
+        "Куп’янськ",
+        "Люботин",
+        "Мерефа",
+        "Первомайський",
+        "Південне",
+        "Чугуїв"),
+
+      "Хмельницька область" -> Seq(
+        "Волочиськ",
+        "Городок",
+        "Деражня",
+        "Дунаївці",
+        "Ізяслав",
+        "Красилів",
+        "Нетішин",
+        "Полонне",
+        "Славута",
+        "Старокостянтинів",
+        "Шепетівка"),
+
+      "Чернівецька область" -> Seq(
+        "Вашківці",
+        "Вижниця",
+        "Герца",
+        "Заставна",
+        "Кіцмань",
+        "Новодністровськ",
+        "Новоселиця",
+        "Сокиряни",
+        "Сторожинець",
+        "Хотин"),
+
+      "Чернігівська область" -> Seq(
+        "Батурин",
+        "Бахмач",
+        "Борзна",
+        "Городня",
+        "Ічня",
+        "Корюківка",
+        "Мена",
+        "Новгород-Сіверський",
+        "Носівка",
+        "Остер",
+        "Семенівна",
+        "Сновськ"))
+
+    val ukWiki = MwBot.fromHost(MwBot.ukWiki)
+
+    val allImages = ImageJdbc.findByContest(contest)
+
+    val imageDb = allImages.groupBy(_.monumentId.getOrElse(""))
+
+    val allMonuments = MonumentJdbc.findAll()
+
+    val links = for (longName <- cityMap.keys.toSeq.filter(m => m.contains("Чернівецька") || m.contains("Чернігівська")).sorted;
+                     cities <- cityMap.get(longName);
+                     shortName = longName.replace(" область", "");
+                     code <- codes.collectFirst { case (code, name) if name == shortName => code })
+      yield
+        regionGallery(allMonuments, imageDb, code, longName, cities)
+
+
+    val text = links.mkString("\n")
+    val title = s"User:Ilya/ДНАББ"
+//    ukWiki.page(title).edit(text)
+  }
+
+
+  def regionGallery(allMonuments: Seq[Monument], imageDb: Map[String, Seq[Image]], regionCode: String, regionName: String, cities: Seq[String]) = {
+    val ukWiki = MwBot.fromHost(MwBot.ukWiki)
+
+    def cityShort(city: String): String = cities.find(city.contains).getOrElse("").split(" ")(0)
+
+    def page(city: String) = s"User:Ilya/$regionName/$city"
+
+    println(s"Processing: $regionName ($regionCode)")
+    println(s"Cities: $cities")
+
+    val regionMonuments = allMonuments.filter { m =>
+      val city = m.city.getOrElse("").replaceAll("\\[", " ").replaceAll("\\]", " ")
+      (m.photo.isDefined || imageDb.contains(m.id)) && cities.map(_ + " ").exists(city.contains) && !city.contains("район") && Set(regionCode).contains(m.regionId)
+    }
+
+    println(s"Pictured monuments in cities: ${regionMonuments.size}")
+
+    val cityMonuments = regionMonuments.groupBy(m => cityShort(m.city.getOrElse("")))
+
+    val links = cities.sorted.map { city =>
+
+      val monuments = cityMonuments.getOrElse(city, Nil)
+
+      var allImages = 0
+
+      val galleries = monuments.map {
+        m =>
+          val images = (imageDb.getOrElse(m.id, Nil).map(_.title) ++ m.photo.toSeq).distinct
+          allImages += images.size
+          val gallery = org.scalawiki.dto.Image.gallery(images)
+
+          s"""== ${m.name.replaceAll("\\[\\[", "[[:uk:")} ==
+             |'''Рік:''' ${m.year.getOrElse("")}, '''Адреса:''' ${m.place.getOrElse("")}, '''Тип:''' ${m.typ.getOrElse("")},
+             |'''Охоронний номер:''' ${m.stateId.getOrElse("")}\n""".stripMargin +
+            gallery
+      }
+      val stat = s"пам'яток: ${monuments.size}, фото: $allImages"
+      val text = stat + "\n" + galleries.mkString("\n")
+      val title = page(city)
+
+      println(s"City: $city, $stat, page: $title")
+
+      ukWiki.page(title).edit(text)
+
+      if (allImages > 0) {
+        s"#[[${page(city)}|$city]] ($stat)"
+      } else {
+        s"#$city (немає фото)"
+      }
+    }
+
+    val stat = s"міст: ${cities.size}, пам'яток: ${regionMonuments.size}"
+    val list = stat + "\n" + links.mkString("\n")
+    val title = s"User:Ilya/$regionName"
+    Thread.sleep(1000)
+    ukWiki.page(title).edit(list)
+
+    s"#[[$title|$regionName]] ($stat)"
+  }
+
 }

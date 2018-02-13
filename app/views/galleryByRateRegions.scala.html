@@ -1,17 +1,17 @@
+@import controllers.Global
+
+@import org.intracer.wmua.Region
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
         asUser: org.intracer.wmua.User,
         files: Seq[org.intracer.wmua.ImageWithRating],
         pager: Pager,
-        pages: Int,
-        page: Int,
-        startImage: Int,
         maybeRound: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round],
         rate: Option[Int] = None,
-        region: String = "all",
-        byRegion: Map[String, Int])(implicit flash: Flash, lang: Lang, messages: Messages)
+        currentRegion: String = "all",
+        regions: Seq[Region])(implicit flash: Flash, lang: Lang, messages: Messages)
 
 
 @showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
@@ -38,37 +38,38 @@
 }
 }
 
-@main("byrate", user, asUserId, asUser, maybeRound, rounds, true, None, region,
-    pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate")
+@main("byrate", user, asUserId, asUser, maybeRound, rounds, true, None, currentRegion,
+    pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), currentRegion, "byrate")
 ) {
 
     @defining(maybeRound.get) { round =>
         @defining(round.id.getOrElse(0)) { roundId =>
             @defining({ region: String => s"/byrate/round/$roundId/user/$asUserId/region/$region/page/1" }) { regionToUrl =>
 
-                @regionNav(regionToUrl, maybeRound, region, byRegion)
+                @regionNav(regionToUrl, maybeRound, currentRegion, regions)
 
             <div class="row">
 
-                @for(regId <- byRegion.keys.toSeq.sorted) {
+                @for(region <- regions) {
                     <div class="well col-sm-1">
-                        <a href="@regionToUrl(regId)">
-                            @Messages(regId) @byRegion(regId)
+                        <a href="@regionToUrl(region.id)">
+                            @region.name @region.count
                         </a>
                     </div>
                     <ul class="gallery mw-gallery-traditional">
-                    @for((file, index) <- files.filter(_.image.monumentId.exists(_.startsWith(regId))).view.zipWithIndex) {
+                    @for((file, index) <- files.filter(_.image.monumentId.exists(_.startsWith(region.id))).view.zipWithIndex) {
                         <li class="gallerybox">
                             <h1 id="@file.pageId" style="display: inline; width: 1px; height: 1px"></h1>
 
                             <div class="thumb">
-                                <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.id.get, None, "byrate")" >
+                                <a href="@routes.Gallery.large(asUserId, file.pageId, currentRegion, round.id.get, None, "byrate")" >
                                     <img class="cropped" alt="@file.title"
-                                    src="@controllers.Global.resizeTo(file.image, controllers.Global.gallerySizeX, controllers.Global.gallerySizeY)">
+                                    src="@Global.resizeTo(file.image, Global.gallerySizeX, Global.gallerySizeY)"
+                                    srcset="@Global.srcSet(file.image, Global.gallerySizeX, Global.gallerySizeY)">
                                 </a>
                             </div>
 
-                            @showRateGalery(file, index + startImage)
+                            @showRateGalery(file, index)
 
                         </li>
                     }

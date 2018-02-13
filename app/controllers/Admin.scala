@@ -10,7 +10,6 @@ import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.Messages.Implicits._
 import play.api.i18n.{Lang, Messages}
-import play.api.libs.mailer.Email
 import play.api.mvc.Results._
 import play.api.mvc.{Controller, Result}
 import spray.util.pimpFuture
@@ -23,8 +22,7 @@ import scala.util.Try
   */
 object Admin extends Controller with Secured {
 
-  val sendMail = new SendMailSMTP
-
+  val sendMail = SMTPOrWikiMail
   /**
     * @param contestIdParam optional contest Id. If not set, contest of the admin user is used
     * @return List of users in admin view
@@ -242,7 +240,6 @@ object Admin extends Controller with Secured {
           } else {
             Seq.empty
           }
-
 
           Ok(views.html.greetingTemplate(
             user, greetingTemplateForm.fill(greeting), contestId, variables(contest, user, recipient), substitution

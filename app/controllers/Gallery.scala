@@ -8,6 +8,7 @@ import db.scalikejdbc.rewrite.ImageDbNew
 import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import play.api.http.HttpEntity
+import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc._
 
@@ -104,7 +105,13 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val files = filesByUserId(query, pager, userDetails)
 
-            val byReg = query.copy(regions = Set.empty).byRegionStat()
+            val contest = ContestJuryJdbc.findById(roundContest).get
+
+            val byReg = if (contest.monumentIdTemplate.isDefined) {
+              query.copy(regions = Set.empty).byRegionStat()
+            } else {
+              Seq.empty
+            }
 
             val rates = rateDistribution(user, round)
 
@@ -139,10 +146,11 @@ object Gallery extends Controller with Secured with Instrumented {
                   files, ranks, jurors, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
                 )
               case "byrate" =>
-                //  if (region != "grouped") {
-                Ok(views.html.galleryByRate(user, asUserId, asUser, files, pager, maybeRound, rounds, rate, region, byReg, rates, rated))
-              //    Ok(views.html.galleryByRateRegions(user, asUserId, asUser, sortedFiles, ranks, pages, page, startImage, maybeRound, rounds, region, byReg))
-              //  }
+                if (region != "grouped") {
+                  Ok(views.html.galleryByRate(user, asUserId, asUser, files, pager, maybeRound, rounds, rate, region, byReg, rates, rated))
+                } else {
+                  Ok(views.html.galleryByRateRegions(user, asUserId, asUser, files, pager, maybeRound, rounds, rate, region, byReg))
+                }
             }
           }
         }
@@ -388,7 +396,7 @@ object Gallery extends Controller with Secured with Instrumented {
     val end = Math.min(files.size, right + extraRight)
     val monument = files(index).image.monumentId.flatMap(id => if (id.trim.nonEmpty) MonumentJdbc.find(id) else None)
 
-    val comments = CommentJdbc.findBySubject(files(index).pageId)
+    val comments = CommentJdbc.findBySubjectAndContest(files(index).pageId, round.contest)
 
     Ok(
       views.html.large.large(

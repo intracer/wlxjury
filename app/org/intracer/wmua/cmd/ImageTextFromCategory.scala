@@ -8,16 +8,28 @@ import org.scalawiki.wikitext.TemplateParser
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class ImageTextFromCategory(
-                                  category: String,
-                                  contest: ContestJury,
-                                  monumentIdTemplate: Option[String],
-                                  commons: MwBot,
-                                  max: Long = 0L) {
+case class ImageTextFromCategory(source: String,
+                                 contest: ContestJury,
+                                 monumentIdTemplate: Option[String],
+                                 commons: MwBot,
+                                 max: Long = 0L) {
+
+  def generatorParams:(String, String) = {
+    if (source.toLowerCase.startsWith("category:")) {
+      ("categorymembers", "cm")
+    } else if (source.toLowerCase.startsWith("template:")) {
+      ("embeddedin", "ei")
+    }
+    else {
+      ("images", "im")
+    }
+  }
 
   def apply(): Future[Seq[Image]] = {
 
-    val future = revisionsByGenerator(category, "categorymembers", "cm",
+    val (generator, prefix) = generatorParams
+
+    val future = revisionsByGenerator(source, generator, prefix,
       Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50")
 
     future.map {
@@ -25,7 +37,7 @@ case class ImageTextFromCategory(
 
         val images = pages.sortBy(_.id).map(
           page =>
-            new Image(page.id.get, contest.id.get, page.title, None, None, 0, 0, None, None)
+            new Image(page.id.get, page.title, None, None, 0, 0, None, None)
         )
 
         val ids: Seq[String] = monumentIdTemplate.fold(Array.fill(pages.size)("").toSeq)(t => monumentIds(pages, t))
@@ -78,16 +90,16 @@ case class ImageTextFromCategory(
   def namedParam(text: String, templateName: String, paramName: String): Option[String] =
     TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt(paramName))
 
-  def revisionsByGenerator(category: String,
+  def revisionsByGenerator(source: String,
                            generator: String,
                            generatorPrefix: String,
                            namespaces: Set[Int],
                            props: Set[String],
                            limit: String): Future[Seq[Page]] = {
 
-    commons.page(category)
+    commons.page(source)
       .withContext(Map("contestId" -> contest.id.getOrElse(0).toString, "max" -> max.toString))
-      .revisionsByGenerator("categorymembers", "cm",
+      .revisionsByGenerator(generator, generatorPrefix,
         Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
       )
   }

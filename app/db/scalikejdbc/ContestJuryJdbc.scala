@@ -22,6 +22,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
     year = rs.int(c.year),
     country = rs.string(c.country),
     images = rs.stringOpt(c.images),
+    categoryId = rs.longOpt(c.categoryId),
     currentRound = rs.longOpt(c.currentRound),
     monumentIdTemplate = rs.stringOpt(c.monumentIdTemplate),
     greeting = Greeting(
@@ -30,9 +31,12 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
     )
   )
 
-  def updateImages(id: Long, images: Option[String]): Int =
+  def updateImages(id: Long, images: Option[String]): Int = {
+    val categoryId = images.map(CategoryJdbc.findOrInsert)
+
     updateById(id)
-      .withAttributes('images -> images)
+      .withAttributes('images -> images, 'categoryId -> categoryId)
+  }
 
   def updateGreeting(id: Long, greeting: Greeting): Int =
     updateById(id)
@@ -49,9 +53,10 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
                       name: String,
                       year: Int,
                       country: String,
-                      images: Option[String],
-                      currentRound: Option[Long],
-                      monumentIdTemplate: Option[String]): ContestJury = {
+                      images: Option[String] = None,
+                      categoryId: Option[Long] = None,
+                      currentRound: Option[Long] = None,
+                      monumentIdTemplate: Option[String] = None): ContestJury = {
     val dbId = withSQL {
       insert.into(ContestJuryJdbc).namedValues(
         column.id -> id,
@@ -59,6 +64,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
         column.year -> year,
         column.country -> country,
         column.images -> images,
+        column.categoryId -> categoryId,
         column.currentRound -> currentRound,
         column.monumentIdTemplate -> monumentIdTemplate)
     }.updateAndReturnGeneratedKey().apply()
@@ -68,6 +74,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
       year = year,
       country = country,
       images = images,
+      categoryId = categoryId,
       currentRound = currentRound,
       monumentIdTemplate = monumentIdTemplate,
       greeting = Greeting(None, true))

@@ -9,7 +9,7 @@ import org.scalawiki.MwBot
 import play.Play
 import play.api._
 
-object Global {
+object Global extends GlobalSettings {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
   val gallerySizeX = 300
@@ -29,7 +29,7 @@ object Global {
 
   lazy val commons = MwBot.fromHost(COMMONS_WIKIMEDIA_ORG)
 
-  def onStart(app: Application) {
+  override def onStart(app: Application) {
     Logger.info("Application has started")
 
     val reporter = JmxReporter.forRegistry(metrics).build()
@@ -97,5 +97,9 @@ object Global {
     } else {
       info.url.getOrElse("")
     }
+  }
+
+  def srcSet(image: Image, resizeToWidth: Int, resizeToHeight: Int) = {
+    s"${resizeTo(image, (resizeToWidth*1.5).toInt, (resizeToHeight*1.5).toInt)} 1.5x, ${resizeTo(image, resizeToWidth*2, resizeToHeight*2)} 2x"
   }
 }
