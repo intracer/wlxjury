@@ -1,7 +1,8 @@
 package org.intracer.wmua
 
+import java.time.ZonedDateTime
+
 import db.scalikejdbc.SelectionJdbc
-import org.joda.time.DateTime
 
 case class Selection(
                       id: Long,
@@ -9,8 +10,8 @@ case class Selection(
                       var rate: Int,
                       juryId: Long,
                       round: Long,
-                      createdAt: DateTime = DateTime.now,
-                      deletedAt: Option[DateTime] = None,
+                      createdAt: ZonedDateTime = ZonedDateTime.now,
+                      deletedAt: Option[ZonedDateTime] = None,
                       criteriaId: Option[Int] = None
                       )
 {

@@ -1,6 +1,7 @@
 package org.intracer.wmua
 
-import org.joda.time.DateTime
+import java.time.ZonedDateTime
+
 import scalikejdbc._
 
 case class Comment(
@@ -28,11 +29,12 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
     round = rs.int(c.round),
     contestId = rs.longOpt(c.contestId),
     room = rs.int(c.room),
-    createdAt = rs.string(c.createdAt),//rs.timestamp(c.createdAt).toJodaDateTime,
+    createdAt = rs.string(c.createdAt),
     body = rs.string(c.body)
   )
 
-  def create(userId: Long, username: String, round: Long, contestId: Option[Long], room: Long, body: String, createdAt: String = DateTime.now.toString)(implicit session: DBSession = autoSession): Comment = {
+  def create(userId: Long, username: String, round: Long, contestId: Option[Long], room: Long, body: String,
+             createdAt: String = ZonedDateTime.now.toString)(implicit session: DBSession = autoSession): Comment = {
     val id = withSQL {
       insert.into(CommentJdbc).namedValues(
         column.userId -> userId,
@@ -44,7 +46,8 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
-    Comment(id = id, userId = userId, username = username, round = round, contestId = contestId, room =  room, body = body, createdAt = createdAt)
+    Comment(id = id, userId = userId, username = username, round = round, contestId = contestId, room =  room, body = body,
+      createdAt = createdAt)
   }
 
   def findAll()(implicit session: DBSession = autoSession): List[Comment] = withSQL {

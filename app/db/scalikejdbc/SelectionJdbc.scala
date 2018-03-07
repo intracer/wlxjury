@@ -1,7 +1,8 @@
 package db.scalikejdbc
 
+import java.time.ZonedDateTime
+
 import org.intracer.wmua.{CriteriaRate, Selection, User}
-import org.joda.time.DateTime
 import scalikejdbc._
 import skinny.orm.SkinnyCRUDMapper
 
@@ -25,8 +26,8 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
     rate = rs.int(c.rate),
     juryId = rs.long(c.juryId),
     round = rs.long(c.round),
-    createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
-    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
+    createdAt = rs.timestamp(c.createdAt).toZonedDateTime,
+    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime)
   )
 
   def apply(c: ResultName[Selection])(rs: WrappedResultSet): Selection = Selection(
@@ -35,11 +36,11 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
     rate = rs.int(c.rate),
     juryId = rs.long(c.juryId),
     round = rs.long(c.round),
-    createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
-    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
+    createdAt = rs.timestamp(c.createdAt).toZonedDateTime,
+    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime)
   )
 
-  def create(pageId: Long, rate: Int, juryId: Long, roundId: Long, createdAt: DateTime = DateTime.now): Selection = {
+  def create(pageId: Long, rate: Int, juryId: Long, roundId: Long, createdAt: ZonedDateTime = ZonedDateTime.now): Selection = {
     val id = withSQL {
       insert.into(SelectionJdbc).namedValues(
         column.pageId -> pageId,
@@ -153,7 +154,7 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
 
   def destroyAll(pageId: Long): Unit =
     updateBy(sqls.eq(s.pageId, pageId))
-      .withAttributes('deletedAt -> DateTime.now)
+      .withAttributes('deletedAt -> ZonedDateTime.now)
 
   def removeImage(pageId: Long, roundId: Long): Unit =
     deleteBy(sqls

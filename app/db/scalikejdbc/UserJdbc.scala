@@ -1,7 +1,8 @@
 package db.scalikejdbc
 
+import java.time.ZonedDateTime
+
 import org.intracer.wmua.User
-import org.joda.time.DateTime
 import play.api.data.validation.{Constraints, Invalid, Valid}
 import play.api.libs.Codecs
 import scalikejdbc._
@@ -44,7 +45,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
 
   def byUserName(username: String): Option[User] = {
     val unameTrimmed = username.trim.toLowerCase
-    val users = Constraints.emailAddress(unameTrimmed) match {
+    val users = Constraints.emailAddress()(unameTrimmed) match {
       case Valid => findByEmail(username)
       case Invalid(errors) => findByAccount(unameTrimmed)
     }
@@ -62,8 +63,8 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
-    createdAt = rs.timestampOpt(c.createdAt).map(_.toJodaDateTime),
-    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
+    createdAt = rs.timestampOpt(c.createdAt).map(_.toZonedDateTime),
+    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime)
   )
 
   def apply(c: ResultName[User])(rs: WrappedResultSet): User = new User(
@@ -75,8 +76,8 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
-    createdAt = rs.timestampOpt(c.createdAt).map(_.toJodaDateTime),
-    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime)
+    createdAt = rs.timestampOpt(c.createdAt).map(_.toZonedDateTime),
+    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime)
   )
 
   def findByContest(contest: Long): Seq[User] =
@@ -112,7 +113,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
              roles: Set[String],
              contest: Option[Long] = None,
              lang: Option[String] = None,
-             createdAt: Option[DateTime] = Some(DateTime.now)
+             createdAt: Option[ZonedDateTime] = Some(ZonedDateTime.now)
             ): User = {
     val id = withSQL {
       insert.into(UserJdbc).namedValues(
