@@ -42,7 +42,7 @@ scalaVersion := "2.11.11"
 
 val ScalikejdbcVersion = "3.2.1"
 val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.2"
-val ScalawikiVersion = "0.5-M6"
+val ScalawikiVersion = "0.5-M7"
 val PlayMailerVersion = "6.0.1"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
@@ -70,7 +70,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream" % "2.5.11",
   "com.typesafe.akka" %% "akka-http" % "10.0.11",
 
-  "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
+  "nl.grons" %% "metrics-scala" % "3.5.9",
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
   "com.typesafe.play" %% "play-mailer-guice" % PlayMailerVersion,
   "com.github.tototoshi" %% "scala-csv" % "1.3.4",
