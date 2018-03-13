@@ -54,6 +54,8 @@ resolvers += Resolver.jcenterRepo
 libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.6.3",
   "com.adrianhurt" %% "play-bootstrap" % "1.2-P26-B3",
+  "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
+  "org.webjars" % "jquery" % "3.2.1",
 
   "mysql" % "mysql-connector-java" % "5.1.40",
   "org.scalikejdbc" %% "scalikejdbc" % ScalikejdbcVersion,
