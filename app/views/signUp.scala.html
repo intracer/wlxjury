@@ -1,4 +1,4 @@
-@(signUpForm: Form[(String, String, String)])(implicit flash: Flash, lang: Lang, messages: Messages)
+@(signUpForm: Form[(String, String, String)])(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
     @import b3.inline.fieldConstructor
 @mainAdmin(Messages("application.name")) {
 
@@ -17,6 +17,7 @@
         @b3.text(signUpForm("login"), '_hiddenLabel -> Messages("signin.your.login"), 'placeholder -> Messages("login"), 'class -> "form-control input-lg")
         @b3.password(signUpForm("password"), '_hiddenLabel -> Messages("signin.your.password"), 'placeholder -> Messages("signin.your.password"), 'class -> "form-control input-lg")
         @b3.password(signUpForm("repeat.password"), '_hiddenLabel -> Messages("signin.repeat.your.password"), 'placeholder -> Messages("signin.your.password"), 'class -> "form-control input-lg")
+        @helper.CSRF.formField
 
         <div class="form-group">
             <div>
