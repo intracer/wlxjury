@@ -1,7 +1,7 @@
 @(
         adminUser: org.intracer.wmua.User,
         importUserForm: Form[String],
-        contestId: Long)(implicit flash: Flash, lang: Lang, messages: Messages)
+        contestId: Long)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
 @import helper._
 
 @mainAdmin(Messages("users"), adminUser, adminUser.id.get, contestId = Some(contestId)) {
@@ -21,6 +21,7 @@ Name2 Surname2 &lt;mail2@@server.com&gt;</pre>
 
         @form(routes.Admin.importUsers(Some(contestId)), 'id -> "import-users") {
             <div class="form-group">
+                @helper.CSRF.formField
 
                 @textarea(field = importUserForm("userstoimport"),
                     args = 'rows -> 7, 'cols -> 50, 'class -> "form-control", 'id -> "userstoimport", '_label -> "mails to import"
