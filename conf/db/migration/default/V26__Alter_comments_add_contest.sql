@@ -1,4 +1,4 @@
-alter table comment add COLUMN contest_id integer;
+alter table comment add COLUMN contest_id bigint unsigned;
 
 update comment c
   left join rounds r on c.round = r.id

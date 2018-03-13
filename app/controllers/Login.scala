@@ -1,5 +1,7 @@
 package controllers
 
+import javax.inject.Inject
+
 import db.scalikejdbc.{RoundJdbc, UserJdbc}
 import org.intracer.wmua.User
 import play.api.Play.current
@@ -10,7 +12,7 @@ import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Results._
 import play.api.mvc._
 
-object Login extends Controller with Secured {
+class Login @Inject()(val admin: Admin) extends Controller with Secured {
 
   def index = withAuth() {
     user =>
@@ -84,7 +86,7 @@ object Login extends Controller with Secured {
 
           val newUser = new User(fullname = "", email = login, password = Some(password), roles = roles)
 
-          val user = Admin.createNewUser(newUser, newUser)
+          val user = admin.createNewUser(newUser, newUser)
           val result = indexRedirect(user).withSession(Security.username -> password)
           user.lang.fold(result)(l => result.withLang(Lang(l)))
       }

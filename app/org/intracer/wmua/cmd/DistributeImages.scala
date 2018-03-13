@@ -1,8 +1,9 @@
 package org.intracer.wmua.cmd
 
+import java.time.ZonedDateTime
+
 import db.scalikejdbc.SelectionJdbc
 import org.intracer.wmua._
-import org.joda.time.DateTime
 
 case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) {
 
@@ -10,13 +11,13 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
     val selection: Seq[Selection] = round.distribution match {
       case 0 =>
         jurors.flatMap { juror =>
-          images.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, DateTime.now))
+          images.map(img => new Selection(0, img.pageId, 0, juror.id.get, round.id.get, ZonedDateTime.now))
         }
       case x if x > 0 =>
         images.zipWithIndex.flatMap {
           case (img, i) =>
             (0 until x).map(j =>
-              new Selection(0, img.pageId, 0, jurors((i + j) % jurors.size).id.get, round.id.get, DateTime.now)
+              new Selection(0, img.pageId, 0, jurors((i + j) % jurors.size).id.get, round.id.get, ZonedDateTime.now)
           )
         }
     }

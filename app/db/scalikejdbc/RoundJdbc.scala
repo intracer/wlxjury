@@ -2,6 +2,8 @@ package db.scalikejdbc
 
 import org.intracer.wmua.{Round, User}
 import scalikejdbc._
+import scalikejdbc._, jsr310._
+import java.time._
 import skinny.orm.SkinnyCRUDMapper
 
 object RoundJdbc extends SkinnyCRUDMapper[Round] {
@@ -26,8 +28,8 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
     limitMin = rs.intOpt(c.limitMin),
     limitMax = rs.intOpt(c.limitMax),
     recommended = rs.intOpt(c.recommended),
-    createdAt = rs.timestamp(c.createdAt).toJodaDateTime,
-    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toJodaDateTime),
+    createdAt = rs.timestamp(c.createdAt).toZonedDateTime,
+    deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime),
     active = rs.booleanOpt(c.active).getOrElse(false),
     optionalRate = rs.booleanOpt(c.optionalRate).getOrElse(false),
     juryOrgView = rs.booleanOpt(c.juryOrgView).getOrElse(false),

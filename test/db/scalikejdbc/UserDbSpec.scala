@@ -1,7 +1,8 @@
 package db.scalikejdbc
 
+import java.time.ZonedDateTime
+
 import org.intracer.wmua.User
-import org.joda.time.DateTime
 import org.specs2.mutable.Specification
 
 class UserDbSpec extends Specification with InMemDb {
@@ -22,7 +23,7 @@ class UserDbSpec extends Specification with InMemDb {
       inMemDbApp {
 
         val user = User("fullname", "email", None, Set("jury"), Some("password hash"), Some(10),
-          Some("en"), createdAt = Some(DateTime.now))
+          Some("en"), createdAt = Some(ZonedDateTime.now))
 
         val created = userDao.create(user)
 

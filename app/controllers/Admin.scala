@@ -1,5 +1,7 @@
 package controllers
 
+import javax.inject.Inject
+
 import db.scalikejdbc.{ContestJuryJdbc, RoundJdbc, UserJdbc}
 import org.intracer.wmua._
 import org.scalawiki.dto.cmd.Action
@@ -20,9 +22,9 @@ import scala.util.Try
 /**
   * Controller for admin views
   */
-object Admin extends Controller with Secured {
+class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secured  {
 
-  val sendMail = SMTPOrWikiMail
+
   /**
     * @param contestIdParam optional contest Id. If not set, contest of the admin user is used
     * @return List of users in admin view
@@ -292,12 +294,12 @@ object Admin extends Controller with Secured {
 
   }
 
-  def createNewUser(user: User, formUser: User): User = {
+  def createNewUser(user: User, formUser: User)(implicit lang: Lang): User = {
     val contest: Option[ContestJury] = formUser.currentContest.flatMap(ContestJuryJdbc.findById)
     createUser(user, formUser, contest)
   }
 
-  def createUser(creator: User, formUser: User, contestOpt: Option[ContestJury]): User = {
+  def createUser(creator: User, formUser: User, contestOpt: Option[ContestJury])(implicit lang: Lang): User = {
     val password = formUser.password.getOrElse(UserJdbc.randomString(12))
     val hash = UserJdbc.hash(formUser, password)
 
@@ -313,7 +315,7 @@ object Admin extends Controller with Secured {
     createdUser
   }
 
-  def sendMail(creator: User, recipient: User, contest: ContestJury, password: String): Unit = {
+  def sendMail(creator: User, recipient: User, contest: ContestJury, password: String)(implicit lang: Lang): Unit = {
     val greeting = getGreeting(contest)
     val subject = Messages("welcome.subject", contest.name)
     val message = fillGreeting(greeting.text.get, contest, creator, recipient.copy(password = Some(password)))

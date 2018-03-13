@@ -1,8 +1,8 @@
 package org.intracer.wmua
 
+import java.time.ZonedDateTime
 import javax.mail.internet.InternetAddress
 
-import org.joda.time.DateTime
 import play.api.data.validation.{Constraints, Invalid, Valid}
 
 import scala.util.Try
@@ -14,8 +14,8 @@ case class User(fullname: String,
                 password: Option[String] = None,
                 contest: Option[Long] = None,
                 lang: Option[String] = None,
-                createdAt: Option[DateTime] = None,
-                deletedAt: Option[DateTime] = None,
+                createdAt: Option[ZonedDateTime] = None,
+                deletedAt: Option[ZonedDateTime] = None,
                 wikiAccount: Option[String] = None,
                 hasWikiEmail: Boolean = false,
                 accountValid: Boolean = true
@@ -83,7 +83,7 @@ object User {
     }
 
     def fromInternetAddress(internetAddress: InternetAddress): Option[User] = {
-      Constraints.emailAddress(internetAddress.getAddress) match {
+      Constraints.emailAddress()(internetAddress.getAddress) match {
         case Valid =>
           Some(User(id = None, contest = None,
             fullname = Option(internetAddress.getPersonal).getOrElse(""),

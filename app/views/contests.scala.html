@@ -5,7 +5,7 @@
         fetched: Seq[org.scalawiki.wlx.dto.Contest],
         editContestForm: Form[org.intracer.wmua.ContestJury],
         importForm: Form[String]
-)(implicit flash: Flash, lang: Lang, messages: Messages)
+)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
 @import helper._
 @import b3.vertical.fieldConstructor
 
@@ -23,6 +23,7 @@
                 </ul>
         </div>
         @b3.form(routes.Contests.importContests, 'id -> "import-contests") {
+            @helper.CSRF.formField
             @b3.text(importForm("source"), 'placeholder -> Messages("source"), '_label -> null, '_help -> "")
 
             <div class="btn btn-primary" onClick="document.forms['import-contests'].submit();">
@@ -53,6 +54,7 @@
 
                 @if(user.hasRole(User.ROOT_ROLE)) {
                     @form(routes.Contests.saveContest, 'class -> "form-vertical", 'id -> "add-contest") {
+                        @helper.CSRF.formField
                         <tr>
                             @if(editContestForm.hasGlobalErrors) {
                                 <p class="error">

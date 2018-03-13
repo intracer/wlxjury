@@ -1,9 +1,10 @@
 package controllers
 
+import java.time.ZonedDateTime
+
 import db.scalikejdbc._
 import org.intracer.wmua._
-import org.intracer.wmua.cmd.{ImageEnricher, FetchImageInfo, ImageTextFromCategory}
-import org.joda.time.DateTime
+import org.intracer.wmua.cmd.{FetchImageInfo, ImageEnricher, ImageTextFromCategory}
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.list.ListArgs
@@ -285,7 +286,7 @@ class GlobalRefactor(val commons: MwBot) {
             future.map {
               filesInCategory =>
 
-                val selection = filesInCategory.map(img => new Selection(0, img.id.get, 0, juror.id.get, round.id.get, DateTime.now))
+                val selection = filesInCategory.map(img => new Selection(0, img.id.get, 0, juror.id.get, round.id.get, ZonedDateTime.now))
                 SelectionJdbc.batchInsert(selection)
             }
         }

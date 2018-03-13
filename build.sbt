@@ -40,9 +40,10 @@ debianPackageRecommends in Debian ++= Seq("virtual-mysql-server")
 
 scalaVersion := "2.11.11"
 
-val scalikejdbcVersion = "2.5.2"
-val scalikejdbcPlayVersion = "2.5.3"
-val scalawikiVersion = "0.5-M6"
+val ScalikejdbcVersion = "3.2.1"
+val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.2"
+val ScalawikiVersion = "0.5-M7"
+val PlayMailerVersion = "6.0.1"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -51,29 +52,32 @@ resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 resolvers += Resolver.jcenterRepo
 
 libraryDependencies ++= Seq(
-  "org.webjars" %% "webjars-play" % "2.5.0",
-  "com.adrianhurt" %% "play-bootstrap" % "1.1-P25-B3",
+  "org.webjars" %% "webjars-play" % "2.6.3",
+  "com.adrianhurt" %% "play-bootstrap" % "1.2-P26-B3",
+  "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
+  "org.webjars" % "jquery" % "3.2.1",
 
   "mysql" % "mysql-connector-java" % "5.1.40",
-  "org.scalikejdbc" %% "scalikejdbc" % scalikejdbcVersion,
-  "org.scalikejdbc" %% "scalikejdbc-config" % scalikejdbcVersion,
-  "org.scalikejdbc" %% "scalikejdbc-play-initializer" % scalikejdbcPlayVersion,
-  "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % scalikejdbcPlayVersion,
-  "org.scalikejdbc" %% "scalikejdbc-play-fixture" % scalikejdbcPlayVersion,
-  "org.skinny-framework" %% "skinny-orm" % "2.3.4",
-  "org.flywaydb" %% "flyway-play" % "3.0.1",
+  "org.scalikejdbc" %% "scalikejdbc" % ScalikejdbcVersion,
+  "org.scalikejdbc" %% "scalikejdbc-config" % ScalikejdbcVersion,
+  "org.scalikejdbc" %% "scalikejdbc-play-initializer" % ScalikejdbcPlayVersion,
+  "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % ScalikejdbcPlayVersion,
+  "org.scalikejdbc" %% "scalikejdbc-play-fixture" % ScalikejdbcPlayVersion,
+  "org.skinny-framework" %% "skinny-orm" % "2.5.2",
+  "org.flywaydb" %% "flyway-play" % "4.0.0",
 
-  "org.scalawiki" %% "scalawiki-core" % scalawikiVersion,
-  "org.scalawiki" %% "scalawiki-wlx" % scalawikiVersion,
+  "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
+  "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
 
-  "com.typesafe.akka" %% "akka-stream" % "2.4.18",
-  "com.typesafe.akka" %% "akka-http" % "10.0.6",
+  "com.typesafe.akka" %% "akka-stream" % "2.5.11",
+  "com.typesafe.akka" %% "akka-http" % "10.0.11",
 
-  "nl.grons" %% "metrics-scala" % "3.3.0_a2.3",
-  "com.typesafe.play" %% "play-mailer" % "5.0.0",
+  "nl.grons" %% "metrics-scala" % "3.5.9",
+  "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
+  "com.typesafe.play" %% "play-mailer-guice" % PlayMailerVersion,
   "com.github.tototoshi" %% "scala-csv" % "1.3.4",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
-  jdbc, cache, filters,
+  jdbc, guice, filters,
   specs2 % Test)
 
 routesGenerator := StaticRoutesGenerator
