@@ -3,7 +3,7 @@
         editUserForm: Form[org.intracer.wmua.User],
         round: Option[org.intracer.wmua.Round],
         contestId: Option[Long] = None
-)(implicit flash: Flash, lang: Lang, messages: Messages)
+)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
 
 @import views.html.bootstrap._
 @import helper._
@@ -22,6 +22,7 @@
             }
 
             @form(routes.Admin.saveUser, 'class -> "form-vertical") {
+                @helper.CSRF.formField
 
                 @if(editUserForm.hasGlobalErrors) {
                     <div class="alert alert-danger" role="alert">

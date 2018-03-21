@@ -4,7 +4,7 @@
         adminUser: org.intracer.wmua.User,
         users: Seq[org.intracer.wmua.User],
         editUserForm: Form[org.intracer.wmua.User],
-        contest: ContestJury)(implicit flash: Flash, lang: Lang, messages: Messages)
+        contest: ContestJury)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
     @import helper._
     @import views.html.bootstrap._
 
@@ -83,6 +83,7 @@
                     }
 
                     @form(routes.Admin.saveUser, 'class -> "form-vertical", 'id -> "add-user") {
+                        @helper.CSRF.formField
                         <tr>
                             @if(editUserForm.hasGlobalErrors) {
                                 <p class="error">

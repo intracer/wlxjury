@@ -9,7 +9,7 @@ import org.scalawiki.MwBot
 import play.Play
 import play.api._
 
-object Global extends GlobalSettings {
+object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
   val gallerySizeX = 300
@@ -28,15 +28,6 @@ object Global extends GlobalSettings {
   val metrics = new MetricRegistry()
 
   lazy val commons = MwBot.fromHost(COMMONS_WIKIMEDIA_ORG)
-
-  override def onStart(app: Application) {
-    Logger.info("Application has started")
-
-    val reporter = JmxReporter.forRegistry(metrics).build()
-    reporter.start()
-
-    KOATUU.load()
-  }
 
   def initCountry(category: String, countryOpt: Option[String]) = {
     val country = countryOpt.fold(category.replace("Category:Images from Wiki Loves Earth 2014 in ", ""))(identity)

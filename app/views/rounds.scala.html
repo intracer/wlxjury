@@ -8,7 +8,7 @@
         selectRoundForm: Form[Option[String]],
         round: Option[org.intracer.wmua.Round],
         contest: ContestJury
-)(implicit flash: Flash, lang: Lang, messages: Messages)
+)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
     @import helper._
     @import db.scalikejdbc.SelectionJdbc
 
@@ -20,6 +20,7 @@
             @if(rounds.size > 1) {
                 @form(routes.Rounds.setRound(), 'class -> "form-inline", 'id -> "set-round", 'role -> "form") {
                     <div class="form-group">
+                    @helper.CSRF.formField
                     @select(selectRoundForm("currentRound"), rounds.map(r => (r.id.map(_.toString).get, r.description)),
                         '_label -> "Current round", '_help -> "", 'class -> "form-control")
                     </div>

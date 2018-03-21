@@ -1,23 +1,25 @@
 package controllers
 
+import javax.inject.Inject
+
 import org.intracer.wmua.User
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.email.{EmailUser, Subject, Target, Text}
-import play.api.libs.mailer.{Email, MailerPlugin}
+import play.api.libs.mailer.{Email, MailerClient}
 
 trait SendMail {
   def sendMail(from: User, to: User, subject: String, message: String)
 }
 
-object SMTPOrWikiMail extends SendMail {
+class SMTPOrWikiMail @Inject()(sendMailSMTP: SendMailSMTP) extends SendMail {
   override def sendMail(from: User, to: User, subject: String, message: String): Unit = {
-    val sender = Some(SendMailSMTP).filter(_ => to.email.nonEmpty).orElse(SendWikiMail.sender)
+    val sender = Some(sendMailSMTP).filter(_ => to.email.nonEmpty).orElse(SendWikiMail.sender)
     sender.foreach(_.sendMail(from, to, subject, message))
   }
 }
 
-object SendMailSMTP extends SendMail {
+class SendMailSMTP @Inject()(mailerClient: MailerClient) extends SendMail {
 
   override def sendMail(fromUser: User, toUser: User, subject: String, message: String) = {
     val email = Email(
@@ -26,7 +28,7 @@ object SendMailSMTP extends SendMail {
       subject = subject,
       bodyText = Some(message)
     )
-    MailerPlugin.send(email)(play.api.Play.current)
+    mailerClient.send(email)
   }
 }
 
@@ -42,6 +44,7 @@ class SendWikiMail(mwBot: MwBot) extends SendMail {
 
 object SendWikiMail {
   lazy val sender = init()
+
   def init(): Option[SendWikiMail] = {
     val configuration = play.api.Play.current.configuration
     for (login <- configuration.getString("commons.user");

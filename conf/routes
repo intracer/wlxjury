@@ -3,21 +3,21 @@
 # ~~~~
 
 # Home page
-GET         /                                                                       controllers.Login.index
+GET         /                                                                       @controllers.Login.index
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                                                           controllers.Assets.at(path="/public", file)
+GET         /assets/*file                                                           @controllers.Assets.at(path="/public", file)
 
-GET         /logout                                                                 controllers.Login.logout()
+GET         /logout                                                                 @controllers.Login.logout()
 
-POST        /auth                                                                   controllers.Login.auth()
+POST        /auth                                                                   @controllers.Login.auth()
 
-GET         /auth                                                                   controllers.Login.login()
+GET         /auth                                                                   @controllers.Login.login()
 
-GET         /signup                                                                 controllers.Login.signUpView()
-POST        /signup                                                                 controllers.Login.signUp()
+GET         /signup                                                                 @controllers.Login.signUpView()
+POST        /signup                                                                 @controllers.Login.signUp()
 
-GET         /error                                                                  controllers.Login.error(message: String ?= "Unknown error")
+GET         /error                                                                  @controllers.Login.error(message: String ?= "Unknown error")
 
 GET         /query                                                                  controllers.Gallery.query(module:String ?= "byrate", user: Option[Long] ?= None, page: Int ?= 1, region: String ?= "all", round: Long ?= 0, rate: Option[Int] ?= None, rated: Option[Boolean] ?= None)
 
@@ -73,21 +73,21 @@ GET         /large/pageid/:pageid                                               
 
 GET         /large/region/:region/pageid/:pageid                                    controllers.Gallery.largeCurrentUser(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery")
 
-GET         /admin/users                                                            controllers.Admin.users(contestId: Option[Long] ?= None)
+GET         /admin/users                                                            @controllers.Admin.users(contestId: Option[Long] ?= None)
 
-GET         /admin/importusers                                                      controllers.Admin.showImportUsers(contestId: Option[Long] ?= None)
+GET         /admin/importusers                                                      @controllers.Admin.showImportUsers(contestId: Option[Long] ?= None)
 
-POST         /admin/importusers                                                     controllers.Admin.importUsers(contestId: Option[Long] ?= None)
+POST         /admin/importusers                                                     @controllers.Admin.importUsers(contestId: Option[Long] ?= None)
 
-GET         /admin/greeting                                                         controllers.Admin.editGreeting(contestId: Option[Long] ?= None)
+GET         /admin/greeting                                                         @controllers.Admin.editGreeting(contestId: Option[Long] ?= None)
 
-POST         /admin/greeting                                                        controllers.Admin.saveGreeting(contestId: Option[Long] ?= None)
+POST         /admin/greeting                                                        @controllers.Admin.saveGreeting(contestId: Option[Long] ?= None)
 
-GET         /users/edit/:id                                                         controllers.Admin.editUser(id: Long)
+GET         /users/edit/:id                                                         @controllers.Admin.editUser(id: Long)
 
-POST        /users/save                                                             controllers.Admin.saveUser()
+POST        /users/save                                                             @controllers.Admin.saveUser()
 
-POST        /users/resetpasswd/:id                                                  controllers.Admin.resetPassword(id: Long)
+POST        /users/resetpasswd/:id                                                  @controllers.Admin.resetPassword(id: Long)
 
 GET         /admin/rounds                                                           controllers.Rounds.rounds(contestId: Option[Long] ?= None)
 
@@ -109,7 +109,7 @@ GET         /monuments                                                          
 
 GET         /monuments/id/:id                                                       controllers.Monuments.byId(id)
 
-GET         /webjars/*file                                                          @controllers.WebJarAssets.at(file)
+# GET         /webjars/*file                                                          @controllers.Assets.at(file)
 
 GET         /contests                                                               controllers.Contests.list(contestType: Option[String] ?= None, year: Option[Int] ?= None, country: Option[String] ?= None)
 

@@ -1,8 +1,9 @@
 package org.intracer.wmua
 
+import java.time.ZonedDateTime
+
 import db.scalikejdbc._
 import scalikejdbc._
-import org.joda.time.DateTime
 import org.scalawiki.dto.Page
 
 case class Round(id: Option[Long],
@@ -17,8 +18,8 @@ case class Round(id: Option[Long],
                  recommended: Option[Int] = None,
                  images: Seq[Page] = Seq.empty,
                  selected: Seq[Page] = Seq.empty,
-                 createdAt: DateTime = DateTime.now,
-                 deletedAt: Option[DateTime] = None,
+                 createdAt: ZonedDateTime = ZonedDateTime.now,
+                 deletedAt: Option[ZonedDateTime] = None,
                  active: Boolean = false,
                  optionalRate: Boolean = false,
                  juryOrgView: Boolean = false,
