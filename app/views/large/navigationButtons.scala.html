@@ -1,3 +1,4 @@
+@import org.intracer.wmua.User
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
@@ -60,6 +61,17 @@
     }
 }
 
+@buttonRemove() = {
+    @if(user.hasAnyRole(User.ADMIN_ROLES)) {
+        <a role="button" class="btn btn-default btn-sm active btn-danger"
+        href="/large/round/@round.id.get/region/@region/pageid/@files(index).pageId/select/-1@{rateParam(rate)}"
+            style="margin-left: 5px"
+        title="@Messages("remove.image") &lt;Delete&gt;">
+            <span class="glyphicon glyphicon-remove icon-white" aria-hidden="true"></span>
+        </a>
+    }
+}
+
 @buttonStar() = {
     @if(files(index).rate <= 0 ) {
         <a href="/large/round/@round.id.get/region/@region/pageid/@files(index).pageId/select/1@{rateParam(rate)}">
@@ -84,9 +96,14 @@
         } else {
                 <!--  @buttonStar() -->
         }
+
     </div>
+
+    @buttonRemove()
     } else {
-        </div>
+    </div>
+        @buttonRemove()
+
     @if(round.hasCriteria) {
         <div style="color: white">Науковість</div>
         <div id="rate-image1" style="margin-top:10px ;"></div>
