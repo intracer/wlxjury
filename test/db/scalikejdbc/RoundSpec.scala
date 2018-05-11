@@ -1,5 +1,7 @@
 package db.scalikejdbc
 
+import java.time.ZonedDateTime
+
 import org.intracer.wmua.cmd.SetCurrentRound
 import org.intracer.wmua.{Round, User}
 import org.specs2.mutable.Specification
@@ -7,9 +9,12 @@ import org.specs2.mutable.Specification
 class RoundSpec extends Specification with InMemDb {
 
   sequential
+  stopOnFail
 
   val roundDao = RoundJdbc
   val userDao = UserJdbc
+
+  def now = ZonedDateTime.now.withNano(0)
 
   "rounds" should {
     "be empty" in {
@@ -22,7 +27,7 @@ class RoundSpec extends Specification with InMemDb {
     "insert round" in {
       inMemDbApp {
 
-        val round = Round(None, 1, Some("Round 1"), 10, Set("jury"), 3, Round.ratesById(10), active = true)
+        val round = Round(None, 1, Some("Round 1"), 10, Set("jury"), 3, Round.ratesById(10), active = true, createdAt = now)
 
         val created = roundDao.create(round)
 
