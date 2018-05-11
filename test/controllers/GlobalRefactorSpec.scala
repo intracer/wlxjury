@@ -1,27 +1,21 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
+import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, InMemDb}
 import org.intracer.wmua.{Image, JuryTestHelpers}
 import org.mockito.stubbing.OngoingStubbing
 import org.scalawiki.dto.{Namespace, Page, Revision}
 import org.scalawiki.query.SinglePageQuery
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers {
+class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers with InMemDb {
 
   sequential
 
   val contestDao = ContestJuryJdbc
   val imageDao = ImageJdbc
-
-  def inMemDbApp[T](block: => T): T = {
-    running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
-  }
 
   def image(id: Long) =
     Image(id, s"File:Image$id.jpg", Some(s"url$id"), None, 640, 480, Some(s"12-345-$id"), size = Some(1234))

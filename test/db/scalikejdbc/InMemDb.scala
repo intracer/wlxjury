@@ -1,12 +1,19 @@
 package db.scalikejdbc
 
-import play.api.test.FakeApplication
-import play.api.test.Helpers._
+import play.api.db.Databases
 
 trait InMemDb {
 
   def inMemDbApp[T](block: => T): T = {
-    running(FakeApplication(additionalConfiguration = inMemoryDatabase()))(block)
+    Databases.withInMemory(
+      name = "mydatabase",
+      urlOptions = Map(
+        "MODE" -> "MYSQL"
+      ),
+      config = Map(
+        "logStatements" -> true
+      )
+    )(_ => block)
   }
 
 }
