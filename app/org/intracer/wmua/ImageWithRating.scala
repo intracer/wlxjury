@@ -1,6 +1,8 @@
 package org.intracer.wmua
 
 import java.text.DecimalFormat
+import java.util.Locale
+import java.text.NumberFormat
 
 case class ImageWithRating(
                             image: Image,
@@ -134,5 +136,11 @@ class TotalRating extends Rating
 
 
 object Formatter {
-  val fmt = new DecimalFormat("0.00")
+
+  def getFormatter = {
+    val df = NumberFormat.getNumberInstance(Locale.US).asInstanceOf[DecimalFormat]
+    df.applyPattern("0.00")
+    df
+  }
+  val fmt = getFormatter
 }

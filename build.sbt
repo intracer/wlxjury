@@ -64,7 +64,7 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % ScalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % ScalikejdbcPlayVersion,
   "org.skinny-framework" %% "skinny-orm" % "2.5.2",
-  "org.flywaydb" %% "flyway-play" % "4.0.0",
+  "org.flywaydb" %% "flyway-play" % "5.0.0",
 
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
@@ -77,14 +77,38 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-mailer-guice" % PlayMailerVersion,
   "com.github.tototoshi" %% "scala-csv" % "1.3.4",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
-  jdbc, guice, filters,
-  specs2 % Test)
+  guice, filters,
+  specs2 % Test,
+  jdbc % Test,
+  "com.wix" % "wix-embedded-mysql" % "4.1.2" % Test,
+  "com.h2database" % "h2" % "1.4.193" % Test)
 
 routesGenerator := StaticRoutesGenerator
 
 doc in Compile <<= target.map(_ / "none")
 
-javaOptions in Test += "-Dconfig.file=conf/application.test.conf"
+wixMySQLVersion := com.wix.mysql.distribution.Version.v5_7_latest
+
+wixMySQLSchemaName := "wlxjury"
+
+wixMySQLUserName := Some("WLXJURY_DB_USER")
+
+wixMySQLPassword := Some("WLXJURY_DB_PASSWORD")
+
+wixMySQLDownloadPath := Some(System.getProperty("user.home") + "/.wixMySQL/downloads")
+
+javaOptions in Test += "-Dconfig.file=test/resources/application.conf"
+
+testOptions in Test ++= Seq(
+  Tests.Setup { () =>
+    wixMySQLStart.value
+    // If you want to use the flywayMigrate together, please join the two tasks using `Def.sequential` as follows.
+    // Def.sequential(wixMySQLStart, flywayMigrate).value
+  },
+  Tests.Cleanup { () =>
+    wixMySQLStop.value
+  }
+)
 
 addCommandAlias(
   "packageAll", "; clean" +
