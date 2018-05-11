@@ -78,7 +78,8 @@ libraryDependencies ++= Seq(
   "com.github.tototoshi" %% "scala-csv" % "1.3.4",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
   jdbc, guice, filters,
-  specs2 % Test)
+  specs2 % Test,
+  "com.h2database" % "h2" % "1.4.193" % Test)
 
 routesGenerator := StaticRoutesGenerator
 
