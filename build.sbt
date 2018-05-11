@@ -91,6 +91,8 @@ wixMySQLVersion := com.wix.mysql.distribution.Version.v5_7_latest
 
 wixMySQLSchemaName := "wlxjury"
 
+wixMySQLPort := None
+
 wixMySQLUserName := Some("WLXJURY_DB_USER")
 
 wixMySQLPassword := Some("WLXJURY_DB_PASSWORD")

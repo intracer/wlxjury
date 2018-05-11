@@ -7,8 +7,6 @@ trait InMemDb {
 
   def fakeApp = {
     val additionalConfiguration = Map(
-      "db.default.driver" -> "org.h2.Driver",
-      "db.default.url" -> "jdbc:h2:mem:default",
       "db.default.user" -> "WLXJURY_DB_USER",
       "db.default.password" -> "WLXJURY_DB_PASSWORD"
     )
