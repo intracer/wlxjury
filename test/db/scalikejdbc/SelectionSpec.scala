@@ -1,7 +1,5 @@
 package db.scalikejdbc
 
-import java.time.ZonedDateTime
-
 import org.intracer.wmua.Selection
 import org.specs2.mutable.Specification
 
@@ -10,7 +8,7 @@ class SelectionSpec extends Specification with InMemDb {
   sequential
 
   val selectionDao = SelectionJdbc
-  val time = ZonedDateTime.now
+  val time = now
 
   def sameTime(s: Seq[Selection]) = s.map(_.copy(createdAt = time))
 
@@ -27,7 +25,7 @@ class SelectionSpec extends Specification with InMemDb {
     "insert selection" in {
       inMemDbApp {
 
-        val s = Selection(-1, 20, 0, 30, 40)
+        val s = Selection(-1, 20, 0, 30, 40, now)
 
         val created = selectionDao.create(s.pageId, s.rate, s.juryId, s.round, s.createdAt)
 
