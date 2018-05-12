@@ -25,7 +25,7 @@ trait InMemDb {
     val port = mysqld.getConfig.getPort
     val fakeApp = {
       val additionalConfiguration = Map(
-        "db.default.user" -> "WLXJURY_DB_USER",
+        "db.default.username" -> "WLXJURY_DB_USER",
         "db.default.password" -> "WLXJURY_DB_PASSWORD",
         "db.default.url" -> s"jdbc:mysql://localhost:$port/wlxjury?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false"
       )
