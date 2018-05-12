@@ -1,5 +1,7 @@
 package db.scalikejdbc
 
+import java.time.ZonedDateTime
+
 import com.wix.mysql.EmbeddedMysql.anEmbeddedMysql
 import com.wix.mysql.config.DownloadConfig.aDownloadConfig
 import com.wix.mysql.config.MysqldConfig.aMysqldConfig
@@ -9,6 +11,7 @@ import play.api.test.Helpers.running
 
 trait InMemDb {
 
+  def now = ZonedDateTime.now.withNano(0)
 
   def inMemDbApp[T](block: => T): T = {
     val downloadConfig = aDownloadConfig()

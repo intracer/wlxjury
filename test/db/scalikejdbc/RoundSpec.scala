@@ -14,8 +14,6 @@ class RoundSpec extends Specification with InMemDb {
   val roundDao = RoundJdbc
   val userDao = UserJdbc
 
-  def now = ZonedDateTime.now.withNano(0)
-
   "rounds" should {
     "be empty" in {
       inMemDbApp {
