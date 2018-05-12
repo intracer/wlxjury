@@ -23,7 +23,7 @@ class UserDbSpec extends Specification with InMemDb {
       inMemDbApp {
 
         val user = User("fullname", "email", None, Set("jury"), Some("password hash"), Some(10),
-          Some("en"), createdAt = Some(ZonedDateTime.now))
+          Some("en"), createdAt = Some(now))
 
         val created = userDao.create(user)
 
