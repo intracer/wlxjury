@@ -93,17 +93,6 @@ doc in Compile <<= target.map(_ / "none")
 
 javaOptions in Test += "-Dconfig.file=test/resources/application.conf"
 
-testOptions in Test ++= Seq(
-  Tests.Setup { () =>
-    wixMySQLStart.value
-    // If you want to use the flywayMigrate together, please join the two tasks using `Def.sequential` as follows.
-    // Def.sequential(wixMySQLStart, flywayMigrate).value
-  },
-  Tests.Cleanup { () =>
-    wixMySQLStop.value
-  }
-)
-
 addCommandAlias(
   "packageAll", "; clean" +
     "; packageDebianSystemV" +
