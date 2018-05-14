@@ -38,7 +38,7 @@ debianPackageDependencies in Debian ++= Seq("java8-runtime")
 
 debianPackageRecommends in Debian ++= Seq("virtual-mysql-server")
 
-scalaVersion := "2.11.11"
+scalaVersion := "2.12.6"
 
 val ScalikejdbcVersion = "3.2.1"
 val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.2"
@@ -70,7 +70,7 @@ libraryDependencies ++= Seq(
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
 
   "com.typesafe.akka" %% "akka-stream" % "2.5.11",
-  "com.typesafe.akka" %% "akka-http" % "10.0.11",
+  "com.typesafe.akka" %% "akka-http" % "10.0.13",
 
   "nl.grons" %% "metrics-scala" % "3.5.9",
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
