@@ -58,8 +58,7 @@ class JurorImagesSpec extends Specification with InMemDb {
     def query(): SelectionQuery = {
       ImageDbNew.SelectionQuery(
         userId = user.id,
-        roundId = round.id,
-        driver = "h2"
+        roundId = round.id
       )
     }
 
@@ -105,7 +104,7 @@ class JurorImagesSpec extends Specification with InMemDb {
         val slice = images.slice(0, 3)
         createSelection(slice, rate = 0)
 
-        val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, driver = "h2")
+        val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id)
         /// test
         val result = query.list()
 
@@ -136,7 +135,7 @@ class JurorImagesSpec extends Specification with InMemDb {
         }
 
         for (rate <- -1 to 1) yield {
-          val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, rate = Some(rate), driver = "h2")
+          val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, rate = Some(rate))
           /// test
           val result = query.list()
 
@@ -150,7 +149,7 @@ class JurorImagesSpec extends Specification with InMemDb {
 
         for (rate <- -1 to 1;
              (image, index) <- slice(rate).zipWithIndex) yield {
-          val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, rate = Some(rate), driver = "h2")
+          val query = ImageDbNew.SelectionQuery(userId = user.id, roundId = round.id, rate = Some(rate))
           query.imageRank(image.pageId) === index + 1
         }
 
@@ -174,8 +173,7 @@ class JurorImagesSpec extends Specification with InMemDb {
         val query: SelectionQuery = ImageDbNew.SelectionQuery(
           userId = user.id,
           roundId = round.id,
-          order = Map("rate" -> -1),
-          driver = "h2"
+          order = Map("rate" -> -1)
         )
         /// test
         val result = query.list()
@@ -208,8 +206,7 @@ class JurorImagesSpec extends Specification with InMemDb {
         val query = ImageDbNew.SelectionQuery(
           userId = user.id,
           roundId = round.id,
-          order = Map("rate" -> -1),
-          driver = "h2"
+          order = Map("rate" -> -1)
         )
         val result = query.list()
 
@@ -248,7 +245,7 @@ class JurorImagesSpec extends Specification with InMemDb {
 
         selectionDao.batchInsert(selectedByX)
 
-        val query = ImageDbNew.SelectionQuery(roundId = round.id, grouped = true, order = Map("rate" -> -1), driver = "h2")
+        val query = ImageDbNew.SelectionQuery(roundId = round.id, grouped = true, order = Map("rate" -> -1))
         /// test
         val result = query.list()
 
