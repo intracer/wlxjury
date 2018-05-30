@@ -20,8 +20,6 @@ import scala.io.Source
 
 object Tools {
 
-  val regions = Set("44")
-
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
     val url: String = "jdbc:mysql://localhost/wlxjury?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8"
