@@ -176,7 +176,7 @@ object Rounds extends Controller with Secured {
       implicit request =>
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
         for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById)) {
-          ContestJuryJdbc.updateImages(contest.id.get, imagesSource)
+          ContestJuryJdbc.setImagesSource(contest.id.get, imagesSource)
 
           //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 

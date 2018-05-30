@@ -18,7 +18,7 @@ class ImageSpec extends Specification with InMemDb {
   def createContests(contestIds: Long*) = contestIds.foreach {
     id =>
       val contest = ContestJuryJdbc.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
-      ContestJuryJdbc.updateImages(id, Some("Images from " + contest.name))
+      ContestJuryJdbc.setImagesSource(id, Some("Images from " + contest.name))
   }
 
 

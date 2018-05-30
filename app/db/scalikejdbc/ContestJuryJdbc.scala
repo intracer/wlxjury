@@ -31,7 +31,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
     )
   )
 
-  def updateImages(id: Long, images: Option[String]): Int = {
+  def setImagesSource(id: Long, images: Option[String]): Int = {
     val categoryId = images.map(CategoryJdbc.findOrInsert)
 
     updateById(id)
