@@ -127,7 +127,7 @@ object Tools {
         new ImageWithRating(i, Seq.empty)
       )
     )(r =>
-      ImageJdbc.byRoundMerged(r.id.get)
+      ImageJdbc.byRoundMerged(r.id.get, rated = selectedAtLeast.map(_ => true))
     )
     println("Total images: " + imagesAll.size)
 
