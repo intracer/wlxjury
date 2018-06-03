@@ -12,7 +12,7 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
 
   override val tableName = "selection"
 
-  val s = SelectionJdbc.syntax("s")
+  val s = SelectionJdbc.syntax("selection")
   val u = UserJdbc.u
   val c = CriteriaRate.c
 
@@ -161,4 +161,11 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
       .eq(s.pageId, pageId).and
       .eq(s.round, roundId)
     )
+
+  def removeUnrated(roundId: Long): Unit =
+    deleteBy(sqls
+      .eq(s.rate, 0).and
+      .eq(s.round, roundId)
+    )
+
 }
