@@ -1,7 +1,6 @@
 package db.scalikejdbc
 
 import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
-import org.intracer.wmua.Selection
 import org.specs2.mutable.Specification
 
 class ImagesSqlSpec extends Specification with InMemDb {

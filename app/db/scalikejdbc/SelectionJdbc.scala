@@ -161,4 +161,11 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
       .eq(s.pageId, pageId).and
       .eq(s.round, roundId)
     )
+
+  def removeUnrated(roundId: Long): Unit =
+    deleteBy(sqls
+      .eq(column.rate, 0).and
+      .eq(column.round, roundId)
+    )
+
 }

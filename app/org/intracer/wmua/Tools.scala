@@ -115,7 +115,7 @@ object Tools {
       ).getOrElse(Seq.empty, Seq.empty)
 
 
-    val currentSelection = ImageJdbc.byRoundMerged(round.id.get).filter(iwr => iwr.selection.nonEmpty).toSet
+    val currentSelection = ImageJdbc.byRoundMerged(round.id.get, rated = Some(true)).filter(iwr => iwr.selection.nonEmpty).toSet
     val existingImageIds = currentSelection.map(_.pageId)
     val existingJurorIds = currentSelection.flatMap(_.jurors)
     val mpxAtLeast = round.minMpx
@@ -127,7 +127,7 @@ object Tools {
         new ImageWithRating(i, Seq.empty)
       )
     )(r =>
-      ImageJdbc.byRoundMerged(r.id.get)
+      ImageJdbc.byRoundMerged(r.id.get, rated = selectedAtLeast.map(_ => true))
     )
     println("Total images: " + imagesAll.size)
 
