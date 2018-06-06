@@ -1,22 +1,23 @@
 package org.intracer.wmua.cmd
 
-import org.intracer.wmua.{Round, Image, ImageWithRating}
+import org.intracer.wmua.{Image, ImageWithRating, Round}
+import play.api.Logger
 
-trait ImageFilterGen extends (() => Seq[ImageWithRating] => Seq[ImageWithRating]) {
+trait ImageFilterGen extends () => Seq[ImageWithRating] => Seq[ImageWithRating] {
 
   type ImageSeqFilter = Seq[ImageWithRating] => Seq[ImageWithRating]
 
   def imageFilter(p: Image => Boolean): ImageSeqFilter =
     (images: Seq[ImageWithRating]) => {
       val result = images.filter(i => p(i.image))
-      println(s"imageFilter: ${toString()}\n images before: ${images.size}, images after: ${result.size}")
+      Logger.logger.debug(s"imageFilter: ${toString()}\n images before: ${images.size}, images after: ${result.size}")
       result
     }
 
   def imageRatingFilter(p: ImageWithRating => Boolean): ImageSeqFilter =
     (images: Seq[ImageWithRating]) => {
       val result = images.filter(p)
-      println(s"imageRatingFilter: ${toString()}\n images before: ${images.size}, images after: ${result.size}")
+      Logger.logger.debug(s"imageRatingFilter: ${toString()}\n images before: ${images.size}, images after: ${result.size}")
       result
     }
 
@@ -121,6 +122,6 @@ object ImageWithRatingSeqFilter {
     (setMap.filter(_._2.nonEmpty).keys ++ optionMap.filter(_._2.nonEmpty).keys.flatten).toSeq
   }
 
-  def makeFunChain(gens: Seq[ImageFilterGen]): (Seq[ImageWithRating] => Seq[ImageWithRating]) =
+  def makeFunChain(gens: Seq[ImageFilterGen]): Seq[ImageWithRating] => Seq[ImageWithRating] =
     Function.chain(gens.map(_.apply))
 }
