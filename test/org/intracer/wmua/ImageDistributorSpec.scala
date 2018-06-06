@@ -1,6 +1,7 @@
 package org.intracer.wmua
 
 import db.scalikejdbc._
+import org.intracer.wmua.cmd.DistributeImages
 import org.specs2.mutable.Specification
 
 class ImageDistributorSpec extends Specification with InMemDb {
@@ -79,7 +80,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         oneJuror.size === 1
         val juryIds = oneJuror.map(_.id.get)
 
-        Tools.distributeImages(dbRound, oneJuror, None)
+        DistributeImages.distributeImages(dbRound, oneJuror, None)
 
         val selection1 = selectionDao.findAll()
 
@@ -106,7 +107,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         dbJurors.size === 3
         val juryIds = dbJurors.map(_.id.get)
 
-        Tools.distributeImages(dbRound, dbJurors, None)
+        DistributeImages.distributeImages(dbRound, dbJurors, None)
 
         val selection = selectionDao.findAll()
 
@@ -130,13 +131,13 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val dbRound = roundDao.create(round)
 
         val firstJuror = createJurors(contest1, 1)
-        Tools.distributeImages(dbRound, firstJuror, None)
+        DistributeImages.distributeImages(dbRound, firstJuror, None)
 
         val moreJurors = createJurors(contest1, 2, start = 2)
         val allJurors = firstJuror ++ moreJurors
         val allJuryIds = allJurors.map(_.id.get)
 
-        Tools.distributeImages(dbRound, allJurors, None)
+        DistributeImages.distributeImages(dbRound, allJurors, None)
 
         val selection2 = selectionDao.findAll()
 
@@ -162,7 +163,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val firstJuror = createJurors(contest1, 1)
         val juryIds1 = firstJuror.map(_.id.get)
 
-        Tools.distributeImages(dbRound, firstJuror, None)
+        DistributeImages.distributeImages(dbRound, firstJuror, None)
 
         SelectionJdbc.rate(images(0).pageId, juryIds1(0), dbRound.id.get, 1)
         SelectionJdbc.rate(images(1).pageId, juryIds1(0), dbRound.id.get, -1)
@@ -172,7 +173,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val allJurors = firstJuror ++ moreJurors
         val allJuryIds = allJurors.map(_.id.get)
 
-        Tools.distributeImages(dbRound, allJurors, None)
+        DistributeImages.distributeImages(dbRound, allJurors, None)
 
         val selection2 = selectionDao.findAll()
 
@@ -183,7 +184,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         selection2.map(_.pageId) === images.map(_.pageId)
         selection2.map(_.juryId) === allJuryIds ++ allJuryIds ++ allJuryIds
       }
-    }.pendingUntilFixed
+    }
 
     "create first round 2 jurors to image" in {
       inMemDbApp {
@@ -200,7 +201,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val dbJurors = createJurors(contest1, numJurors)
         val juryIds = dbJurors.map(_.id.get)
 
-        Tools.distributeImages(dbRound, dbJurors, None)
+        DistributeImages.distributeImages(dbRound, dbJurors, None)
 
         val selection = selectionDao.findAll()
 
@@ -232,7 +233,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val dbJurors = createJurors(contest1, 3)
         val juryIds = dbJurors.map(_.id.get)
 
-        Tools.distributeImages(dbRound, dbJurors, None)
+        DistributeImages.distributeImages(dbRound, dbJurors, None)
 
         val selection = selectionDao.findAll()
         val byJuror = selection.groupBy(_.juryId)
@@ -247,7 +248,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val round2 = Round(None, 2, Some("Round 2"), contest1, Set("jury"), 0, Round.ratesById(10), active = true, prevSelectedBy = Some(1))
         val dbRound2 = roundDao.create(round2)
 
-        Tools.distributeImages(dbRound2, dbJurors, Some(dbRound))
+        DistributeImages.distributeImages(dbRound2, dbJurors, Some(dbRound))
 
         val secondRoundPageIds = selectionDao.findAll()
           .filter(_.round == dbRound2.id.get)
@@ -272,7 +273,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val dbJurors = createJurors(contest1, numJurors)
         val juryIds = dbJurors.map(_.id.get)
 
-        Tools.distributeImages(dbRound, dbJurors, None)
+        DistributeImages.distributeImages(dbRound, dbJurors, None)
 
         SelectionJdbc.rate(images(0).pageId, juryIds(0), dbRound.id.get, 1)
         SelectionJdbc.rate(images(0).pageId, juryIds(1), dbRound.id.get, -1)
@@ -283,7 +284,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val round2 = Round(None, 2, Some("Round 2"), contest1, Set("jury"), 0, Round.ratesById(10), active = true, prevSelectedBy = Some(1))
         val dbRound2 = roundDao.create(round2)
 
-        Tools.distributeImages(dbRound2, dbJurors, Some(dbRound))
+        DistributeImages.distributeImages(dbRound2, dbJurors, Some(dbRound))
 
         val selection2 = selectionDao.findAll().filter(_.round == dbRound2.id.get)
 

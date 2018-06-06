@@ -20,7 +20,7 @@ object GreeceESPC {
 
     val round = AddRound(contestId, 1, 0, 1).apply()
 
-    Tools.distributeImages(round, round.jurors, None)
+    DistributeImages.distributeImages(round, round.jurors, None)
 
     SetCurrentRound(contestId, None, round).apply()
   }

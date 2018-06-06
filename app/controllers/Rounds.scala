@@ -4,7 +4,7 @@ import db.scalikejdbc.RoundJdbc.RoundStatRow
 import db.scalikejdbc._
 import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import org.intracer.wmua._
-import org.intracer.wmua.cmd.SetCurrentRound
+import org.intracer.wmua.cmd.{DistributeImages, SetCurrentRound}
 import play.api.Play.current
 import play.api.data.Form
 import play.api.data.Forms._
@@ -64,7 +64,7 @@ object Rounds extends Controller with Secured {
 
         val prevRound = round.previous.flatMap(RoundJdbc.findById)
 
-        val images = round.id.fold(Seq.empty[Image])(id => Tools.getFilteredImages(round, jurors, prevRound))
+        val images = round.id.fold(Seq.empty[Image])(id => DistributeImages.getFilteredImages(round, jurors, prevRound))
 
         Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contest), jurors, regions, stat, images))
   }
@@ -107,7 +107,7 @@ object Rounds extends Controller with Secured {
                   val prevRound = round.previous.flatMap(RoundJdbc.findById)
 
                   val jurors = UserJdbc.findByRoundSelection(roundId)
-                  Tools.distributeImages(round, jurors, prevRound)
+                  DistributeImages.distributeImages(round, jurors, prevRound)
                 }
               }
             }
@@ -128,7 +128,7 @@ object Rounds extends Controller with Secured {
 
     val jurors = loadJurors(round.contest, jurorIds)
 
-    Tools.distributeImages(created, jurors, prevRound)
+    DistributeImages.distributeImages(created, jurors, prevRound)
 
     SetCurrentRound(round.contest, None, created).apply()
 
@@ -168,7 +168,7 @@ object Rounds extends Controller with Secured {
   }
 
   def distributeImages(contest: ContestJury, round: Round) {
-    Tools.distributeImages(round, round.jurors, None)
+    DistributeImages.distributeImages(round, round.jurors, None)
   }
 
   def setImages() = withAuth(rolePermission(User.ADMIN_ROLES)) {
