@@ -146,4 +146,16 @@ object DistributeImages {
     images
   }
 
+  case class Rebalance(newSelections: Seq[Selection], removedSelections: Seq[Selection])
+
+  val NoRebalance = Rebalance(Nil, Nil)
+
+  def rebalanceImages(round: Round,
+                      currentSelection: Seq[Selection],
+                      jurors: Seq[User],
+                      images: Seq[Image]): Rebalance  = {
+
+    Rebalance(Nil, Nil)
+  }
+
 }

@@ -3,7 +3,7 @@ package org.intracer.wmua.cmd
 import org.intracer.wmua.{Image, ImageWithRating, Round}
 import play.api.Logger
 
-trait ImageFilterGen extends () => Seq[ImageWithRating] => Seq[ImageWithRating] {
+trait ImageFilterGen extends (() => Seq[ImageWithRating] => Seq[ImageWithRating]) {
 
   type ImageSeqFilter = Seq[ImageWithRating] => Seq[ImageWithRating]
 
