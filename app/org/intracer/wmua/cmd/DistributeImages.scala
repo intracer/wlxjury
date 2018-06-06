@@ -6,6 +6,7 @@ import controllers.Global.commons
 import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, SelectionJdbc}
 import org.intracer.wmua._
 import org.scalawiki.dto.Namespace
+import play.api.Logger
 import spray.util.pimpFuture
 
 case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) {
@@ -27,9 +28,9 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
 
     SelectionJdbc.removeUnrated(round.id.get)
 
-    println("saving selection: " + selection.size)
+    Logger.logger.debug("saving selection: " + selection.size)
     SelectionJdbc.batchInsert(selection)
-    println(s"saved selection")
+    Logger.logger.debug(s"saved selection")
 
     addCriteriaRates(selection)
   }
@@ -118,7 +119,7 @@ object DistributeImages {
     )(r =>
       ImageJdbc.byRoundMerged(r.id.get, rated = selectedAtLeast.map(_ => true))
     )
-    println("Total images: " + imagesAll.size)
+    Logger.logger.debug("Total images: " + imagesAll.size)
 
     val funGens = ImageWithRatingSeqFilter.funGenerators(prevRound,
       includeRegionIds = includeRegionIds,
@@ -137,12 +138,10 @@ object DistributeImages {
       sizeAtLeast = sizeAtLeast
     )
 
-    println("Image filters:")
-    funGens.foreach(println)
     val filterChain = ImageWithRatingSeqFilter.makeFunChain(funGens)
 
     val images = filterChain(imagesAll).map(_.image)
-    println("Images after filtering: " + images.size)
+    Logger.logger.debug("Images after filtering: " + images.size)
 
     images
   }
