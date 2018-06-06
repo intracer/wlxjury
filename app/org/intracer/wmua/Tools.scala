@@ -4,15 +4,14 @@ import com.typesafe.config.ConfigFactory
 import controllers.Global.commons
 import controllers.GlobalRefactor
 import db.scalikejdbc._
-import org.intracer.wmua.cmd.{DistributeImages, ImageWithRatingSeqFilter}
+import org.intracer.wmua.cmd.DistributeImages
 import org.scalawiki.MwBot
-import org.scalawiki.dto.{Image, Namespace}
-import org.scalawiki.wlx.{ImageDB, ListFiller, MonumentDB}
+import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, Monument}
 import org.scalawiki.wlx.query.MonumentQuery
+import org.scalawiki.wlx.{ImageDB, ListFiller, MonumentDB}
 import play.api.Play
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
-import spray.util.pimpFuture
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -58,105 +57,6 @@ object Tools {
     new GlobalRefactor(commons).updateLists(contest)
   }
 
-  def distributeImages(round: Round,
-                       jurors: Seq[User],
-                       prevRound: Option[Round]): Unit = {
-    val images = getFilteredImages(round, jurors, prevRound)
-
-    distributeImages(round, jurors, images)
-  }
-
-  def getFilteredImages(round: Round, jurors: Seq[User], prevRound: Option[Round]): Seq[Image] = {
-    getFilteredImages(round, jurors, prevRound, selectedAtLeast = round.prevSelectedBy,
-      selectMinAvgRating = round.prevMinAvgRate,
-      sourceCategory = round.category,
-      includeCategory = round.categoryClause.map(_ > 0),
-      includeRegionIds = round.regionIds.toSet,
-      includeMonumentIds = round.monumentIds.toSet
-    )
-  }
-
-  def distributeImages(round: Round, jurors: Seq[User], images: Seq[Image]): Unit = {
-    DistributeImages(round, images, jurors).apply()
-  }
-
-  def getFilteredImages(
-                         round: Round,
-                         jurors: Seq[User],
-                         prevRound: Option[Round],
-                         includeRegionIds: Set[String] = Set.empty,
-                         excludeRegionIds: Set[String] = Set.empty,
-                         includeMonumentIds: Set[String] = Set.empty,
-                         includePageIds: Set[Long] = Set.empty,
-                         excludePageIds: Set[Long] = Set.empty,
-                         includeTitles: Set[String] = Set.empty,
-                         excludeTitles: Set[String] = Set.empty,
-                         selectMinAvgRating: Option[Int] = None,
-                         selectTopByRating: Option[Int] = None,
-                         selectedAtLeast: Option[Int] = None,
-                         includeJurorId: Set[Long] = Set.empty,
-                         excludeJurorId: Set[Long] = Set.empty,
-                         sourceCategory: Option[String] = None,
-                         includeCategory: Option[Boolean] = None
-                       ): Seq[Image] = {
-
-    val catIds = sourceCategory.map { category =>
-      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
-      pages.flatMap(_.id)
-    }
-
-    val (includeFromCats, excludeFromCats) = (
-      for (ids <- catIds;
-           include <- includeCategory)
-        yield
-          if (include)
-            (ids, Seq.empty)
-          else (Seq.empty, ids)
-      ).getOrElse(Seq.empty, Seq.empty)
-
-
-    val currentSelection = ImageJdbc.byRoundMerged(round.id.get, rated = Some(true)).filter(iwr => iwr.selection.nonEmpty).toSet
-    val existingImageIds = currentSelection.map(_.pageId)
-    val existingJurorIds = currentSelection.flatMap(_.jurors)
-    val mpxAtLeast = round.minMpx
-    val sizeAtLeast = round.minImageSize.map(_ * 1024 * 1024)
-
-    val contest = ContestJuryJdbc.findById(round.contest).get
-    val imagesAll = prevRound.fold[Seq[ImageWithRating]](
-      ImageJdbc.findByContest(contest).map(i =>
-        new ImageWithRating(i, Seq.empty)
-      )
-    )(r =>
-      ImageJdbc.byRoundMerged(r.id.get, rated = selectedAtLeast.map(_ => true))
-    )
-    println("Total images: " + imagesAll.size)
-
-    val funGens = ImageWithRatingSeqFilter.funGenerators(prevRound,
-      includeRegionIds = includeRegionIds,
-      excludeRegionIds = excludeRegionIds,
-      includeMonumentIds = includeMonumentIds,
-      includePageIds = includePageIds ++ includeFromCats.toSet,
-      excludePageIds = excludePageIds ++ existingImageIds ++ excludeFromCats.toSet,
-      includeTitles = includeTitles,
-      excludeTitles = excludeTitles,
-      includeJurorId = includeJurorId,
-      excludeJurorId = excludeJurorId /*++ existingJurorIds*/ ,
-      selectMinAvgRating = prevRound.flatMap(_ => selectMinAvgRating.filter(x => !prevRound.exists(_.isBinary))),
-      selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
-      selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
-      mpxAtLeast = mpxAtLeast,
-      sizeAtLeast = sizeAtLeast
-    )
-
-    println("Image filters:")
-    funGens.foreach(println)
-    val filterChain = ImageWithRatingSeqFilter.makeFunChain(funGens)
-
-    val images = filterChain(imagesAll).map(_.image)
-    println("Images after filtering: " + images.size)
-
-    images
-  }
 
   def updateResolution(contest: ContestJury) = {
 
@@ -199,7 +99,7 @@ object Tools {
 
     val round = RoundJdbc.findById(133L).get
 
-    distributeImages(round, round.jurors, None)
+    DistributeImages.distributeImages(round, round.jurors, None)
   }
 
   def addUsers(contest: ContestJury, number: Int) = {
