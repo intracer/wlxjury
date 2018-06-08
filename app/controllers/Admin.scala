@@ -129,7 +129,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
           formUser => {
             havingEditRights(user, formUser) {
 
-              val userId = formUser.id.get
+              val userId = formUser.getId
               val count = UserJdbc.countByEmail(userId, formUser.email)
               if (count > 0) {
                 BadRequest(
@@ -358,7 +358,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
         val contestName = contest.fold("")(_.name)
         val hash = UserJdbc.hash(editedUser, password)
 
-        UserJdbc.updateHash(editedUser.id.get, hash)
+        UserJdbc.updateHash(editedUser.getId, hash)
 
         val juryhome = "http://localhost:9000"
         //        User.updateUser(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest)

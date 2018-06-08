@@ -87,7 +87,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         val g = new GlobalRefactor(commons)
         g.appendImages(category, "", contest)
 
-        val contestWithCategory = contestDao.findById(contest.id.get).get
+        val contestWithCategory = contestDao.findById(contest.getId).get
         eventually {
           imageDao.findByContest(contestWithCategory) === images
         }
@@ -107,7 +107,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         val g = new GlobalRefactor(commons)
         g.appendImages(category, "", contest)
 
-        val contestWithCategory = contestDao.findById(contest.id.get).get
+        val contestWithCategory = contestDao.findById(contest.getId).get
         eventually {
           imageDao.findByContest(contestWithCategory) === images
         }
@@ -125,7 +125,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         val g = new GlobalRefactor(commons)
         g.appendImages(category, "", contest)
 
-        val contestWithCategory = contestDao.findById(contest.id.get).get
+        val contestWithCategory = contestDao.findById(contest.getId).get
         eventually {
           imageDao.findByContest(contestWithCategory) === images
         }
@@ -142,7 +142,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         val g = new GlobalRefactor(mockQuery(images1, category, contestId))
         g.appendImages(category, "", contest)
 
-        val contestWithCategory = contestDao.findById(contest.id.get).get
+        val contestWithCategory = contestDao.findById(contest.getId).get
         eventually {
           imageDao.findByContest(contestWithCategory) === images1
         }
@@ -165,7 +165,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         val g = new GlobalRefactor(mockQuery(images, category + 1, contestId + 1))
         g.appendImages(category + 1, "", contest1)
 
-        val contest1WithCategory = contestDao.findById(contest1.id.get).get
+        val contest1WithCategory = contestDao.findById(contest1.getId).get
         eventually {
           imageDao.findByContest(contest1WithCategory) === images
         }
@@ -173,7 +173,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
         val g2 = new GlobalRefactor(mockQuery(images, category + 2, contestId + 2))
         g2.appendImages(category + 2, "", contest2)
 
-        val contest2WithCategory = contestDao.findById(contest2.id.get).get
+        val contest2WithCategory = contestDao.findById(contest2.getId).get
         eventually {
           imageDao.findByContest(contest2WithCategory) === images
         }

@@ -51,7 +51,7 @@ class RoundSpec extends Specification with InMemDb {
         roundDao.create(round)
 
         val jurors = (1 to 3).map(i => contestUser(10, "jury", i))
-        val dbJurors = jurors.map(userDao.create).map(u => u.copy(roles = u.roles + s"USER_ID_${u.id.get}"))
+        val dbJurors = jurors.map(userDao.create).map(u => u.copy(roles = u.roles + s"USER_ID_${u.getId}"))
 
         val preJurors = (1 to 3).map(i => contestUser(10, "prejury", i + 10))
         preJurors.foreach(userDao.create)
@@ -71,19 +71,19 @@ class RoundSpec extends Specification with InMemDb {
         val contestDao = ContestJuryJdbc
 
         val contest = contestDao.create(None, "WLE", 2015, "Ukraine", None, None, None)
-        val contestId = contest.id.get
+        val contestId = contest.getId
 
         val createdAt = now
-        val round = roundDao.create(Round(None, 1, Some("Round 1"), contest.id.get, Set("jury"), 0, Round.ratesById(10), createdAt = createdAt))
+        val round = roundDao.create(Round(None, 1, Some("Round 1"), contest.getId, Set("jury"), 0, Round.ratesById(10), createdAt = createdAt))
 
-        roundDao.findById(round.id.get).map(_.active) === Some(false)
+        roundDao.findById(round.getId).map(_.active) === Some(false)
         roundDao.activeRounds(contestId) === Seq.empty
         contestDao.findById(contestId).get.currentRound === None
 
         SetCurrentRound(contestId, None, round).apply()
 
         // TODO fix time issues
-        roundDao.findById(round.id.get).map(_.copy(createdAt = createdAt)) ===
+        roundDao.findById(round.getId).map(_.copy(createdAt = createdAt)) ===
           Some(round.copy(active = true).copy(createdAt = createdAt))
         roundDao.activeRounds(contestId).map(_.copy(createdAt = createdAt)) === Seq(round.copy(active = true).copy(createdAt = createdAt))
         contestDao.findById(contestId).get.currentRound === round.id

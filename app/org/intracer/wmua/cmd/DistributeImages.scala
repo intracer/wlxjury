@@ -14,7 +14,7 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
   def apply() = {
     val selection: Seq[Selection] = newSelection
 
-    SelectionJdbc.removeUnrated(round.id.get)
+    SelectionJdbc.removeUnrated(round.getId)
 
     Logger.logger.debug("saving selection: " + selection.size)
     SelectionJdbc.batchInsert(selection)
@@ -110,7 +110,7 @@ object DistributeImages {
       ).getOrElse(Seq.empty, Seq.empty)
 
 
-    val currentSelection = ImageJdbc.byRoundMerged(round.id.get, rated = Some(true)).filter(iwr => iwr.selection.nonEmpty).toSet
+    val currentSelection = ImageJdbc.byRoundMerged(round.getId, rated = Some(true)).filter(iwr => iwr.selection.nonEmpty).toSet
     val existingImageIds = currentSelection.map(_.pageId)
     val existingJurorIds = currentSelection.flatMap(_.jurors)
     val mpxAtLeast = round.minMpx
@@ -122,7 +122,7 @@ object DistributeImages {
         new ImageWithRating(i, Seq.empty)
       )
     )(r =>
-      ImageJdbc.byRoundMerged(r.id.get, rated = selectedAtLeast.map(_ => true))
+      ImageJdbc.byRoundMerged(r.getId, rated = selectedAtLeast.map(_ => true))
     )
     Logger.logger.debug("Total images: " + imagesAll.size)
 

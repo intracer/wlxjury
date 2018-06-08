@@ -7,7 +7,7 @@
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 @import helper._
 
-@mainAdmin(Messages("users"), adminUser, adminUser.id.get, contestId = Some(contestId)) {
+@mainAdmin(Messages("users"), adminUser, adminUser.getId, contestId = Some(contestId)) {
     <div class="row" >
 
         <h3>Edit greeting template options</h3>

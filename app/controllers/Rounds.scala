@@ -176,7 +176,7 @@ object Rounds extends Controller with Secured {
       implicit request =>
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
         for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById)) {
-          ContestJuryJdbc.setImagesSource(contest.id.get, imagesSource)
+          ContestJuryJdbc.setImagesSource(contest.getId, imagesSource)
 
           //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 
@@ -196,7 +196,7 @@ object Rounds extends Controller with Secured {
       implicit request =>
         RoundJdbc.current(user).map {
           round =>
-            Redirect(routes.Rounds.roundStat(round.id.get))
+            Redirect(routes.Rounds.roundStat(round.getId))
         }.getOrElse {
           Redirect(routes.Login.error("There is no active rounds in your contest"))
         }

@@ -23,7 +23,7 @@ class ContestSpec extends Specification with InMemDb {
         val contest = contestDao.create(None, "WLE", 2015, "Ukraine", images, None, None)
         (contest.name, contest.year, contest.country, contest.images) ===("WLE", 2015, "Ukraine", images)
 
-        val dbC = contestDao.findById(contest.id.get)
+        val dbC = contestDao.findById(contest.getId)
         dbC === Some(contest)
 
         val contests = contestDao.findAll()

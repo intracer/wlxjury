@@ -45,11 +45,11 @@
 
                             <!-- Link to statistics view, if user has rights -->
                         @if(user.canViewOrgInfo(round)) {
-                            <li role="presentation"><a class="brand" href="@routes.Rounds.roundStat(round.id.get)">@Messages("statistics")</a>
+                            <li role="presentation"><a class="brand" href="@routes.Rounds.roundStat(round.getId)">@Messages("statistics")</a>
                                 }
 
                             <!-- If (viewing users summary or own gallery) and user is juror" -->
-                        @if((asUserId == 0 || asUserId == user.id.get) && round.roles.intersect(user.roles).nonEmpty) {
+                        @if((asUserId == 0 || asUserId == user.getId) && round.roles.intersect(user.roles).nonEmpty) {
 
                             <!-- Show rounds dropdown -->
                         @if(user.canViewOrgInfo(round) || (rounds.size > 1)) {
@@ -58,7 +58,7 @@
                                 itemUrlFunction = (roundId: Long) => routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate),
                                 selectedItemId = selectedRound.flatMap(_.id).get,
                                 items = rounds.map {
-                                        r => (r.id.get, SelectionItem(r.description, localized = false))
+                                        r => (r.getId, SelectionItem(r.description, localized = false))
                                     }
                             ).toDropDown())
                             </li>
@@ -71,17 +71,17 @@
                             @defining(selectedRound.flatMap(_.id) == round.id) { isActive =>
 
                                 <li role="presentation" class="@if(rate.contains(0) && isActive) {active}">
-                                    <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(0))">
+                                    <a href="/gallery/round/@round.getId/user/@user.getId/page/1@rateParam(Some(0))">
                                         @Messages("unrated") (@rates.unrated)
                                     </a>
 
                             <li role="presentation" class="@if(rate.contains(1) && isActive) {active active-}selected">
-                                <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(1))">
+                                <a href="/gallery/round/@round.getId/user/@user.getId/page/1@rateParam(Some(1))">
                                     @Messages("selected") (@rates.selected)
                                 </a>
 
                                 <li role="presentation" class="@if(rate.contains(-1) && isActive) {active active-}rejected">
-                                    <a href="/gallery/round/@round.id.get/user/@user.id.get/page/1@rateParam(Some(-1))">
+                                    <a href="/gallery/round/@round.getId/user/@user.getId/page/1@rateParam(Some(-1))">
                                         @Messages("rejected") (@rates.rejected)
                                     </a>
                             }
@@ -91,26 +91,26 @@
                             @defining(selectedRound.flatMap(_.id) == round.id) { isActive =>
                                 @if(rates.unrated > 0) {
                                     <li role="presentation" class="@if(rate.contains(0) && isActive) {active}">
-                                        <a href="/gallery/round/@round.id.get/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
+                                        <a href="/gallery/round/@round.getId/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
                                             (@rates.unrated)
                                         </a>
                                 }
-                            <li role="presentation" class="@if(!rate.contains(0) && isActive && asUserId == user.id.get) {active}">
-                                <a href="/byrate/round/@round.id.get/user/@user.id.get/page/1">@Messages("rated")
+                            <li role="presentation" class="@if(!rate.contains(0) && isActive && asUserId == user.getId) {active}">
+                                <a href="/byrate/round/@round.getId/user/@user.getId/page/1">@Messages("rated")
                                     (@rates.rated)
                             </a>
                             }
                         }
                     }
 
-                        @if(user.id.get != asUserId && user.canViewOrgInfo(round)) {
+                        @if(user.getId != asUserId && user.canViewOrgInfo(round)) {
                                 <!-- Select round -->
 
                             <li role="presentation" class="brand" >
                             @(new UiSelectionDto[Long](
                                 { roundId: Long => routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate) },
-                                round.id.get,
-                                rounds.map(r => (r.id.get, SelectionItem(r.description, localized = false)))
+                                round.getId,
+                                rounds.map(r => (r.getId, SelectionItem(r.description, localized = false)))
                             ).toDropDown())
                             </li>
 
@@ -118,15 +118,15 @@
 
                             <li role="presentation">
                             @(new UiSelectionDto[Option[Long]](
-                                { userId: Option[Long] => routes.Gallery.query(module = title, userId, page = 1, region = region, round = round.id.get, rate) },
+                                { userId: Option[Long] => routes.Gallery.query(module = title, userId, page = 1, region = region, round = round.getId, rate) },
                                 Some(asUserId),
-                                UserJdbc.findByRoundSelection(round.id.get).map(u => (Some(u.id.get), SelectionItem(u.fullname, localized = false))),
+                                UserJdbc.findByRoundSelection(round.getId).map(u => (Some(u.getId), SelectionItem(u.fullname, localized = false))),
                                 Some(Some(0L) -> SelectionItem("all"))
                             ).toDropDown())
 
                             @if(round.isBinary) {
                                 @(new UiSelectionDto[Option[Int]](
-                                    routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.id.get, _),
+                                    routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.getId, _),
                                     rate,
                                     Seq(
                                         Some(1) -> SelectionItem("selected"),
@@ -137,7 +137,7 @@
                                 ).toDropDown())
                             } else {
                                 @(new UiSelectionDto[Option[Boolean]](
-                                    routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.id.get, None, _),
+                                    routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.getId, None, _),
                                     rated,
                                     Seq(
                                         Some(true) -> SelectionItem("rated"),
@@ -148,19 +148,19 @@
                             }
                             @if(rates.unrated > 0) {
                                 <li role="presentation" class="@if(rate.contains(0)) {active}">
-                                    <a href="/gallery/round/@round.id.get/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
+                                    <a href="/gallery/round/@round.getId/user/@asUserId/page/1@rateParam(Some(0))">@Messages("unrated")
                                         (@rates.unrated)
                                     </a>
 
-                            <li role="presentation" class="@if(!rate.contains(0) && asUserId == user.id.get) {active}">
-                                <a href="/byrate/round/@round.id.get/user/@user.id.get/page/1">@Messages("rated")
+                            <li role="presentation" class="@if(!rate.contains(0) && asUserId == user.getId) {active}">
+                                <a href="/byrate/round/@round.getId/user/@user.getId/page/1">@Messages("rated")
                                     (@rates.rated)
                                 </a>
                             }
 
                             @(new UiSelectionDto[String](
                                 { module: String =>
-                                    routes.Gallery.query(module, Some(asUserId), page = 1, region = region, round = round.id.get, rate = rate)
+                                    routes.Gallery.query(module, Some(asUserId), page = 1, region = region, round = round.getId, rate = rate)
                                 },
                                 title,
                                 Seq(

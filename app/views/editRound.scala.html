@@ -17,7 +17,7 @@
 @implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-4", "col-md-8") }
 @import helper._
 
-@mainAdmin(Messages("edit round"), user, user.id.get, contestId = contestId) {
+@mainAdmin(Messages("edit round"), user, user.getId, contestId = contestId) {
     <div class="row" >
         <div class="col-md-8">
 
@@ -62,14 +62,14 @@
 
                                         <div id="prevRoundFilters" @if(editRoundForm("previousRound").value.isEmpty) {
                                             style="display: none"}>
-                                            <div id="selectFilters" class="@rounds.filter(_.isBinary).map(r => "round" + r.id.get).mkString(" ")">
+                                            <div id="selectFilters" class="@rounds.filter(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
                                             @b3.select(
                                                 editRoundForm("minJurors"),
                                                 Seq("0", "1", "2", "3", "4", "5", "6").map(x => (x, x)),
                                                 '_label -> "Selected by at least X jurors", 'readonly -> noEdit)
                                             </div>
 
-                                            <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.id.get).mkString(" ")">
+                                            <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
                                             @b3.select(
                                                 editRoundForm("minAvgRate"),
                                                 (0 to 20).map(x => (x.toString, x.toString)),
@@ -118,7 +118,7 @@
                         <div @if(noEdit) {style="display: none"}>
                             @b3.select(
                                 editRoundForm("jurors"),
-                                jurors.map(u => (u.id.get.toString, u.description)).sortBy(_._2),
+                                jurors.map(u => (u.getId.toString, u.description)).sortBy(_._2),
                                 '_label -> "Jurors", 'multiple -> true, 'readonly -> noEdit)
                         </div>
                         @if(!newRound) {

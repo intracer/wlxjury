@@ -51,7 +51,7 @@ case class ImageWithRating(
 
   def jurors = selection.map(s => s.juryId).toSet
 
-  def jurorRate(juror: User): Option[Int] = selection.find(_.juryId == juror.id.get).map(_.rate)
+  def jurorRate(juror: User): Option[Int] = selection.find(_.juryId == juror.getId).map(_.rate)
 
   def jurorRateStr(juror: User): String = jurorRate(juror).fold("")(_.toString)
 

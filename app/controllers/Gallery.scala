@@ -67,7 +67,7 @@ object Gallery extends Controller with Secured with Instrumented {
   def listCurrent(page: Int = 1, region: String = "all", rate: Option[Int]) = withAuth() {
     user =>
       implicit request =>
-        Redirect(routes.Gallery.list(user.id.get, page, region, 0, rate))
+        Redirect(routes.Gallery.list(user.getId, page, region, 0, rate))
   }
 
   def listGeneric(
@@ -190,7 +190,7 @@ object Gallery extends Controller with Secured with Instrumented {
   def getAsUser(asUserId: Long, user: User): User = {
     if (asUserId == 0) {
       null
-    } else if (asUserId != user.id.get) {
+    } else if (asUserId != user.getId) {
       UserJdbc.findById(asUserId).get
     } else {
       user
@@ -246,7 +246,7 @@ object Gallery extends Controller with Secured with Instrumented {
   def largeCurrentUser(pageId: Long, region: String = "all", rate: Option[Int], module: String) = withAuth() {
     user =>
       implicit request =>
-        show(pageId, user, user.id.get, rate, region, 0, module)
+        show(pageId, user, user.getId, rate, region, 0, module)
   }
 
   def selectWS(roundId: Long, pageId: Long, select: Int, region: String = "all",
@@ -254,7 +254,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
 
-        SelectionJdbc.rate(pageId = pageId, juryId = user.id.get, roundId = roundId, rate = select)
+        SelectionJdbc.rate(pageId = pageId, juryId = user.getId, roundId = roundId, rate = select)
 
         Ok("success")
   }
@@ -266,12 +266,12 @@ object Gallery extends Controller with Secured with Instrumented {
 
         val roundOption = RoundJdbc.findById(roundId).filter(_.active)
 
-        roundOption.fold(Redirect(routes.Gallery.list(user.id.get, 1, region, roundId, rate))) { round =>
+        roundOption.fold(Redirect(routes.Gallery.list(user.getId, 1, region, roundId, rate))) { round =>
 
           if (criteria.isEmpty) {
-            SelectionJdbc.rate(pageId = pageId, juryId = user.id.get, roundId = round.getId, rate = select)
+            SelectionJdbc.rate(pageId = pageId, juryId = user.getId, roundId = round.getId, rate = select)
           } else {
-            val selection = SelectionJdbc.findBy(pageId, user.id.get, roundId).get
+            val selection = SelectionJdbc.findBy(pageId, user.getId, roundId).get
             CriteriaRate.updateRate(selection.getId, criteria.get, select)
           }
           checkLargeIndex(user, rate, pageId, region, round, module)
@@ -294,7 +294,7 @@ object Gallery extends Controller with Secured with Instrumented {
                       round: Round,
                       module: String): Result = {
 
-    val query = getQuery(asUser.id.get, rate, round.id)
+    val query = getQuery(asUser.getId, rate, round.id)
 
     val rank = query.imageRank(pageId)
 
@@ -319,13 +319,13 @@ object Gallery extends Controller with Secured with Instrumented {
     val roundId = round.getId
 
     if (newIndex >= 0) {
-      Redirect(routes.Gallery.large(asUser.id.get, newPageId, region, roundId, rate, module))
+      Redirect(routes.Gallery.large(asUser.getId, newPageId, region, roundId, rate, module))
     } else {
 
       if (module == "gallery") {
-        Redirect(routes.Gallery.list(asUser.id.get, 1, region, roundId, rate))
+        Redirect(routes.Gallery.list(asUser.getId, 1, region, roundId, rate))
       } else {
-        Redirect(routes.Gallery.byRate(asUser.id.get, 1, region, roundId))
+        Redirect(routes.Gallery.byRate(asUser.getId, 1, region, roundId))
       }
     }
   }
@@ -350,14 +350,14 @@ object Gallery extends Controller with Secured with Instrumented {
       val index = files.indexWhere(_.pageId == pageId)
       if (index < 0) {
         return Redirect(if (files.nonEmpty) {
-          routes.Gallery.large(asUserId, files.head.pageId, region, round.id.get, rate, module)
+          routes.Gallery.large(asUserId, files.head.pageId, region, round.getId, rate, module)
         } else {
-          routes.Gallery.list(asUserId, 1, region, round.id.get, rate)
+          routes.Gallery.list(asUserId, 1, region, round.getId, rate)
         })
       }
 
       val selection = if (user.canViewOrgInfo(round)) {
-        SelectionJdbc.byRoundAndImageWithJury(round.id.get, pageId)
+        SelectionJdbc.byRoundAndImageWithJury(round.getId, pageId)
       } else Seq.empty
 
       val page = index / (Pager.pageSize + 1) + 1
@@ -409,7 +409,7 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def rateDistribution(user: User, round: Round) = {
-    val rateMap = ImageJdbc.rateDistribution(user.id.get, round.id.get)
+    val rateMap = ImageJdbc.rateDistribution(user.getId, round.getId)
     new RateDistribution(rateMap)
   }
 }

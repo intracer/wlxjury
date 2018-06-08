@@ -1,7 +1,7 @@
 @import org.intracer.wmua.User
 @import org.intracer.wmua.Round
 @(round: Round, user: User, rate: Int, byUserRateCount: Map[Long, Map[Int, Int]])
-    @defining(byUserRateCount.getOrElse(user.id.get, Map.empty).toSeq.collect({
+    @defining(byUserRateCount.getOrElse(user.getId, Map.empty).toSeq.collect({
         case (x, y)
             if
             round.isBinary && rate == x ||
@@ -18,7 +18,7 @@
                     </button>
                 </a>
             } else {
-                <a href="@routes.Gallery.query(round = round.id.get, user = user.id, rated = Some(true))">
+                <a href="@routes.Gallery.query(round = round.getId, user = user.id, rated = Some(true))">
                     <button type="button" class="btn btn-default btn-xs @if(count == 0) {disabled}">
                         <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
                     </button>

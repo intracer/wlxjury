@@ -20,7 +20,7 @@
         }
         @if(round.active) {
             <div>
-            @form(routes.ImageDiscussion.addComment(objectId, region, rate, module, Some(round.id.get)), 'class -> "form-vertical", 'id -> "addComment") {
+            @form(routes.ImageDiscussion.addComment(objectId, region, rate, module, Some(round.getId)), 'class -> "form-vertical", 'id -> "addComment") {
                 <input type="hidden" name="id" id="id" value="0" />
                 <textarea class="imageComment" id="text" name="text" rows="3" placeholder="@Messages("Your comment here")"></textarea>
                 <input type="button" class="btn btn-primary" id="saySomething" value="Submit" onClick="document.forms[ 'addComment' ].submit ( ) ;" />

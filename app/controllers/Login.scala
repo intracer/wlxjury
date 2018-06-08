@@ -30,9 +30,9 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
       } {
         round =>
           if (round.isBinary) {
-            Redirect(routes.Gallery.list(user.id.get, 1, "all", round.id.get, rate = Some(0)))
+            Redirect(routes.Gallery.list(user.getId, 1, "all", round.getId, rate = Some(0)))
           } else {
-            Redirect(routes.Gallery.byRate(user.id.get, 0, "all", 0))
+            Redirect(routes.Gallery.byRate(user.getId, 0, "all", 0))
           }
       }
     } else if (user.hasRole(User.ROOT_ROLE)) {
@@ -105,7 +105,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
   def error(message: String) = withAuth() {
     user =>
       implicit request =>
-        Ok(views.html.error(message, user, user.id.get, user))
+        Ok(views.html.error(message, user, user.getId, user))
   }
 
   val loginForm = Form(

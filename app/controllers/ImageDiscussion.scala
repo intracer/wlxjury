@@ -25,10 +25,10 @@ object ImageDiscussion extends Controller with Secured {
 
         editCommentForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
-            Redirect(routes.Gallery.large(user.id.get, pageId, region, roundId, rate, module)),
+            Redirect(routes.Gallery.large(user.getId, pageId, region, roundId, rate, module)),
           commentBody => {
-            CommentJdbc.create(user.id.get, user.fullname, roundId, contestId.orElse(user.contest), pageId, commentBody.text)
-            Redirect(routes.Gallery.large(user.id.get, pageId, region, roundId, rate, module).url.concat("#comments"))
+            CommentJdbc.create(user.getId, user.fullname, roundId, contestId.orElse(user.contest), pageId, commentBody.text)
+            Redirect(routes.Gallery.large(user.getId, pageId, region, roundId, rate, module).url.concat("#comments"))
           }
     )
   }

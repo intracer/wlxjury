@@ -62,7 +62,7 @@ object User {
   val LANGS = Map("en" -> "English", "ru" -> "Русский", "uk" -> "Українська")
 
   def unapplyEdit(user: User): Option[(Long, String, Option[String], String, Option[String], Option[String], Option[Long], Option[String])] = {
-    Some((user.id.get, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.contest, user.lang))
+    Some((user.getId, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.contest, user.lang))
   }
 
   def applyEdit(id: Long, fullname: String, wikiAccount: Option[String], email: String, password: Option[String],

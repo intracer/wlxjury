@@ -35,7 +35,7 @@ class GlobalRefactor(val commons: MwBot) {
 
   def appendImages(source: String, imageList: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
 
-    ContestJuryJdbc.setImagesSource(contest.id.get, Some(source))
+    ContestJuryJdbc.setImagesSource(contest.getId, Some(source))
 
     val existingImages = ImageJdbc.findByContest(contest)
 
@@ -243,7 +243,7 @@ class GlobalRefactor(val commons: MwBot) {
 
   def distributeByCategory(parent: String, contest: ContestJury) = {
 
-    //    val round = Round(None, 1, Some("Round 1"), contest.id.get, distribution = 0, active = true)
+    //    val round = Round(None, 1, Some("Round 1"), contest.getId, distribution = 0, active = true)
     //
     //    val roundId = RoundJdbc.create(round).id
     //    ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)

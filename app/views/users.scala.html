@@ -8,7 +8,7 @@
     @import helper._
     @import views.html.bootstrap._
 
-    @mainAdmin(Messages("users"), adminUser, adminUser.id.get, contestId = contest.id) {
+    @mainAdmin(Messages("users"), adminUser, adminUser.getId, contestId = contest.id) {
         <div class="row" >
             <h3>@Messages("Contest: " + contest.fullName)</h3>
 

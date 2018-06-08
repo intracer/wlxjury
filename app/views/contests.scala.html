@@ -9,7 +9,7 @@
 @import helper._
 @import b3.vertical.fieldConstructor
 
-@mainAdmin(Messages("contests"), user, user.id.get) {
+@mainAdmin(Messages("contests"), user, user.getId) {
     <div class="row" xmlns="http://www.w3.org/1999/html">
 
         <h3>@Messages("Import from list page/images category")</h3>
@@ -97,7 +97,7 @@
                         <td>@Messages(contest.country)</td>
                         <td>@contest.year</td>
                         <td>
-                            <a href="@routes.Contests.images(contest.id.get)">@contest.images </a>
+                            <a href="@routes.Contests.images(contest.getId)">@contest.images </a>
                         </td>
                         <td>
                             <a href="@routes.Admin.users(contest.id)">

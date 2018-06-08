@@ -8,9 +8,9 @@
     @import helper._
     @import b3.vertical.fieldConstructor
 
-    @mainAdmin(Messages("contest images"), user, user.id.get, contestId = contest.id) {
+    @mainAdmin(Messages("contest images"), user, user.getId, contestId = contest.id) {
         <h3>@Messages("Contest: " + contest.fullName)</h3>
-        @form(routes.Contests.importImages(contest.id.get), 'class -> "form-vertical", 'id -> "import-images") {
+        @form(routes.Contests.importImages(contest.getId), 'class -> "form-vertical", 'id -> "import-images") {
             @helper.CSRF.formField
 
             <h4>@Messages("Source")</h4>

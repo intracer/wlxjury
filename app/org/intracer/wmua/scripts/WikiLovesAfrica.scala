@@ -14,7 +14,7 @@ object WikiLovesAfrica {
 
   def main(args: Array[String]) {
     for (contest <- ContestJuryJdbc.where('name -> contestType, 'country -> country, 'year -> year).apply().headOption) {
-      val contestId = contest.id.get
+      val contestId = contest.getId
 
       val cmds = Seq(
         ConnectDb(),
