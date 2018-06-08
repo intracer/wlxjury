@@ -47,7 +47,7 @@ class JurorImagesSpec extends Specification with InMemDb {
                       user: User = user,
                       round: Round = round) = {
     val selections = images.zipWithIndex.map { case (image, i) =>
-      Selection(0, image.pageId, rate, user.id.get, round.id.get)
+      Selection(image, user, round, rate)
     }
     selectionDao.batchInsert(selections)
     selections
@@ -197,8 +197,8 @@ class JurorImagesSpec extends Specification with InMemDb {
         val images = createImages(6)
 
 
-        val selections = images.zipWithIndex.map { case (image, i) =>
-          Selection(0, image.pageId, rate = i, user.id.get, round.id.get)
+        val selections = images.zipWithIndex.map { case (image, rate) =>
+          Selection(image, user, round, rate)
         }
         selectionDao.batchInsert(selections)
 
@@ -233,11 +233,11 @@ class JurorImagesSpec extends Specification with InMemDb {
         val jurors = Seq(user) ++ (1 to 3).map(contestUser(_)).map(userDao.create)
 
         def selectedBy(n: Int, image: Image, otherRate: Int = 0): Seq[Selection] = {
-          jurors.slice(0, n).map { j =>
-            Selection(0, image.pageId, 1, j.id.get, round.id.get)
+          jurors.slice(0, n).map { juror =>
+            Selection(image, juror, round)
           } ++
-            jurors.slice(n, jurors.size).map { j =>
-              Selection(0, image.pageId, otherRate, j.id.get, round.id.get)
+            jurors.slice(n, jurors.size).map { juror =>
+              Selection(image, juror, round, otherRate)
             }
         }
 
@@ -275,7 +275,7 @@ class JurorImagesSpec extends Specification with InMemDb {
         val jurors = (1 to 3).map(contestUser(_)).map(userDao.create)
 
         def rate(imageIndex: Int, jurorIndex: Int, rate: Int) =
-          Selection(0, images(imageIndex).pageId, rate, jurors(jurorIndex).id.get, round.id.get)
+          Selection(images(imageIndex), jurors(jurorIndex), round, rate)
 
         def rateN(imageIndex: Int, rates: Seq[Int]) =
           (0 to jurors.size)
@@ -311,11 +311,11 @@ class JurorImagesSpec extends Specification with InMemDb {
         val jurors = Seq(user) ++ (1 to 3).map(contestUser(_)).map(userDao.create)
 
         def selectedBy(n: Int, image: Image, otherRate: Int = 0): Seq[Selection] = {
-          jurors.slice(0, n).map { j =>
-            Selection(0, image.pageId, 1, j.id.get, round.id.get)
+          jurors.slice(0, n).map { juror =>
+            Selection(image, juror, round, 1)
           } ++
-            jurors.slice(n, jurors.size).map { j =>
-              Selection(0, image.pageId, otherRate, j.id.get, round.id.get)
+            jurors.slice(n, jurors.size).map { juror =>
+              Selection(image, juror, round, otherRate)
             }
         }
 

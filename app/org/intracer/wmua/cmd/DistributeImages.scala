@@ -12,19 +12,7 @@ import spray.util.pimpFuture
 case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) {
 
   def apply() = {
-    val selection: Seq[Selection] = round.distribution match {
-      case 0 =>
-        jurors.flatMap { juror =>
-          images.map(img => Selection(0, img.pageId, 0, juror.id.get, round.id.get, ZonedDateTime.now))
-        }
-      case x if x > 0 =>
-        images.zipWithIndex.flatMap {
-          case (img, i) =>
-            (0 until x).map(j =>
-              Selection(0, img.pageId, 0, jurors((i + j) % jurors.size).id.get, round.id.get, ZonedDateTime.now)
-          )
-        }
-    }
+    val selection: Seq[Selection] = newSelection
 
     SelectionJdbc.removeUnrated(round.id.get)
 
@@ -35,11 +23,28 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
     addCriteriaRates(selection)
   }
 
+  def newSelection = {
+    val selection: Seq[Selection] = round.distribution match {
+      case 0 =>
+        jurors.flatMap { juror =>
+          images.map(img => Selection(img, juror, round))
+        }
+      case x if x > 0 =>
+        images.zipWithIndex.flatMap {
+          case (img, i) =>
+            (0 until x).map(j =>
+              Selection(img, jurors((i + j) % jurors.size), round)
+            )
+        }
+    }
+    selection
+  }
+
   def addCriteriaRates(selection: Seq[Selection]): Unit = {
     if (round.hasCriteria) {
       val criteriaIds = Seq(1, 2, 3, 4) // TODO load form DB
       val rates = selection.flatMap { s =>
-          criteriaIds.map(id => new CriteriaRate(0, s.id, id, 0))
+          criteriaIds.map(id => new CriteriaRate(0, s.getId, id, 0))
         }
 
       CriteriaRate.batchInsert(rates)
@@ -150,12 +155,13 @@ object DistributeImages {
 
   val NoRebalance = Rebalance(Nil, Nil)
 
-  def rebalanceImages(round: Round,
-                      currentSelection: Seq[Selection],
-                      jurors: Seq[User],
-                      images: Seq[Image]): Rebalance  = {
+  def rebalanceImages(round: Round, jurors: Seq[User], images: Seq[Image], currentSelection: Seq[Selection]): Rebalance  = {
 
-    Rebalance(Nil, Nil)
+    if (currentSelection == Nil) {
+      Rebalance(DistributeImages(round, images, jurors).newSelection, Nil)
+    } else {
+      Rebalance(Nil, Nil)
+    }
   }
 
 }

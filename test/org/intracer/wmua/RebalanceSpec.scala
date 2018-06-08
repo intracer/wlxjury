@@ -7,15 +7,19 @@ import DistributeImages._
 class RebalanceSpec extends Specification {
 
   val round = new Round(Some(1), number = 1, contest = 1)
-  val selection = Selection(1, 1, rate = 0, 1, 1)
-  val juror = User("", "")
+  val selection = Selection(1, 1, 1)
+  val juror = User("", "", Some(1))
   val image = Image(1, "")
 
   "Rebalance" should {
 
     "do nothing" in {
       rebalanceImages(round, Nil, Nil, Nil) === NoRebalance
-      rebalanceImages(round, Seq(selection), Seq(juror), Seq(image)) === NoRebalance
+      rebalanceImages(round, Seq(juror), Seq(image), Seq(selection)) === NoRebalance
+    }
+
+    "init one juror" in {
+      rebalanceImages(round, Seq(juror), Seq(image), Nil) === Rebalance(Seq(selection), Nil)
     }
   }
 

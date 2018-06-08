@@ -272,7 +272,7 @@ object Gallery extends Controller with Secured with Instrumented {
             SelectionJdbc.rate(pageId = pageId, juryId = user.id.get, round = round.id.get, rate = select)
           } else {
             val selection = SelectionJdbc.findBy(pageId, user.id.get, roundId).get
-            CriteriaRate.updateRate(selection.id, criteria.get, select)
+            CriteriaRate.updateRate(selection.getId, criteria.get, select)
           }
           checkLargeIndex(user, rate, pageId, region, round, module)
         }
@@ -365,7 +365,7 @@ object Gallery extends Controller with Secured with Instrumented {
       val byCriteria = if (round.hasCriteria && asUserId != 0) {
         val criteria = {
           val selection = SelectionJdbc.findBy(pageId, asUserId, roundId).get
-          CriteriaRate.getRates(selection.id)
+          CriteriaRate.getRates(selection.getId)
         }
 
         criteria.map { c => c.criteria.toInt -> c.rate }.toMap

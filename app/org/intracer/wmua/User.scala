@@ -19,7 +19,7 @@ case class User(fullname: String,
                 wikiAccount: Option[String] = None,
                 hasWikiEmail: Boolean = false,
                 accountValid: Boolean = true
-               ) {
+               ) extends HasId {
 
   def emailLo = email.trim.toLowerCase
 

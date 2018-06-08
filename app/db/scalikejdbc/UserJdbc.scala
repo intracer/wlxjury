@@ -89,7 +89,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
     select.from(UserJdbc as u)
       .join(SelectionJdbc as s)
       .on(u.id, s.juryId)
-      .where.eq(s.round, roundId)
+      .where.eq(s.roundId, roundId)
       .groupBy(u.id)
       .orderBy(u.id)
   }.map(UserJdbc(u)).list().apply()

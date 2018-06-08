@@ -10,7 +10,7 @@ class SelectionSpec extends Specification with InMemDb {
   val selectionDao = SelectionJdbc
   val time = now
 
-  def sameTime(s: Seq[Selection]) = s.map(_.copy(createdAt = time))
+  def sameTime(s: Seq[Selection]) = s.map(_.copy(createdAt = Some(time)))
 
   def findAll() = sameTime(selectionDao.findAll())
 
@@ -25,13 +25,13 @@ class SelectionSpec extends Specification with InMemDb {
     "insert selection" in {
       inMemDbApp {
 
-        val s = Selection(-1, 20, 0, 30, 40, now)
+        val s = Selection(-1, 20, 0, 30, Some(40), Some(now))
 
-        val created = selectionDao.create(s.pageId, s.rate, s.juryId, s.round, s.createdAt)
+        val created = selectionDao.create(s.pageId, s.rate, s.juryId, s.roundId, s.createdAt)
 
-        val id = created.id
+        val id = created.getId
 
-        created === s.copy(id = id)
+        created === s.copy(id = Some(id))
 
         val dbi = selectionDao.findById(id)
         dbi === Some(created)
@@ -44,16 +44,16 @@ class SelectionSpec extends Specification with InMemDb {
     "batch insert selections" in {
       inMemDbApp {
         val s = sameTime(Seq(
-          Selection(-1, 1, 0, 10, 20),
-          Selection(-1, 2, 1, 11, 21),
-          Selection(-1, 3, -1, 12, 22)
+          Selection(-1, 1, 0, 10, Some(20)),
+          Selection(-1, 2, 1, 11, Some(21)),
+          Selection(-1, 3, -1, 12, Some(22))
         ))
 
         selectionDao.batchInsert(s)
 
         val selections = sameTime(selectionDao.findAll())
         selections.map(_.id) === Seq(1,2,3)
-        selections.map(_.copy(id= -1)) === s
+        selections.map(_.copy()) === s
       }
     }
 
@@ -61,11 +61,11 @@ class SelectionSpec extends Specification with InMemDb {
 
       inMemDbApp {
         val s = sameTime(Seq(
-          Selection(1, 1, 0, 10, 20),
-          Selection(2, 1, 0, 11, 20),
-          Selection(3, 2, 0, 10, 20),
-          Selection(4, 2, 0, 11, 20),
-          Selection(5, 1, 0, 10, 21)
+          Selection(1, 1, 0, 10, Some(20)),
+          Selection(2, 1, 0, 11, Some(20)),
+          Selection(3, 2, 0, 10, Some(20)),
+          Selection(4, 2, 0, 11, Some(20)),
+          Selection(5, 1, 0, 10, Some(21))
         ))
 
         selectionDao.batchInsert(s)

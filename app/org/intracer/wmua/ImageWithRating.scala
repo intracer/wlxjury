@@ -11,7 +11,7 @@ case class ImageWithRating(
                             rank: Option[Int] = None,
                             rank2: Option[Int] = None) extends Ordered[ImageWithRating] {
 
-  val ownJuryRating = new OwnRating(selection.headOption.getOrElse(Selection(0, image.pageId, 0, 0, 0)))
+  val ownJuryRating = new OwnRating(selection.headOption.getOrElse(Selection(image.pageId, 0, 0, 0)))
 
   def unSelect(): Unit =
     ownJuryRating.unSelect()

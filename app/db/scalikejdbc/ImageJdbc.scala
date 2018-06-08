@@ -170,7 +170,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
       .innerJoin(SelectionJdbc as s)
       .on(i.pageId, s.pageId)
       .where.eq(s.juryId, userId).and
-      .eq(s.round, roundId)
+      .eq(s.roundId, roundId)
       .and(rate.map(r => sqls.eq(s.rate, r)))
       .and(startPageId.map(id => sqls.ge(i.pageId, id)))
       .orderBy(s.rate.desc, i.pageId.asc)
@@ -266,7 +266,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
       .innerJoin(SelectionJdbc as s).on(i.pageId, s.pageId)
       .leftJoin(CriteriaRate as c).on(s.id, c.selection)
       .where.eq(s.juryId, userId).and
-      .eq(s.round, roundId)
+      .eq(s.roundId, roundId)
       .groupBy(s.id)
   }.map { rs =>
     (
@@ -287,7 +287,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
     select.from(ImageJdbc as i)
       .innerJoin(SelectionJdbc as s).on(i.pageId, s.pageId)
       .where.eq(s.rate, rate).and
-      .eq(s.round, roundId)
+      .eq(s.roundId, roundId)
   }.map { rs =>
     (ImageJdbc(i)(rs), SelectionJdbc(s)(rs))
   }.list().apply().map {

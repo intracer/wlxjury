@@ -86,7 +86,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
 
         selection1.size === 9
 
-        selection1.map(_.round).toSet === Set(dbRound.id.get)
+        selection1.map(_.roundId).toSet === Set(dbRound.id.get)
         selection1.map(_.rate).toSet === Set(0)
         selection1.map(_.pageId) === images.map(_.pageId)
         selection1.map(_.juryId).toSet === juryIds.toSet
@@ -113,7 +113,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
 
         selection.size === 9
 
-        selection.map(_.round).toSet === Set(dbRound.id.get)
+        selection.map(_.roundId).toSet === Set(dbRound.id.get)
         selection.map(_.rate).toSet === Set(0)
         selection.map(_.pageId) === images.map(_.pageId)
         selection.map(_.juryId) === juryIds ++ juryIds ++ juryIds
@@ -143,7 +143,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
 
         selection2.size === 9
 
-        selection2.map(_.round).toSet === Set(dbRound.id.get)
+        selection2.map(_.roundId).toSet === Set(dbRound.id.get)
         selection2.map(_.rate).toSet === Set(0)
         selection2.map(_.pageId) === images.map(_.pageId)
         selection2.map(_.juryId) === allJuryIds ++ allJuryIds ++ allJuryIds
@@ -179,7 +179,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
 
         selection2.size === 9
 
-        selection2.map(_.round).toSet === Set(dbRound.id.get)
+        selection2.map(_.roundId).toSet === Set(dbRound.id.get)
         selection2.map(_.rate).toSet === Set(0)
         selection2.map(_.pageId) === images.map(_.pageId)
         selection2.map(_.juryId) === allJuryIds ++ allJuryIds ++ allJuryIds
@@ -207,7 +207,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
 
         selection.size === numImages * distribution
 
-        selection.map(_.round).toSet === Set(dbRound.id.get)
+        selection.map(_.roundId).toSet === Set(dbRound.id.get)
         selection.map(_.rate).toSet === Set(0)
 
         val jurorsPerImage = selection.groupBy(_.pageId).values.map(_.size)
@@ -251,7 +251,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         DistributeImages.distributeImages(dbRound2, dbJurors, Some(dbRound))
 
         val secondRoundPageIds = selectionDao.findAll()
-          .filter(_.round == dbRound2.id.get)
+          .filter(_.roundId == dbRound2.id.get)
           .map(_.pageId).toSet
 
         secondRoundPageIds === selectedPageIds
@@ -286,7 +286,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
 
         DistributeImages.distributeImages(dbRound2, dbJurors, Some(dbRound))
 
-        val selection2 = selectionDao.findAll().filter(_.round == dbRound2.id.get)
+        val selection2 = selectionDao.findAll().filter(_.roundId == dbRound2.id.get)
 
         selection2.map(_.pageId).toSet === Set(images(0).pageId)
       }

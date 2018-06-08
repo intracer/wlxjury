@@ -21,36 +21,37 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
   override lazy val defaultAlias = createAlias("s")
 
   override def extract(rs: WrappedResultSet, c: ResultName[Selection]): Selection = Selection(
-    id = rs.int(c.id),
     pageId = rs.long(c.pageId),
-    rate = rs.int(c.rate),
     juryId = rs.long(c.juryId),
-    round = rs.long(c.round),
-    createdAt = rs.timestamp(c.createdAt).toZonedDateTime,
+    roundId = rs.long(c.roundId),
+    rate = rs.int(c.rate),
+    id = rs.longOpt(c.id),
+    createdAt = rs.timestampOpt(c.createdAt).map(_.toZonedDateTime),
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime)
   )
 
   def apply(c: ResultName[Selection])(rs: WrappedResultSet): Selection = Selection(
-    id = rs.int(c.id),
     pageId = rs.long(c.pageId),
-    rate = rs.int(c.rate),
     juryId = rs.long(c.juryId),
-    round = rs.long(c.round),
-    createdAt = rs.timestamp(c.createdAt).toZonedDateTime,
+    roundId = rs.long(c.roundId),
+    rate = rs.int(c.rate),
+    id = rs.longOpt(c.id),
+    createdAt = rs.timestampOpt(c.createdAt).map(_.toZonedDateTime),
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime)
   )
 
-  def create(pageId: Long, rate: Int, juryId: Long, roundId: Long, createdAt: ZonedDateTime = ZonedDateTime.now): Selection = {
+  def create(pageId: Long, rate: Int, juryId: Long, roundId: Long,
+             createdAt: Option[ZonedDateTime] = Some(ZonedDateTime.now)): Selection = {
     val id = withSQL {
       insert.into(SelectionJdbc).namedValues(
         column.pageId -> pageId,
         column.rate -> rate,
         column.juryId -> juryId,
-        column.round -> roundId,
+        column.roundId -> roundId,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
-    Selection(id = id, pageId = pageId, rate = rate, juryId = juryId, round = roundId, createdAt = createdAt)
+    Selection(pageId = pageId, juryId = juryId, roundId = roundId, rate = rate, id = Some(id), createdAt = createdAt)
   }
 
   def batchInsert(selections: Seq[Selection]) {
@@ -60,14 +61,14 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
         i.pageId,
         i.rate,
         i.juryId,
-        i.round,
+        i.roundId,
         i.createdAt))
       withSQL {
         insert.into(SelectionJdbc).namedValues(
           column.pageId -> sqls.?,
           column.rate -> sqls.?,
           column.juryId -> sqls.?,
-          column.round -> sqls.?,
+          column.roundId -> sqls.?,
           column.createdAt -> sqls.?
         )
       }.batch(batchParams: _*).apply()
@@ -94,7 +95,7 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
   def byRoundAndImageWithJury(roundId: Long, imageId: Long): Seq[(Selection, User)] = withSQL {
     select.from(SelectionJdbc as s)
       .innerJoin(UserJdbc as u).on(u.id, s.juryId)
-      .where.eq(s.round, roundId).and
+      .where.eq(s.roundId, roundId).and
       .eq(s.pageId, imageId).and
       .gt(s.rate, 0).and
       .append(isNotDeleted)
@@ -109,7 +110,7 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
     select(SQLSyntax.sum(c.rate), SQLSyntax.count(c.rate), s.result.*).from(SelectionJdbc as s)
       .leftJoin(CriteriaRate as c).on(s.id, c.selection)
       .where
-      .eq(s.round, roundId).and
+      .eq(s.roundId, roundId).and
       .append(isNotDeleted).
       groupBy(s.id)
   }.map(rs => (SelectionJdbc(s)(rs), rs.intOpt(1).getOrElse(0), rs.intOpt(2).getOrElse(0))).list().apply().map {
@@ -120,20 +121,20 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
     updateBy(sqls
       .eq(s.pageId, pageId).and.
       eq(s.juryId, juryId).and.
-      eq(s.round, round)
+      eq(s.roundId, round)
     ).withAttributes('rate -> -1)
 
   def rate(pageId: Long, juryId: Long, round: Long, rate: Int = 1): Unit = withSQL {
     update(SelectionJdbc).set(column.rate -> rate).where.
       eq(column.pageId, pageId).and.
       eq(column.juryId, juryId).and.
-      eq(column.round, round)
+      eq(column.roundId, round)
   }.update().apply()
 
-  def setRound(pageId: Long, oldRound: Long, newRound: Long ): Unit = withSQL {
-    update(SelectionJdbc).set(column.round -> newRound).where.
+  def setRound(pageId: Long, oldRoundId: Long, newRoundId: Long ): Unit = withSQL {
+    update(SelectionJdbc).set(column.roundId -> newRoundId).where.
       eq(column.pageId, pageId).and.
-      eq(column.round, oldRound)
+      eq(column.roundId, oldRoundId)
   }.update().apply()
 
   def activeJurors(roundId: Long): Int =
@@ -159,13 +160,13 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
   def removeImage(pageId: Long, roundId: Long): Unit =
     deleteBy(sqls
       .eq(s.pageId, pageId).and
-      .eq(s.round, roundId)
+      .eq(s.roundId, roundId)
     )
 
   def removeUnrated(roundId: Long): Unit =
     deleteBy(sqls
       .eq(column.rate, 0).and
-      .eq(column.round, roundId)
+      .eq(column.roundId, roundId)
     )
 
 }

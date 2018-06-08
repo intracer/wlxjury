@@ -286,7 +286,7 @@ class GlobalRefactor(val commons: MwBot) {
             future.map {
               filesInCategory =>
 
-                val selection = filesInCategory.map(img => new Selection(0, img.id.get, 0, juror.id.get, round.id.get, ZonedDateTime.now))
+                val selection = filesInCategory.map(img => Selection(img, juror, round))
                 SelectionJdbc.batchInsert(selection)
             }
         }
