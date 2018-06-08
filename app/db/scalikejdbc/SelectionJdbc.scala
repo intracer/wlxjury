@@ -76,21 +76,21 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
   }
 
   def byRound(roundId: Long): Seq[Selection] =
-    where('round -> roundId).apply()
+    where('roundId -> roundId).apply()
 
   def byRoundSelected(roundId: Long): Seq[Selection] =
-    where('round -> roundId)
+    where('roundId -> roundId)
       .where(sqls.ne(s.rate, 0)).apply()
 
   def byUser(user: User, roundId: Long): Seq[Selection] =
-    where('juryId -> user.id, 'round -> roundId).apply()
+    where('juryId -> user.id, 'roundId -> roundId).apply()
 
   def byUserSelected(user: User, roundId: Long): Seq[Selection] =
-    where('juryId -> user.id, 'round -> roundId)
+    where('juryId -> user.id, 'roundId -> roundId)
       .where(sqls.ne(s.rate, 0)).apply()
 
   def byUserNotSelected(user: User, roundId: Long): Seq[Selection] =
-    where('juryId -> user.id, 'round -> roundId, 'rate -> 0).apply()
+    where('juryId -> user.id, 'roundId -> roundId, 'rate -> 0).apply()
 
   def byRoundAndImageWithJury(roundId: Long, imageId: Long): Seq[(Selection, User)] = withSQL {
     select.from(SelectionJdbc as s)
@@ -103,7 +103,7 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
   }.map(rs => (SelectionJdbc(s)(rs), UserJdbc(u)(rs))).list().apply()
 
   def findBy(pageId: Long, juryId: Long, roundId: Long): Option[Selection] =
-    where('pageId -> pageId, 'juryId -> juryId, 'round -> roundId)
+    where('pageId -> pageId, 'juryId -> juryId, 'roundId -> roundId)
       .apply().headOption
 
   def byRoundWithCriteria(roundId: Long): Seq[Selection] = withSQL {
@@ -117,18 +117,18 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
     case (selection, sum, criterias) => if (criterias > 0) selection.copy(rate = sum / criterias) else selection
   }
 
-  def destroy(pageId: Long, juryId: Long, round: Long): Unit =
+  def destroy(pageId: Long, juryId: Long, roundId: Long): Unit =
     updateBy(sqls
       .eq(s.pageId, pageId).and.
       eq(s.juryId, juryId).and.
-      eq(s.roundId, round)
+      eq(s.roundId, roundId)
     ).withAttributes('rate -> -1)
 
-  def rate(pageId: Long, juryId: Long, round: Long, rate: Int = 1): Unit = withSQL {
+  def rate(pageId: Long, juryId: Long, roundId: Long, rate: Int = 1): Unit = withSQL {
     update(SelectionJdbc).set(column.rate -> rate).where.
       eq(column.pageId, pageId).and.
       eq(column.juryId, juryId).and.
-      eq(column.roundId, round)
+      eq(column.roundId, roundId)
   }.update().apply()
 
   def setRound(pageId: Long, oldRoundId: Long, newRoundId: Long ): Unit = withSQL {
@@ -143,14 +143,14 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
 
       SELECT s.jury_id
     FROM selection s
-    WHERE s.round = $roundId AND s.deleted_at IS NULL
+    WHERE s.roundId = $roundId AND s.deleted_at IS NULL
     GROUP BY s.jury_id
     HAVING sum(s.rate) > 0
     ) j"""
       .map(_.int(1)).single().apply().get
 
   def allJurors(roundId: Long): Long =
-    where('round -> roundId)
+    where('roundId -> roundId)
       .distinctCount('juryId)
 
   def destroyAll(pageId: Long): Unit =

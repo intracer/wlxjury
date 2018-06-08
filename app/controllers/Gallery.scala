@@ -254,7 +254,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
 
-        SelectionJdbc.rate(pageId = pageId, juryId = user.id.get, round = roundId, rate = select)
+        SelectionJdbc.rate(pageId = pageId, juryId = user.id.get, roundId = roundId, rate = select)
 
         Ok("success")
   }
@@ -269,7 +269,7 @@ object Gallery extends Controller with Secured with Instrumented {
         roundOption.fold(Redirect(routes.Gallery.list(user.id.get, 1, region, roundId, rate))) { round =>
 
           if (criteria.isEmpty) {
-            SelectionJdbc.rate(pageId = pageId, juryId = user.id.get, round = round.id.get, rate = select)
+            SelectionJdbc.rate(pageId = pageId, juryId = user.id.get, roundId = round.getId, rate = select)
           } else {
             val selection = SelectionJdbc.findBy(pageId, user.id.get, roundId).get
             CriteriaRate.updateRate(selection.getId, criteria.get, select)
@@ -316,7 +316,7 @@ object Gallery extends Controller with Secured with Instrumented {
       files.lastOption.fold(-1L)(_.pageId)
     else files(newIndex).pageId
 
-    val roundId = round.id.get
+    val roundId = round.getId
 
     if (newIndex >= 0) {
       Redirect(routes.Gallery.large(asUser.id.get, newPageId, region, roundId, rate, module))

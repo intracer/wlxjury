@@ -117,7 +117,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       val conditions =
         Seq(
           userId.map(id => "s.jury_id = " + id),
-          roundId.map(id => "s.round = " + id),
+          roundId.map(id => "s.round_id = " + id),
           rate.map(r => "s.rate = " + r),
           rated.map(r => if (r) "s.rate > 0" else "s.rate = 0"),
           regions.headOption.map { _ =>
@@ -177,7 +177,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     FROM images i
     JOIN (SELECT * FROM selection s WHERE $where) AS s1
     ON i.page_id = s1.page_id
-    LEFT JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId AND s.round = $roundId) AS s2
+    LEFT JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId AND s.round_id = $roundId) AS s2
     ON s1.rate < s2.rate
     GROUP BY s1.page_id
     ORDER BY rank ASC
@@ -239,7 +239,5 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         rs.string(1) -> rs.int(2)
       }
     }
-
   }
-
 }

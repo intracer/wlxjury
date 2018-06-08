@@ -294,15 +294,15 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
     case (img, sel) => ImageWithRating(img, Seq(sel))
   }
 
-  def byRatingMerged(rate: Int, round: Long): Seq[ImageWithRating] = {
-    val raw = ImageJdbc.byRating(rate, round)
+  def byRatingMerged(rate: Int, roundId: Long): Seq[ImageWithRating] = {
+    val raw = ImageJdbc.byRating(rate, roundId)
     val merged = raw.groupBy(_.pageId).mapValues(iws => new ImageWithRating(iws.head.image, iws.map(_.selection.head)))
     merged.values.toSeq
   }
 
-  def byRoundMerged(round: Long, pageSize: Int = Int.MaxValue, offset: Int = 0, rated: Option[Boolean] = None): Seq[ImageWithRating] =
+  def byRoundMerged(roundId: Long, pageSize: Int = Int.MaxValue, offset: Int = 0, rated: Option[Boolean] = None): Seq[ImageWithRating] =
     SelectionQuery(
-      roundId = Some(round),
+      roundId = Some(roundId),
       grouped = true,
       order = Map("rate" -> -1),
       rated = rated,
