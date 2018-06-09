@@ -1,6 +1,5 @@
 package db.scalikejdbc
 
-import db._
 import db.scalikejdbc.rewrite.ImageDbNew
 import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import org.intracer.wmua.{Selection, _}
@@ -234,7 +233,7 @@ class JurorImagesSpec extends Specification with InMemDb {
 
         def selectedBy(n: Int, image: Image, otherRate: Int = 0): Seq[Selection] = {
           jurors.slice(0, n).map { juror =>
-            Selection(image, juror, round)
+            Selection(image, juror, round, 1)
           } ++
             jurors.slice(n, jurors.size).map { juror =>
               Selection(image, juror, round, otherRate)
@@ -251,12 +250,14 @@ class JurorImagesSpec extends Specification with InMemDb {
 
         /// check
         result.size === 4
-        result.map(_.image) === Seq(
+        val actual = result.map(_.image)
+        val expected = Seq(
           images(3),
           images(2),
           images(1),
           images(0)
         )
+        actual === expected
         result.map(_.selection.size) === Seq(1, 1, 1, 1)
         result.map(_.rate) === Seq(3, 2, 1, 0)
 
