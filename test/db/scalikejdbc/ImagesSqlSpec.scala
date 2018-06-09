@@ -10,7 +10,7 @@ class ImagesSqlSpec extends Specification with InMemDb {
     "i.size as s_on_i, i.author as a_on_i"
 
   val selectionFields = "s.id as i_on_s, s.jury_id as ji_on_s, s.created_at as ca_on_s, s.deleted_at as da_on_s, " +
-    "s.round as r1_on_s, s.page_id as pi_on_s, s.rate as r2_on_s, s.criteria_id as ci_on_s"
+    "s.round_id as ri_on_s, s.page_id as pi_on_s, s.rate as r_on_s, s.criteria_id as ci_on_s"
 
   val allFields = imageFields + ", " + selectionFields
 
@@ -52,7 +52,7 @@ class ImagesSqlSpec extends Specification with InMemDb {
             join selection s
             on i.page_id = s.page_id
             where
-            s.round = 234"""
+            s.round_id = 234"""
       )
     }
 
@@ -72,7 +72,7 @@ class ImagesSqlSpec extends Specification with InMemDb {
             join selection s
             on i.page_id = s.page_id
             where
-            s.jury_id = 2 and s.round = 3 and s.rate = 1"""
+            s.jury_id = 2 and s.round_id = 3 and s.rate = 1"""
       )
     }
   }
@@ -85,7 +85,7 @@ class ImagesSqlSpec extends Specification with InMemDb {
             join selection s
             on i.page_id = s.page_id
             where
-            s.round = 3
+            s.round_id = 3
           group by s.page_id"""
       )
     }
