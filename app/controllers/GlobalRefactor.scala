@@ -1,7 +1,5 @@
 package controllers
 
-import java.time.ZonedDateTime
-
 import db.scalikejdbc._
 import org.intracer.wmua._
 import org.intracer.wmua.cmd.{FetchImageInfo, ImageEnricher, ImageTextFromCategory}
@@ -10,7 +8,7 @@ import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.list.ListArgs
 import org.scalawiki.dto.cmd.query.{Generator, Query}
 import org.scalawiki.dto.{Namespace, Page}
-import org.scalawiki.query.{DslQuery, SinglePageQuery}
+import org.scalawiki.query.DslQuery
 import org.scalawiki.wikitext.TemplateParser
 import org.scalawiki.wlx.dto.Contest
 import org.scalawiki.wlx.query.MonumentQuery

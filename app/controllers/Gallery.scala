@@ -8,7 +8,6 @@ import db.scalikejdbc.rewrite.ImageDbNew
 import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import play.api.http.HttpEntity
-import play.api.i18n.Messages
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc._
 
@@ -19,8 +18,6 @@ object Gallery extends Controller with Secured with Instrumented {
 
   import Pager._
   import play.api.Play.current
-
-  //def pages = 10
 
   val Selected = "selected"
 

@@ -21,6 +21,9 @@ object Global {
 
   lazy val commons = MwBot.fromHost(COMMONS_WIKIMEDIA_ORG)
 
+  val useLegacyThumbUrl = false
+  val thumbUrl: (Image, Int) => String = if (useLegacyThumbUrl) legacyThumbUlr else thumbPhpUrl
+
   def initCountry(category: String, countryOpt: Option[String]) = {
     val country = countryOpt.fold(category.replace("Category:Images from Wiki Loves Earth 2014 in ", ""))(identity)
 
@@ -46,8 +49,7 @@ object Global {
     val isSvg = info.title.toLowerCase.endsWith(".svg")
 
     if (px < info.width || isPdf || isTif || isSvg) {
-      val file = URLEncoder.encode(info.title.replaceFirst("File:", ""), "UTF-8")
-      s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
+      thumbUrl(info, px)
     } else {
       info.url.getOrElse("")
     }
@@ -62,8 +64,7 @@ object Global {
     val isSvg = info.title.toLowerCase.endsWith(".svg")
 
     if (px < info.width || isPdf || isTif || isSvg) {
-      val file = URLEncoder.encode(info.title.replaceFirst("File:", "").replace(" ", "_"), "UTF-8")
-      s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
+      thumbUrl(info, px)
     } else {
       info.url.getOrElse("")
     }
@@ -71,5 +72,29 @@ object Global {
 
   def srcSet(image: Image, resizeToWidth: Int, resizeToHeight: Int) = {
     s"${resizeTo(image, (resizeToWidth*1.5).toInt, (resizeToHeight*1.5).toInt)} 1.5x, ${resizeTo(image, resizeToWidth*2, resizeToHeight*2)} 2x"
+  }
+
+  def thumbPhpUrl(info: Image, px: Int) = {
+    val file = URLEncoder.encode(info.title.replaceFirst("File:", "").replace(" ", "_"), "UTF-8")
+    s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
+  }
+
+  def legacyThumbUlr(info: Image, px: Int) = {
+    val isPdf = info.title.toLowerCase.endsWith(".pdf")
+    val isTif = info.title.toLowerCase.endsWith(".tif")
+
+    val url = info.url.getOrElse("")
+    val lastSlash = url.lastIndexOf("/")
+    val utf8Size = info.title.getBytes("UTF8").length
+    val thumbStr = if (utf8Size > 165) {
+      "thumbnail.jpg"
+    } else {
+      url.substring(lastSlash + 1)
+    }
+    url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" +
+      (if (isPdf) "page1-" else
+      if (isTif) "lossy-page1-" else
+        "") +
+      px + "px-" + thumbStr + (if (isPdf || isTif) ".jpg" else "")
   }
 }
