@@ -43,6 +43,6 @@ object Pager {
 
   def startPageId(id: Long) = new Pager(startPageId = Some(id))
 
-  def pageSize = 35
+  def pageSize = 25
 
 }
