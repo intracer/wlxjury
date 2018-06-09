@@ -17,5 +17,4 @@ jdk:
 
 script: "sbt clean coverage test coverageReport"
 after_success:
-  - sbt coveralls
   - bash <(curl -s https://codecov.io/bash)
