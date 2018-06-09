@@ -3,27 +3,19 @@ package controllers
 import java.net.URLEncoder
 
 import _root_.db.scalikejdbc.ContestJuryJdbc
-import com.codahale.metrics.{JmxReporter, MetricRegistry}
+import com.codahale.metrics.MetricRegistry
 import org.intracer.wmua._
 import org.scalawiki.MwBot
-import play.Play
-import play.api._
 
 object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
 
   val gallerySizeX = 300
   val gallerySizeY = 250
-  val gallerySizeXDouble = 600
-  val gallerySizeYDouble = 400
   val thumbSizeX = 150
   val thumbSizeY = 120
   val largeSizeX = 1280
   val largeSizeY = 1100
-
-  private val galleryUrls = collection.mutable.Map[Long, String]()
-  private val largeUrls = collection.mutable.Map[Long, String]()
-  private val thumbUrls = collection.mutable.Map[Long, String]()
 
   val metrics = new MetricRegistry()
 
@@ -43,19 +35,6 @@ object Global {
   def globalRefactor = {
     val commons = MwBot.fromHost(MwBot.commons)
     new GlobalRefactor(commons)
-  }
-
-  def initContestFiles(filesInCategory: Seq[Image]) {
-
-    for (file <- filesInCategory) {
-      val galleryUrl = resizeTo(file, gallerySizeX, gallerySizeY)
-      val thumbUrl = resizeTo(file, thumbSizeX, thumbSizeY)
-      val largeUrl = resizeTo(file, largeSizeX, largeSizeY)
-
-      galleryUrls(file.pageId) = galleryUrl
-      thumbUrls(file.pageId) = thumbUrl
-      largeUrls(file.pageId) = largeUrl
-    }
   }
 
   def resizeTo(info: Image, resizeToWidth: Int, resizeToHeight: Int): String = {

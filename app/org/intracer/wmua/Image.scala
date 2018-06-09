@@ -37,7 +37,6 @@ object ImageUtil {
   def fmt = new DecimalFormat("0.0")
 
   def resizeTo(w: Int, h: Int, resizeToX: Int, resizeToY: Int): Int = {
-    val xRatio = w.toDouble / resizeToX
     val yRatio = h.toDouble / resizeToY
 
     Seq(resizeToX, (w / yRatio).toInt, w).min
