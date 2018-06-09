@@ -116,7 +116,7 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
   def roundUserStat(roundId: Long): Seq[RoundStatRow] =
     sql"""SELECT u.id, s.rate, count(1) FROM users u
       JOIN selection s ON s.jury_id = u.id
-    WHERE s.round = $roundId
+    WHERE s.round_id = $roundId
     GROUP BY u.id, s.rate""".map(rs =>
       RoundStatRow(rs.int(1), rs.int(2), rs.int(3))
     ).list().apply()
@@ -125,7 +125,7 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
     sql"""SELECT rate, count(1) FROM
 (SELECT DISTINCT s.page_id, s.rate FROM users u
   JOIN selection s ON s.jury_id = u.id
-  WHERE s.round = $roundId) t
+  WHERE s.round_id = $roundId) t
   GROUP BY rate""".map(rs => (rs.int(1), rs.int(2))).list().apply()
 
 }
