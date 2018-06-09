@@ -21,7 +21,7 @@ object Global {
 
   lazy val commons = MwBot.fromHost(COMMONS_WIKIMEDIA_ORG)
 
-  val useLegacyThumbUrl = false
+  val useLegacyThumbUrl = true
   val thumbUrl: (Image, Int) => String = if (useLegacyThumbUrl) legacyThumbUlr else thumbPhpUrl
 
   def initCountry(category: String, countryOpt: Option[String]) = {
