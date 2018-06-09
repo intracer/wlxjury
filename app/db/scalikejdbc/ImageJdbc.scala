@@ -146,13 +146,13 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
   JOIN selection s ON i.page_id = s.page_id
   WHERE
   s.jury_id = $userId
-  AND s.round = $roundId
+  AND s.round_id = $roundId
   GROUP BY rate""".map(rs => rs.int(1) -> rs.int(2)).list().apply().toMap
 
   def roundsStat(contestId: Long): Seq[(Long, Int, Int)] =
     sql"""SELECT r.id, s.rate, count(DISTINCT(s.page_id))
           FROM rounds r
-  JOIN selection s ON r.id = s.round
+  JOIN selection s ON r.id = s.round_id
   WHERE
   r.contest = $contestId
   GROUP BY r.id, s.rate
@@ -200,9 +200,9 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
 
     sql"""SELECT count(s2.page_id) + 1 AS rank, ${i.result.*}, ${s1.result.*}
     FROM images i
-    JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId  AND s.round = $roundId) AS s1
+    JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId  AND s.round_id = $roundId) AS s1
     ON i.page_id = s1.page_id
-    LEFT JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId AND s.round = $roundId) AS s2
+    LEFT JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId AND s.round_id = $roundId) AS s2
     ON s1.rate < s2.rate
     GROUP BY s1.page_id
     ORDER BY rank ASC
@@ -224,15 +224,15 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
     sql"""SELECT s1.rank1, s2.rank2, ${i.result.*}, ${s1.result.*}
           FROM images i JOIN
             (SELECT t1.*, count(t2.page_id) + 1 AS rank1
-            FROM (SELECT * FROM selection s WHERE  s.jury_id = $userId AND s.round = $roundId) AS t1
-            LEFT JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId AND s.round = $roundId) AS t2
+            FROM (SELECT * FROM selection s WHERE  s.jury_id = $userId AND s.round_id = $roundId) AS t1
+            LEFT JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId AND s.round_id = $roundId) AS t2
               ON  t1.rate < t2.rate
           GROUP BY t1.page_id) s1
               ON  i.page_id = s1.page_id
           JOIN
               (SELECT t1.page_id, count(t2.page_id) AS rank2
-                 FROM (SELECT * FROM selection s WHERE  s.jury_id = $userId AND s.round = $roundId) AS t1
-                 JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId AND s.round = $roundId) AS t2
+                 FROM (SELECT * FROM selection s WHERE  s.jury_id = $userId AND s.round_id = $roundId) AS t1
+                 JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId AND s.round_id = $roundId) AS t2
                    ON  t1.rate <= t2.rate
                GROUP BY t1.page_id) s2
             ON s1.page_id = s2.page_id
