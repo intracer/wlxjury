@@ -83,13 +83,13 @@ libraryDependencies ++= Seq(
   "com.wix" % "wix-embedded-mysql" % "4.1.2" % Test,
   "com.h2database" % "h2" % "1.4.193" % Test)
 
-dependencyOverrides ++= Set(
+dependencyOverrides ++= Seq(
   "commons-io" % "commons-io" % "2.5"
 )
 
 routesGenerator := StaticRoutesGenerator
 
-doc in Compile <<= target.map(_ / "none")
+//doc in Compile <<= target.map(_ / "none")
 
 javaOptions in Test += "-Dconfig.file=test/resources/application.conf"
 
