@@ -8,7 +8,7 @@ case class Comment(
   id: Long,
   userId: Long,
   username: String,
-  round: Long,
+  roundId: Long,
   contestId: Option[Long],
   room: Long,
   createdAt: String,
@@ -26,27 +26,27 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
     id = rs.long(c.id),
     userId = rs.int(c.userId),
     username = rs.string(c.username),
-    round = rs.int(c.round),
+    roundId = rs.int(c.roundId),
     contestId = rs.longOpt(c.contestId),
     room = rs.int(c.room),
     createdAt = rs.string(c.createdAt),
     body = rs.string(c.body)
   )
 
-  def create(userId: Long, username: String, round: Long, contestId: Option[Long], room: Long, body: String,
+  def create(userId: Long, username: String, roundId: Long, contestId: Option[Long], room: Long, body: String,
              createdAt: String = ZonedDateTime.now.toString)(implicit session: DBSession = autoSession): Comment = {
     val id = withSQL {
       insert.into(CommentJdbc).namedValues(
         column.userId -> userId,
         column.username -> username,
-        column.round -> round,
+        column.roundId -> roundId,
         column.room -> room,
         column.contestId -> contestId,
         column.body -> body,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
-    Comment(id = id, userId = userId, username = username, round = round, contestId = contestId, room =  room, body = body,
+    Comment(id = id, userId = userId, username = username, roundId = roundId, contestId = contestId, room =  room, body = body,
       createdAt = createdAt)
   }
 
@@ -56,19 +56,19 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
       .orderBy(c.id)
   }.map(CommentJdbc(c)).list().apply()
 
-  def findByRound(round: Long)(implicit session: DBSession = autoSession): List[Comment] = withSQL {
+  def findByRound(roundId: Long)(implicit session: DBSession = autoSession): List[Comment] = withSQL {
     select.from(CommentJdbc as c)
       .where //.append(isNotDeleted)
       // .and
-      .eq(c.round, round)
+      .eq(c.roundId, roundId)
       .orderBy(c.id)
   }.map(CommentJdbc(c)).list().apply()
 
-  def findByRoundAndSubject(round: Long, subject: Long)(implicit session: DBSession = autoSession): List[Comment] = withSQL {
+  def findByRoundAndSubject(roundId: Long, subject: Long)(implicit session: DBSession = autoSession): List[Comment] = withSQL {
     select.from(CommentJdbc as c)
       .where //.append(isNotDeleted)
       // .and
-      .eq(c.round, round).and
+      .eq(c.roundId, roundId).and
       .eq(c.room, subject)
       .orderBy(c.id)
   }.map(CommentJdbc(c)).list().apply()
