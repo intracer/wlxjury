@@ -137,7 +137,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
                     user,
                     editUserForm.fill(formUser).withError("email", "email should be unique"),
                     RoundJdbc.current(user),
-                    contestId = formUser.contest
+                    contestId = formUser.contestId
                   )
                 )
               } else {
@@ -165,7 +165,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
                 }
 
                 val result = if (user.hasAnyRole(User.ADMIN_ROLES)) {
-                  Redirect(routes.Admin.users(formUser.contest))
+                  Redirect(routes.Admin.users(formUser.contestId))
                 } else {
                   Redirect(routes.Login.index())
                 }
@@ -210,7 +210,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
             val parsed = User.parseList(formUsers)
               .map(_.copy(
                 lang = user.lang,
-                contest = Some(contestId)
+                contestId = Some(contestId)
               ))
 
             val results = parsed.map(pu => Try(createUser(user, pu.copy(roles = Set("jury")), contest)))
@@ -231,7 +231,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
 
           val greeting = getGreeting(contest)
 
-          val recipient = new User(fullname = "Recipient Full Name", email = "Recipient email", id = None, contest = contest.id)
+          val recipient = new User(fullname = "Recipient Full Name", email = "Recipient email", id = None, contestId = contest.id)
 
           val substitution = if (substituteJurors) {
             val users = UserJdbc.findByContest(contestId)
@@ -303,7 +303,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
     val password = formUser.password.getOrElse(UserJdbc.randomString(12))
     val hash = UserJdbc.hash(formUser, password)
 
-    val toCreate = formUser.copy(password = Some(hash), contest = contestOpt.flatMap(_.id).orElse(creator.contest))
+    val toCreate = formUser.copy(password = Some(hash), contestId = contestOpt.flatMap(_.id).orElse(creator.contestId))
 
     val createdUser = UserJdbc.create(toCreate)
 

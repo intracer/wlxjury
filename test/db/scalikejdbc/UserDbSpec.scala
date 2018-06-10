@@ -1,7 +1,5 @@
 package db.scalikejdbc
 
-import java.time.ZonedDateTime
-
 import org.intracer.wmua.User
 import org.specs2.mutable.Specification
 

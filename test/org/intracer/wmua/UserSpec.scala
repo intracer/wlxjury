@@ -12,13 +12,13 @@ class UserSpec extends Specification {
 
     "parse one email" in {
       val list: Seq[User] = User.parseList("123@abc.com")
-      val users: Seq[User] = Seq(User(email = "123@abc.com", id = None, contest = None, fullname = ""))
+      val users: Seq[User] = Seq(User(email = "123@abc.com", id = None, contestId = None, fullname = ""))
       list === users
     }
 
     "parse one email with name" in {
       val list: Seq[User] = User.parseList("Name Surname <123@abc.com>")
-      val users: Seq[User] = Seq(User(email = "123@abc.com", id = None, contest = None, fullname = "Name Surname"))
+      val users: Seq[User] = Seq(User(email = "123@abc.com", id = None, contestId = None, fullname = "Name Surname"))
       list === users
     }
 
@@ -27,7 +27,7 @@ class UserSpec extends Specification {
       val emails = Seq("123@abc.com", "234@bcd.com", "345@cde.com")
 
       User.parseList(emails.mkString("\n")) === emails.map { email =>
-        User(id = None, contest = None, fullname = "", email = email)
+        User(id = None, contestId = None, fullname = "", email = email)
       }
     }
 
@@ -35,7 +35,7 @@ class UserSpec extends Specification {
       val accounts = Seq("Ilya", "Antanana", "Ahonc", "Base")
 
       User.parseList(accounts.mkString("\n")) === accounts.map { account =>
-        User(id = None, contest = None, fullname = "", email = "", wikiAccount = Some(account))
+        User(id = None, contestId = None, fullname = "", email = "", wikiAccount = Some(account))
       }
     }
 
@@ -44,7 +44,7 @@ class UserSpec extends Specification {
       val withUser = withoutUser.map("User:" + _)
 
       User.parseList(withUser.mkString("\n")) === withoutUser.map { account =>
-        User(id = None, contest = None, fullname = "", email = "", wikiAccount = Some(account))
+        User(id = None, contestId = None, fullname = "", email = "", wikiAccount = Some(account))
       }
     }
 
@@ -55,8 +55,8 @@ class UserSpec extends Specification {
       )
 
       User.parseList(strings.mkString(",")) === Seq(
-        User(id = None, contest = None, fullname = "Name1 Surname1", email = "email1@server.com"),
-        User(id = None, contest = None, fullname = "Name2 Surname2", email = "email2@server.com")
+        User(id = None, contestId = None, fullname = "Name1 Surname1", email = "email1@server.com"),
+        User(id = None, contestId = None, fullname = "Name2 Surname2", email = "email2@server.com")
       )
     }
 
@@ -67,8 +67,8 @@ class UserSpec extends Specification {
       )
 
       User.parseList(strings.mkString("\n")) === Seq(
-        User(id = None, contest = None, fullname = "Name1 Surname1", email = "email1@server.com"),
-        User(id = None, contest = None, fullname = "Name2 Surname2", email = "email2@server.com")
+        User(id = None, contestId = None, fullname = "Name1 Surname1", email = "email1@server.com"),
+        User(id = None, contestId = None, fullname = "Name2 Surname2", email = "email2@server.com")
       )
     }
 
@@ -79,8 +79,8 @@ class UserSpec extends Specification {
       )
 
       User.parseList(strings.mkString(",\n")) === Seq(
-        User(id = None, contest = None, fullname = "Name1 Surname1", email = "email1@server.com"),
-        User(id = None, contest = None, fullname = "Name2 Surname2", email = "email2@server.com")
+        User(id = None, contestId = None, fullname = "Name1 Surname1", email = "email1@server.com"),
+        User(id = None, contestId = None, fullname = "Name2 Surname2", email = "email2@server.com")
       )
     }
   }

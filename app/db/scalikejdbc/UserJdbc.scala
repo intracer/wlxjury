@@ -59,7 +59,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
     roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
-    contest = rs.longOpt(c.contest),
+    contestId = rs.longOpt(c.contestId),
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
@@ -72,7 +72,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
     roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
-    contest = rs.longOpt(c.contest),
+    contestId = rs.longOpt(c.contestId),
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
@@ -81,7 +81,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
   )
 
   def findByContest(contest: Long): Seq[User] =
-    where('contest -> contest).orderBy(u.id).apply()
+    where('contestId -> contest).orderBy(u.id).apply()
 
   def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
     import SelectionJdbc.s
@@ -111,7 +111,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
              email: String,
              password: String,
              roles: Set[String],
-             contest: Option[Long] = None,
+             contestId: Option[Long] = None,
              lang: Option[String] = None,
              createdAt: Option[ZonedDateTime] = Some(ZonedDateTime.now)
             ): User = {
@@ -121,13 +121,13 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
         column.email -> email.trim.toLowerCase,
         column.password -> password,
         column.roles -> roles.headOption.getOrElse("jury"),
-        column.contest -> contest,
+        column.contestId -> contestId,
         column.lang -> lang,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
     User(id = Some(id), fullname = fullname, email = email, password = Some(password),
-      roles = roles ++ Set("USER_ID_" + id), contest = contest, createdAt = createdAt)
+      roles = roles ++ Set("USER_ID_" + id), contestId = contestId, createdAt = createdAt)
   }
 
   def create(user: User): User = {
@@ -138,7 +138,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
         column.wikiAccount -> user.wikiAccount,
         column.password -> user.password,
         column.roles -> user.roles.headOption.getOrElse(""),
-        column.contest -> user.contest,
+        column.contestId -> user.contestId,
         column.lang -> user.lang,
         column.createdAt -> user.createdAt)
     }.updateAndReturnGeneratedKey().apply()

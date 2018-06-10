@@ -116,7 +116,7 @@ object DistributeImages {
     val mpxAtLeast = round.minMpx
     val sizeAtLeast = round.minImageSize.map(_ * 1024 * 1024)
 
-    val contest = ContestJuryJdbc.findById(round.contest).get
+    val contest = ContestJuryJdbc.findById(round.contestId).get
     val imagesAll = prevRound.fold[Seq[ImageWithRating]](
       ImageJdbc.findByContest(contest).map(i =>
         new ImageWithRating(i, Seq.empty)

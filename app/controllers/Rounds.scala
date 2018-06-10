@@ -47,7 +47,7 @@ object Rounds extends Controller with Secured {
       implicit request =>
         val number = RoundJdbc.findByContest(contestId).size + 1
         val round: Round = roundId.flatMap(RoundJdbc.findById).getOrElse(
-          new Round(id = None, contest = contestId, number = number)
+          new Round(id = None, contestId = contestId, number = number)
         )
 
         val rounds = RoundJdbc.findByContest(contestId)
@@ -66,11 +66,11 @@ object Rounds extends Controller with Secured {
 
         val images = round.id.fold(Seq.empty[Image])(id => DistributeImages.getFilteredImages(round, jurors, prevRound))
 
-        Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contest), jurors, regions, stat, images))
+        Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contestId), jurors, regions, stat, images))
   }
 
   def loadJurors(contestId: Long): Seq[User] = {
-    UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, Seq("jury")).and.eq(UserJdbc.u.contest, contestId))
+    UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, Seq("jury")).and.eq(UserJdbc.u.contestId, contestId))
   }
 
   def loadJurors(contestId: Long, jurorIds: Seq[Long]): Seq[User] = {
@@ -78,7 +78,7 @@ object Rounds extends Controller with Secured {
       sqls
         .in(UserJdbc.u.id, jurorIds).and
         .in(UserJdbc.u.roles, Seq("jury")).and
-        .eq(UserJdbc.u.contest, contestId)
+        .eq(UserJdbc.u.contestId, contestId)
     )
   }
 
@@ -111,7 +111,7 @@ object Rounds extends Controller with Secured {
                 }
               }
             }
-            Redirect(routes.Rounds.rounds(Some(round.contest)))
+            Redirect(routes.Rounds.rounds(Some(round.contestId)))
           }
         )
   }
@@ -120,17 +120,17 @@ object Rounds extends Controller with Secured {
 
     //  val contest: Contest = Contest.byId(round.contest).head
 
-    val count = RoundJdbc.countByContest(round.contest)
+    val count = RoundJdbc.countByContest(round.contestId)
 
     val created = RoundJdbc.create(round.copy(number = count + 1))
 
     val prevRound = created.previous.flatMap(RoundJdbc.findById)
 
-    val jurors = loadJurors(round.contest, jurorIds)
+    val jurors = loadJurors(round.contestId, jurorIds)
 
     DistributeImages.distributeImages(created, jurors, prevRound)
 
-    SetCurrentRound(round.contest, None, created).apply()
+    SetCurrentRound(round.contestId, None, created).apply()
 
     created
   }
@@ -143,7 +143,7 @@ object Rounds extends Controller with Secured {
         newRoundId.map(_.toLong).foreach { id =>
           val round = RoundJdbc.findById(id)
           round.foreach { r =>
-            SetCurrentRound(r.contest, None, r).apply()
+            SetCurrentRound(r.contestId, None, r).apply()
           }
         }
 
@@ -241,7 +241,7 @@ object Rounds extends Controller with Secured {
   //  })
 
   def getRoundStat(roundId: Long, round: Round): RoundStat = {
-    val rounds = RoundJdbc.findByContest(round.contest)
+    val rounds = RoundJdbc.findByContest(round.contestId)
 
     val statRows: Seq[RoundStatRow] = RoundJdbc.roundUserStat(roundId)
 
@@ -261,7 +261,7 @@ object Rounds extends Controller with Secured {
 
     val total = SelectionQuery(roundId = Some(roundId), grouped = true).count()
 
-    val jurors = UserJdbc.findByContest(round.contest).filter { u =>
+    val jurors = UserJdbc.findByContest(round.contestId).filter { u =>
       u.id.exists(byUserCount.contains)
     }
 
@@ -341,7 +341,7 @@ object Rounds extends Controller with Secured {
     Seq[String], String, Seq[String], Boolean, Option[String])] = {
     val round = editRound.round
     Some((
-      round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
+      round.id, round.number, round.name, round.contestId, round.roles.head, round.distribution, round.rates.id,
       round.limitMin, round.limitMax, round.recommended, editRound.returnTo,
       round.minMpx.fold("No")(_.toString),
       round.previous,

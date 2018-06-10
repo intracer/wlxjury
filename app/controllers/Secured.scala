@@ -42,11 +42,11 @@ trait Secured {
 
   def contestPermission(roles: Set[String], contestId: Option[Long])(user: User): Boolean =
     isRoot(user) || contestId.fold(false) { id =>
-      user.hasAnyRole(roles) && user.contest.contains(id)
+      user.hasAnyRole(roles) && user.contestId.contains(id)
     }
 
   def roundPermission(roles: Set[String], roundId: Long)(user: User): Boolean =
     RoundJdbc.findById(roundId).exists { round =>
-      contestPermission(roles, Some(round.contest))(user)
+      contestPermission(roles, Some(round.contestId))(user)
     }
 }

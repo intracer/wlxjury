@@ -80,7 +80,7 @@ object Gallery extends Controller with Secured with Instrumented {
         timerList.time {
           val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.findById(roundId)
 
-          val roundContestId = maybeRound.map(_.contest).getOrElse(0L)
+          val roundContestId = maybeRound.map(_.contestId).getOrElse(0L)
           val round = maybeRound.get
           val rounds = if (user.canViewOrgInfo(round)) {
             RoundJdbc.findByContest(roundContestId)
@@ -382,7 +382,7 @@ object Gallery extends Controller with Secured with Instrumented {
     val end = Math.min(files.size, right + extraRight)
     val monument = files(index).image.monumentId.flatMap(id => if (id.trim.nonEmpty) MonumentJdbc.find(id) else None)
 
-    val comments = CommentJdbc.findBySubjectAndContest(files(index).pageId, round.contest)
+    val comments = CommentJdbc.findBySubjectAndContest(files(index).pageId, round.contestId)
 
     Ok(
       views.html.large.large(

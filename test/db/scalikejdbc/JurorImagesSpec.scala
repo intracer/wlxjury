@@ -23,15 +23,15 @@ class JurorImagesSpec extends Specification with InMemDb {
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
   def contestUser(i: Int, contestId: Long = contest.getId, role: String = "jury") =
-    User("fullname" + i, "email" + i, None, Set(role), contest = Some(contestId))
+    User("fullname" + i, "email" + i, None, Set(role), contestId = Some(contestId))
 
   def setUp(rates: Rates = Round.binaryRound) = {
     contest = contestDao.create(None, "WLE", 2015, "Ukraine", None, None, None)
     round = roundDao.create(
-      Round(None, 1, contest = contest.getId, rates = rates, active = true)
+      Round(None, 1, contestId = contest.getId, rates = rates, active = true)
     )
     user = userDao.create(
-      User("fullname", "email", None, Set("jury"), contest = contest.id)
+      User("fullname", "email", None, Set("jury"), contestId = contest.id)
     )
   }
 

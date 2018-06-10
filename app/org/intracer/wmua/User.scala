@@ -12,7 +12,7 @@ case class User(fullname: String,
                 id: Option[Long] = None,
                 roles: Set[String] = Set.empty,
                 password: Option[String] = None,
-                contest: Option[Long] = None,
+                contestId: Option[Long] = None,
                 lang: Option[String] = None,
                 createdAt: Option[ZonedDateTime] = None,
                 deletedAt: Option[ZonedDateTime] = None,
@@ -23,29 +23,29 @@ case class User(fullname: String,
 
   def emailLo = email.trim.toLowerCase
 
-  def currentContest = contest
+  def currentContest = contestId
 
   def hasRole(role: String) = roles.contains(role)
 
   def hasAnyRole(otherRoles: Set[String]) = roles.intersect(otherRoles).nonEmpty
 
-  def sameContest(other: User): Boolean = isInContest(other.contest)
+  def sameContest(other: User): Boolean = isInContest(other.contestId)
 
-  def isInContest(contestId: Option[Long]): Boolean =
-    (for (c <- contest; oc <- contestId) yield c == oc)
+  def isInContest(refContestId: Option[Long]): Boolean =
+    (for (c <- contestId; oc <- refContestId) yield c == oc)
       .getOrElse(false)
 
-  def isAdmin(contestId: Option[Long]) =
-    hasRole(User.ADMIN_ROLE) && isInContest(contestId) ||
+  def isAdmin(refContestId: Option[Long]) =
+    hasRole(User.ADMIN_ROLE) && isInContest(refContestId) ||
       hasRole(User.ROOT_ROLE)
 
   def canEdit(otherUser: User) =
-    isAdmin(otherUser.contest) ||
+    isAdmin(otherUser.contestId) ||
       id == otherUser.id
 
   def canViewOrgInfo(round: Round) =
     hasRole("root") ||
-      (contest.contains(round.contest) &&
+      (contestId.contains(round.contestId) &&
         hasAnyRole(Set("organizer", "admin", "root")) ||
         (roles.contains("jury") && round.juryOrgView))
 
@@ -62,7 +62,7 @@ object User {
   val LANGS = Map("en" -> "English", "ru" -> "Русский", "uk" -> "Українська")
 
   def unapplyEdit(user: User): Option[(Long, String, Option[String], String, Option[String], Option[String], Option[Long], Option[String])] = {
-    Some((user.getId, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.contest, user.lang))
+    Some((user.getId, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.contestId, user.lang))
   }
 
   def applyEdit(id: Long, fullname: String, wikiAccount: Option[String], email: String, password: Option[String],
@@ -78,14 +78,14 @@ object User {
     def fromUserName(str: String): Option[User] = {
       val withoutPrefix = str.replaceFirst("User:", "")
       Some(withoutPrefix).filter(_.trim.nonEmpty).map { _ =>
-        User(id = None, contest = None, fullname = "", email = "", wikiAccount = Some(withoutPrefix))
+        User(id = None, contestId = None, fullname = "", email = "", wikiAccount = Some(withoutPrefix))
       }
     }
 
     def fromInternetAddress(internetAddress: InternetAddress): Option[User] = {
       Constraints.emailAddress()(internetAddress.getAddress) match {
         case Valid =>
-          Some(User(id = None, contest = None,
+          Some(User(id = None, contestId = None,
             fullname = Option(internetAddress.getPersonal).getOrElse(""),
             email = internetAddress.getAddress))
         case Invalid(_) => None

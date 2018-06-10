@@ -23,7 +23,7 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
     name = Option(rs.string(c.name)),
     number = rs.int(c.number),
     distribution = rs.int(c.distribution),
-    contest = rs.long(c.contest),
+    contestId = rs.long(c.contestId),
     rates = Round.ratesById(rs.int(c.rates)),
     limitMin = rs.intOpt(c.limitMin),
     limitMax = rs.intOpt(c.limitMax),
@@ -51,7 +51,7 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
       insert.into(RoundJdbc).namedValues(
         column.number -> round.number,
         column.name -> round.name,
-        column.contest -> round.contest,
+        column.contestId -> round.contestId,
         column.roles -> round.roles.head,
         column.distribution -> round.distribution,
         column.rates -> round.rates.id,
@@ -85,7 +85,7 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
       )
 
   def activeRounds(contestId: Long): Seq[Round] =
-    where('contest -> contestId, 'active -> true)
+    where('contestId -> contestId, 'active -> true)
       .orderBy(r.id).apply()
 
   def current(user: User): Option[Round] = {
@@ -96,7 +96,7 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
   }
 
   def findByContest(contest: Long): Seq[Round] =
-    where('contest -> contest)
+    where('contestId -> contest)
       .orderBy(r.id).apply()
 
   def setActive(id: Long, active: Boolean): Unit =
@@ -105,11 +105,11 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
 
   def setInactiveAllInContest(contestId: Long): Unit = withSQL {
     update(RoundJdbc).set(column.active -> false)
-      .where.eq(column.contest, contestId)
+      .where.eq(column.contestId, contestId)
   }.update().apply()
 
-  def countByContest(contest: Long): Long =
-    countBy(sqls.eq(r.contest, contest))
+  def countByContest(contestId: Long): Long =
+    countBy(sqls.eq(r.contestId, contestId))
 
   case class RoundStatRow(juror: Long, rate: Int, count: Int)
 
