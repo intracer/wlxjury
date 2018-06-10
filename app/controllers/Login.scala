@@ -105,7 +105,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
   def error(message: String) = withAuth() {
     user =>
       implicit request =>
-        Ok(views.html.error(message, user, user.getId, user))
+        Ok(views.html.error(message, user, user.getId))
   }
 
   val loginForm = Form(

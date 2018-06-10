@@ -4,7 +4,6 @@
         title: String,
         user: User = null,
         asUserId: Long = 0,
-        asUser: User = null,
         selectedRound: Option[Round] = None,
         rounds: Seq[Round] = Seq.empty,
         gallery: Boolean = false,
@@ -115,7 +114,7 @@
     <body @if(gallery) {
         class="gallery"}>
 
-        @navbar(title, user, asUserId, asUser, selectedRound, rounds, gallery, rate, region, pager, contestId)
+        @navbar(title, user, asUserId, selectedRound, rounds, gallery, rate, region, pager, contestId)
 
         <div class="container">
 

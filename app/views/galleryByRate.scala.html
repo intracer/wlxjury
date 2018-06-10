@@ -4,7 +4,6 @@
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
-        asUser: org.intracer.wmua.User,
         files: Seq[org.intracer.wmua.ImageWithRating],
         pager: Pager,
         maybeRound: Option[org.intracer.wmua.Round],
@@ -40,7 +39,7 @@
     }
     }
 
-    @main("byrate", user, asUserId, asUser, maybeRound, rounds, true, rate, region,
+    @main("byrate", user, asUserId, maybeRound, rounds, true, rate, region,
         pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate"), rates, rated
     ) {
 

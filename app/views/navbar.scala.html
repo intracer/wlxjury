@@ -1,11 +1,9 @@
-@import db.scalikejdbc.RoundJdbc
 @import org.intracer.wmua.User
 @import db.scalikejdbc.UserJdbc
 @(
         title: String,
         user: org.intracer.wmua.User = null,
         asUserId: Long = 0,
-        asUser: org.intracer.wmua.User = null,
         selectedRound: Option[org.intracer.wmua.Round],
         rounds: Seq[org.intracer.wmua.Round] = Seq.empty,
         gallery: Boolean = false,

@@ -3,7 +3,7 @@
 @(user: User, round: Round, stat: RoundStat)(implicit flash: Flash, lang: Lang, messages: Messages)
 
 
-    @main(Messages("statistics"), user, user.getId, user, Some(round), stat.rounds, gallery = false) {
+    @main(Messages("statistics"), user, user.getId, Some(round), stat.rounds, gallery = false) {
 
         @if(user.canViewOrgInfo(round)) {
             <div class="row" >

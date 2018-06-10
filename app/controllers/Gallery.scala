@@ -117,7 +117,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
             module match {
               case "gallery" =>
-                Ok(views.html.gallery(user, asUserId, asUser,
+                Ok(views.html.gallery(user, asUserId,
                   files, pager, maybeRound, rounds, rate, region, byReg, rates)
                 )
               case "csv" =>
@@ -144,9 +144,9 @@ object Gallery extends Controller with Secured with Instrumented {
                 )
               case "byrate" =>
                 if (region != "grouped") {
-                  Ok(views.html.galleryByRate(user, asUserId, asUser, files, pager, maybeRound, rounds, rate, region, byReg, rates, rated))
+                  Ok(views.html.galleryByRate(user, asUserId, files, pager, maybeRound, rounds, rate, region, byReg, rates, rated))
                 } else {
-                  Ok(views.html.galleryByRateRegions(user, asUserId, asUser, files, pager, maybeRound, rounds, rate, region, byReg))
+                  Ok(views.html.galleryByRateRegions(user, asUserId, files, pager, maybeRound, rounds, rate, region, byReg))
                 }
             }
           }

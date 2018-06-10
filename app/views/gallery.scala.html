@@ -2,7 +2,6 @@
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
-        asUser: org.intracer.wmua.User,
         pageFiles: Seq[org.intracer.wmua.ImageWithRating],
         pager: Pager,
         round: Option[org.intracer.wmua.Round],
@@ -14,7 +13,7 @@
 
 @import java.net.URLEncoder
 
-    @main("gallery", user, asUserId, asUser, round, rounds, gallery = true, rate, region,
+    @main("gallery", user, asUserId, round, rounds, gallery = true, rate, region,
         pagerView(asUserId, pager, rate, round.flatMap(_.id), region), rates = rates) {
 
         @defining(round.flatMap(_.id).getOrElse(0L)) { roundId =>
