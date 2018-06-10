@@ -4,6 +4,18 @@ import org.specs2.mutable.Specification
 
 class UserSpec extends Specification {
 
+  "User" should
+  {
+    "be in contest" in {
+      User("", "", contestId = Some(1)).isInContest(Some(1)) === true
+      User("", "", contestId = Some(1)).isInContest(Some(2)) === false
+
+      User("", "", contestId = None).isInContest(None) === false
+      User("", "", contestId = Some(1)).isInContest(None) === false
+      User("", "", contestId = None).isInContest(Some(1)) === false
+    }
+  }
+
   "parseList" should {
 
     "parse empty" in {

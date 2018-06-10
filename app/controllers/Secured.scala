@@ -40,9 +40,9 @@ trait Secured {
 
   def isRoot(user: User): Boolean = rolePermission(Set(User.ROOT_ROLE))(user)
 
-  def contestPermission(roles: Set[String], contestId: Option[Long])(user: User): Boolean =
-    isRoot(user) || contestId.fold(false) { id =>
-      user.hasAnyRole(roles) && user.contestId.contains(id)
+  def contestPermission(roles: Set[String], contestId: Option[Long])(user: User): Boolean = {
+    isRoot(user) ||
+      (user.hasAnyRole(roles) && user.isInContest(contestId))
     }
 
   def roundPermission(roles: Set[String], roundId: Long)(user: User): Boolean =
