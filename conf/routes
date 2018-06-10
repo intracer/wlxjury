@@ -77,11 +77,11 @@ GET         /admin/users                                                        
 
 GET         /admin/importusers                                                      @controllers.Admin.showImportUsers(contestId: Option[Long] ?= None)
 
-POST         /admin/importusers                                                     @controllers.Admin.importUsers(contestId: Option[Long] ?= None)
+POST        /admin/importusers                                                      @controllers.Admin.importUsers(contestId: Option[Long] ?= None)
 
 GET         /admin/greeting                                                         @controllers.Admin.editGreeting(contestId: Option[Long] ?= None)
 
-POST         /admin/greeting                                                        @controllers.Admin.saveGreeting(contestId: Option[Long] ?= None)
+POST        /admin/greeting                                                         @controllers.Admin.saveGreeting(contestId: Option[Long] ?= None)
 
 GET         /users/edit/:id                                                         @controllers.Admin.editUser(id: Long)
 
@@ -119,7 +119,9 @@ POST        /contests/import                                                    
 
 GET         /contest/:id/images                                                     controllers.Contests.images(id: Long)
 
-POST        /contest/:id/importimages                                              controllers.Contests.importImages(id: Long)
+POST        /contest/:id/importimages                                               controllers.Contests.importImages(id: Long)
+
+GET         /thumb_urls/:сontestId                                                     controllers.Gallery.thumbnailUrls(сontestId: Long)
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)
 

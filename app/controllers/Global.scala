@@ -17,6 +17,11 @@ object Global {
   val largeSizeX = 1280
   val largeSizeY = 1100
 
+  val smallSizes  = Seq(
+    (gallerySizeX, gallerySizeY),
+    (thumbSizeX, thumbSizeY)
+  )
+
   val metrics = new MetricRegistry()
 
   lazy val commons = MwBot.fromHost(COMMONS_WIKIMEDIA_ORG)
@@ -71,7 +76,7 @@ object Global {
   }
 
   def srcSet(image: Image, resizeToWidth: Int, resizeToHeight: Int) = {
-    s"${resizeTo(image, (resizeToWidth*1.5).toInt, (resizeToHeight*1.5).toInt)} 1.5x, ${resizeTo(image, resizeToWidth*2, resizeToHeight*2)} 2x"
+    s"${resizeTo(image, (resizeToWidth * 1.5).toInt, (resizeToHeight * 1.5).toInt)} 1.5x, ${resizeTo(image, resizeToWidth * 2, resizeToHeight * 2)} 2x"
   }
 
   def thumbPhpUrl(info: Image, px: Int) = {

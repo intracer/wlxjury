@@ -153,17 +153,6 @@ object Gallery extends Controller with Secured with Instrumented {
         }
   }
 
-  def csvStream(lines: Seq[Seq[String]], filename: String): Result = {
-    val withBom = Csv.addBom(lines).toList
-    val source = Source[Seq[String]](withBom).map { line =>
-      ByteString(Csv.writeRow(line))
-    }
-    Result(
-      ResponseHeader(OK, Map("Content-Disposition" -> ("attachment; filename=\"" + filename + ".csv\""))),
-      HttpEntity.Streamed(source, None, Some(ContentTypes.`text/csv(UTF-8)`.value))
-    )
-  }
-
   def getSortedImages(
                        asUserId: Long,
                        rate: Option[Int],
@@ -408,6 +397,51 @@ object Gallery extends Controller with Secured with Instrumented {
   def rateDistribution(user: User, round: Round) = {
     val rateMap = ImageJdbc.rateDistribution(user.getId, round.getId)
     new RateDistribution(rateMap)
+  }
+
+  def csvStream(lines: Seq[Seq[String]], filename: String): Result = {
+    val withBom = Csv.addBom(lines).toList
+    val source = Source[Seq[String]](withBom).map { line =>
+      ByteString(Csv.writeRow(line))
+    }
+    Result(
+      ResponseHeader(OK, Map("Content-Disposition" -> ("attachment; filename=\"" + filename + ".csv\""))),
+      HttpEntity.Streamed(source, None, Some(ContentTypes.`text/csv(UTF-8)`.value))
+    )
+  }
+
+  def resizedImagesUrls(contestId: Long) = {
+    val images = ImageJdbc.findByContestId(contestId)
+    val urls = for (image <- images;
+                    (x, y) <- Global.smallSizes;
+                    factor <- Seq(1.0, 1.5, 2.0)
+    ) yield Global.resizeTo(image, (x * factor).toInt, (y * factor).toInt)
+
+    urls.sorted.distinct
+  }
+
+  def urlsStream(urls: collection.immutable.Iterable[String], filename: String): Result = {
+    val source = Source[String](urls).map { line =>
+      ByteString(line + "\n")
+    }
+    Result(
+      ResponseHeader(OK, Map("Content-Disposition" -> ("attachment; filename=\"" + filename + ".txt\""))),
+      HttpEntity.Streamed(source, None, Some(ContentTypes.`text/plain(UTF-8)`.value))
+    )
+  }
+
+  def thumbnailUrls(contestId: Long) = withAuth() {
+    user =>
+      implicit request =>
+        val contest = ContestJuryJdbc.findById(contestId).get
+        if (user.isAdmin(Some(contestId))) {
+          val urls = resizedImagesUrls(contestId)
+          val name = "WLXJury_Round_Thumb_Urls" + contest.fullName.replaceAll(" ", "_")
+          urlsStream(urls, name)
+        }
+        else {
+          onUnAuthorized(user)
+        }
   }
 }
 
