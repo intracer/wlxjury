@@ -80,15 +80,15 @@ object Gallery extends Controller with Secured with Instrumented {
         timerList.time {
           val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.findById(roundId)
 
-          val roundContest = maybeRound.map(_.contest).getOrElse(0L)
+          val roundContestId = maybeRound.map(_.contest).getOrElse(0L)
           val round = maybeRound.get
           val rounds = if (user.canViewOrgInfo(round)) {
-            RoundJdbc.findByContest(roundContest)
+            RoundJdbc.findByContest(roundContestId)
           } else {
-            RoundJdbc.activeRounds(roundContest)
+            RoundJdbc.activeRounds(roundContestId)
           }
 
-          if (isNotAuthorized(user, maybeRound, roundContest, rounds)) {
+          if (isNotAuthorized(user, maybeRound, roundContestId, rounds)) {
             onUnAuthorized(user)
           } else {
 
@@ -102,7 +102,7 @@ object Gallery extends Controller with Secured with Instrumented {
 
             val files = filesByUserId(query, pager, userDetails)
 
-            val contest = ContestJuryJdbc.findById(roundContest).get
+            val contest = ContestJuryJdbc.findById(roundContestId).get
 
             val byReg = if (contest.monumentIdTemplate.isDefined) {
               query.copy(regions = Set.empty).byRegionStat()
