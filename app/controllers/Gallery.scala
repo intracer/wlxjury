@@ -92,7 +92,7 @@ object Gallery extends Controller with Secured with Instrumented {
             onUnAuthorized(user)
           } else {
 
-            val asUser = getAsUser(asUserId, user)
+            lazy val asUser = getAsUser(asUserId, user)
 
             val regions = Set(region).filter(_ != "all")
 
