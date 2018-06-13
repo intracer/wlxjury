@@ -10,18 +10,14 @@
 
     @mainAdmin(Messages("users"), adminUser, adminUser.getId, contestId = contest.id) {
         <div class="row" >
-            <h3>@Messages("Contest: " + contest.fullName)</h3>
+            <h3>@Messages("contest") @contest.fullName</h3>
 
             <div style="margin-bottom: 10px">
                 <a href="@routes.Admin.importUsers(contest.id)" style="margin-right: 5px">
-                    <div class="btn btn-primary">
-                        Mass import
-                    </div>
+                    <div class="btn btn-primary">@Messages("mass.import")</div>
                 </a>
                 <a href="@routes.Admin.editGreeting(contest.id)">
-                    <div class="btn btn-primary">
-                        Edit greeting message
-                    </div>
+                    <div class="btn btn-primary">@Messages("edit.greeting.message")</div>
                 </a>
             </div>
 
@@ -30,8 +26,8 @@
 
                 <thead>
                     <tr>
-                        <th>@Messages("name")</th>
-                        <th>@Messages("Wiki Account")</th>
+                        <th>@Messages("full.name")</th>
+                        <th>@Messages("wiki.account")</th>
                         <th>@Messages("email")</th>
                         <th>@Messages("role")</th>
                         <th>@Messages("edit")</th>
@@ -71,7 +67,7 @@
                             <td>
                                 @user.email
                             </td>
-                            <td>@user.roles.filterNot(_.startsWith("USER_ID")).mkString(", ") </td>
+                            <td>@user.roles.filterNot(_.startsWith("USER_ID")).map(r => Messages(r)).mkString(", ") </td>
                             <td>
                                 <a href="/users/edit/@user.id">
                                     <button type="button" class="btn btn-default btn-xs">
@@ -95,19 +91,19 @@
                                 <input type="hidden" name="id" id="id" value="0" />
                                 <input type="hidden" name="contest" id="contest" value="@contest.id" />
 
-                                @text(editUserForm("fullname"))
+                                @text(editUserForm("fullname"), Messages("full.name"))
                             </td>
                             <td>
-                                @text(editUserForm("wikiAccount"))
+                                @text(editUserForm("wikiAccount"), Messages("wiki.account"))
                             </td>
                             <td>
-                                @text(editUserForm("email"))
+                                @text(editUserForm("email"), Messages("email"))
                             </td>
                             <td>
                             @select(
                                 editUserForm("roles"),
-                                Seq("no", "jury", "organizer", "admin").map(x => (x, x)),
-                                '_label -> "roles", '_help -> "", 'class -> "form-control")
+                                Seq("no", "jury", "organizer", "admin").map(x => (x, Messages(x))),
+                                '_label -> Messages("roles"), '_help -> "", 'class -> "form-control")
                             </td>
                             <td>
                                 <div class="btn btn-primary" onClick="document.forms['add-user'].submit();" style="margin-top: 10px">

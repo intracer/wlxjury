@@ -5,9 +5,9 @@ filter=Фільтрувати
 
 title=Play20StartApp
 
-email=Пошта
+email=Електронна пошта
 login=Логін
-fullname=Full Name
+full.name = Ім''я
 logout=Вийти
 password=Пароль
 
@@ -33,9 +33,6 @@ wiki.loves.earth = Вікі любить Землю
 wiki.loves.earth.Ukraine = Вікі любить Землю 2015 в Україні
 wiki.loves.monuments.Ukraine = Вікі любить пам'ятки 2015 в Україні
 wiki.loves.earth.Russia = Вікі любить Землю 2015 в Росії
-
-
-welcome.messsage = Організаційний комітет конкурсу {0} радий запросити Вас до журі.\nЗайдіть, будь ласка, за посиланням {1} \nіз логіном: {2} і паролем: {3}\nЗ повагою, {4}
 
 error.technical=Technical Error, please Retry
 validate=Validate
@@ -146,3 +143,20 @@ not.a.member = Не зареєстровані?
 forgot.your.password = Забули пароль?
 sign.up.now = Зареєструватися
 or.use.social = Або використайте існуючу обліковку MediaWiki:
+
+edit.user = Редагування користувача
+create.user = Створення користувача
+
+save = Зберегти
+cancel = Скасувати
+
+wiki.account = Вікі обліковка
+language = Мова
+reset.password = Скинути пароль
+
+gallery = Галерея
+your.comment.here = Ваш коментар
+comments = Коментарі
+submit.comment = Додати коментар
+
+images = Зображення

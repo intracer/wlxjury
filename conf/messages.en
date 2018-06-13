@@ -31,14 +31,10 @@ regions = Regions
 
 wiki.loves.earth = Wiki Loves Earth {0}
 wiki.loves.earth.Ukraine = Wiki Loves Earth 2015 in Ukraine
-wiki.loves.earth.Nepal = Wiki Loves Earth 2015 in Nepal
-wiki.loves.earth.Ghana = Wiki Loves Earth 2014 in Ghana
-wiki.loves.earth.Netherlands = Wiki Loves Earth 2014 in the Netherlands
 wiki.loves.monuments.Ukraine = Wiki Loves Monuments 2014 in Ukraine
 wiki.loves.earth.Russia = Wiki Loves Earth 2014 in Russia
 
 welcome.subject = Welcome to {0} jury
-welcome.messsage = Organizing committee of {0} is glad to welcome you as a jury member.\nPlease login to our jury tool {1} \nwith login: {2} and password: {3}\nRegards, {4}
 
 error.technical=Technical Error, please Retry
 validate=Validate
@@ -180,3 +176,40 @@ not.a.member = Not a member?
 forgot.your.password = Forgot your password?
 sign.up.now = Sign up now
 or.use.social = Or use your existing account on MediaWiki site to sign in:
+
+edit.user = Edit user
+create.user = Create user
+
+save = Save
+cancel = Cancel
+
+full.name = Full name
+wiki.account = Wiki account
+language = Language
+reset.password = Reset password
+
+gallery = Gallery
+
+your.comment.here = Your comment here
+comments = Comments
+submit.comment = Submit comment
+
+images = Images
+images.source = Images source
+commons.category.or.page.with.images = Commons category or page with images
+or.image.list = Or image list
+images.on.commons = Images on Commons
+images.in.database = Images in database
+import.images = Import images
+thumbnail.urls = thumbnail urls
+contest = Contest
+
+mass.import = Mass import
+edit.greeting.message = Edit greeting message
+role=Role
+edit=Edit
+
+jury=Jury
+organizer=Organizer
+admin=Admin
+no=No
