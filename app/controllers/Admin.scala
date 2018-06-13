@@ -123,7 +123,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
                 user,
                 formWithErrors,
                 RoundJdbc.current(user),
-                contestId = Some(formWithErrors.data("contest").toLong)
+                contestId = Try(formWithErrors.data("contest").toLong).toOption
               )
             ),
           formUser => {
