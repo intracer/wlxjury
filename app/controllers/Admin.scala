@@ -22,7 +22,7 @@ import scala.util.Try
 /**
   * Controller for admin views
   */
-class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secured  {
+class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secured {
 
 
   /**
@@ -49,25 +49,29 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
     */
   def wikiAccountInfo(users: Seq[User]): Seq[User] = {
     val names = users.flatMap(_.wikiAccount)
+    if (names.nonEmpty) {
 
-    val accounts = Global.commons.run(
-      Action(Query(
-        ListParam(Users(
-          UsUsers(names),
-          UsProp(UsEmailable, UsGender)
+      val accounts = Global.commons.run(
+        Action(Query(
+          ListParam(Users(
+            UsUsers(names),
+            UsProp(UsEmailable, UsGender)
+          ))
         ))
-      ))
-    ).await.flatMap(_.lastRevisionUser).collect {
-      case u: org.scalawiki.dto.User if u.id.isDefined => u
-    }
+      ).await.flatMap(_.lastRevisionUser).collect {
+        case u: org.scalawiki.dto.User if u.id.isDefined => u
+      }
 
-    users.map { u =>
-      val account = accounts.find(a => a.login == u.wikiAccount)
+      users.map { u =>
+        val account = accounts.find(a => a.login == u.wikiAccount)
 
-      u.copy(
-        hasWikiEmail = account.flatMap(_.emailable).getOrElse(false),
-        accountValid = account.isDefined
-      )
+        u.copy(
+          hasWikiEmail = account.flatMap(_.emailable).getOrElse(false),
+          accountValid = account.isDefined
+        )
+      }
+    } else {
+      users
     }
   }
 
@@ -227,7 +231,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
       implicit request =>
 
         (for (contestId <- contestIdParam.orElse(user.currentContest);
-             contest <- ContestJuryJdbc.findById(contestId)) yield {
+              contest <- ContestJuryJdbc.findById(contestId)) yield {
 
           val greeting = getGreeting(contest)
 
