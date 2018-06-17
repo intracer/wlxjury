@@ -154,7 +154,7 @@
 
                         @b3.select(
                             editRoundForm("rates"),
-                            Round.rates.map(x => (x.id.toString, x.name)),
+                            Round.rates.map(x => (x.id.toString, if (x.id == 1) x.name else Messages("1-x.rating", x.id))),
                             '_label -> Messages("rating.type"), 'readonly -> noEdit)
 
                         @if(!newRound) {
