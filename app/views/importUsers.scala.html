@@ -8,11 +8,13 @@
     <div class="row" >
 
 
-        <h3>Import</h3>
+        <h3>@Messages("import")</h3>
 
         <div>
-            Separate entries with commas/newline or both. Entries can be either Wikimedia projects accounts or emails.
-            Examples:
+            @Messages("separate.entries.with.commas.newline.or.both")
+            @Messages("entries.can.be.either.wikimedia.projects.accounts.or.emails")
+            <br>
+            @Messages("examples")
             <pre>Wiki Account 1, Wiki Account 2</pre>
             <pre>mail1@@server.com, mail2@@server.com</pre>
             <pre>Name1 Surname1 &lt;mail1@@server.com&gt;,
@@ -24,12 +26,12 @@ Name2 Surname2 &lt;mail2@@server.com&gt;</pre>
                 @helper.CSRF.formField
 
                 @textarea(field = importUserForm("userstoimport"),
-                    args = 'rows -> 7, 'cols -> 50, 'class -> "form-control", 'id -> "userstoimport", '_label -> "mails to import"
+                    args = 'rows -> 7, 'cols -> 50, 'class -> "form-control", 'id -> "userstoimport", '_label -> Messages("mails.to.import")
                 )
 
                 <div class="form-actions">
-                    <input type="submit" class="btn btn-default btn-primary" value="@Messages("Import users")">
-                    <a href="@routes.Admin.users(Some(contestId))" class="btn btn-default">@Messages("Cancel")</a>
+                    <input type="submit" class="btn btn-default btn-primary" value="@Messages("import")">
+                    <a href="@routes.Admin.users(Some(contestId))" class="btn btn-default">@Messages("cancel")</a>
                 </div>
 
             </div>
