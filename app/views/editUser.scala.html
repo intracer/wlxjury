@@ -44,8 +44,8 @@
                         @select(editUserForm("roles"),
                             (Seq("no", "jury", "organizer", "admin") ++ (
                                     if(user.hasRole("root")) Seq("root") else Seq.empty)
-                                    ).map(x => (x, x)),
-                            Seq('_label -> Messages("Role"), '_help -> "", 'class -> "form-control") ++
+                                    ).map(x => (x, Messages(x))),
+                            Seq('_label -> Messages("role"), '_help -> "", 'class -> "form-control") ++
                                     (if(!user.hasAnyRole(User.ADMIN_ROLES)) Seq('disabled -> "true") else Seq.empty): _*)
                     }
 
