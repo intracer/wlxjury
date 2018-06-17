@@ -228,3 +228,12 @@ mails.to.import=Е-пошти для імпорту
 examples=Приклади:
 separate.entries.with.commas.newline.or.both=Розділіть елементи комами та/або новими рядками.
 entries.can.be.either.wikimedia.projects.accounts.or.emails=Елементи можуть бути ніками у вікіпроектах чи адресами елекронної пошти.
+
+filelist = Список файлів
+round = Раунд
+juror = Член журі
+rank= Ранг
+file= Файл
+overall.selected = Загалом вибрано
+total.rating = Загальна оцінка
+rating = Оцінка
