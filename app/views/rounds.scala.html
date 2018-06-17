@@ -25,7 +25,7 @@
                     </div>
 
                     <div class="form-group">
-                        <input type="submit" class="btn btn-primary" value="@Messages("Set current round")">
+                        <input type="submit" class="btn btn-primary" value="@Messages("set.current.round")">
                     </div>
                 }
             }
@@ -39,7 +39,7 @@
                             <th width="10%">@Messages("name") </th>
                                 <!--  <th width="10%">@Messages("Jury role") </th> -->
                             <th width="10%">@Messages("image.distribution") </th>
-                            <th width="10%">@Messages("selection.type") </th>
+                            <th width="10%">@Messages("rating.type") </th>
                                 <!--                        <th width="10%">@Messages("Min selected") </th>
                             <th width="10%">@Messages("Max selected") </th>
                             <th width="10%">@Messages("Recommended selected") </th> -->
@@ -55,7 +55,7 @@
                             <td> <a href="@routes.Rounds.editRound(id = round.id, contestId = contest.getId)">@round.number</a> </td>
                             <td> @round.name </td>
                                 <!--                            <td>              @round.roles.mkString(",") </td> -->
-                            <td>@Option(round.distribution).filter(_ != 0).fold("Each image to all jurors")(i => s"Each image to $i juror(s)") </td>
+                            <td>@Option(round.distribution).filter(_ != 0).fold(Messages("each.image.to.all.jurors"))(i => Messages("each.image.to.i.juror.s", i))</td>
                             <td>@round.rates.name </td>
                                 <!--                            <td>              @round.limitMin </td>
                             <td>@round.limitMax </td>
@@ -73,7 +73,7 @@
         <div class="row" >
             <div class="control-group">
                 <a href="@routes.Rounds.editRound(id = None, contestId = contest.getId)">
-                    <div class="btn btn-primary" onClick="document.forms['add-user'].submit();">@Messages("Add round")</div>
+                    <div class="btn btn-primary" onClick="document.forms['add-user'].submit();">@Messages("add.round")</div>
                 </a>
 
             </div>

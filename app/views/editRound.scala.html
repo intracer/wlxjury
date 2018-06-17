@@ -17,15 +17,15 @@
 @implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-4", "col-md-8") }
 @import helper._
 
-@mainAdmin(Messages("edit round"), user, user.getId, contestId = contestId) {
+@mainAdmin(Messages("edit.round"), user, user.getId, contestId = contestId) {
     <div class="row" >
         <div class="col-md-8">
 
 
             @if(newRound) {
-                <h3>@Messages("Create round")</h3>
+                <h3>@Messages("create.round")</h3>
             } else {
-                <h3>@Messages("Edit round")</h3>
+                <h3>@Messages("edit.round")</h3>
             }
 
             @b3.form(routes.Rounds.saveRound) {
@@ -43,22 +43,22 @@
                     <input type="hidden" name="number" id="number" value='@editRoundForm("number").value' />
                     <input type="hidden" name="roles" id="roles" value='jury' />
 
-                    @b3.text(editRoundForm("name"), '_label -> "Round name (optional)")
+                    @b3.text(editRoundForm("round.name"), '_label -> Messages("round.name.optional"))
 
                     @defining(!newRound) { noEdit =>
 
                         <div class="panel panel-default">
                             <div class="panel-heading" id="headingImageFiltering">
                                 <a role="button" data-toggle="collapse" href="#collapseImageFiltering" aria-expanded="false" aria-controls="collapseImageFiltering">
-                                    <h3 class="panel-title">Image filtering</h3>
+                                    <h3 class="panel-title">@Messages("image.filtering")</h3>
                                 </a>
                             </div>
 
                             <div id="collapseImageFiltering" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingImageFiltering">
                                 <div class="panel-body">
                                     @if(rounds.nonEmpty) {
-                                        @b3.select(editRoundForm("previousRound"), ("" -> "No") +: rounds.map(r => (r.id.map(_.toString).get, r.description)),
-                                            '_label -> "Previous round", '_help -> "", 'class -> "form-control", 'readonly -> noEdit)
+                                        @b3.select(editRoundForm("previousRound"), ("" -> Messages("no")) +: rounds.map(r => (r.id.map(_.toString).get, r.description)),
+                                            '_label -> Messages("previous.round"), '_help -> "", 'class -> "form-control", 'readonly -> noEdit)
 
                                         <div id="prevRoundFilters" @if(editRoundForm("previousRound").value.isEmpty) {
                                             style="display: none"}>
@@ -66,14 +66,14 @@
                                             @b3.select(
                                                 editRoundForm("minJurors"),
                                                 Seq("0", "1", "2", "3", "4", "5", "6").map(x => (x, x)),
-                                                '_label -> "Selected by at least X jurors", 'readonly -> noEdit)
+                                                '_label -> Messages("selected.by.at.least.x.jurors"), 'readonly -> noEdit)
                                             </div>
 
                                             <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
                                             @b3.select(
                                                 editRoundForm("minAvgRate"),
                                                 (0 to 20).map(x => (x.toString, x.toString)),
-                                                '_label -> "Average image rating is at least", 'readonly -> noEdit)
+                                                '_label -> Messages("average.image.rating.is.at.least"), 'readonly -> noEdit)
                                             </div>
                                         </div>
                                     }
@@ -126,7 +126,7 @@
                         <div class="panel panel-default">
                             <div class="panel-heading" id="headingJurors">
                                 <a role="button" data-toggle="collapse" href="#collapseJurors" aria-expanded="false" aria-controls="collapseJurors">
-                                    <h3 class="panel-title">Jurors</h3>
+                                    <h3 class="panel-title">@Messages("jurors")</h3>
                                 </a>
                             </div>
 
@@ -145,13 +145,13 @@
                         @b3.select(editRoundForm("distribution"),
                             Seq(("0", "Each image to all jurors")) ++
                                     (1 until numJurors).map(x => (x.toString, s"Each image to $x juror(s)")),
-                            '_label -> "Image distribution",
+                            '_label -> Messages("image.distribution"),
                             'readonly -> (noEdit || numJurors == 0))
 
                         @b3.select(
                             editRoundForm("rates"),
                             Round.rates.map(x => (x.id.toString, x.name)),
-                            '_label -> "Selection type", 'readonly -> noEdit)
+                            '_label -> Messages("rating.type"), 'readonly -> noEdit)
 
                         @if(!newRound) {
                             @b3.checkbox(field = editRoundForm("newImages"),
@@ -172,9 +172,9 @@
 
                 <div class="form-actions" style="margin-top: 10px">
                     <input type="submit" class="btn btn-primary btn-default" style="width: 25%;
-                        margin-right: 10px" value="@Messages("Save")">
+                        margin-right: 10px" value="@Messages("save")">
                     <a href="@routes.Rounds.rounds(editRoundForm("contest").value.map(_.toLong))">
-                        <button type="button" class="btn btn-default" style="width: 25%;" >@Messages("Cancel")</button>
+                        <button type="button" class="btn btn-default" style="width: 25%;" >@Messages("cancel")</button>
                     </a>
                 </div>
             </div>
