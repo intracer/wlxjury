@@ -6,18 +6,21 @@
         substitution: Seq[String]
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 @import helper._
+@implicitFieldConstructor = @{
+    b3.horizontal.fieldConstructor("col-md-4", "col-md-8")
+}
 
 @mainAdmin(Messages("users"), adminUser, adminUser.getId, contestId = Some(contestId)) {
     <div class="row" >
 
-        <h3>Edit greeting template options</h3>
+        <h3>@Messages("edit.greeting.template")</h3>
 
         <table class="table table-striped table-condensed">
-            <caption>Variables</caption>
+            <caption>@Messages("variables")</caption>
             <thead>
                 <tr>
-                    <th>Variable</th>
-                    <th>Value</th>
+                    <th>@Messages("variable")</th>
+                    <th>@Messages("value")</th>
                 </tr>
             </thead>
             <tbody>
@@ -34,15 +37,15 @@
             <div class="form-group">
 
                 @textarea(field = importUserForm("greetingtemplate"),
-                    args = 'rows -> 15, 'cols -> 50, 'class -> "form-control", 'id -> "greeting-template", '_label -> "Greeting template"
+                    args = 'rows -> 15, 'cols -> 50, 'class -> "form-control", 'id -> "greeting-template", '_label -> Messages("greeting.template")
                 )
 
-                @checkbox(field = importUserForm("use"))
+                @b3.checkbox(importUserForm("use"), '_label -> Messages("send.greeting.to.new.users"))
 
                 <div class="form-actions">
-                    <input type="submit" class="btn btn-default btn-primary" value="@Messages("Save")">
-                    <a href="#substitution" class="btn btn-info" data-toggle="collapse">Check</a>
-                    <a href="@routes.Admin.users(Some(contestId))" class="btn btn-default">@Messages("Cancel")</a>
+                    <input type="submit" class="btn btn-default btn-primary" value="@Messages("save")">
+                    <a href="#substitution" class="btn btn-info" data-toggle="collapse">@Messages("check")</a>
+                    <a href="@routes.Admin.users(Some(contestId))" class="btn btn-default">@Messages("cancel")</a>
                 </div>
             </div>
 

@@ -239,3 +239,11 @@ total.rating = Загальна оцінка
 rating = Оцінка
 byrate = За рейтингом
 csv=CSV
+
+edit.greeting.template=Редагувати шаблон привітання
+variables=Змінні
+variable=Змінна
+value=Значення
+greeting.template=Шаблон привітання
+send.greeting.to.new.users=Надсилати привітання новим користувачам
+check=Перевірити

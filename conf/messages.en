@@ -274,3 +274,11 @@ total.rating = Total rating
 rating = Rating
 byrate = By rate
 csv=CSV
+
+edit.greeting.template=Edit greeting template
+variables=Variables
+variable=Variable
+value=Value
+greeting.template=Greeting template
+send.greeting.to.new.users=Send greeting to new users
+check=Check
