@@ -10,19 +10,18 @@
         contest: ContestJury
 )(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
     @import helper._
-    @import db.scalikejdbc.SelectionJdbc
 
     @mainAdmin(Messages("rounds"), adminUser, adminUser.getId,
         rounds = rounds, selectedRound = round, contestId = contest.id) {
         <div class="row" >
-            <h3>@Messages("Contest: " + contest.fullName)</h3>
+            <h3>@Messages("campaign") @contest.fullName</h3>
 
             @if(rounds.size > 1) {
                 @form(routes.Rounds.setRound(), 'class -> "form-inline", 'id -> "set-round", 'role -> "form") {
                     <div class="form-group">
                     @helper.CSRF.formField
                     @select(selectRoundForm("currentRound"), rounds.map(r => (r.id.map(_.toString).get, r.description)),
-                        '_label -> "Current round", '_help -> "", 'class -> "form-control")
+                        '_label -> Messages("current.round"), '_help -> "", 'class -> "form-control")
                     </div>
 
                     <div class="form-group">
@@ -36,16 +35,16 @@
 
                     <thead>
                         <tr>
-                            <th width="10%">@Messages("Number") </th>
-                            <th width="10%">@Messages("Name") </th>
+                            <th width="10%">@Messages("number") </th>
+                            <th width="10%">@Messages("name") </th>
                                 <!--  <th width="10%">@Messages("Jury role") </th> -->
-                            <th width="10%">@Messages("Image distribution") </th>
-                            <th width="10%">@Messages("Selection type") </th>
+                            <th width="10%">@Messages("image.distribution") </th>
+                            <th width="10%">@Messages("selection.type") </th>
                                 <!--                        <th width="10%">@Messages("Min selected") </th>
                             <th width="10%">@Messages("Max selected") </th>
                             <th width="10%">@Messages("Recommended selected") </th> -->
-                            <th width="10%">@Messages("Images")</th>
-                            <th width="10%">@Messages("Selected/Rated")</th>
+                            <th width="10%">@Messages("images")</th>
+                            <th width="10%">@Messages("selected.rated")</th>
                         </tr>
                     </thead>
 

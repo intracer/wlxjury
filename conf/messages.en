@@ -213,3 +213,18 @@ jury=Jury
 organizer=Organizer
 admin=Admin
 no=No
+
+campaigns=Campaigns
+campaign=Campaign
+import.from.list.page.images.category=Import from list page/images category
+examples.of.inputs=Examples of inputs
+source=Source
+import=Import
+
+name = Name
+country	= Country
+year = Year
+current.round = Current round
+id.template = Id template
+add=Add
+add.round=Add round
