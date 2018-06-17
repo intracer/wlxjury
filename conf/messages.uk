@@ -3,7 +3,7 @@ application.name=Журі
 date=Дата
 filter=Фільтрувати
 
-title=Play20StartApp
+title=Jury
 
 email=Електронна пошта
 login=Логін
@@ -237,3 +237,5 @@ file= Файл
 overall.selected = Загалом вибрано
 total.rating = Загальна оцінка
 rating = Оцінка
+byrate = За рейтингом
+csv=CSV

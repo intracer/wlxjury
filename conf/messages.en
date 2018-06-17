@@ -272,3 +272,5 @@ file= File
 overall.selected = Overall selected
 total.rating = Total rating
 rating = Rating
+byrate = By rate
+csv=CSV
