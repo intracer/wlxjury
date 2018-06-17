@@ -3,7 +3,7 @@ application.name=Jury Tool
 date=Date
 filter=Filter
 
-title=Play20StartApp
+title=Jury
 
 email=Email
 login=Login
@@ -26,13 +26,13 @@ statistics = Statistics
 thumbnails = Thumbnails
 file.list = File list
 
-top-x = Top 21
+top-x = Top {}
 regions = Regions
 
 wiki.loves.earth = Wiki Loves Earth {0}
-wiki.loves.earth.Ukraine = Wiki Loves Earth 2015 in Ukraine
-wiki.loves.monuments.Ukraine = Wiki Loves Monuments 2014 in Ukraine
-wiki.loves.earth.Russia = Wiki Loves Earth 2014 in Russia
+wiki.loves.earth.Ukraine = Wiki Loves Earth in Ukraine
+wiki.loves.monuments.Ukraine = Wiki Loves Monuments in Ukraine
+wiki.loves.earth.Russia = Wiki Loves Earth in Russia
 
 welcome.subject = Welcome to {0} jury
 
@@ -77,23 +77,23 @@ resetpassword.new.password=New password :
 
 changemail.mailsent=A mail has been sent, please check your mail.
 
-mail.confirm.subject=Welcome to Play20StartApp - Ask for confirmation
-mail.confirm.message=Welcome to Play20StartApp. <br> Click on this link : {0} to confirm your email.
+mail.confirm.subject=Welcome to Jury - Ask for confirmation
+mail.confirm.message=Welcome to Jury. <br> Click on this link : {0} to confirm your email.
 
-mail.welcome.subject=Welcome to Play20StartApp
-mail.welcome.message=Welcome to Play20StartApp. <br> Your account is validated. Enjoy !
+mail.welcome.subject=Welcome to Jury
+mail.welcome.message=Welcome to Jury. <br> Your account is validated. Enjoy !
 
-mail.reset.ask.subject=Play20StartApp - New password
+mail.reset.ask.subject=Jury - New password
 # Cannot use You've unescaped here, as the single quote stops the {0}
 mail.reset.ask.message=You asked for your password to be reset.  <br> Click on this link : {0} to change your password.
 
-mail.change.ask.subject=Play20StartApp - Validate email
+mail.change.ask.subject=Jury - Validate email
 mail.change.ask.message=You asked for your email to be changed.  <br> Click on this link : {0} to validate your email.
 
 mail.reset.fail.subject=Account Access Attempted
 mail.reset.fail.message=You (or someone else) entered this email address when trying to change the password.  However, this email address is not on our list of registered users, and so the attempted password reset has failed.
 
-mail.reset.confirm.subject=Play20StartApp - New password
+mail.reset.confirm.subject=Jury - New password
 mail.reset.confirm.message=Hello, <br><br> Your password has been reset.
 
 

@@ -30,9 +30,9 @@ regions = Регіони
 
 welcome.subject = Ласкаво просимо до журі {0}
 wiki.loves.earth = Вікі любить Землю
-wiki.loves.earth.Ukraine = Вікі любить Землю 2015 в Україні
-wiki.loves.monuments.Ukraine = Вікі любить пам'ятки 2015 в Україні
-wiki.loves.earth.Russia = Вікі любить Землю 2015 в Росії
+wiki.loves.earth.Ukraine = Вікі любить Землю в Україні
+wiki.loves.monuments.Ukraine = Вікі любить пам''ятки в Україні
+wiki.loves.earth.Russia = Вікі любить Землю в Росії
 
 error.technical=Technical Error, please Retry
 validate=Validate
@@ -71,7 +71,7 @@ signup.repeat.your.password=Повторіть пароль
 resetpassword=Reset Password
 resetpassword.mailsent=A mail has been sent, please check your mail.
 resetpassword.success=Your password has been reset.
-resetpassword.new.password=New password :
+resetpassword.new.password=New password:
 
 changemail.mailsent=A mail has been sent, please check your mail.
 
@@ -81,20 +81,20 @@ mail.confirm.message=Welcome to Play20StartApp. <br> Click on this link : {0} to
 mail.welcome.subject=Welcome to Play20StartApp
 mail.welcome.message=Welcome to Play20StartApp. <br> Your account is validated. Enjoy !
 
-mail.reset.ask.subject=Play20StartApp - New password
+mail.reset.ask.subject=Jury - New password
 # Cannot use You've unescaped here, as the single quote stops the {0}
 mail.reset.ask.message=You asked for your password to be reset.  <br> Click on this link : {0} to change your password.
 
-mail.change.ask.subject=Play20StartApp - Validate email
+mail.change.ask.subject=Jury - Validate email
 mail.change.ask.message=You asked for your email to be changed.  <br> Click on this link : {0} to validate your email.
 
 mail.reset.fail.subject=Account Access Attempted
 mail.reset.fail.message=You (or someone else) entered this email address when trying to change the password.  However, this email address is not on our list of registered users, and so the attempted password reset has failed.
 
-mail.reset.confirm.subject=Play20StartApp - New password
+mail.reset.confirm.subject=Jury - New password
 mail.reset.confirm.message=Hello, <br><br> Your password has been reset.
 
-error.required=Обов'язкове поле
+error.required=Обов''язкове поле
 error.email=Потрібна адреса пошти
 
 dates = Дати
@@ -216,7 +216,7 @@ category=Категорія
 absent=Немає
 images.should.be.IN.the.category=Зображення мають бути В категорії
 images.should.be.NOT.IN.the.category=Зображення мають бути НЕ В категорії
-monument.ids.comma.separated=Ідентифікатори пам'яток (розділені комами)
+monument.ids.comma.separated=Ідентифікатори пам''яток (розділені комами)
 minimum.megapixels=Мінімум мегапікселів
 minimum.megabytes=Мінімум мегабайт
 distribute.x.new.images=Розподілити {0} нових зображень
