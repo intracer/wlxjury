@@ -14,7 +14,9 @@
         newImages: Seq[Image] = Seq.empty
 )(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
 
-@implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-4", "col-md-8") }
+@implicitFieldConstructor = @{
+    b3.horizontal.fieldConstructor("col-md-4", "col-md-8")
+}
 @import helper._
 
 @mainAdmin(Messages("edit.round"), user, user.getId, contestId = contestId) {
@@ -80,48 +82,50 @@
                                     @b3.select(
                                         editRoundForm("categoryClause"),
                                         Seq(
-                                            ("No", "Absent"),
-                                            ("1", "Images should be IN the category"),
-                                            ("-1", "Images should be NOT IN the category")
+                                            ("No", Messages("absent")),
+                                            ("1", Messages("images.should.be.IN.the.category")),
+                                            ("-1", Messages("images.should.be.NOT.IN.the.category"))
                                         ),
-                                        '_label -> "Category Filter", 'readonly -> noEdit)
+                                        '_label -> Messages("category.filter"), 'readonly -> noEdit)
 
-                                <div id="categoryDiv" @if(editRoundForm("source").value.isEmpty) {
-                                    style="display: none"}>
-                                @b3.text(editRoundForm("source"), '_label -> "Category", 'readonly -> noEdit)
-                                </div>
+                                    <div id="categoryDiv" @if(editRoundForm("source").value.isEmpty) {
+                                        style="display: none"}>
+                                    @b3.text(editRoundForm("source"), '_label -> Messages("category"), 'readonly -> noEdit)
+                                    </div>
 
                                     @if(regions.nonEmpty) {
                                         @b3.select(
                                             editRoundForm("regions"),
-                                            regions.toSeq.sortBy(_._1), '_label -> "Regions", 'multiple -> true, 'readonly -> noEdit)
+                                            regions.map { case (k, v) => (k, Messages(k)) }.toSeq.sortBy(_._1),
+                                            '_label -> Messages("regions"), 'multiple -> true, 'readonly -> noEdit)
 
                                         @b3.text(
                                             editRoundForm("monumentIds"),
-                                            '_label -> "Monument ids (comma separated)", 'readonly -> noEdit)
+                                            '_label -> Messages("monument.ids.comma.separated"), 'readonly -> noEdit)
                                     }
 
                                     @b3.select(
                                         editRoundForm("minMpx"),
-                                        Seq("No", "1", "2").map(x => (x, x)),
-                                        '_label -> "Minimum MegaPixels", 'readonly -> noEdit)
+                                        Seq("No", "1", "2").map(x => (x, Messages(x.toLowerCase))),
+                                        '_label -> Messages("minimum.megapixels"), 'readonly -> noEdit)
 
                                     @b3.select(
                                         editRoundForm("minSize"),
-                                        Seq("No", "1", "2").map(x => (x, x)),
-                                        '_label -> "Minimum Megabytes", 'readonly -> noEdit)
+                                        Seq("No", "1", "2").map(x => (x, Messages(x.toLowerCase))),
+                                        '_label -> Messages("minimum.megabytes"), 'readonly -> noEdit)
 
                                 </div>
                             </div>
                         </div>
 
-                        <div @if(noEdit) {style="display: none"}>
-                            @b3.select(
-                                editRoundForm("jurors"),
-                                jurors.map(u => (u.getId.toString, u.description)).sortBy(_._2),
-                                '_label -> "Jurors", 'multiple -> true, 'readonly -> noEdit)
+                        <div @if(noEdit) {
+                            style="display: none"}>
+                        @b3.select(
+                            editRoundForm("jurors"),
+                            jurors.map(u => (u.getId.toString, u.description)).sortBy(_._2),
+                            '_label -> Messages("jurors"), 'multiple -> true, 'readonly -> noEdit)
                         </div>
-                        @if(!newRound) {
+                    @if(!newRound) {
 
                         <div class="panel panel-default">
                             <div class="panel-heading" id="headingJurors">
@@ -143,8 +147,8 @@
 
                     @defining(Rounds.jurorsMapping.bind(editRoundForm.data).right.getOrElse(Seq.empty).size) { numJurors =>
                         @b3.select(editRoundForm("distribution"),
-                            Seq(("0", "Each image to all jurors")) ++
-                                    (1 until numJurors).map(x => (x.toString, s"Each image to $x juror(s)")),
+                            Seq(("0", Messages("each.image.to.all.jurors"))) ++
+                                    (1 until numJurors).map(x => (x.toString, Messages("each.image.to.i.juror.s", x))),
                             '_label -> Messages("image.distribution"),
                             'readonly -> (noEdit || numJurors == 0))
 
@@ -155,7 +159,7 @@
 
                         @if(!newRound) {
                             @b3.checkbox(field = editRoundForm("newImages"),
-                                '_label -> s"Distribute ${newImages.size} new images",
+                                '_label -> Messages("distribute.x.new.images", newImages.size),
                                 'readonly -> (numJurors == 0 || newImages.isEmpty))
                         }
                     }
