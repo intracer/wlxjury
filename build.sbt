@@ -44,6 +44,7 @@ val ScalikejdbcVersion = "3.2.1"
 val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.2"
 val ScalawikiVersion = "0.5-M7"
 val PlayMailerVersion = "6.0.1"
+val DockerTestkitVersion = "0.9.7"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -80,6 +81,9 @@ libraryDependencies ++= Seq(
   guice, filters,
   specs2 % Test,
   jdbc % Test,
+  "com.whisk" %% "docker-testkit-specs2" % DockerTestkitVersion % Test,
+  "com.whisk" %% "docker-testkit-impl-spotify" % DockerTestkitVersion % Test,
+
   "com.wix" % "wix-embedded-mysql" % "4.1.2" % Test,
   "com.h2database" % "h2" % "1.4.193" % Test)
 
