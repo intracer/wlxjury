@@ -10,7 +10,7 @@ import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, Monument}
 import org.scalawiki.wlx.query.MonumentQuery
 import org.scalawiki.wlx.{ImageDB, ListFiller, MonumentDB}
-import play.api.Play
+import play.api.{Logger, Play}
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
 
 import scala.concurrent.Await
@@ -57,7 +57,6 @@ object Tools {
     new GlobalRefactor(commons).updateLists(contest)
   }
 
-
   def updateResolution(contest: ContestJury) = {
 
     val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
@@ -81,7 +80,7 @@ object Tools {
         for (i1 <- existing;
              i2 <- newImages.get(i1.pageId).map(seq => seq.head)
              if i1.width != i2.width || i1.height != i2.height) {
-          println(s"${i2.pageId} ${i1.title}  ${i1.width}x${i1.height} -> ${i2.width}x${i2.height}")
+          Logger.logger.trace(s"Updating image resolution metadata for ${i2.pageId} ${i1.title} from ${i1.width}x${i1.height} to ${i2.width}x${i2.height}")
           ImageJdbc.updateResolution(i1.pageId, i2.width, i2.height)
         }
     }

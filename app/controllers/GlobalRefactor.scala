@@ -168,6 +168,13 @@ class GlobalRefactor(val commons: MwBot) {
   def defaultParam(text: String, templateName: String): Option[String] =
     TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt("1"))
 
+  /**
+    * Get value of a template parameter
+    * @param text page text, that can contain a template with parameter
+    * @param templateName template name
+    * @param paramName template parameter name
+    * @return optional value of template parameter
+    */
   def namedParam(text: String, templateName: String, paramName: String): Option[String] =
     TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt(paramName))
 

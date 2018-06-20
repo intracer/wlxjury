@@ -28,7 +28,6 @@ object Contests extends Controller with Secured {
     }
   }
 
-
   def list(contestType: Option[String], year: Option[Int], country: Option[String]) = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
     user =>
       implicit request =>
@@ -113,6 +112,9 @@ object Contests extends Controller with Secured {
     )
   }
 
+  /**
+    * Shows contest images view
+    */
   def images(contestId: Long, inProgress: Boolean = false) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
     user =>
       implicit request =>
@@ -132,6 +134,9 @@ object Contests extends Controller with Secured {
     }
   }
 
+  /**
+    * Imports images from commons
+    */
   def importImages(contestId: Long) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) { user =>
     implicit request =>
       val contest = ContestJuryJdbc.findById(contestId).get
@@ -180,7 +185,6 @@ object Contests extends Controller with Secured {
       Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use))
   )
 
-
   val importContestsForm = Form(
     single(
       "source" -> nonEmptyText
@@ -193,6 +197,5 @@ object Contests extends Controller with Secured {
       "list" -> text
     )
   )
-
 }
 

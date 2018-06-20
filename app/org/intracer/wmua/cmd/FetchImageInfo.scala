@@ -55,7 +55,6 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
     commons.run(query)
   }
 
-
   def numberOfImages: Future[Long] = {
     val query = Action(Query(TitlesParam(Seq(source)), Prop(CategoryInfo)))
     commons.run(query).map {
@@ -74,5 +73,4 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
       titlePrefix = None
     )
   }
-
 }
