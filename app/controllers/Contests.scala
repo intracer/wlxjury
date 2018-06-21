@@ -140,23 +140,17 @@ object Contests extends Controller with Secured {
   def importImages(contestId: Long) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) { user =>
     implicit request =>
       val contest = ContestJuryJdbc.findById(contestId).get
-      val dbImagesNum = ImageJdbc.countByContest(contest)
-
       importImagesForm.bindFromRequest.fold(
-        formWithErrors => {
-          BadRequest(views.html.contest_images(formWithErrors, contest, user, 0, dbImagesNum))
-        },
-        tuple => {
+        formWithErrors => BadRequest(views.html.contest_images(formWithErrors, contest, user, 0, ImageJdbc.countByContest(contest))), {
+          case (source, list) =>
 
-          val (source, list) = tuple
+            val withNewImages = contest.copy(images = Some(source))
 
-          val withNewImages = contest.copy(images = Some(source))
+            //val sourceImageNum = getNumberOfImages(withNewImages)
 
-          val sourceImageNum = getNumberOfImages(withNewImages)
+            new GlobalRefactor(Global.commons).appendImages(source, list, withNewImages)
 
-          new GlobalRefactor(Global.commons).appendImages(source, list, withNewImages, max = sourceImageNum)
-
-          Redirect(routes.Contests.images(contestId))
+            Redirect(routes.Contests.images(contestId))
         })
   }
 
