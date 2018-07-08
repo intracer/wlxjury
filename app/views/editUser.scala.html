@@ -49,7 +49,7 @@
                                     (if(!user.hasAnyRole(User.ADMIN_ROLES)) Seq('disabled -> "true") else Seq.empty): _*)
                     }
 
-                    @select(editUserForm("lang"), Seq("en", "ru", "uk").map(x => (x, User.LANGS(x))),
+                    @select(editUserForm("lang"), Seq("en", "fr", "ru", "uk").map(x => (x, User.LANGS(x))),
                         '_label -> Messages("language"), '_help -> "", 'class -> "form-control")
 
                     @if(true || editUserForm("id").value.contains(user.id.toString)) {

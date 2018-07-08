@@ -59,7 +59,7 @@ object User {
   val ADMIN_ROLE = "admin"
   val ROOT_ROLE = "root"
   val ADMIN_ROLES = Set(ADMIN_ROLE, ROOT_ROLE)
-  val LANGS = Map("en" -> "English", "ru" -> "Русский", "uk" -> "Українська")
+  val LANGS = Map("en" -> "English", "fr" -> "Français",  "ru" -> "Русский", "uk" -> "Українська")
 
   def unapplyEdit(user: User): Option[(Long, String, Option[String], String, Option[String], Option[String], Option[Long], Option[String])] = {
     Some((user.getId, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.contestId, user.lang))
