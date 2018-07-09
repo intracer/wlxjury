@@ -252,7 +252,7 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def selectByPageId(roundId: Long, pageId: Long, select: Int, region: String = "all",
-                     rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth() {
+                     rate: Option[Int] = None, module: String, criteria: Option[Int] = None): EssentialAction = withAuth() {
     user =>
       implicit request =>
 

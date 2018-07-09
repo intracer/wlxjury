@@ -55,7 +55,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
     selections
   }
 
-  "1 image" in {
+  "get 1 image" in {
     inMemDbApp { app =>
       implicit val materializer = app.materializer
 
@@ -64,12 +64,12 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
       val images = createImages(1)
       val selection = createSelection(images)
 
-      val request = FakeRequest(GET, s"/large/round/${round.id.get}/user/${user.id.get}/region/all/pageid/${images.head.pageId}")
+      val request = FakeRequest(GET, s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}")
         .withSession(Security.username -> email)
         .withHeaders("Accept" -> "application/json")
         .withCSRFToken
 
-      val result = Gallery.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = Some(0), module = "large").apply(request)
+      val result = Gallery.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "byrate").apply(request)
 
       status(result) mustEqual OK
       contentAsJson(result) mustEqual
@@ -78,4 +78,26 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
           |"countFromDb":0}]""".stripMargin)
     }
   }
+
+  "rate 1 image" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(1)
+      val selection = createSelection(images)
+
+      val request = FakeRequest(GET, s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/2?module=byrate")
+        .withSession(Security.username -> email)
+        .withHeaders("Accept" -> "application/json")
+        .withCSRFToken
+
+      val result = Gallery.selectByPageId(round.id.get, images.head.pageId, select = 5, module = "byrate").apply(request)
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) must beSome.which(_ == s"/byrate/round/${round.id.get}/user/${user.id.get}/page/1")
+    }
+  }
+
 }
