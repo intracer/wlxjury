@@ -16,14 +16,14 @@ class RoundSpec extends Specification with InMemDb {
 
   "rounds" should {
     "be empty" in {
-      inMemDbApp {
+      inMemDb {
         val rounds = roundDao.findAll()
         rounds.size === 0
       }
     }
 
     "insert round" in {
-      inMemDbApp {
+      inMemDb {
 
         val round = Round(None, 1, Some("Round 1"), 10, Set("jury"), 3, Round.ratesById(10), active = true, createdAt = now)
 
@@ -45,7 +45,7 @@ class RoundSpec extends Specification with InMemDb {
       User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), Some(contest), Some("en"), Some(now))
 
     "jurors" in {
-      inMemDbApp {
+      inMemDb {
 
         val round = Round(None, 1, Some("Round 1"), 10, Set("jury"), 3, Round.ratesById(10), active = true)
         roundDao.create(round)
@@ -67,7 +67,7 @@ class RoundSpec extends Specification with InMemDb {
     }
 
     "set new current round" in {
-      inMemDbApp {
+      inMemDb {
         val contestDao = ContestJuryJdbc
 
         val contest = contestDao.create(None, "WLE", 2015, "Ukraine", None, None, None)

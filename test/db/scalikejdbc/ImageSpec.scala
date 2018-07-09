@@ -25,14 +25,14 @@ class ImageSpec extends Specification with InMemDb {
   "fresh database" should {
 
     "be empty" in {
-      inMemDbApp {
+      inMemDb {
         val images = imageDao.findAll()
         images.size === 0
       }
     }
 
     "insert image" in {
-      inMemDbApp {
+      inMemDb {
         val id = 10
         val contestId = 20
         createContests(contestId)
@@ -50,7 +50,7 @@ class ImageSpec extends Specification with InMemDb {
     }
 
     "find by contest " in {
-      inMemDbApp {
+      inMemDb {
         val (contest1, contest2) = (10, 20)
         createContests(contest1, contest2)
 
@@ -67,7 +67,7 @@ class ImageSpec extends Specification with InMemDb {
     }
 
     "contests can share images" in {
-      inMemDbApp {
+      inMemDb {
         val (contest1, contest2) = (10, 20)
         createContests(contest1, contest2)
 

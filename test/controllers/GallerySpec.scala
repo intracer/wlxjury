@@ -1,9 +1,9 @@
 package controllers
 
-import db._
 import db.scalikejdbc._
 import org.intracer.wmua.{Selection, _}
 import org.specs2.mutable.Specification
+import play.api.Application
 
 class GallerySpec extends Specification with InMemDb {
 
@@ -54,7 +54,7 @@ class GallerySpec extends Specification with InMemDb {
 
   "juror" should {
     "see assigned images in binary round" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -72,7 +72,7 @@ class GallerySpec extends Specification with InMemDb {
     }
 
     "see images filtered by rate in binary round" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -99,7 +99,7 @@ class GallerySpec extends Specification with InMemDb {
     }
 
     "see images ordered by rate in binary round" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -124,7 +124,7 @@ class GallerySpec extends Specification with InMemDb {
     }
 
     "see images ordered by rate in rated round" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.ratesById(10))
         val images = createImages(6)
@@ -149,7 +149,7 @@ class GallerySpec extends Specification with InMemDb {
 
   "organizer" should {
     "see rating by selection" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(10)
@@ -186,7 +186,7 @@ class GallerySpec extends Specification with InMemDb {
     }
 
     "see details by selection rejected not accounted" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(2)
@@ -221,7 +221,7 @@ class GallerySpec extends Specification with InMemDb {
     }
 
     "see details by selection" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(10)

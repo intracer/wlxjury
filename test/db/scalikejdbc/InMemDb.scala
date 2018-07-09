@@ -6,6 +6,7 @@ import com.wix.mysql.EmbeddedMysql.anEmbeddedMysql
 import com.wix.mysql.config.DownloadConfig.aDownloadConfig
 import com.wix.mysql.config.MysqldConfig.aMysqldConfig
 import com.wix.mysql.distribution.Version.v5_7_latest
+import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
 
@@ -13,7 +14,7 @@ trait InMemDb {
 
   def now = ZonedDateTime.now.withNano(0)
 
-  def inMemDbApp[T](block: => T): T = {
+  def inMemDbApp[T](block: Application => T): T = {
     val downloadConfig = aDownloadConfig()
       .withCacheDir(System.getProperty("user.home") + "/.wixMySQL/downloads")
       .build()
@@ -40,9 +41,16 @@ trait InMemDb {
     }
 
     try {
-      running(fakeApp)(block)
+      running(fakeApp)(block(fakeApp))
     } finally {
       mysqld.stop()
     }
   }
+
+  def inMemDb[T](block: => T): T = {
+    inMemDbApp({ app =>
+      block
+    })
+  }
+
 }

@@ -29,6 +29,12 @@ object Gallery extends Controller with Secured with Instrumented {
   private[this] val timerByRate = metrics.timer("Gallery.byRate")
   private[this] val timerShow = metrics.timer("Gallery.show")
 
+  import play.api.libs.json._
+
+  implicit val selectionWrites = Json.writes[Selection]
+  implicit val imageWrites = Json.writes[Image]
+  implicit val iwrWrites = Json.writes[ImageWithRating]
+
   def moduleByUserId(asUserId: Long) = if (asUserId == 0) "byrate" else "gallery"
 
   /**
@@ -384,14 +390,19 @@ object Gallery extends Controller with Secured with Instrumented {
 
     val comments = CommentJdbc.findBySubjectAndContest(files(index).pageId, round.contestId)
 
-    Ok(
-      views.html.large.large(
-        user, asUserId,
-        files, index, start, end, page, rate,
-        region, round, monument, module, comments, selection,
-        byCriteria
+    render {
+      case Accepts.Html() => Ok(
+        views.html.large.large(
+          user, asUserId,
+          files, index, start, end, page, rate,
+          region, round, monument, module, comments, selection,
+          byCriteria
+        )
       )
-    )
+      case Accepts.Json() => Ok(Json.toJson(
+        files.map(file => file.copy(selection = file.selection.map(_.copy(createdAt = None))))
+      ))
+    }
   }
 
   def rateDistribution(user: User, round: Round) = {

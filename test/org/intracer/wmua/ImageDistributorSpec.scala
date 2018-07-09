@@ -67,7 +67,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
   "ImageDistributor" should {
 
     "first round 1 juror to image, one juror" in {
-      inMemDbApp {
+      inMemDb {
         val distribution = 1
 
         createContests(contest1, contest2)
@@ -94,7 +94,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
     }
 
     "create first round 1 juror to image" in {
-      inMemDbApp {
+      inMemDb {
         val distribution = 1
 
         createContests(contest1, contest2)
@@ -121,7 +121,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
     }
 
     "first round 1 juror to image, add jurors" in {
-      inMemDbApp {
+      inMemDb {
         val distribution = 1
 
         createContests(contest1, contest2)
@@ -151,7 +151,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
     }
 
     "first round 1 juror to image, rate and add jurors" in {
-      inMemDbApp {
+      inMemDb {
         val distribution = 1
 
         createContests(contest1, contest2)
@@ -187,7 +187,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
     }.pendingUntilFixed
 
     "create first round 2 jurors to image" in {
-      inMemDbApp {
+      inMemDb {
         val distribution = 2
         val numImages = 9
         val numJurors = 3
@@ -221,7 +221,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
     }
 
     "create second round 1 juror to image in the first" in {
-      inMemDbApp {
+      inMemDb {
         val distribution = 1
 
         createContests(contest1, contest2)
@@ -259,7 +259,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
     }
 
     "create second round 2 jurors to image in the first" in {
-      inMemDbApp {
+      inMemDb {
 
         val distribution = 2
         val numImages = 2

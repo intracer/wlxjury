@@ -62,14 +62,14 @@ class JurorImagesSpec extends Specification with InMemDb {
     }
 
     "no images" in {
-      inMemDbApp {
+      inMemDb {
         setUp()
         query().imageRank(1) === 0
       }
     }
 
     "1 image" in {
-      inMemDbApp {
+      inMemDb {
         setUp()
         val images = createImages(1)
         createSelection(images)
@@ -82,7 +82,7 @@ class JurorImagesSpec extends Specification with InMemDb {
     }
 
     "2 images" in {
-      inMemDbApp {
+      inMemDb {
         setUp()
         val images = createImages(2)
         createSelection(images)
@@ -96,7 +96,7 @@ class JurorImagesSpec extends Specification with InMemDb {
 
   "juror" should {
     "see assigned images in binary round" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -120,7 +120,7 @@ class JurorImagesSpec extends Specification with InMemDb {
     }
 
     "see images filtered by rate in binary round" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -156,7 +156,7 @@ class JurorImagesSpec extends Specification with InMemDb {
     }
 
     "see images ordered by rate in binary round" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -190,7 +190,7 @@ class JurorImagesSpec extends Specification with InMemDb {
     }
 
     "see images ordered by rate in rated round" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.ratesById(10))
         val images = createImages(6)
@@ -224,7 +224,7 @@ class JurorImagesSpec extends Specification with InMemDb {
 
   "organizer" should {
     "see rating by selection" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(10)
@@ -268,7 +268,7 @@ class JurorImagesSpec extends Specification with InMemDb {
     }
 
     "see details by selection rejected not accounted" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(2)
@@ -304,7 +304,7 @@ class JurorImagesSpec extends Specification with InMemDb {
     }
 
     "see details by selection" in {
-      inMemDbApp {
+      inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(10)
