@@ -14,7 +14,7 @@
     @if(index < files.size-1) {
     $(document).on('keydown', null, 'down', function (e) {
         e.preventDefault() ;
-        window.location = "@routes.Gallery.large(asUserId, files(index + 1).pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
+        window.location = "@routes.LargeView.large(asUserId, files(index + 1).pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
         return false;
     });
     }
@@ -22,7 +22,7 @@
     @if(index > 0) {
     $(document).on('keydown', null, 'up', function (e) {
         e.preventDefault() ;
-        window.location = "@routes.Gallery.large(asUserId, files(index - 1).pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
+        window.location = "@routes.LargeView.large(asUserId, files(index - 1).pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
         return false;
     });
     }
@@ -36,31 +36,31 @@
     $(document).on('keydown', null, 'pagedown', function (e) {
         e.preventDefault() ;
         @if(index < files.size-5) {
-        window.location = "@routes.Gallery.large(asUserId, files(index + 5).pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
+        window.location = "@routes.LargeView.large(asUserId, files(index + 5).pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
         } else {
-        window.location = "@routes.Gallery.large(asUserId, files.last.pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
+        window.location = "@routes.LargeView.large(asUserId, files.last.pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
         }
         return false;
     });
     $(document).on('keydown', null, 'pageup', function (e) {
         e.preventDefault() ;
         @if(index > 4) {
-        window.location = "@routes.Gallery.large(asUserId, files(index - 5).pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
+        window.location = "@routes.LargeView.large(asUserId, files(index - 5).pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
         } else {
-        window.location = "@routes.Gallery.large(asUserId, files(0).pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
+        window.location = "@routes.LargeView.large(asUserId, files(0).pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
         }
         return false ;
     });
 
     $(document).on('keydown', null, 'home', function (e) {
         e.preventDefault() ;
-        window.location = " @routes.Gallery.large(asUserId, files(0).pageId, region, round.getId, rate, module).absoluteURL(false)(request) ";
+        window.location = " @routes.LargeView.large(asUserId, files(0).pageId, region, round.getId, rate, module).absoluteURL(false)(request) ";
         return false ;
     });
 
     $(document).on('keydown', null, 'end', function (e) {
         e.preventDefault() ;
-        window.location = "@routes.Gallery.large(asUserId, files.last.pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
+        window.location = "@routes.LargeView.large(asUserId, files.last.pageId, region, round.getId, rate, module).absoluteURL(false)(request)";
         return false ;
     });
 

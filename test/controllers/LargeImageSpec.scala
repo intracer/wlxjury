@@ -69,7 +69,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
         .withHeaders("Accept" -> "application/json")
         .withCSRFToken
 
-      val result = Gallery.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "byrate").apply(request)
+      val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "byrate").apply(request)
 
       status(result) mustEqual OK
       contentAsJson(result) mustEqual
@@ -93,7 +93,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
         .withHeaders("Accept" -> "application/json")
         .withCSRFToken
 
-      val result = Gallery.selectByPageId(round.id.get, images.head.pageId, select = 5, module = "byrate").apply(request)
+      val result = LargeView.selectByPageId(round.id.get, images.head.pageId, select = 5, module = "byrate").apply(request)
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ == s"/byrate/round/${round.id.get}/user/${user.id.get}/page/1")
