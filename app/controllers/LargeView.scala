@@ -28,8 +28,8 @@ object LargeView extends Controller with Secured {
         show(pageId, user, user.getId, rate, region, 0, module)
   }
 
-  def selectByPageId(roundId: Long, pageId: Long, select: Int, region: String = "all",
-                     rate: Option[Int] = None, module: String, criteria: Option[Int] = None): EssentialAction = withAuth() {
+  def rateByPageId(roundId: Long, pageId: Long, select: Int, region: String = "all",
+                   rate: Option[Int] = None, module: String, criteria: Option[Int] = None): EssentialAction = withAuth() {
     user =>
       implicit request =>
 
@@ -99,47 +99,46 @@ object LargeView extends Controller with Secured {
     }
   }
 
-  def show(
-            pageId: Long,
-            user: User,
-            asUserId: Long,
-            rate: Option[Int],
-            region: String,
-            roundId: Long,
-            module: String)(implicit request: Request[Any]): Result = {
-      val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.findById(roundId)
-      val round = maybeRound.get
+  def show(pageId: Long,
+           user: User,
+           asUserId: Long,
+           rate: Option[Int],
+           region: String,
+           roundId: Long,
+           module: String)(implicit request: Request[Any]): Result = {
+    val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.findById(roundId)
+    val round = maybeRound.get
 
-      val query = getQuery(asUserId, rate, round.id, regions = Set(region).filter(_ != "all"))
-      val rank = query.imageRank(pageId)
-      val offset = Math.max(0, rank - 3)
-      val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()
+    val query = getQuery(asUserId, rate, round.id, regions = Set(region).filter(_ != "all"))
+    val rank = query.imageRank(pageId)
+    val offset = Math.max(0, rank - 3)
+    val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()
 
-      val index = files.indexWhere(_.pageId == pageId)
-      if (index < 0) {
-        return Redirect(if (files.nonEmpty) {
-          routes.LargeView.large(asUserId, files.head.pageId, region, round.getId, rate, module)
-        } else {
-          routes.Gallery.list(asUserId, 1, region, round.getId, rate)
-        })
+    val index = files.indexWhere(_.pageId == pageId)
+    if (index < 0) {
+      return Redirect(if (files.nonEmpty) {
+        routes.LargeView.large(asUserId, files.head.pageId, region, round.getId, rate, module)
+      } else {
+        routes.Gallery.list(asUserId, 1, region, round.getId, rate)
+      })
+    }
+
+    val selection = if (user.canViewOrgInfo(round)) {
+      SelectionJdbc.byRoundAndImageWithJury(round.getId, pageId)
+    } else Seq.empty
+
+    val page = index / (Pager.pageSize + 1) + 1
+
+    val byCriteria = if (round.hasCriteria && asUserId != 0) {
+      val criteria = {
+        val selection = SelectionJdbc.findBy(pageId, asUserId, roundId).get
+        CriteriaRate.getRates(selection.getId)
       }
 
-      val selection = if (user.canViewOrgInfo(round)) {
-        SelectionJdbc.byRoundAndImageWithJury(round.getId, pageId)
-      } else Seq.empty
+      criteria.map { c => c.criteria.toInt -> c.rate }.toMap
+    } else Map.empty[Int, Int]
 
-      val page = index / (Pager.pageSize + 1) + 1
-
-      val byCriteria = if (round.hasCriteria && asUserId != 0) {
-        val criteria = {
-          val selection = SelectionJdbc.findBy(pageId, asUserId, roundId).get
-          CriteriaRate.getRates(selection.getId)
-        }
-
-        criteria.map { c => c.criteria.toInt -> c.rate }.toMap
-      } else Map.empty[Int, Int]
-
-      show2(index, files, user, asUserId, rate, page, round, region, module, selection, byCriteria)
+    show2(index, files, user, asUserId, rate, page, round, region, module, selection, byCriteria)
   }
 
   def show2(index: Int,

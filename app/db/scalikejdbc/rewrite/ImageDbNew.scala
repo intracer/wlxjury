@@ -20,7 +20,6 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
   val s2 = SelectionJdbc.syntax("s2")
   val s3 = SelectionJdbc.syntax("s3")
 
-
   case class Limit(pageSize: Option[Int] = None, offset: Option[Int] = None, startPageId: Option[Long] = None)
 
   case class SelectionQuery(userId: Option[Long] = None,
@@ -32,17 +31,15 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                             grouped: Boolean = false,
                             groupWithDetails: Boolean = false,
                             order: Map[String, Int] = Map.empty,
-                            driver: String = "mysql"
-                           ) {
+                            driver: String = "mysql") {
 
     val reader: WrappedResultSet => ImageWithRating =
       if (grouped) Readers.groupedReader else Readers.rowReader
 
-    def query(
-               count: Boolean = false,
-               idOnly: Boolean = false,
-               noLimit: Boolean = false,
-               byRegion: Boolean = false): String = {
+    def query(count: Boolean = false,
+              idOnly: Boolean = false,
+              noLimit: Boolean = false,
+              byRegion: Boolean = false): String = {
 
       val columns: String = "select  " + (if (count || idOnly) {
         "i.page_id as pi_on_i" + (if (grouped)

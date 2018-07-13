@@ -93,7 +93,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
         .withHeaders("Accept" -> "application/json")
         .withCSRFToken
 
-      val result = LargeView.selectByPageId(round.id.get, images.head.pageId, select = 5, module = "byrate").apply(request)
+      val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "byrate").apply(request)
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ == s"/byrate/round/${round.id.get}/user/${user.id.get}/page/1")

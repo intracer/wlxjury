@@ -62,9 +62,9 @@ POST        /comment/region/:region/pageid/:pageid                              
 + nocsrf
 POST        /rate/round/:round/pageid/:pageId/select/:select                        controllers.Gallery.selectWS(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
 
-GET         /large/round/:round/pageid/:pageId/select/:select                       controllers.LargeView.selectByPageId(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
+GET         /large/round/:round/pageid/:pageId/select/:select                       controllers.LargeView.rateByPageId(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
 
-GET         /large/round/:round/region/:region/pageid/:pageId/select/:select        controllers.LargeView.selectByPageId(round: Long, pageId: Long, select: Int, region: String, rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
+GET         /large/round/:round/region/:region/pageid/:pageId/select/:select        controllers.LargeView.rateByPageId(round: Long, pageId: Long, select: Int, region: String, rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
 
 GET         /gallery/page/:page                                                     controllers.Gallery.listCurrent(page: Int, region: String = "all", rate: Option[Int] ?= None)
 
