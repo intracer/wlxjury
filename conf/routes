@@ -49,6 +49,15 @@ GET         /filelist/round/:round/user/:user/page/:page                        
 
 GET         /filelist/round/:round/user/:user/region/:region/page/:page             controllers.Gallery.fileList(user: Long, page: Int, region: String, round: Long, format:String ?= "wiki", rate: Option[Int] ?= None)
 
+GET         /gallery/page/:page                                                     controllers.Gallery.listCurrent(page: Int, region: String = "all", rate: Option[Int] ?= None)
+
+GET         /gallery/region/:region/page/:page                                      controllers.Gallery.listCurrent(page: Int, region: String, rate: Option[Int] ?= None)
+
+POST        /comment/region/:region/pageid/:pageid                                  controllers.ImageDiscussion.addComment(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery", round: Option[Long] ?= None, contestId: Option[Long] ?= None)
+
++ nocsrf
+POST        /rate/round/:round/pageid/:pageId/select/:select                        controllers.Gallery.selectWS(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
+
 GET         /large/user/:user/pageid/:pageid                                        controllers.LargeView.large(user: Long, pageid: Long, region: String = "all", round: Long = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
 
 GET         /large/user/:user/region/:region/pageid/:pageid                         controllers.LargeView.large(user: Long, pageid: Long, region: String, round: Long = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
@@ -57,18 +66,9 @@ GET         /large/round/:round/user/:user/pageid/:pageid                       
 
 GET         /large/round/:round/user/:user/region/:region/pageid/:pageid            controllers.LargeView.large(user: Long, pageid: Long, region: String, round:Long, rate: Option[Int] ?= None, module: String ?= "gallery")
 
-POST        /comment/region/:region/pageid/:pageid                                  controllers.ImageDiscussion.addComment(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery", round: Option[Long] ?= None, contestId: Option[Long] ?= None)
-
-+ nocsrf
-POST        /rate/round/:round/pageid/:pageId/select/:select                        controllers.Gallery.selectWS(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
-
 GET         /large/round/:round/pageid/:pageId/select/:select                       controllers.LargeView.rateByPageId(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
 
 GET         /large/round/:round/region/:region/pageid/:pageId/select/:select        controllers.LargeView.rateByPageId(round: Long, pageId: Long, select: Int, region: String, rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
-
-GET         /gallery/page/:page                                                     controllers.Gallery.listCurrent(page: Int, region: String = "all", rate: Option[Int] ?= None)
-
-GET         /gallery/region/:region/page/:page                                      controllers.Gallery.listCurrent(page: Int, region: String, rate: Option[Int] ?= None)
 
 GET         /large/pageid/:pageid                                                   controllers.LargeView.largeCurrentUser(pageid: Long, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery")
 
