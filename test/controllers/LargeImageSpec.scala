@@ -104,6 +104,24 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
     }
   }
 
+  "get first unrated image from 2" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(2)
+      createSelection(images.init, 0)
+      createSelection(images.tail, 5)
+
+      val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = Some(0), module = "gallery")
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0"))
+
+      status(result) mustEqual OK
+      contentAsJson(result) mustEqual mkJson(imageJson(0))
+    }
+  }
+
   "get last unrated image from 2" in {
     inMemDbApp { app =>
       implicit val materializer = app.materializer
@@ -135,7 +153,111 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/5?rate=0"))
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result) must beSome.which(_ == s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1?rate=0")
+      redirectLocation(result) must beSome.which(_ === s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1?rate=0")
+    }
+  }
+
+  "unrate 1 rated image" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(1)
+      createSelection(images, rate = 5)
+
+      val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 0, module = "gallery", rate = None)
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/0?module=byrate"))
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) must beSome.which(_ === s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1")
+    }
+  }
+
+  "rerate 1 rated image" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(1)
+      createSelection(images, rate = 5)
+
+      val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 3, module = "gallery", rate = None)
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/0?module=byrate"))
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) must beSome.which(_ === s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1")
+    }
+  }
+
+  "rate 1st unrated image from two" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(2)
+      createSelection(images.init, 0)
+      createSelection(images.tail, 5)
+
+      val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/5?rate=0"))
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) must beSome.which(_ === s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1?rate=0")
+    }
+  }
+
+  "rate 2nd unrated image from two" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(2)
+      createSelection(images.init, 5)
+      createSelection(images.tail, 0)
+
+      val result = LargeView.rateByPageId(round.id.get, images.last.pageId, select = 5, module = "gallery", rate = Some(0))
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}/select/5?rate=0"))
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) must beSome.which(_ === s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1?rate=0")
+    }
+  }
+
+  "rate 1st unrated image from two unrated" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(2)
+      createSelection(images)
+
+      val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/5?rate=0"))
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) must beSome.which(_ === s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?rate=0")
+    }
+  }
+
+  "rate 2nd unrated image from two unrated" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(2)
+      createSelection(images)
+
+      val result = LargeView.rateByPageId(round.id.get, images.last.pageId, select = 5, module = "gallery", rate = Some(0))
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}/select/5?rate=0"))
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) must beSome.which(_ === s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0")
     }
   }
 }
