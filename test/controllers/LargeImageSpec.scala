@@ -55,6 +55,21 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
     selections
   }
 
+  def request(url: String) = {
+    FakeRequest(GET, url)
+      .withSession(Security.username -> email)
+      .withHeaders("Accept" -> "application/json")
+      .withCSRFToken
+  }
+
+  def imageJson(id: Int) = {
+    s"""{"image":{"pageId":$id,"title":"File:Image$id.jpg","width":640,"height":480,"monumentId":"12-345-$id"},
+       |"selection":[{"pageId":$id,"juryId":1,"roundId":1,"rate":0,"id":${id + 1}}],
+       |"countFromDb":0}""".stripMargin
+  }
+
+  def mkJson(elems: String*) = Json.parse(elems.mkString("[", ",", "]"))
+
   "get 1 image" in {
     inMemDbApp { app =>
       implicit val materializer = app.materializer
@@ -62,21 +77,13 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
       setUp(rates = Round.ratesById(5))
 
       val images = createImages(1)
-      val selection = createSelection(images)
+      createSelection(images)
 
-      val request = FakeRequest(GET, s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}")
-        .withSession(Security.username -> email)
-        .withHeaders("Accept" -> "application/json")
-        .withCSRFToken
-
-      val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "gallery").apply(request)
+      val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "gallery")
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}"))
 
       status(result) mustEqual OK
-      contentAsJson(result) mustEqual
-        Json.parse(
-          """[{"image":{"pageId":0,"title":"File:Image0.jpg","width":640,"height":480,"monumentId":"12-345-0"},
-            |"selection":[{"pageId":0,"juryId":1,"roundId":1,"rate":0,"id":1}],
-            |"countFromDb":0}]""".stripMargin)
+      contentAsJson(result) mustEqual mkJson(imageJson(0))
     }
   }
 
@@ -87,22 +94,13 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
       setUp(rates = Round.ratesById(5))
 
       val images = createImages(2)
-      val selection = createSelection(images)
+      createSelection(images)
 
-      val request = FakeRequest(GET, s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0")
-        .withSession(Security.username -> email)
-        .withHeaders("Accept" -> "application/json")
-        .withCSRFToken
-
-      val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "gallery").apply(request)
+      val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "gallery")
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0"))
 
       status(result) mustEqual OK
-      contentAsJson(result) mustEqual
-        Json.parse(
-          """[{"image":{"pageId":0,"title":"File:Image0.jpg","width":640,"height":480,"monumentId":"12-345-0"},
-            |"selection":[{"pageId":0,"juryId":1,"roundId":1,"rate":0,"id":1}],"countFromDb":0},
-            |{"image":{"pageId":1,"title":"File:Image1.jpg","width":640,"height":480,"monumentId":"12-345-1"},
-            |"selection":[{"pageId":1,"juryId":1,"roundId":1,"rate":0,"id":2}],"countFromDb":0}]""".stripMargin)
+      contentAsJson(result) mustEqual mkJson(imageJson(0), imageJson(1))
     }
   }
 
@@ -116,18 +114,11 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
       createSelection(images.init, 5)
       createSelection(images.tail, 0)
 
-      val request = FakeRequest(GET, s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?rate=0")
-        .withSession(Security.username -> email)
-        .withHeaders("Accept" -> "application/json")
-        .withCSRFToken
-
-      val result = LargeView.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = Some(0), module = "gallery").apply(request)
+      val result = LargeView.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = Some(0), module = "gallery")
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?rate=0"))
 
       status(result) mustEqual OK
-      contentAsJson(result) mustEqual
-        Json.parse(
-          """[{"image":{"pageId":1,"title":"File:Image1.jpg","width":640,"height":480,"monumentId":"12-345-1"},
-            |"selection":[{"pageId":1,"juryId":1,"roundId":1,"rate":0,"id":2}],"countFromDb":0}]""".stripMargin)
+      contentAsJson(result) mustEqual mkJson(imageJson(1))
     }
   }
 
@@ -138,18 +129,13 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
       setUp(rates = Round.ratesById(5))
 
       val images = createImages(1)
-      val selection = createSelection(images)
+      createSelection(images)
 
-      val request = FakeRequest(GET, s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/5?rate=0")
-        .withSession(Security.username -> email)
-        .withHeaders("Accept" -> "application/json")
-        .withCSRFToken
-
-      val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0)).apply(request)
+      val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/5?rate=0"))
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ == s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1?rate=0")
     }
   }
-
 }
