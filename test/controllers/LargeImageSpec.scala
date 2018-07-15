@@ -254,11 +254,47 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
       val images = createImages(1)
       createSelection(images, rate = 5)
 
-      val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 3, module = "gallery", rate = None)
+      val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 3, module = "byrate", rate = None)
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/0?module=byrate"))
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result) must beSome.which(_ === s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1")
+      redirectLocation(result) must beSome.which(_ === s"/byrate/round/${round.id.get}/user/${user.id.get}/page/1")
+    }
+  }
+
+  "rerate 1st rated image from two rated" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(2)
+      createSelection(images.init, rate = 5)
+      createSelection(images.tail, rate = 3)
+
+      val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 2, module = "byrate", rate = None)
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/0?module=byrate"))
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) must beSome.which(_ === s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?module=byrate")
+    }
+  }
+
+  "rerate 2nd rated image from two rated" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(2)
+      createSelection(images.init, rate = 3)
+      createSelection(images.tail, rate = 2)
+
+      val result = LargeView.rateByPageId(round.id.get, images.last.pageId, select = 4, module = "byrate", rate = None)
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}/select/0?module=byrate"))
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) must beSome.which(_ === s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?module=byrate")
     }
   }
 
