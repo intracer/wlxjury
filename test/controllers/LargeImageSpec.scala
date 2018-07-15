@@ -62,15 +62,15 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
       .withCSRFToken
   }
 
-  def imageJson(id: Int) = {
+  def imageJson(id: Int, rate: Int = 0) = {
     s"""{"image":{"pageId":$id,"title":"File:Image$id.jpg","width":640,"height":480,"monumentId":"12-345-$id"},
-       |"selection":[{"pageId":$id,"juryId":1,"roundId":1,"rate":0,"id":${id + 1}}],
+       |"selection":[{"pageId":$id,"juryId":1,"roundId":1,"rate":$rate,"id":${id + 1}}],
        |"countFromDb":0}""".stripMargin
   }
 
   def mkJson(elems: String*) = Json.parse(elems.mkString("[", ",", "]"))
 
-  "get 1 image" in {
+  "get 1 unrated image" in {
     inMemDbApp { app =>
       implicit val materializer = app.materializer
 
@@ -79,11 +79,28 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
       val images = createImages(1)
       createSelection(images)
 
-      val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "gallery")
-        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}"))
+      val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = Some(0), module = "gallery")
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0"))
 
       status(result) mustEqual OK
       contentAsJson(result) mustEqual mkJson(imageJson(0))
+    }
+  }
+
+  "get 1 rated image" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(1)
+      createSelection(images, rate = 5)
+
+      val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "byrate")
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?module=byrate"))
+
+      status(result) mustEqual OK
+      contentAsJson(result) mustEqual mkJson(imageJson(0, rate = 5))
     }
   }
 
@@ -101,6 +118,24 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       status(result) mustEqual OK
       contentAsJson(result) mustEqual mkJson(imageJson(0), imageJson(1))
+    }
+  }
+
+  "get 2 rated images" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(2)
+      createSelection(images.init, 3)
+      createSelection(images.tail, 5)
+
+      val result = LargeView.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = None, module = "byrate")
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?module=byrate"))
+
+      status(result) mustEqual OK
+      contentAsJson(result) mustEqual mkJson(imageJson(1, rate = 5), imageJson(0, rate = 3))
     }
   }
 
@@ -137,6 +172,42 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       status(result) mustEqual OK
       contentAsJson(result) mustEqual mkJson(imageJson(1))
+    }
+  }
+
+  "get first rated image from 2" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(2)
+      createSelection(images.init, 5)
+      createSelection(images.tail, 0)
+
+      val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "byrate")
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?module=byrate"))
+
+      status(result) mustEqual OK
+      contentAsJson(result) mustEqual mkJson(imageJson(0, rate = 5), imageJson(1, rate = 0))
+    }
+  }
+
+  "get last rated image from 2" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(2)
+      createSelection(images.init, 0)
+      createSelection(images.tail, 5)
+
+      val result = LargeView.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = None, module = "byrate")
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?module=byrate"))
+
+      status(result) mustEqual OK
+      contentAsJson(result) mustEqual mkJson(imageJson(1, rate = 5), imageJson(0, rate = 0))
     }
   }
 
