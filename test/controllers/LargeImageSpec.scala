@@ -367,4 +367,24 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
       redirectLocation(result) must beSome.which(_ === s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0")
     }
   }
+
+  "rate unrated image from the middle of many" in {
+    inMemDbApp { app =>
+      implicit val materializer = app.materializer
+
+      setUp(rates = Round.ratesById(5))
+
+      val images = createImages(15)
+      createSelection(images)
+
+      val pageId = images(7).pageId
+      val nextPageId = images(8).pageId
+
+      val result = LargeView.rateByPageId(round.id.get, pageId, select = 5, module = "gallery", rate = Some(0))
+        .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/$pageId/select/5?rate=0"))
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) must beSome.which(_ === s"/large/round/${round.id.get}/user/${user.id.get}/pageid/$nextPageId?rate=0")
+    }
+  }
 }
