@@ -115,6 +115,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "gallery")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0"))
+        .run()
 
       status(result) mustEqual OK
       contentAsJson(result) mustEqual mkJson(imageJson(0), imageJson(1))
@@ -133,6 +134,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = None, module = "byrate")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?module=byrate"))
+        .run()
 
       status(result) mustEqual OK
       contentAsJson(result) mustEqual mkJson(imageJson(1, rate = 5), imageJson(0, rate = 3))
@@ -151,6 +153,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = Some(0), module = "gallery")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0"))
+        .run()
 
       status(result) mustEqual OK
       contentAsJson(result) mustEqual mkJson(imageJson(0))
@@ -169,6 +172,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = Some(0), module = "gallery")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?rate=0"))
+        .run()
 
       status(result) mustEqual OK
       contentAsJson(result) mustEqual mkJson(imageJson(1))
@@ -187,6 +191,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "byrate")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?module=byrate"))
+        .run()
 
       status(result) mustEqual OK
       contentAsJson(result) mustEqual mkJson(imageJson(0, rate = 5), imageJson(1, rate = 0))
@@ -205,6 +210,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = None, module = "byrate")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?module=byrate"))
+        .run()
 
       status(result) mustEqual OK
       contentAsJson(result) mustEqual mkJson(imageJson(1, rate = 5), imageJson(0, rate = 0))
@@ -222,6 +228,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/5?rate=0"))
+        .run()
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ === s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1?rate=0")
@@ -239,6 +246,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 0, module = "gallery", rate = None)
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/0?module=byrate"))
+        .run()
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ === s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1")
@@ -256,6 +264,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 3, module = "byrate", rate = None)
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/0?module=byrate"))
+        .run()
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ === s"/byrate/round/${round.id.get}/user/${user.id.get}/page/1")
@@ -274,6 +283,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 2, module = "byrate", rate = None)
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/0?module=byrate"))
+        .run()
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ === s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?module=byrate")
@@ -292,6 +302,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.rateByPageId(round.id.get, images.last.pageId, select = 4, module = "byrate", rate = None)
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}/select/0?module=byrate"))
+        .run()
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ === s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?module=byrate")
@@ -310,6 +321,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/5?rate=0"))
+        .run()
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ === s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1?rate=0")
@@ -328,6 +340,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.rateByPageId(round.id.get, images.last.pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}/select/5?rate=0"))
+        .run()
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ === s"/gallery/round/${round.id.get}/user/${user.id.get}/page/1?rate=0")
@@ -345,6 +358,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/5?rate=0"))
+        .run()
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ === s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?rate=0")
@@ -362,6 +376,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.rateByPageId(round.id.get, images.last.pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}/select/5?rate=0"))
+        .run()
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ === s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0")
@@ -382,6 +397,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
       val result = LargeView.rateByPageId(round.id.get, pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/$pageId/select/5?rate=0"))
+        .run()
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) must beSome.which(_ === s"/large/round/${round.id.get}/user/${user.id.get}/pageid/$nextPageId?rate=0")

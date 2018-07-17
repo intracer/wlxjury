@@ -37,13 +37,15 @@ object LargeView extends Controller with Secured {
 
         roundOption.fold(Redirect(routes.Gallery.list(user.getId, 1, region, roundId, rate))) { round =>
 
+          val result = checkLargeIndex(user, rate, pageId, region, round, module)
+
           if (criteria.isEmpty) {
             SelectionJdbc.rate(pageId = pageId, juryId = user.getId, roundId = round.getId, rate = select)
           } else {
             val selection = SelectionJdbc.findBy(pageId, user.getId, roundId).get
             CriteriaRate.updateRate(selection.getId, criteria.get, select)
           }
-          checkLargeIndex(user, rate, pageId, region, round, module)
+          result
         }
   }
 
