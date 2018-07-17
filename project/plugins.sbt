@@ -13,7 +13,7 @@ resolvers += Resolver.url(
 resolvers += Classpaths.sbtPluginReleases
 
 // Use the Play sbt plugin for Play projects
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.15")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.16")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.1.4")
 
