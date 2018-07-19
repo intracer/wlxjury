@@ -50,13 +50,6 @@ object Tools {
     //fillLists()
   }
 
-  def fetchMonumentDb() = {
-    val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
-
-    val contest = Contest.WLMUkraine(2017)
-    new GlobalRefactor(commons).updateLists(contest)
-  }
-
   def updateResolution(contest: ContestJury) = {
 
     val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
@@ -171,13 +164,6 @@ object Tools {
           id => SelectionJdbc.setRound(id, 133L, 138L)
         }
     }
-  }
-
-  def addMonuments() = {
-    val contest = ContestJuryJdbc.findById(64).get
-    val source = contest.images.get
-
-    new GlobalRefactor(commons).updateMonuments(source, contest)
   }
 
   def addCriteria() = {
