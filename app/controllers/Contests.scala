@@ -157,6 +157,8 @@ object Contests extends Controller with Secured {
   }
 
   def updateImageMonuments(source: String, contest: ContestJury) = {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
     def generatorParams:(String, String) = {
       if (source.toLowerCase.startsWith("category:")) {
         ("categorymembers", "cm")
@@ -226,4 +228,3 @@ object Contests extends Controller with Secured {
     )
   )
 }
-
