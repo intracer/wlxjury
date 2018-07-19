@@ -2,6 +2,7 @@ package controllers
 
 import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
 import org.intracer.wmua.cmd.FetchImageInfo
+import org.intracer.wmua.cmd.ImageTextFromCategory._
 import org.intracer.wmua.{ContestJury, User}
 import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}
@@ -12,6 +13,7 @@ import play.api.data.Forms._
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Controller
 import spray.util.pimpFuture
+import controllers.Global.commons
 
 import scala.concurrent.Future
 
@@ -152,6 +154,38 @@ object Contests extends Controller with Secured {
 
             Redirect(routes.Contests.images(contestId))
         })
+  }
+
+  def updateImageMonuments(source: String, contest: ContestJury) = {
+    def generatorParams:(String, String) = {
+      if (source.toLowerCase.startsWith("category:")) {
+        ("categorymembers", "cm")
+      } else if (source.toLowerCase.startsWith("template:")) {
+        ("embeddedin", "ei")
+      }
+      else {
+        ("images", "im")
+      }
+    }
+
+    val monumentIdTemplate = contest.monumentIdTemplate.get
+
+    val (generator, prefix) = generatorParams
+
+    commons.page(source).revisionsByGenerator(generator, prefix,
+      Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
+      pages =>
+
+        val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
+
+        pages.foreach { page =>
+          for (monumentId <- page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
+            .flatMap(id => if (id.matches(idRegex)) Some(id) else None);
+               pageId <- page.id) {
+            ImageJdbc.updateMonumentId(pageId, monumentId)
+          }
+        }
+    } recover { case e: Exception => println(e) }
   }
 
   def regions(contestId: Long): Map[String, String] = {

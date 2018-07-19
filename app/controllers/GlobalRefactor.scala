@@ -9,9 +9,6 @@ import org.scalawiki.dto.cmd.query.list.ListArgs
 import org.scalawiki.dto.cmd.query.{Generator, Query}
 import org.scalawiki.dto.{Namespace, Page}
 import org.scalawiki.query.DslQuery
-import org.scalawiki.wikitext.TemplateParser
-import org.scalawiki.wlx.dto.Contest
-import org.scalawiki.wlx.query.MonumentQuery
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -87,58 +84,6 @@ class GlobalRefactor(val commons: MwBot) {
   def fetchImageDescriptions(contest: ContestJury, source: String, max: Long, imageInfos: Future[Seq[Image]]): Future[Seq[Image]] = {
     val revInfo = ImageTextFromCategory(source, contest, contest.monumentIdTemplate, commons, max).apply()
     ImageEnricher.zipWithRevData(imageInfos, revInfo)
-  }
-
-  def updateMonuments(source: String, contest: ContestJury) = {
-    def generatorParams:(String, String) = {
-      if (source.toLowerCase.startsWith("category:")) {
-        ("categorymembers", "cm")
-      } else if (source.toLowerCase.startsWith("template:")) {
-        ("embeddedin", "ei")
-      }
-      else {
-        ("images", "im")
-      }
-    }
-
-    val monumentIdTemplate = contest.monumentIdTemplate.get
-
-    val (generator, prefix) = generatorParams
-
-    commons.page(source).revisionsByGenerator(generator, prefix,
-      Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
-      pages =>
-
-        val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-
-        pages.foreach { page =>
-          for (monumentId <- page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
-            .flatMap(id => if (id.matches(idRegex)) Some(id) else None);
-               pageId <- page.id) {
-            ImageJdbc.updateMonumentId(pageId, monumentId)
-          }
-        }
-    } recover { case e: Exception => println(e) }
-  }
-
-  def defaultParam(text: String, templateName: String): Option[String] =
-    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt("1"))
-
-  /**
-    * Get value of a template parameter
-    * @param text page text, that can contain a template with parameter
-    * @param templateName template name
-    * @param paramName template parameter name
-    * @return optional value of template parameter
-    */
-  def namedParam(text: String, templateName: String, paramName: String): Option[String] =
-    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt(paramName))
-
-  def descriptions(pages: Seq[Page], existingPageIds: Set[Long]): Seq[String] = {
-    pages.sortBy(_.id).filterNot(i => existingPageIds.contains(i.id.get)).map {
-      page =>
-        page.text.flatMap(text => namedParam(text, "Information", "description")).getOrElse("")
-    }
   }
 
   def saveNewImages(contest: ContestJury, imagesWithIds: Seq[Image]) = {

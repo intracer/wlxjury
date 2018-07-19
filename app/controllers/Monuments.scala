@@ -53,5 +53,4 @@ object Monuments extends Controller {
     MonumentJdbc.batchInsert(newMonuments)
   }
 
-
 }

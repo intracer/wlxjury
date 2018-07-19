@@ -166,13 +166,6 @@ object Tools {
     }
   }
 
-  def addMonuments() = {
-    val contest = ContestJuryJdbc.findById(64).get
-    val source = contest.images.get
-
-    new GlobalRefactor(commons).updateMonuments(source, contest)
-  }
-
   def addCriteria() = {
     val roundId = 315
     val round = RoundJdbc.findById(roundId).get
