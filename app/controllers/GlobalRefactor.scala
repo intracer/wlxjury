@@ -46,50 +46,6 @@ class GlobalRefactor(val commons: MwBot) {
     }
   }
 
-  def updateLists(contest: Contest) = {
-
-      val ukWiki = MwBot.fromHost("uk.wikipedia.org")
-
-      //    listsNew(system, http, ukWiki)
-
-      val monumentQuery = MonumentQuery.create(contest)
-      val monuments = monumentQuery.byMonumentTemplate()
-
-      val fromDb = MonumentJdbc.findAll()
-      val inDbIds = fromDb.map(_.id).toSet
-
-      val newMonuments = monuments
-        .filterNot(m => inDbIds.contains(m.id))
-        .map { m =>
-          if (m.name.length > 512)
-            m.copy(name = m.name.substring(0, 512))
-          else m
-        }
-        .map { m =>
-          if (m.typ.exists(_.length > 255))
-            m.copy(typ = m.typ.map(_.substring(0, 255)))
-          else m
-        }
-        .map { m =>
-          if (m.subType.exists(_.length > 255))
-            m.copy(subType = m.subType.map(_.substring(0, 255)))
-          else m
-        }
-        .map { m =>
-          if (m.year.exists(_.length > 255))
-            m.copy(year = m.year.map(_.substring(0, 255)))
-          else m
-        }
-        .map { m =>
-          if (m.city.exists(_.length > 255))
-            m.copy(city = m.city.map(_.substring(0, 255)))
-          else m
-        }
-
-
-      MonumentJdbc.batchInsert(newMonuments)
-  }
-
   def initImagesFromSource(contest: ContestJury,
                            source: String,
                            titles: String,
