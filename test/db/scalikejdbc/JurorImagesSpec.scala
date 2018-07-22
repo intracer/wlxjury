@@ -159,9 +159,9 @@ class JurorImagesSpec extends Specification with InMemDb {
       inMemDb {
         /// prepare
         setUp(rates = Round.binaryRound)
-        val images = createImages(6)
+        val images = createImages(3)
 
-        def range(rate: Int) = Seq(2 + rate * 2, 4 + rate * 2)
+        def range(rate: Int) = Seq(1 + rate, 2 + rate)
 
         def slice(rate: Int) = images.slice(range(rate).head, range(rate).last)
 
@@ -178,12 +178,12 @@ class JurorImagesSpec extends Specification with InMemDb {
         val result = query.list()
 
         /// check
-        result.size === 6
+        result.size === 3
         result.map(_.image) === slice(1) ++ slice(0) ++ slice(-1)
-        result.map(_.selection.size) === Seq.fill(6)(1)
-        result.map(_.rate) === Seq(1, 1, 0, 0, -1, -1)
+        result.map(_.selection.size) === Seq.fill(3)(1)
+        result.map(_.rate) === Seq(1, 0, -1)
 
-        images.zip(Seq(5, 6, 3, 4, 1, 2)).map { case (image, index) =>
+        images.zip(Seq(3, 2, 1)).map { case (image, index) =>
           query.imageRank(image.pageId) === index
         }
       }
