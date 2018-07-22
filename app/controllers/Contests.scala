@@ -13,11 +13,12 @@ import play.api.data.Forms._
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Controller
 import spray.util.pimpFuture
-import controllers.Global.commons
+import javax.inject.Inject
+import org.scalawiki.MwBot
 
 import scala.concurrent.Future
 
-object Contests extends Controller with Secured {
+class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
 
   def fetchContests(contestType: Option[String], year: Option[Int], country: Option[String]): Future[Seq[Contest]] = {
     if (contestType.isEmpty) {
@@ -76,7 +77,7 @@ object Contests extends Controller with Secured {
               }
             imported.foreach {
               contest =>
-                val contestJury = new ContestJury(
+                val contestJury = ContestJury(
                   id = None,
                   name = contest.contestType.name,
                   year = contest.year,
@@ -89,16 +90,16 @@ object Contests extends Controller with Secured {
           })
   }
 
-  def importListPage(formContest: String): Seq[Contest] = {
-    val wiki = Global.commons.pageText(formContest).await
+  def importListPage(pageName: String): Seq[Contest] = {
+    val wiki = commons.pageText(pageName).await
     CountryParser.parse(wiki)
   }
 
-  def importCategory(formContest: String): Seq[Contest] = {
-    val pages = Global.commons.page(formContest).categoryMembers(Set(Namespace.CATEGORY)).await
+  def importCategory(categoryName: String): Seq[Contest] = {
+    val pages = commons.page(categoryName).categoryMembers(Set(Namespace.CATEGORY)).await
 
     pages.flatMap(p => CountryParser.fromCategoryName(p.title)) ++
-      CountryParser.fromCategoryName(formContest).filter(_.country.name.nonEmpty)
+      CountryParser.fromCategoryName(categoryName).filter(_.country.name.nonEmpty)
   }
 
   def createContest(contest: ContestJury): ContestJury = {
@@ -132,7 +133,7 @@ object Contests extends Controller with Secured {
   def getNumberOfImages(contest: ContestJury): Long = {
     contest.images.fold(0L) {
       images =>
-        FetchImageInfo(images, Seq.empty, contest, Global.commons).numberOfImages.await
+        FetchImageInfo(images, Seq.empty, contest, commons).numberOfImages.await
     }
   }
 
@@ -150,7 +151,7 @@ object Contests extends Controller with Secured {
 
             //val sourceImageNum = getNumberOfImages(withNewImages)
 
-            new GlobalRefactor(Global.commons).appendImages(source, list, withNewImages)
+            new GlobalRefactor(commons).appendImages(source, list, withNewImages)
 
             Redirect(routes.Contests.images(contestId))
         })

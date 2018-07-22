@@ -90,21 +90,21 @@ POST        /users/save                                                         
 
 POST        /users/resetpasswd/:id                                                  @controllers.Admin.resetPassword(id: Long)
 
-GET         /admin/rounds                                                           controllers.Rounds.rounds(contestId: Option[Long] ?= None)
+GET         /admin/rounds                                                           @controllers.Rounds.rounds(contestId: Option[Long] ?= None)
 
-GET         /admin/rounds/edit                                                      controllers.Rounds.editRound(id: Option[Long] ?= None, contestId: Long)
+GET         /admin/rounds/edit                                                      @controllers.Rounds.editRound(id: Option[Long] ?= None, contestId: Long)
 
-POST        /admin/rounds/save                                                      controllers.Rounds.saveRound()
+POST        /admin/rounds/save                                                      @controllers.Rounds.saveRound()
 
-POST        /admin/setimages                                                        controllers.Rounds.setImages()
+POST        /admin/setimages                                                        @controllers.Rounds.setImages()
 
-POST        /admin/setround                                                         controllers.Rounds.setRound()
+POST        /admin/setround                                                         @controllers.Rounds.setRound()
 
-POST        /admin/startround                                                       controllers.Rounds.startRound()
+POST        /admin/startround                                                       @controllers.Rounds.startRound()
 
-GET         /roundstat                                                              controllers.Rounds.currentRoundStat()
+GET         /roundstat                                                              @controllers.Rounds.currentRoundStat()
 
-GET         /roundstat/:round                                                       controllers.Rounds.roundStat(round: Long)
+GET         /roundstat/:round                                                       @controllers.Rounds.roundStat(round: Long)
 
 GET         /monuments                                                              controllers.Monuments.list()
 
@@ -112,17 +112,17 @@ GET         /monuments/id/:id                                                   
 
 # GET         /webjars/*file                                                          @controllers.Assets.at(file)
 
-GET         /contests                                                               controllers.Contests.list(contestType: Option[String] ?= None, year: Option[Int] ?= None, country: Option[String] ?= None)
+GET         /contests                                                               @controllers.Contests.list(contestType: Option[String] ?= None, year: Option[Int] ?= None, country: Option[String] ?= None)
 
-POST        /contests/save                                                          controllers.Contests.saveContest()
+POST        /contests/save                                                          @controllers.Contests.saveContest()
 
-POST        /contests/import                                                        controllers.Contests.importContests()
+POST        /contests/import                                                        @controllers.Contests.importContests()
 
-GET         /contest/:id/images                                                     controllers.Contests.images(id: Long)
+GET         /contest/:id/images                                                     @controllers.Contests.images(id: Long)
 
-POST        /contest/:id/importimages                                               controllers.Contests.importImages(id: Long)
+POST        /contest/:id/importimages                                               @controllers.Contests.importImages(id: Long)
 
-GET         /thumb_urls/:сontestId                                                     controllers.Gallery.thumbnailUrls(сontestId: Long)
+GET         /thumb_urls/:сontestId                                                  controllers.Gallery.thumbnailUrls(сontestId: Long)
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)
 

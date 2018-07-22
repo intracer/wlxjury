@@ -9,6 +9,7 @@
         rounds: Seq[Round],
         contestId: Option[Long] = None,
         jurors: Seq[User],
+        jurorsMapping: Mapping[Seq[String]],
         regions: Map[String, String] = Map.empty,
         statOpt: Option[RoundStat] = None,
         newImages: Seq[Image] = Seq.empty
@@ -145,7 +146,7 @@
                         </div>
                     }
 
-                    @defining(Rounds.jurorsMapping.bind(editRoundForm.data).right.getOrElse(Seq.empty).size) { numJurors =>
+                    @defining(jurorsMapping.bind(editRoundForm.data).right.getOrElse(Seq.empty).size) { numJurors =>
                         @b3.select(editRoundForm("distribution"),
                             Seq(("0", Messages("each.image.to.all.jurors"))) ++
                                     (1 until numJurors).map(x => (x.toString, Messages("each.image.to.i.juror.s", x))),

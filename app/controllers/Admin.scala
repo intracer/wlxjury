@@ -99,13 +99,10 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
   def editUser(userId: Long) = withAuth(rolePermission(Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$userId"))) {
     user =>
       implicit request =>
-
         val editedUser = UserJdbc.findById(userId).get
 
         havingEditRights(user, editedUser) {
-
           val filledForm = editUserForm.fill(editedUser)
-
           Ok(views.html.editUser(user, filledForm, RoundJdbc.current(user), user.currentContest))
         }
   }

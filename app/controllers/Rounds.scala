@@ -3,6 +3,7 @@ package controllers
 import db.scalikejdbc.RoundJdbc.RoundStatRow
 import db.scalikejdbc._
 import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
+import javax.inject.Inject
 import org.intracer.wmua._
 import org.intracer.wmua.cmd.{DistributeImages, SetCurrentRound}
 import play.api.Play.current
@@ -15,7 +16,7 @@ import scalikejdbc._
 
 import scala.util.Try
 
-object Rounds extends Controller with Secured {
+class Rounds @Inject()(val contestsController: Contests) extends Controller with Secured {
 
   def rounds(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
@@ -52,7 +53,7 @@ object Rounds extends Controller with Secured {
 
         val rounds = RoundJdbc.findByContest(contestId)
 
-        val regions = Contests.regions(contestId)
+        val regions = contestsController.regions(contestId)
 
         val jurors = round.id.fold(loadJurors(contestId))(UserJdbc.findByRoundSelection)
 
@@ -66,7 +67,8 @@ object Rounds extends Controller with Secured {
 
         val images = round.id.fold(Seq.empty[Image])(id => DistributeImages.getFilteredImages(round, jurors, prevRound))
 
-        Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contestId), jurors, regions, stat, images))
+        Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contestId), jurors,
+          jurorsMapping, regions, stat, images))
   }
 
   def loadJurors(contestId: Long): Seq[User] = {
@@ -94,7 +96,7 @@ object Rounds extends Controller with Secured {
             val jurors = loadJurors(contestId.get)
             val hasRoundId = formWithErrors.data.get("id").exists(_.nonEmpty)
 
-            BadRequest(views.html.editRound(user, formWithErrors, newRound = !hasRoundId, rounds, contestId, jurors))
+            BadRequest(views.html.editRound(user, formWithErrors, newRound = !hasRoundId, rounds, contestId, jurors, jurorsMapping))
           },
           editForm => {
             val round = editForm.round.copy(active = true)
