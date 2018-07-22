@@ -14,7 +14,8 @@ trait InMemDb {
 
   def now = ZonedDateTime.now.withNano(0)
 
-  def inMemDbApp[T](block: Application => T): T = {
+  def inMemDbApp[T](block: Application => T)
+                   (implicit additionalConfig: Map[String, String] = Map.empty): T = {
     val downloadConfig = aDownloadConfig()
       .withCacheDir(System.getProperty("user.home") + "/.wixMySQL/downloads")
       .build()
@@ -28,14 +29,14 @@ trait InMemDb {
 
     val port = mysqld.getConfig.getPort
     val fakeApp = {
-      val additionalConfiguration = Map(
+      val dbConfiguration = Map(
         "db.default.username" -> "WLXJURY_DB_USER",
         "db.default.password" -> "WLXJURY_DB_PASSWORD",
         "db.default.url" -> s"jdbc:mysql://localhost:$port/wlxjury?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false"
       )
 
       new GuiceApplicationBuilder()
-        .configure(additionalConfiguration)
+        .configure(dbConfiguration ++ additionalConfig)
         .bindings(new scalikejdbc.PlayModule)
         .build
     }
@@ -47,10 +48,8 @@ trait InMemDb {
     }
   }
 
-  def inMemDb[T](block: => T): T = {
-    inMemDbApp({ app =>
-      block
-    })
+  def inMemDb[T](block: => T)
+                (implicit additionalConfig: Map[String, String] = Map.empty): T = {
+    inMemDbApp(_ => block)
   }
-
 }
