@@ -35,7 +35,9 @@ class ContestsSpec extends PlaySpecification with InMemDb {
 
         val contests = contestDao.findAll()
         contests === List(ContestJury(Some(1), "Wiki Loves Earth", 2013, "Ukraine",
-          Some("Category:Images from Wiki Loves Earth 2013 in Ukraine")))
+          Some("Category:Images from Wiki Loves Earth 2013 in Ukraine")
+         // , monumentIdTemplate = Some("UkrainianNaturalHeritageSite")
+        ))
       }
     }
   }
