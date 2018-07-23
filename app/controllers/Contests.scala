@@ -82,7 +82,8 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
                   name = contest.contestType.name,
                   year = contest.year,
                   country = contest.country.name,
-                  images = Some(s"Category:Images from ${contest.contestType.name} ${contest.year} in ${contest.country.name}")
+                  images = Some(s"Category:Images from ${contest.contestType.name} ${contest.year} in ${contest.country.name}"),
+                  monumentIdTemplate = contest.uploadConfigs.headOption.map(_.fileTemplate)
                 )
                 createContest(contestJury)
             }
