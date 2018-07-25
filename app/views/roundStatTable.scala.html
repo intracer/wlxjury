@@ -74,7 +74,6 @@
                     @Messages("total")
                 </th>
                 <th>
-                    @if(round.isBinary) {
                         <a href="@routes.Gallery.query("byrate", None, 1, "all", round.getId)">
                             <button type="button" class="btn btn-default btn-xs @if(total == 0) {disabled}">
                                 <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
@@ -85,13 +84,8 @@
                                 <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
                             </button>
                         </a>
-                    }
                     @total
                 </th>
-                @if(!round.isBinary) {
-                    <th>
-                    </th>
-                }
                 <th>
                     <div class="btn-group">
                     @if(round.isBinary) {
@@ -102,17 +96,6 @@
                         </a>
                         <a href="@routes.Gallery.query("filelist", None, 1, "all", round.getId, Some(1))">
                             <button type="button" class="btn btn-default btn-xs @if(total == 0) {disabled}">
-                                <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
-                            </button>
-                        </a>
-                    } else {
-                        <a href="@routes.Gallery.query("byrate", None, 1, "all", round.getId, None)">
-                            <button type="button" class="btn btn-default btn-xs">
-                                <span class="glyphicon glyphicon-signal" aria-hidden="true"></span>
-                            </button>
-                        </a>
-                        <a href="@routes.Gallery.query("filelist", None, 1, "all", round.getId, None)">
-                            <button type="button" class="btn btn-default btn-xs">
                                 <span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span>
                             </button>
                         </a>
