@@ -1,7 +1,5 @@
 package org.intracer.wmua.cmd
 
-import java.time.ZonedDateTime
-
 import controllers.Global.commons
 import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, SelectionJdbc}
 import org.intracer.wmua._
@@ -64,6 +62,7 @@ object DistributeImages {
   def getFilteredImages(round: Round, jurors: Seq[User], prevRound: Option[Round]): Seq[Image] = {
     getFilteredImages(round, jurors, prevRound, selectedAtLeast = round.prevSelectedBy,
       selectMinAvgRating = round.prevMinAvgRate,
+      selectTopByRating = round.topImages,
       sourceCategory = round.category,
       includeCategory = round.categoryClause.map(_ > 0),
       includeRegionIds = round.regionIds.toSet,

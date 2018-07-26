@@ -43,13 +43,16 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
         roundsView.getOrElse(Redirect(routes.Login.index())) // TODO message
   }
 
-  def editRound(roundId: Option[Long], contestId: Long) = withAuth(rolePermission(User.ADMIN_ROLES)) {
+  def editRound(roundId: Option[Long], contestId: Long, topImages: Option[Int]) = withAuth(rolePermission(User.ADMIN_ROLES)) {
     user =>
       implicit request =>
         val number = RoundJdbc.findByContest(contestId).size + 1
+
         val round: Round = roundId.flatMap(RoundJdbc.findById).getOrElse(
           new Round(id = None, contestId = contestId, number = number)
         )
+
+        val withTopImages = topImages.map(n => round.copy(topImages = Some(n))).getOrElse(round)
 
         val rounds = RoundJdbc.findByContest(contestId)
 
@@ -57,7 +60,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
         val jurors = round.id.fold(loadJurors(contestId))(UserJdbc.findByRoundSelection)
 
-        val editRound = EditRound(round, jurors.flatMap(_.id), None)
+        val editRound = EditRound(withTopImages, jurors.flatMap(_.id), None)
 
         val filledRound = editRoundForm.fill(editRound)
 

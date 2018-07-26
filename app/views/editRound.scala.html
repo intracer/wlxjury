@@ -78,6 +78,10 @@
                                                 (0 to 20).map(x => (x.toString, x.toString)),
                                                 '_label -> Messages("average.image.rating.is.at.least"), 'readonly -> noEdit)
                                             </div>
+
+                                            @for(topImages <- editRoundForm("topImages").value) {
+                                                @b3.text(editRoundForm("topImages"), '_label -> Messages("top.images"))
+                                            }
                                         </div>
                                     }
                                     @b3.select(
