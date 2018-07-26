@@ -43,7 +43,8 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
     minImageSize = rs.intOpt(c.minImageSize),
     hasCriteria = rs.booleanOpt(c.hasCriteria).getOrElse(false),
     halfStar = rs.booleanOpt(c.halfStar),
-    monuments = rs.stringOpt(c.monuments)
+    monuments = rs.stringOpt(c.monuments),
+    topImages = rs.intOpt(c.topImages)
   )
 
   def create(round: Round): Round = {
@@ -70,7 +71,8 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
         column.regions -> round.regions,
         column.minImageSize -> round.minImageSize,
         column.halfStar -> round.halfStar,
-        column.monuments -> round.monuments
+        column.monuments -> round.monuments,
+        column.topImages -> round.topImages
       )
     }.updateAndReturnGeneratedKey().apply()
 
