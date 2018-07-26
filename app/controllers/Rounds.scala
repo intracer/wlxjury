@@ -291,9 +291,6 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       "roles" -> text,
       "distribution" -> number,
       "rates" -> number,
-      "limitMin" -> optional(number),
-      "limitMax" -> optional(number),
-      "recommended" -> optional(number),
       "returnTo" -> optional(text),
       "minMpx" -> text,
       "previousRound" -> optional(longNumber),
@@ -305,12 +302,13 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       "minSize" -> text,
       jurorsMappingKV,
       "newImages" -> boolean,
-      "monumentIds" -> optional(text)
+      "monumentIds" -> optional(text),
+      "topImages" -> optional(number)
     )(applyEdit)(unapplyEdit)
   )
 
   def applyEdit(id: Option[Long], num: Long, name: Option[String], contest: Long, roles: String, distribution: Int,
-                rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int], returnTo: Option[String],
+                rates: Int, returnTo: Option[String],
                 minMpx: String,
                 previousRound: Option[Long],
                 prevSelectedBy: Option[Int],
@@ -321,10 +319,11 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
                 minImageSize: String,
                 jurors: Seq[String],
                 newImages: Boolean,
-                monumentIds: Option[String]
+                monumentIds: Option[String],
+                topImages: Option[Int]
                ): EditRound = {
     val round = new Round(id, num, name, contest, Set(roles), distribution, Round.ratesById(rates),
-      limitMin, limitMax, recommended,
+      limitMin = None, limitMax = None, recommended = None,
       minMpx = Try(minMpx.toInt).toOption,
       previous = previousRound,
       prevSelectedBy = prevSelectedBy,
@@ -333,18 +332,19 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       category = category,
       regions = if (regions.nonEmpty) Some(regions.mkString(",")) else None,
       minImageSize = Try(minImageSize.toInt).toOption,
-      monuments = monumentIds
+      monuments = monumentIds,
+      topImages = topImages
     )
     EditRound(round, jurors.flatMap(s => Try(s.toLong).toOption), returnTo, newImages)
   }
 
-  def unapplyEdit(editRound: EditRound): Option[(Option[Long], Long, Option[String], Long, String, Int, Int, Option[Int],
-    Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String],
-    Seq[String], String, Seq[String], Boolean, Option[String])] = {
+  def unapplyEdit(editRound: EditRound): Option[(Option[Long], Long, Option[String], Long, String, Int, Int,
+    Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String],
+    Seq[String], String, Seq[String], Boolean, Option[String], Option[Int])] = {
     val round = editRound.round
     Some((
       round.id, round.number, round.name, round.contestId, round.roles.head, round.distribution, round.rates.id,
-      round.limitMin, round.limitMax, round.recommended, editRound.returnTo,
+      editRound.returnTo,
       round.minMpx.fold("No")(_.toString),
       round.previous,
       round.prevSelectedBy,
@@ -355,8 +355,8 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       round.minImageSize.fold("No")(_.toString),
       editRound.jurors.map(_.toString),
       editRound.newImages,
-      round.monuments
-      ))
+      round.monuments,
+      round.topImages))
   }
 }
 
