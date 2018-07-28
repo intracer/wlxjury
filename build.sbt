@@ -3,40 +3,12 @@ import sbt.Keys._
 lazy val root = identity((project in file("."))
   .enablePlugins(PlayScala, DebianPlugin, RpmPlugin, JavaAppPackaging))
 
+
 name := "wlxjury"
 
 organization := "org.intracer"
 
-version := "0.9"
-
-//rpmRelease := "1"
-
-rpmVendor := "intracer"
-
-rpmUrl := Some("https://github.com/intracer/wlxjury")
-
-rpmLicense := Some("ASL 2.0")
-
-packageSummary := "WLX Jury Tool is an image selection and rating tool for Wiki Loves Monuments and Wiki Loves Earth contests"
-
-packageDescription :=
-  """On gallery page jurors or organizing committee can browse the images, see the rating or selection status of each image, open large image view page.
-    |Images can be filtered by their status - unrated, and selected or rejected in selection rounds or rated in rating rounds.
-    |In rating rounds images are sorted by their rating.
-    |Organizing committee can see the votes of each juror separately or the overall rating of all jurors together.
-    |In large image view there is vertical ribbon of image thumbnails on the left and large currently viewed image on the right.
-    |User can go backward or forward with navigation buttons or arrow keys on the keyboard, or can click the thumbnails in the ribbon
-    |Juror can select, reject or rate the currently viewed image.
-    |Juror can also comment the image and see other jurors comments.
-    |Organizing committee can see the ratings and comments given by all jurors to the image.
-    |From large image view one can return to gallery view, visit image page on commons by clicking the large image, or open full resolution version of the image. Caption of the full resolution image version link shows image resolution.
-  """.stripMargin.replace('\n', ' ')
-
-maintainer := "Ilya Korniiko <intracer@gmail.com>"
-
-debianPackageDependencies in Debian ++= Seq("java8-runtime")
-
-debianPackageRecommends in Debian ++= Seq("virtual-mysql-server")
+version := "0.10"
 
 scalaVersion := "2.12.6"
 
@@ -93,6 +65,37 @@ routesGenerator := StaticRoutesGenerator
 
 javaOptions in Test += "-Dconfig.file=test/resources/application.conf"
 
+//rpmRelease := "1"
+
+rpmRequirements ++= Seq("java-1.8.0-openjdk", "bash")
+
+rpmVendor := "intracer"
+
+rpmUrl := Some("https://github.com/intracer/wlxjury")
+
+rpmLicense := Some("ASL 2.0")
+
+packageSummary := "WLX Jury Tool is an image selection and rating tool for Wiki Loves Monuments and Wiki Loves Earth contests"
+
+packageDescription :=
+  """On gallery page jurors or organizing committee can browse the images, see the rating or selection status of each image, open large image view page.
+    |Images can be filtered by their status - unrated, and selected or rejected in selection rounds or rated in rating rounds.
+    |In rating rounds images are sorted by their rating.
+    |Organizing committee can see the votes of each juror separately or the overall rating of all jurors together.
+    |In large image view there is vertical ribbon of image thumbnails on the left and large currently viewed image on the right.
+    |User can go backward or forward with navigation buttons or arrow keys on the keyboard, or can click the thumbnails in the ribbon
+    |Juror can select, reject or rate the currently viewed image.
+    |Juror can also comment the image and see other jurors comments.
+    |Organizing committee can see the ratings and comments given by all jurors to the image.
+    |From large image view one can return to gallery view, visit image page on commons by clicking the large image, or open full resolution version of the image. Caption of the full resolution image version link shows image resolution.
+  """.stripMargin.replace('\n', ' ')
+
+maintainer := "Ilya Korniiko <intracer@gmail.com>"
+
+debianPackageDependencies in Debian ++= Seq("java8-runtime")
+
+debianPackageRecommends in Debian ++= Seq("virtual-mysql-server")
+
 addCommandAlias(
   "packageAll", "; clean" +
     "; packageDebianSystemV" +
@@ -109,32 +112,32 @@ addCommandAlias(
 )
 
 addCommandAlias(
-  "packageDebianSystemV", "; set serverLoading in Debian := com.typesafe.sbt.packager.archetypes.ServerLoader.SystemV" +
+  "packageDebSystemV", "; set serverLoading in Debian := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.SystemV)" +
     "; internalPackageDebianSystemV"
 )
 
 addCommandAlias(
-  "packageDebianUpstart", "; set serverLoading in Debian := com.typesafe.sbt.packager.archetypes.ServerLoader.Upstart" +
+  "packageDebUpstart", "; set serverLoading in Debian := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Upstart)" +
     "; internalPackageDebianUpstart"
 )
 
 addCommandAlias(
-  "packageDebianSystemd", "; set serverLoading in Debian := com.typesafe.sbt.packager.archetypes.ServerLoader.Systemd" +
+  "packageDebSystemd", "; set serverLoading in Debian := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd)" +
     "; internalPackageDebianSystemd"
 )
 
 addCommandAlias(
-  "packageRpmSystemV", "; set serverLoading in Rpm := com.typesafe.sbt.packager.archetypes.ServerLoader.SystemV" +
+  "packageRpmSystemV", "; set serverLoading in Rpm := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.SystemV)" +
     "; internalPackageRpmSystemV"
 )
 
 addCommandAlias(
-  "packageRpmUpstart", "; set serverLoading in Rpm := com.typesafe.sbt.packager.archetypes.ServerLoader.Upstart" +
+  "packageRpmUpstart", "; set serverLoading in Rpm := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Upstart)" +
     "; internalPackageRpmUpstart"
 )
 
 addCommandAlias(
-  "packageRpmSystemd", "; set serverLoading in Rpm := com.typesafe.sbt.packager.archetypes.ServerLoader.Systemd" +
+  "packageRpmSystemd", "; set serverLoading in Rpm := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd)" +
     "; internalPackageRpmSystemd"
 )
 
