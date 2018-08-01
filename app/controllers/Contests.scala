@@ -15,6 +15,7 @@ import play.api.mvc.Controller
 import spray.util.pimpFuture
 import javax.inject.Inject
 import org.scalawiki.MwBot
+import play.api.Logger
 
 import scala.concurrent.Future
 
@@ -163,6 +164,11 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
 
   def updateImageMonuments(source: String, contest: ContestJury): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
+
+    if (contest.name == "Wiki Loves Earth" && contest.country == "Ukraine") {
+      val monumentContest = Contest.WLEUkraine(contest.year)
+      Monuments.updateLists(monumentContest)
+    }
 
     def generatorParams: (String, String) = {
       if (source.toLowerCase.startsWith("category:")) {
