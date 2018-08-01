@@ -201,6 +201,7 @@ or.image.list = Or image list
 images.on.commons = Images on Commons
 images.in.database = Images in database
 import.images = Import images
+update.monuments = Update monuments
 thumbnail.urls = thumbnail urls
 contest = Contest
 

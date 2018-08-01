@@ -1,4 +1,4 @@
-@(importImagesForm: Form[(String, String)],
+@(importImagesForm: Form[(String, String, String)],
         contest: org.intracer.wmua.ContestJury,
         user: org.intracer.wmua.User,
         sourceImages: Long,
@@ -26,7 +26,14 @@
             @Messages("images.in.database"): @dbImages (<a href="/thumb_urls/@contest.id">@Messages("thumbnail.urls")</a>)
 
             <div>
-                <input type="submit" id="import-btn" class="btn btn-primary" value="@Messages("import.images")">
+                <button type="submit" id="import-btn" class="btn btn-primary" name="action" value="import.images">
+                    @Messages("import.images")
+                </button>
+                @if(contest.monumentIdTemplate.isDefined) {
+                    <button type="submit" id="update-monuments-btn" class="btn btn-primary" name="action" value="update.monuments">
+                        @Messages("update.monuments")
+                    </button>
+                }
             </div>
         }
     }

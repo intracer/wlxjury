@@ -127,7 +127,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
         val sourceImageNum = getNumberOfImages(contest)
         val dbImagesNum = ImageJdbc.countByContest(contest)
 
-        val filledForm = importImagesForm.fill((contest.images.getOrElse(""), ""))
+        val filledForm = importImagesForm.fill((contest.images.getOrElse(""), "", ""))
         Ok(views.html.contest_images(filledForm, contest, user, sourceImageNum, dbImagesNum, inProgress))
   }
 
@@ -146,22 +146,25 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
       val contest = ContestJuryJdbc.findById(contestId).get
       importImagesForm.bindFromRequest.fold(
         formWithErrors => BadRequest(views.html.contest_images(formWithErrors, contest, user, 0, ImageJdbc.countByContest(contest))), {
-          case (source, list) =>
+          case (source, list, action) =>
 
             val withNewImages = contest.copy(images = Some(source))
 
-            //val sourceImageNum = getNumberOfImages(withNewImages)
-
-            new GlobalRefactor(commons).appendImages(source, list, withNewImages)
+            if (action == "import.images") {
+              new GlobalRefactor(commons).appendImages(source, list, withNewImages)
+            } else if (action == "update.monuments") {
+              updateImageMonuments(source, withNewImages)
+            }
 
             Redirect(routes.Contests.images(contestId))
         })
   }
 
-  def updateImageMonuments(source: String, contest: ContestJury) = {
+
+  def updateImageMonuments(source: String, contest: ContestJury): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    def generatorParams:(String, String) = {
+    def generatorParams: (String, String) = {
       if (source.toLowerCase.startsWith("category:")) {
         ("categorymembers", "cm")
       } else if (source.toLowerCase.startsWith("template:")) {
@@ -226,7 +229,8 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
   val importImagesForm = Form(
     tuple(
       "source" -> text,
-      "list" -> text
+      "list" -> text,
+      "action" -> text
     )
   )
 }
