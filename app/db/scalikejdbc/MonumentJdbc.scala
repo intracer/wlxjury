@@ -29,8 +29,7 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     gallery = rs.stringOpt(c.gallery),
     resolution = rs.stringOpt(c.resolution),
     page =  rs.string(c.page),
-    contest = rs.longOpt(c.contest),
-    listConfig =  null //  listConfig, should not be mandatory?
+    contest = rs.longOpt(c.contest)
   )
 
   def batchInsert(monuments: Seq[Monument]) {
@@ -49,7 +48,8 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
         m.photo,
         m.gallery,
         m.page,
-        m.contest
+        m.contest,
+        m.id.split("-").headOption
       ))
       withSQL {
         insert.into(MonumentJdbc).namedValues(
@@ -64,7 +64,8 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
           column.photo -> sqls.?,
           column.gallery -> sqls.?,
           column.page -> sqls.?,
-          column.contest ->  sqls.?
+          column.contest ->  sqls.?,
+          sqls"adm0" -> sqls.?
         )
       }.batch(batchParams: _*).apply()
     }
