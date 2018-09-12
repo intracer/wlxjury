@@ -1,7 +1,7 @@
 package controllers
 
+import com.mohiva.play.silhouette.api.Silhouette
 import javax.inject.Inject
-
 import db.scalikejdbc.{RoundJdbc, UserJdbc}
 import org.intracer.wmua.User
 import play.api.Play.current
@@ -12,7 +12,7 @@ import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Results._
 import play.api.mvc._
 
-class Login @Inject()(val admin: Admin) extends Controller with Secured {
+class Login @Inject()(val admin: Admin, silhouette: Silhouette[DefaultEnv]) extends Controller with Secured {
 
   def index = withAuth() {
     user =>
@@ -44,7 +44,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
     }
   }
 
-  def login = Action {
+  def login = silhouette.UnsecuredAction {
     implicit request =>
       val users = UserJdbc.count()
       if (users > 0) {
@@ -54,7 +54,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
       }
   }
 
-  def auth() = Action { implicit request =>
+  def auth() = silhouette.UnsecuredAction { implicit request =>
 
     loginForm.bindFromRequest.fold(
       formWithErrors =>

@@ -1,5 +1,7 @@
 package controllers
 
+import com.mohiva.play.silhouette.api.Env
+import com.mohiva.play.silhouette.impl.authenticators.CookieAuthenticator
 import db.scalikejdbc.{RoundJdbc, UserJdbc}
 import org.intracer.wmua.User
 import play.api.mvc._
@@ -7,6 +9,12 @@ import play.api.mvc._
 /**
   * Base trait for secured controllers
   */
+trait DefaultEnv extends Env {
+  type I = User
+  type A = CookieAuthenticator
+}
+
+
 trait Secured {
 
   type Permission = User => Boolean

@@ -1,8 +1,9 @@
 package org.intracer.wmua
 
 import java.time.ZonedDateTime
-import javax.mail.internet.InternetAddress
 
+import com.mohiva.play.silhouette.api.Identity
+import javax.mail.internet.InternetAddress
 import play.api.data.validation.{Constraints, Invalid, Valid}
 
 import scala.util.Try
@@ -19,7 +20,7 @@ case class User(fullname: String,
                 wikiAccount: Option[String] = None,
                 hasWikiEmail: Boolean = false,
                 accountValid: Boolean = true
-               ) extends HasId {
+               ) extends HasId with Identity {
 
   def emailLo = email.trim.toLowerCase
 

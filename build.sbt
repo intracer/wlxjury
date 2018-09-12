@@ -16,6 +16,7 @@ val ScalikejdbcVersion = "3.2.2"
 val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.2"
 val ScalawikiVersion = "0.5.0"
 val PlayMailerVersion = "6.0.1"
+val PlaySilhouetteVersion = "5.0.5"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -37,6 +38,8 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % ScalikejdbcPlayVersion,
   "org.skinny-framework" %% "skinny-orm" % "2.5.2",
   "org.flywaydb" %% "flyway-play" % "4.0.0",
+
+  "com.mohiva" %% "play-silhouette" % PlaySilhouetteVersion,
 
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
