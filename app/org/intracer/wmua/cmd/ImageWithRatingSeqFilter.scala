@@ -3,9 +3,13 @@ package org.intracer.wmua.cmd
 import org.intracer.wmua.{Image, ImageWithRating, Round}
 import play.api.Logger
 
-trait ImageFilterGen extends (() => Seq[ImageWithRating] => Seq[ImageWithRating]) {
+import scala.runtime.ScalaRunTime
+
+trait ImageFilterGen extends (() => Seq[ImageWithRating] => Seq[ImageWithRating]) with Product {
 
   type ImageSeqFilter = Seq[ImageWithRating] => Seq[ImageWithRating]
+
+  override def toString = ScalaRunTime._toString(this)
 
   def imageFilter(p: Image => Boolean): ImageSeqFilter =
     (images: Seq[ImageWithRating]) => {
