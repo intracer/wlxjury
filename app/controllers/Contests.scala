@@ -165,7 +165,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
   def updateImageMonuments(source: String, contest: ContestJury): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    if ((contest.name == "Wiki Loves Earth" || contest.name == "Wiki Loves Monuments") && contest.country == "Ukraine") {
+    if (contest.monumentIdTemplate.isDefined) {
       val monumentContest = Contest.WLEUkraine(contest.year)
       Monuments.updateLists(monumentContest)
     }
