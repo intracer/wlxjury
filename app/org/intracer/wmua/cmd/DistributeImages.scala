@@ -63,8 +63,8 @@ object DistributeImages {
     getFilteredImages(round, jurors, prevRound, selectedAtLeast = round.prevSelectedBy,
       selectMinAvgRating = round.prevMinAvgRate,
       selectTopByRating = round.topImages,
-      sourceCategory = round.category,
-      includeCategory = round.categoryClause.map(_ > 0),
+      includeCategory = round.category,
+      excludeCategory = round.excludeCategory,
       includeRegionIds = round.regionIds.toSet,
       includeMonumentIds = round.monumentIds.toSet
     )
@@ -90,26 +90,21 @@ object DistributeImages {
                          selectedAtLeast: Option[Int] = None,
                          includeJurorId: Set[Long] = Set.empty,
                          excludeJurorId: Set[Long] = Set.empty,
-                         sourceCategory: Option[String] = None,
-                         includeCategory: Option[Boolean] = None
+                         includeCategory: Option[String] = None,
+                         excludeCategory: Option[String] = None
                        ): Seq[Image] = {
 
-    val catIds = sourceCategory.map { category =>
+    val includeFromCats = includeCategory.filter(_.trim.nonEmpty).map { category =>
       val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
       pages.flatMap(_.id)
-    }
+    }.getOrElse(Nil)
 
-    val (includeFromCats, excludeFromCats) = (
-      for (ids <- catIds;
-           include <- includeCategory)
-        yield
-          if (include)
-            (ids, Seq.empty)
-          else (Seq.empty, ids)
-      ).getOrElse(Seq.empty, Seq.empty)
+    val excludeFromCats = excludeCategory.filter(_.trim.nonEmpty).map { category =>
+      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
+      pages.flatMap(_.id)
+    }.getOrElse(Nil)
 
-
-    val currentSelection = ImageJdbc.byRoundMerged(round.getId, rated = None).filter(iwr => iwr.selection.nonEmpty).toSet
+    val currentSelection = ImageJdbc.byRoundMerged(round.getId, rated = Some(true)).filter(iwr => iwr.selection.nonEmpty).toSet
     val existingImageIds = currentSelection.map(_.pageId)
     val existingJurorIds = currentSelection.flatMap(_.jurors)
     val mpxAtLeast = round.minMpx
@@ -121,7 +116,7 @@ object DistributeImages {
         new ImageWithRating(i, Seq.empty)
       )
     )(r =>
-      ImageJdbc.byRoundMerged(r.getId, rated = selectedAtLeast.filter(_ > 0).map(_ => true))
+      ImageJdbc.byRoundMerged(r.getId, rated = selectedAtLeast.map(_ => true))
     )
     Logger.logger.debug("Total images: " + imagesAll.size)
 

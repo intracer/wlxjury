@@ -84,18 +84,13 @@
                                             }
                                         </div>
                                     }
-                                    @b3.select(
-                                        editRoundForm("categoryClause"),
-                                        Seq(
-                                            ("No", Messages("absent")),
-                                            ("1", Messages("images.should.be.IN.the.category")),
-                                            ("-1", Messages("images.should.be.NOT.IN.the.category"))
-                                        ),
-                                        '_label -> Messages("category.filter"), 'readonly -> noEdit)
 
-                                    <div id="categoryDiv" @if(editRoundForm("source").value.isEmpty) {
-                                        style="display: none"}>
-                                    @b3.text(editRoundForm("source"), '_label -> Messages("category"), 'readonly -> noEdit)
+                                    <div id="categoryDiv">
+                                    @b3.text(editRoundForm("source"), '_label -> Messages("images.should.be.IN.the.category"), 'readonly -> noEdit)
+                                    </div>
+
+                                    <div id="categoryDiv">
+                                    @b3.text(editRoundForm("excludeCategory"), '_label -> Messages("images.should.be.NOT.IN.the.category"), 'readonly -> noEdit)
                                     </div>
 
                                     @if(regions.nonEmpty) {

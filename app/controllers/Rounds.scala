@@ -299,8 +299,9 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       "previousRound" -> optional(longNumber),
       "minJurors" -> optional(number),
       "minAvgRate" -> optional(number),
-      "categoryClause" -> text,
+      "categoryClause" -> optional(text),
       "source" -> optional(text),
+      "excludeCategory" -> optional(text),
       "regions" -> seq(text),
       "minSize" -> text,
       jurorsMappingKV,
@@ -316,8 +317,9 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
                 previousRound: Option[Long],
                 prevSelectedBy: Option[Int],
                 prevMinAvgRate: Option[Int],
-                categoryClause: String,
+                categoryClause: Option[String],
                 category: Option[String],
+                excludeCategory: Option[String],
                 regions: Seq[String],
                 minImageSize: String,
                 jurors: Seq[String],
@@ -331,8 +333,9 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       previous = previousRound,
       prevSelectedBy = prevSelectedBy,
       prevMinAvgRate = prevMinAvgRate,
-      categoryClause = Try(categoryClause.toInt).toOption,
+      categoryClause = categoryClause.map(_.toInt),
       category = category,
+      excludeCategory = excludeCategory,
       regions = if (regions.nonEmpty) Some(regions.mkString(",")) else None,
       minImageSize = Try(minImageSize.toInt).toOption,
       monuments = monumentIds,
@@ -342,7 +345,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Long, Option[String], Long, String, Int, Int,
-    Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String],
+    Option[String], String, Option[Long], Option[Int], Option[Int], Option[String], Option[String], Option[String],
     Seq[String], String, Seq[String], Boolean, Option[String], Option[Int])] = {
     val round = editRound.round
     Some((
@@ -352,8 +355,9 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       round.previous,
       round.prevSelectedBy,
       round.prevMinAvgRate,
-      round.categoryClause.fold("No")(_.toString),
+      round.categoryClause.map(_.toString),
       round.category,
+      round.excludeCategory,
       round.regionIds,
       round.minImageSize.fold("No")(_.toString),
       editRound.jurors.map(_.toString),
