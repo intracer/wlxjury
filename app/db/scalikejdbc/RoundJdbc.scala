@@ -90,11 +90,8 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
     where('contestId -> contestId, 'active -> true)
       .orderBy(r.id).apply()
 
-  def current(user: User): Option[Round] = {
-    for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById);
-         roundId <- contest.currentRound;
-         round <- findById(roundId))
-      yield round
+  def current(user: User): Seq[Round] = {
+    user.currentContest.map(activeRounds).getOrElse(Nil)
   }
 
   def findByContest(contest: Long): Seq[Round] =

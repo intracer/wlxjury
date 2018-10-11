@@ -199,7 +199,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   def currentRoundStat() = withAuth(rolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)){
     user =>
       implicit request =>
-        RoundJdbc.current(user).map {
+        RoundJdbc.current(user).headOption.map {
           round =>
             Redirect(routes.Rounds.roundStat(round.getId))
         }.getOrElse {

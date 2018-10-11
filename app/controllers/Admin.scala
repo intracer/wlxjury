@@ -103,7 +103,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
 
         havingEditRights(user, editedUser) {
           val filledForm = editUserForm.fill(editedUser)
-          Ok(views.html.editUser(user, filledForm, RoundJdbc.current(user), user.currentContest))
+          Ok(views.html.editUser(user, filledForm, user.currentContest))
         }
   }
 
@@ -122,7 +122,6 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
               views.html.editUser(
                 user,
                 formWithErrors,
-                RoundJdbc.current(user),
                 contestId = Try(formWithErrors.data("contest").toLong).toOption
               )
             ),
@@ -136,7 +135,6 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
                   views.html.editUser(
                     user,
                     editUserForm.fill(formUser).withError("email", "email should be unique"),
-                    RoundJdbc.current(user),
                     contestId = formUser.contestId
                   )
                 )

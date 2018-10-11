@@ -77,7 +77,7 @@ object Gallery extends Controller with Secured with Instrumented {
     user =>
       implicit request =>
         timerList.time {
-          val maybeRound = if (roundId == 0) RoundJdbc.current(user) else RoundJdbc.findById(roundId)
+          val maybeRound = if (roundId == 0) RoundJdbc.current(user).headOption else RoundJdbc.findById(roundId)
 
           val roundContestId = maybeRound.map(_.contestId).getOrElse(0L)
           val round = maybeRound.get
