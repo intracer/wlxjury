@@ -2,8 +2,6 @@ package db.scalikejdbc
 
 import org.intracer.wmua.{Round, User}
 import scalikejdbc._
-import scalikejdbc._, jsr310._
-import java.time._
 import skinny.orm.SkinnyCRUDMapper
 
 object RoundJdbc extends SkinnyCRUDMapper[Round] {
@@ -13,6 +11,8 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
   override val tableName = "rounds"
 
   val c = RoundJdbc.syntax("c")
+
+  val s = SelectionJdbc.syntax("s")
 
   override lazy val defaultAlias = createAlias("r")
 
@@ -91,7 +91,18 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
       .orderBy(r.id).apply()
 
   def current(user: User): Seq[Round] = {
-    user.currentContest.map(activeRounds).getOrElse(Nil)
+    user.currentContest.map { contestId =>
+      where(sqls
+        .eq(r.contestId, contestId).and
+        .eq(r.active, true).and
+        .exists(
+          select.from(SelectionJdbc as s)
+            .where
+            .eq(s.juryId, user.id.get).and
+            .eq(s.roundId, r.id).sql
+        ))
+        .orderBy(r.id).apply()
+    }.getOrElse(Nil)
   }
 
   def findByContest(contest: Long): Seq[Round] =

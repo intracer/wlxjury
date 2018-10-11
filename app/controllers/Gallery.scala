@@ -73,9 +73,8 @@ object Gallery extends Controller with Secured with Instrumented {
                    region: String = "all",
                    roundId: Long = 0,
                    rate: Option[Int] = None,
-                   rated: Option[Boolean] = None) = withAuth() {
-    user =>
-      implicit request =>
+                   rated: Option[Boolean] = None) = withAuth() { user =>
+    implicit request =>
         timerList.time {
           val maybeRound = if (roundId == 0) RoundJdbc.current(user).headOption else RoundJdbc.findById(roundId)
 
@@ -84,7 +83,7 @@ object Gallery extends Controller with Secured with Instrumented {
           val rounds = if (user.canViewOrgInfo(round)) {
             RoundJdbc.findByContest(roundContestId)
           } else {
-            RoundJdbc.activeRounds(roundContestId)
+            RoundJdbc.current(user)
           }
 
           if (isNotAuthorized(user, maybeRound, roundContestId, rounds)) {
