@@ -75,7 +75,7 @@
                                             <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
                                             @b3.select(
                                                 editRoundForm("minAvgRate"),
-                                                (0 to 20).map(x => (x.toString, x.toString)),
+                                                Seq("" -> Messages("no")) ++ (0 to 20).map(x => (x.toString, x.toString)),
                                                 '_label -> Messages("average.image.rating.is.at.least"), 'readonly -> noEdit)
                                             </div>
 
@@ -154,7 +154,7 @@
 
                         @b3.select(
                             editRoundForm("rates"),
-                            Round.rates.map(x => (x.id.toString, if (x.id == 1) x.name else Messages("1-x.rating", x.id))),
+                            Round.rates.map(x => (x.id.toString, if(x.id == 1) x.name else Messages("1-x.rating", x.id))),
                             '_label -> Messages("rating.type"), 'readonly -> noEdit)
 
                         @if(!newRound) {
