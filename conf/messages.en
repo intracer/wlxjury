@@ -195,6 +195,7 @@ comments = Comments
 submit.comment = Submit comment
 
 images = Images
+contest.images = Contests images
 images.source = Images source
 commons.category.or.page.with.images = Commons category or page with images
 or.image.list = Or image list

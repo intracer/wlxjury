@@ -160,6 +160,7 @@ comments = Коментарі
 submit.comment = Додати коментар
 
 images = Зображення
+contest.images = Зображення зі 
 images.source = Джерело зображень
 commons.category.or.page.with.images = Категорія чи сторінка зі зображеннями на ВікіСховищі
 or.image.list = Або перелік зображень
