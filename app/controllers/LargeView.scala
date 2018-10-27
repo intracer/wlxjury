@@ -65,7 +65,7 @@ object LargeView extends Controller with Secured {
                       round: Round,
                       module: String): Result = {
 
-    val query = getQuery(asUser.getId, rate, round.id)
+    val query = getQuery(asUser.getId, rate, round.id, regions = Set(region).filter(_ != "all"))
 
     val rank = query.imageRank(pageId)
 
