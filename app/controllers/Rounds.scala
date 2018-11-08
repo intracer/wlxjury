@@ -270,8 +270,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       u.id.exists(byUserCount.contains)
     }
 
-    val stat = RoundStat(jurors, round, rounds, byUserCount, byUserRateCount, total, totalByRate)
-    stat
+    RoundStat(jurors, round, rounds, byUserCount, byUserRateCount, total, totalByRate)
   }
 
   val imagesForm = Form("images" -> optional(text))

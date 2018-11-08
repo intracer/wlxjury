@@ -81,7 +81,7 @@ object Gallery extends Controller with Secured with Instrumented {
           val roundContestId = maybeRound.map(_.contestId).getOrElse(0L)
           val round = maybeRound.get
           val rounds = if (user.canViewOrgInfo(round)) {
-            RoundJdbc.findByContest(roundContestId)
+            RoundJdbc.findByContest(roundContestId).filter(user.canViewOrgInfo)
           } else {
             RoundJdbc.current(user)
           }
