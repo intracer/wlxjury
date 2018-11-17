@@ -104,9 +104,9 @@ object DistributeImages {
       pages.flatMap(_.id)
     }.getOrElse(Nil)
 
-    val currentSelection = ImageJdbc.byRoundMerged(round.getId, rated = Some(true)).filter(iwr => iwr.selection.nonEmpty).toSet
-    val existingImageIds = currentSelection.map(_.pageId)
-    val existingJurorIds = currentSelection.flatMap(_.jurors)
+    val currentImages = ImageJdbc.byRoundMerged(round.getId, rated = None).filter(iwr => iwr.selection.nonEmpty).toSet
+    val existingImageIds = currentImages.map(_.pageId)
+    val existingJurorIds = currentImages.flatMap(_.jurors)
     val mpxAtLeast = round.minMpx
     val sizeAtLeast = round.minImageSize.map(_ * 1024 * 1024)
 
@@ -116,7 +116,7 @@ object DistributeImages {
         new ImageWithRating(i, Seq.empty)
       )
     )(r =>
-      ImageJdbc.byRoundMerged(r.getId, rated = selectedAtLeast.map(_ => true))
+      ImageJdbc.byRoundMerged(r.getId, rated = selectedAtLeast.map(_ > 0))
     )
     Logger.logger.debug("Total images: " + imagesAll.size)
 
