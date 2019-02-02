@@ -21,7 +21,7 @@ class ImagesSqlSpec extends Specification with InMemDb {
 
   // TODO start mysql once per spec
   def check(q: SelectionQuery, expected: String, f: SelectionQuery => String = _.query()) = {
-    inMemDbApp {
+    inMemDb {
       foldSpace(f(q)) === foldSpace(expected)
     }
   }

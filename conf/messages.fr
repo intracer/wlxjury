@@ -1,0 +1,284 @@
+application.name=Outil de jury
+
+date=Date
+filter=Filtre
+
+title=Jury
+
+email=Courriel
+login=Se connecter
+fullname=Nom complet
+logout=Se déconnecter
+password=Mot de passe
+profile = Profil
+
+users = Utilisateurs
+rounds = Tours
+
+unrated = Pas notées
+selected = Sélectionnés
+rejected = Rejetées
+rated = Notées
+all = Toutes
+all.jury.rating = Toutes les notes du jury
+
+statistics = Statistiques
+thumbnails = Vignettes
+file.list = Liste des fichiers
+
+top-x = Haut {}
+regions = Régions
+
+wiki.loves.earth = Wiki Loves Earth {0}
+wiki.loves.earth.Ukraine = Wiki Loves Earth en Ukraine
+wiki.loves.monuments.Ukraine = Wiki Loves Monuments en Ukraine
+wiki.loves.earth.Russia = Wiki Loves Earth en Russie
+
+welcome.subject = Bienvenue au jury {0}
+
+error.technical=Erreur technique, veuillez réessayer
+validate=Valider
+reset=Réinitialiser
+
+account.not.validated.check.mail=Compte non validé. Vérifiez vos courriels.
+account.successfully.validated=Compte validé avec succès
+account.settings.email.successful=Courriel validé avec succès ({0})
+invalid.user.or.password=Utilisateur ou mot de passe invalide
+youve.been.logged.out=Vous avez été déconnecté
+error.sending.email=Erreur d'envoi de courriel
+error.sending.confirm.email=Erreur lors de l'envoi du courriel de confirmation
+error.email.already.exist=Ce courriel existe déjà
+error.account.already.validated=Ce compte est déjà validé
+error.unknown.email=Courriel inconnu
+error.confirm=La confirmation a échoué
+error.expiredresetlink=Cette réinitialisation de mot de passe a expiré.
+error.expiredmaillink=Ce changement de courriel a expiré.
+
+signin.signin=Se connecter
+signin.your.email=Votre adresse email
+signin.your.login=Votre identifiant
+signin.your.password=Votre mot de passe
+
+forgot.password=Mot de passe oublié ?
+
+signup.signup=S'inscrire
+signup.successfull=Inscription réussie !
+signup.new=Nouveau ?
+signup.reset.password=Réinitialisez votre mot de passe
+signup.generate.password=Générer un mot de passe
+signup.msg.created=Vous allez bientôt recevoir un courriel de confirmation. Vérifiez vos courriel pour activer votre compte.
+signup.valid.email=Courriel invalide
+signup.repeat.your.password=Répétez votre mot de passe
+
+resetpassword=Réinitialiser le mot de passe
+resetpassword.mailsent=Un courriel a été envoyé, veuillez vérifier votre courrier.
+resetpassword.success=Votre mot de passe a été réinitialisé.
+resetpassword.new.password=Nouveau mot de passe :
+
+changemail.mailsent=Un courriel a été envoyé, veuillez vérifier votre courrier.
+
+mail.confirm.subject=Bienvenue à Jury - Demander la confirmation
+mail.confirm.message=Bienvenue à Jury. <br> Cliquez sur ce lien : {0} pour confirmer votre adresse courriel.
+
+mail.welcome.subject=Bienvenue à Jury
+mail.welcome.message=Bienvenue à Jury. <br> Votre compte est validé.
+
+mail.reset.ask.subject=Jury - Nouveau mot de passe
+# Vous ne pouvez pas l'utiliser ; vous n'avez pas d'issue, car le guillemet unique arrête le {0}
+mail.reset.ask.message=Vous avez demandé que votre mot de passe soit réinitialisé. <br> Cliquez sur ce lien : {0} pour changer votre mot de passe.
+
+mail.change.ask.subject=Jury - Confirmez votre adresse courriel
+mail.change.ask.message=Vous avez demandé que votre courriel soit modifié. <br> Cliquez sur ce lien : {0} pour confirmer votre adresse courriel.
+
+mail.reset.fail.subject=Tentative d'Accéder au compte
+mail.reset.fail.message=Vous (ou quelqu'un d'autre) a entré cette adresse courriel en tentant de changer le mot de passe. Toutefois, cette adresse courriel ne figure pas dans notre liste d'utilisateurs enregistrés. La tentative de réinitialisation du mot de passe a donc échoué.
+
+mail.reset.confirm.subject=Jury - Nouveau mot de passe
+mail.reset.confirm.message=Bonjour, <br><br> Votre mot de passe a été réinitialisé.
+
+
+# Default messages
+
+# --- Constraints
+constraint.required=Required
+constraint.min=Minimum value: {0}
+constraint.max=Maximum value: {0}
+constraint.minLength=Minimum length: {0}
+constraint.maxLength=Maximum length: {0}
+constraint.email=Email
+
+# --- Formats
+format.date=Date (''{0}'')
+format.numeric=Numérique
+format.real=Vrai
+
+# --- Errors
+error.invalid=Valeur invalide
+error.required=Ce champ est requis
+error.number=Valeur numérique attendue
+error.real=Valeur réelle numérique attendue
+error.real.precision=Valeur réelle numérique avec pas plus de {0} chiffre(s) incluant {1} la ou les decimale(s) attendue(s)
+error.min=Doit être supérieur ou égal à {0}
+error.min.strict=Doit être strictement supérieur à {0}
+error.max=Doit être inférieur ou égal à {0}
+error.max.strict=Doit être strictement inférieur à {0}
+error.minLength=La longueur minimum est {0}
+error.maxLength=La longueur maximale est {0}
+error.email=Adresse courriel valide requise
+error.pattern=Doit satisfaire {0}
+
+dates = Dates
+total = Total
+
+80=Kyiv
+07=Volyn O.
+68=Khmelnytsk O.
+05=Vinnytsya O.
+35=Kirovohrad O.
+65=Kherson O.
+63=Kharkiv O.
+01=Crimea
+32=Kyiv O.
+61=Ternopil O.
+18=Zhytomyr O.
+48=Mykolayiv O.
+46=Lviv O.
+14=Donetsk O.
+44=Luhansk O.
+74=Chernihiv O.
+12=Dnipropetrovsk O.
+73=Chernivtsi O.
+71=Cherkasy O.
+59=Sumy O.
+26=Ivano-Frankivsk O.
+56=Rivne O.
+85=Sevastopol
+23=Zaporizhia  O.
+53=Poltava O.
+21=Zakarpattia O.
+51=Odessa O.
+
+full.resolution = Pleine résolution : <nobr>{0}</nobr>; {1} Mpx
+
+back.to.gallery = Retour à la galerie
+previous.image = Image précédente
+next.image = Image suivante
+select.image = Sélectionner une image
+reject.image = Rejeter l'image
+remove.image = Supprimer l'image du tour
+up.key = Monter
+down.key = Descendre
+format.boolean=
+
+no.round.yet=Aucun tour configuré pour le moment. Veuillez attendre que l'administrateur du concours configure l'outil.
+
+not.a.member = Pas un membre ?
+forgot.your.password = Mot de passe oublié ?
+sign.up.now = S'inscrire maintenant
+or.use.social = Ou utilisez votre compte de MediaWiki pour vous connecter:
+
+edit.user = Modifier l'utilisateur
+create.user = Créer un utilisateur
+
+save = Sauvegarder
+cancel = Annuler
+
+full.name = Nom complet
+wiki.account = Compte Wiki
+language = Langue
+reset.password = Réinitialiser le mot de passe
+
+gallery = Galerie
+
+your.comment.here = Votre commentaire ici
+comments = Commentaires
+submit.comment = Envoyer un commentaire
+
+images = Images
+images.source = Source des images
+commons.category.or.page.with.images = Catégorie Commons ou page avec les images
+or.image.list = ou la liste d'images
+images.on.commons = Images sur Commons
+images.in.database = Images dans la base de données
+import.images = Importer les images
+thumbnail.urls = urls des vignettes
+contest = Concours
+
+mass.import = Importer massivement
+edit.greeting.message = Modifier le message d'accueil
+role=Rôle
+edit=Modifier
+
+jury=Jury
+organizer=Organisateur
+admin=Admin
+no=Non
+
+campaigns=Campaignes
+campaign=Campaigne
+import.from.list.page.images.category=Importer depuis la page des images / catégorie d'images
+examples.of.inputs=Exemples d'entrées
+source=Source
+import=Importer
+
+name = Nom
+country	= Pays
+year = Année
+current.round = Tour actuel
+id.template = Modèle ID
+add=Ajouter
+add.round=Ajouter un tour
+number = Numbre
+image.distribution = Distribution d'image
+selected.rated = Sélectionné / évalué
+rating.type = Type de notation
+
+set.current.round = Définir le tour actuel
+edit.round = Modifier le tour
+create.round= Créer un tour
+round.name.optional=Nom du tour (optionel)
+previous.round = Tour précédent
+round.name = Nom du tour
+jurors = Jurés
+juror.name=Nom du juré
+image.filtering = Filtrage d'image
+selected.by.at.least.x.jurors=Sélectionné par au moins X jurés
+average.image.rating.is.at.least=La note moyenne d'image est au moins
+each.image.to.all.jurors=Chaque image à tous les jurés
+each.image.to.i.juror.s=Chaque image à {0} juré(s)
+category.filter=Filtre de catégorie
+category=Catégorie
+absent=Absent
+images.should.be.IN.the.category=Les images doivent être DANS la catégorie
+images.should.be.NOT.IN.the.category=Les images ne doivent PAS être DANS la catégorie
+monument.ids.comma.separated=Identifiants des monuments (séparés par une virgule)
+minimum.megapixels=Mégapixels minimum
+minimum.megabytes=Mégabytes minimum
+distribute.x.new.images=Distribuer {0} nouvelles images
+none.selected=Aucune sélection
+all.selected=Toutes sélectionnées
+select.all=Tout sélectionner
+1-x.rating=Note de 1 à {0}
+mails.to.import=Courriels à importer
+examples=Exemples:
+separate.entries.with.commas.newline.or.both=Séparez les entrées par des virgules / nouvelle ligne ou les deux.
+entries.can.be.either.wikimedia.projects.accounts.or.emails=Les entrées peuvent être des comptes des projets Wikimédia ou des adresses courriels.
+
+filelist = Liste des fichiers
+round = Tour
+juror = Juré
+rank= Rang
+file= Fichier
+overall.selected = Globalement sélectionné
+total.rating = Note totale
+rating = Évaluation
+byrate = Par note
+csv=CSV
+
+edit.greeting.template=Modifier le modèle de message d'accueil
+variables=Variables
+variable=Variable
+value=Valeur
+greeting.template=Modèle de message d'accueil
+send.greeting.to.new.users=Envoyer un message d'accueil aux nouveaux utilisateurs
+check=Vérifier

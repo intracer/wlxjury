@@ -3,14 +3,14 @@
 @(user: User, round: Round, stat: RoundStat)(implicit flash: Flash, lang: Lang, messages: Messages)
 
 
-    @main(Messages("statistics"), user, user.getId, user, Some(round), stat.rounds, gallery = false) {
+    @main(Messages("statistics"), user, user.getId, Some(round), stat.rounds, gallery = false) {
 
         @if(user.canViewOrgInfo(round)) {
             <div class="row" >
                 <nav>
                 <div class="col-md-12 text-center">
                     <ul class="pagination pagination-centered" style="margin-top: 10px; margin-bottom: 5px;">
-                    @for(r <- stat.rounds) {
+                    @for(r <- stat.rounds.filter(user.canViewOrgInfo)) {
                         <li><a href="/roundstat/@r.id" @if(r.id == round.id){style="font-weight: bold"}> @r.description </a>
                         </li>
                     }

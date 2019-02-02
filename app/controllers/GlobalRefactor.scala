@@ -9,9 +9,6 @@ import org.scalawiki.dto.cmd.query.list.ListArgs
 import org.scalawiki.dto.cmd.query.{Generator, Query}
 import org.scalawiki.dto.{Namespace, Page}
 import org.scalawiki.query.DslQuery
-import org.scalawiki.wikitext.TemplateParser
-import org.scalawiki.wlx.dto.Contest
-import org.scalawiki.wlx.query.MonumentQuery
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -44,50 +41,6 @@ class GlobalRefactor(val commons: MwBot) {
     val selection = SelectionJdbc.findAll()
     if (selection.isEmpty) {
     }
-  }
-
-  def updateLists(contest: Contest) = {
-
-      val ukWiki = MwBot.fromHost("uk.wikipedia.org")
-
-      //    listsNew(system, http, ukWiki)
-
-      val monumentQuery = MonumentQuery.create(contest)
-      val monuments = monumentQuery.byMonumentTemplate()
-
-      val fromDb = MonumentJdbc.findAll()
-      val inDbIds = fromDb.map(_.id).toSet
-
-      val newMonuments = monuments
-        .filterNot(m => inDbIds.contains(m.id))
-        .map { m =>
-          if (m.name.length > 512)
-            m.copy(name = m.name.substring(0, 512))
-          else m
-        }
-        .map { m =>
-          if (m.typ.exists(_.length > 255))
-            m.copy(typ = m.typ.map(_.substring(0, 255)))
-          else m
-        }
-        .map { m =>
-          if (m.subType.exists(_.length > 255))
-            m.copy(subType = m.subType.map(_.substring(0, 255)))
-          else m
-        }
-        .map { m =>
-          if (m.year.exists(_.length > 255))
-            m.copy(year = m.year.map(_.substring(0, 255)))
-          else m
-        }
-        .map { m =>
-          if (m.city.exists(_.length > 255))
-            m.copy(city = m.city.map(_.substring(0, 255)))
-          else m
-        }
-
-
-      MonumentJdbc.batchInsert(newMonuments)
   }
 
   def initImagesFromSource(contest: ContestJury,
@@ -131,51 +84,6 @@ class GlobalRefactor(val commons: MwBot) {
   def fetchImageDescriptions(contest: ContestJury, source: String, max: Long, imageInfos: Future[Seq[Image]]): Future[Seq[Image]] = {
     val revInfo = ImageTextFromCategory(source, contest, contest.monumentIdTemplate, commons, max).apply()
     ImageEnricher.zipWithRevData(imageInfos, revInfo)
-  }
-
-  def updateMonuments(source: String, contest: ContestJury) = {
-    def generatorParams:(String, String) = {
-      if (source.toLowerCase.startsWith("category:")) {
-        ("categorymembers", "cm")
-      } else if (source.toLowerCase.startsWith("template:")) {
-        ("embeddedin", "ei")
-      }
-      else {
-        ("images", "im")
-      }
-    }
-
-    val monumentIdTemplate = contest.monumentIdTemplate.get
-
-    val (generator, prefix) = generatorParams
-
-    commons.page(source).revisionsByGenerator(generator, prefix,
-      Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
-      pages =>
-
-        val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
-
-        pages.foreach { page =>
-          for (monumentId <- page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
-            .flatMap(id => if (id.matches(idRegex)) Some(id) else None);
-               pageId <- page.id) {
-            ImageJdbc.updateMonumentId(pageId, monumentId)
-          }
-        }
-    } recover { case e: Exception => println(e) }
-  }
-
-  def defaultParam(text: String, templateName: String): Option[String] =
-    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt("1"))
-
-  def namedParam(text: String, templateName: String, paramName: String): Option[String] =
-    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt(paramName))
-
-  def descriptions(pages: Seq[Page], existingPageIds: Set[Long]): Seq[String] = {
-    pages.sortBy(_.id).filterNot(i => existingPageIds.contains(i.id.get)).map {
-      page =>
-        page.text.flatMap(text => namedParam(text, "Information", "description")).getOrElse("")
-    }
   }
 
   def saveNewImages(contest: ContestJury, imagesWithIds: Seq[Image]) = {

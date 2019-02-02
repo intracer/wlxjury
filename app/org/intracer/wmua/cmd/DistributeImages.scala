@@ -1,7 +1,5 @@
 package org.intracer.wmua.cmd
 
-import java.time.ZonedDateTime
-
 import controllers.Global.commons
 import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, SelectionJdbc}
 import org.intracer.wmua._
@@ -64,8 +62,9 @@ object DistributeImages {
   def getFilteredImages(round: Round, jurors: Seq[User], prevRound: Option[Round]): Seq[Image] = {
     getFilteredImages(round, jurors, prevRound, selectedAtLeast = round.prevSelectedBy,
       selectMinAvgRating = round.prevMinAvgRate,
-      sourceCategory = round.category,
-      includeCategory = round.categoryClause.map(_ > 0),
+      selectTopByRating = round.topImages,
+      includeCategory = round.category,
+      excludeCategory = round.excludeCategory,
       includeRegionIds = round.regionIds.toSet,
       includeMonumentIds = round.monumentIds.toSet
     )
@@ -91,38 +90,33 @@ object DistributeImages {
                          selectedAtLeast: Option[Int] = None,
                          includeJurorId: Set[Long] = Set.empty,
                          excludeJurorId: Set[Long] = Set.empty,
-                         sourceCategory: Option[String] = None,
-                         includeCategory: Option[Boolean] = None
+                         includeCategory: Option[String] = None,
+                         excludeCategory: Option[String] = None
                        ): Seq[Image] = {
 
-    val catIds = sourceCategory.map { category =>
+    val includeFromCats = includeCategory.filter(_.trim.nonEmpty).map { category =>
       val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
       pages.flatMap(_.id)
-    }
+    }.getOrElse(Nil)
 
-    val (includeFromCats, excludeFromCats) = (
-      for (ids <- catIds;
-           include <- includeCategory)
-        yield
-          if (include)
-            (ids, Seq.empty)
-          else (Seq.empty, ids)
-      ).getOrElse(Seq.empty, Seq.empty)
+    val excludeFromCats = excludeCategory.filter(_.trim.nonEmpty).map { category =>
+      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
+      pages.flatMap(_.id)
+    }.getOrElse(Nil)
 
-
-    val currentSelection = ImageJdbc.byRoundMerged(round.getId, rated = Some(true)).filter(iwr => iwr.selection.nonEmpty).toSet
-    val existingImageIds = currentSelection.map(_.pageId)
-    val existingJurorIds = currentSelection.flatMap(_.jurors)
+    val currentImages = ImageJdbc.byRoundMerged(round.getId, rated = None).filter(iwr => iwr.selection.nonEmpty).toSet
+    val existingImageIds = currentImages.map(_.pageId)
+    val existingJurorIds = currentImages.flatMap(_.jurors)
     val mpxAtLeast = round.minMpx
     val sizeAtLeast = round.minImageSize.map(_ * 1024 * 1024)
 
-    val contest = ContestJuryJdbc.findById(round.contest).get
+    val contest = ContestJuryJdbc.findById(round.contestId).get
     val imagesAll = prevRound.fold[Seq[ImageWithRating]](
       ImageJdbc.findByContest(contest).map(i =>
         new ImageWithRating(i, Seq.empty)
       )
     )(r =>
-      ImageJdbc.byRoundMerged(r.getId, rated = selectedAtLeast.map(_ => true))
+      ImageJdbc.byRoundMerged(r.getId, rated = selectedAtLeast.map(_ > 0))
     )
     Logger.logger.debug("Total images: " + imagesAll.size)
 

@@ -1,10 +1,8 @@
 @import org.intracer.wmua.Region
 @import controllers.Global
 
-@(
-        user: org.intracer.wmua.User,
+@(user: org.intracer.wmua.User,
         asUserId: Long,
-        asUser: org.intracer.wmua.User,
         files: Seq[org.intracer.wmua.ImageWithRating],
         pager: Pager,
         maybeRound: Option[org.intracer.wmua.Round],
@@ -12,7 +10,8 @@
         rate: Option[Int] = None,
         region: String = "all",
         regions: Seq[Region],
-        rates: RateDistribution, rated: Option[Boolean])(implicit flash: Flash, lang: Lang, messages: Messages)
+        rates: RateDistribution,
+        rated: Option[Boolean])(implicit flash: Flash, lang: Lang, messages: Messages)
 
     @showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
     @defining(maybeRound.get) { round =>
@@ -40,16 +39,19 @@
     }
     }
 
-    @main("byrate", user, asUserId, asUser, maybeRound, rounds, true, rate, region,
+    @main("byrate", user, asUserId, maybeRound, rounds, true, rate, region,
         pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate"), rates, rated
     ) {
 
         @defining(maybeRound.get) { round =>
             @defining(round.id.getOrElse(0)) { roundId =>
 
-                    @if(regions.nonEmpty) {
-                        @regionNav((region: String) => s"/byrate/round/$roundId/user/$asUserId/region/$region/page/1", maybeRound, region, regions)
-                    }
+                @if(regions.nonEmpty) {
+                    @regionNav(
+                        (region: String) =>
+                            routes.Gallery.query("byrate", Some(asUserId), 1, region, roundId.asInstanceOf[Long], rate).url,
+                        maybeRound, region, regions)
+                }
 
             <div class="row" >
 
@@ -61,7 +63,7 @@
                             height: 1px"></h1>
 
                         <div class="thumb">
-                            <a href="@routes.Gallery.large(asUserId, file.pageId, region, round.getId, None, "byrate")" >
+                            <a href="@routes.LargeView.large(asUserId, file.pageId, region, round.getId, None, "byrate")" >
                                 <img class="cropped" alt="@file.title"
                                 src="@Global.resizeTo(file.image, Global.gallerySizeX, Global.gallerySizeY)"
                                 srcset="@Global.srcSet(file.image, Global.gallerySizeX, Global.gallerySizeY)">

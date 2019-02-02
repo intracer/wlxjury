@@ -24,7 +24,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
     if (user.hasAnyRole(User.ORG_COM_ROLES)) {
       Redirect(routes.Rounds.currentRoundStat())
     } else if (user.hasAnyRole(User.JURY_ROLES)) {
-      val maybeRound = RoundJdbc.current(user)
+      val maybeRound = RoundJdbc.current(user).headOption
       maybeRound.fold {
         Redirect(routes.Login.error("no.round.yet"))
       } {
@@ -38,7 +38,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
     } else if (user.hasRole(User.ROOT_ROLE)) {
       Redirect(routes.Contests.list())
     } else if (user.hasAnyRole(User.ADMIN_ROLES)) {
-      Redirect(routes.Admin.users(user.contest))
+      Redirect(routes.Admin.users(user.contestId))
     } else {
       Redirect(routes.Login.error("You don't have permission to access this page"))
     }
@@ -105,7 +105,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
   def error(message: String) = withAuth() {
     user =>
       implicit request =>
-        Ok(views.html.error(message, user, user.getId, user))
+        Ok(views.html.error(message, user, user.getId))
   }
 
   val loginForm = Form(

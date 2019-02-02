@@ -7,12 +7,12 @@ import org.specs2.mutable.Specification
 
 class AdminSpec extends Specification with InMemDb with Mockito {
 
-  val sender = User("Admin User", "email@server.com", None, contest = None)
+  val sender = User("Admin User", "email@server.com", None, contestId = None)
 
   "fill template" should {
 
     "fill contest info" in {
-      inMemDbApp {
+      inMemDb {
         val contest = ContestJury(name = "Wiki Loves Earth", year = 2016, country = "Ukraine", images = None, id = None)
         val template = "Organizing committee of {{ContestType}} {{ContestYear}} {{ContestCountry}} is glad to welcome you as a jury member\n" +
           "Please visit {{JuryToolLink}}\n" +

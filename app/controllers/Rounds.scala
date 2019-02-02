@@ -3,6 +3,7 @@ package controllers
 import db.scalikejdbc.RoundJdbc.RoundStatRow
 import db.scalikejdbc._
 import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
+import javax.inject.Inject
 import org.intracer.wmua._
 import org.intracer.wmua.cmd.{DistributeImages, SetCurrentRound}
 import play.api.Play.current
@@ -15,7 +16,7 @@ import scalikejdbc._
 
 import scala.util.Try
 
-object Rounds extends Controller with Secured {
+class Rounds @Inject()(val contestsController: Contests) extends Controller with Secured {
 
   def rounds(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
@@ -42,21 +43,24 @@ object Rounds extends Controller with Secured {
         roundsView.getOrElse(Redirect(routes.Login.index())) // TODO message
   }
 
-  def editRound(roundId: Option[Long], contestId: Long) = withAuth(rolePermission(User.ADMIN_ROLES)) {
+  def editRound(roundId: Option[Long], contestId: Long, topImages: Option[Int]) = withAuth(rolePermission(User.ADMIN_ROLES)) {
     user =>
       implicit request =>
         val number = RoundJdbc.findByContest(contestId).size + 1
+
         val round: Round = roundId.flatMap(RoundJdbc.findById).getOrElse(
-          new Round(id = None, contest = contestId, number = number)
+          new Round(id = None, contestId = contestId, number = number)
         )
+
+        val withTopImages = topImages.map(n => round.copy(topImages = Some(n))).getOrElse(round)
 
         val rounds = RoundJdbc.findByContest(contestId)
 
-        val regions = Contests.regions(contestId)
+        val regions = contestsController.regions(contestId)
 
         val jurors = round.id.fold(loadJurors(contestId))(UserJdbc.findByRoundSelection)
 
-        val editRound = EditRound(round, jurors.flatMap(_.id), None)
+        val editRound = EditRound(withTopImages, jurors.flatMap(_.id), None)
 
         val filledRound = editRoundForm.fill(editRound)
 
@@ -66,11 +70,12 @@ object Rounds extends Controller with Secured {
 
         val images = round.id.fold(Seq.empty[Image])(id => DistributeImages.getFilteredImages(round, jurors, prevRound))
 
-        Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contest), jurors, regions, stat, images))
+        Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contestId), jurors,
+          jurorsMapping, regions, stat, images))
   }
 
   def loadJurors(contestId: Long): Seq[User] = {
-    UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, Seq("jury")).and.eq(UserJdbc.u.contest, contestId))
+    UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, Seq("jury")).and.eq(UserJdbc.u.contestId, contestId))
   }
 
   def loadJurors(contestId: Long, jurorIds: Seq[Long]): Seq[User] = {
@@ -78,7 +83,7 @@ object Rounds extends Controller with Secured {
       sqls
         .in(UserJdbc.u.id, jurorIds).and
         .in(UserJdbc.u.roles, Seq("jury")).and
-        .eq(UserJdbc.u.contest, contestId)
+        .eq(UserJdbc.u.contestId, contestId)
     )
   }
 
@@ -94,7 +99,7 @@ object Rounds extends Controller with Secured {
             val jurors = loadJurors(contestId.get)
             val hasRoundId = formWithErrors.data.get("id").exists(_.nonEmpty)
 
-            BadRequest(views.html.editRound(user, formWithErrors, newRound = !hasRoundId, rounds, contestId, jurors))
+            BadRequest(views.html.editRound(user, formWithErrors, newRound = !hasRoundId, rounds, contestId, jurors, jurorsMapping))
           },
           editForm => {
             val round = editForm.round.copy(active = true)
@@ -111,7 +116,7 @@ object Rounds extends Controller with Secured {
                 }
               }
             }
-            Redirect(routes.Rounds.rounds(Some(round.contest)))
+            Redirect(routes.Rounds.rounds(Some(round.contestId)))
           }
         )
   }
@@ -120,17 +125,17 @@ object Rounds extends Controller with Secured {
 
     //  val contest: Contest = Contest.byId(round.contest).head
 
-    val count = RoundJdbc.countByContest(round.contest)
+    val count = RoundJdbc.countByContest(round.contestId)
 
     val created = RoundJdbc.create(round.copy(number = count + 1))
 
     val prevRound = created.previous.flatMap(RoundJdbc.findById)
 
-    val jurors = loadJurors(round.contest, jurorIds)
+    val jurors = loadJurors(round.contestId, jurorIds)
 
     DistributeImages.distributeImages(created, jurors, prevRound)
 
-    SetCurrentRound(round.contest, None, created).apply()
+    SetCurrentRound(round.contestId, None, created).apply()
 
     created
   }
@@ -143,7 +148,7 @@ object Rounds extends Controller with Secured {
         newRoundId.map(_.toLong).foreach { id =>
           val round = RoundJdbc.findById(id)
           round.foreach { r =>
-            SetCurrentRound(r.contest, None, r).apply()
+            SetCurrentRound(r.contestId, None, r).apply()
           }
         }
 
@@ -194,7 +199,7 @@ object Rounds extends Controller with Secured {
   def currentRoundStat() = withAuth(rolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)){
     user =>
       implicit request =>
-        RoundJdbc.current(user).map {
+        RoundJdbc.current(user).headOption.map {
           round =>
             Redirect(routes.Rounds.roundStat(round.getId))
         }.getOrElse {
@@ -241,7 +246,7 @@ object Rounds extends Controller with Secured {
   //  })
 
   def getRoundStat(roundId: Long, round: Round): RoundStat = {
-    val rounds = RoundJdbc.findByContest(round.contest)
+    val rounds = RoundJdbc.findByContest(round.contestId)
 
     val statRows: Seq[RoundStatRow] = RoundJdbc.roundUserStat(roundId)
 
@@ -261,12 +266,11 @@ object Rounds extends Controller with Secured {
 
     val total = SelectionQuery(roundId = Some(roundId), grouped = true).count()
 
-    val jurors = UserJdbc.findByContest(round.contest).filter { u =>
+    val jurors = UserJdbc.findByContest(round.contestId).filter { u =>
       u.id.exists(byUserCount.contains)
     }
 
-    val stat = RoundStat(jurors, round, rounds, byUserCount, byUserRateCount, total, totalByRate)
-    stat
+    RoundStat(jurors, round, rounds, byUserCount, byUserRateCount, total, totalByRate)
   }
 
   val imagesForm = Form("images" -> optional(text))
@@ -289,72 +293,76 @@ object Rounds extends Controller with Secured {
       "roles" -> text,
       "distribution" -> number,
       "rates" -> number,
-      "limitMin" -> optional(number),
-      "limitMax" -> optional(number),
-      "recommended" -> optional(number),
       "returnTo" -> optional(text),
       "minMpx" -> text,
       "previousRound" -> optional(longNumber),
-      "minJurors" -> optional(number),
-      "minAvgRate" -> optional(number),
-      "categoryClause" -> text,
+      "minJurors" -> optional(text),
+      "minAvgRate" -> optional(text),
+      "categoryClause" -> optional(text),
       "source" -> optional(text),
+      "excludeCategory" -> optional(text),
       "regions" -> seq(text),
       "minSize" -> text,
       jurorsMappingKV,
       "newImages" -> boolean,
-      "monumentIds" -> optional(text)
+      "monumentIds" -> optional(text),
+      "topImages" -> optional(number)
     )(applyEdit)(unapplyEdit)
   )
 
   def applyEdit(id: Option[Long], num: Long, name: Option[String], contest: Long, roles: String, distribution: Int,
-                rates: Int, limitMin: Option[Int], limitMax: Option[Int], recommended: Option[Int], returnTo: Option[String],
+                rates: Int, returnTo: Option[String],
                 minMpx: String,
                 previousRound: Option[Long],
-                prevSelectedBy: Option[Int],
-                prevMinAvgRate: Option[Int],
-                categoryClause: String,
+                prevSelectedBy: Option[String],
+                prevMinAvgRate: Option[String],
+                categoryClause: Option[String],
                 category: Option[String],
+                excludeCategory: Option[String],
                 regions: Seq[String],
                 minImageSize: String,
                 jurors: Seq[String],
                 newImages: Boolean,
-                monumentIds: Option[String]
+                monumentIds: Option[String],
+                topImages: Option[Int]
                ): EditRound = {
     val round = new Round(id, num, name, contest, Set(roles), distribution, Round.ratesById(rates),
-      limitMin, limitMax, recommended,
+      limitMin = None, limitMax = None, recommended = None,
       minMpx = Try(minMpx.toInt).toOption,
       previous = previousRound,
-      prevSelectedBy = prevSelectedBy,
-      prevMinAvgRate = prevMinAvgRate,
-      categoryClause = Try(categoryClause.toInt).toOption,
+      prevSelectedBy = prevSelectedBy.flatMap(s => Try(s.toInt).toOption),
+      prevMinAvgRate = prevMinAvgRate.flatMap(s => Try(s.toInt).toOption),
+      categoryClause = categoryClause.map(_.toInt),
       category = category,
+      excludeCategory = excludeCategory,
       regions = if (regions.nonEmpty) Some(regions.mkString(",")) else None,
       minImageSize = Try(minImageSize.toInt).toOption,
-      monuments = monumentIds
+      monuments = monumentIds,
+      topImages = topImages
     )
     EditRound(round, jurors.flatMap(s => Try(s.toLong).toOption), returnTo, newImages)
   }
 
-  def unapplyEdit(editRound: EditRound): Option[(Option[Long], Long, Option[String], Long, String, Int, Int, Option[Int],
-    Option[Int], Option[Int], Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String],
-    Seq[String], String, Seq[String], Boolean, Option[String])] = {
+  def unapplyEdit(editRound: EditRound): Option[(Option[Long], Long, Option[String], Long, String, Int, Int,
+    Option[String], String, Option[Long], Option[String], Option[String], Option[String], Option[String], Option[String],
+    Seq[String], String, Seq[String], Boolean, Option[String], Option[Int])] = {
     val round = editRound.round
     Some((
-      round.id, round.number, round.name, round.contest, round.roles.head, round.distribution, round.rates.id,
-      round.limitMin, round.limitMax, round.recommended, editRound.returnTo,
+      round.id, round.number, round.name, round.contestId, round.roles.head, round.distribution, round.rates.id,
+      editRound.returnTo,
       round.minMpx.fold("No")(_.toString),
       round.previous,
-      round.prevSelectedBy,
-      round.prevMinAvgRate,
-      round.categoryClause.fold("No")(_.toString),
+      round.prevSelectedBy.map(_.toString),
+      round.prevMinAvgRate.map(_.toString),
+      round.categoryClause.map(_.toString),
       round.category,
+      round.excludeCategory,
       round.regionIds,
       round.minImageSize.fold("No")(_.toString),
       editRound.jurors.map(_.toString),
       editRound.newImages,
-      round.monuments
-      ))
+      round.monuments,
+      round.topImages))
   }
 }
 

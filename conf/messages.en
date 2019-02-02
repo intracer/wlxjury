@@ -3,7 +3,7 @@ application.name=Jury Tool
 date=Date
 filter=Filter
 
-title=Play20StartApp
+title=Jury
 
 email=Email
 login=Login
@@ -26,19 +26,15 @@ statistics = Statistics
 thumbnails = Thumbnails
 file.list = File list
 
-top-x = Top 21
+top-x = Top {}
 regions = Regions
 
 wiki.loves.earth = Wiki Loves Earth {0}
-wiki.loves.earth.Ukraine = Wiki Loves Earth 2015 in Ukraine
-wiki.loves.earth.Nepal = Wiki Loves Earth 2015 in Nepal
-wiki.loves.earth.Ghana = Wiki Loves Earth 2014 in Ghana
-wiki.loves.earth.Netherlands = Wiki Loves Earth 2014 in the Netherlands
-wiki.loves.monuments.Ukraine = Wiki Loves Monuments 2014 in Ukraine
-wiki.loves.earth.Russia = Wiki Loves Earth 2014 in Russia
+wiki.loves.earth.Ukraine = Wiki Loves Earth in Ukraine
+wiki.loves.monuments.Ukraine = Wiki Loves Monuments in Ukraine
+wiki.loves.earth.Russia = Wiki Loves Earth in Russia
 
 welcome.subject = Welcome to {0} jury
-welcome.messsage = Organizing committee of {0} is glad to welcome you as a jury member.\nPlease login to our jury tool {1} \nwith login: {2} and password: {3}\nRegards, {4}
 
 error.technical=Technical Error, please Retry
 validate=Validate
@@ -81,23 +77,23 @@ resetpassword.new.password=New password :
 
 changemail.mailsent=A mail has been sent, please check your mail.
 
-mail.confirm.subject=Welcome to Play20StartApp - Ask for confirmation
-mail.confirm.message=Welcome to Play20StartApp. <br> Click on this link : {0} to confirm your email.
+mail.confirm.subject=Welcome to Jury - Ask for confirmation
+mail.confirm.message=Welcome to Jury. <br> Click on this link : {0} to confirm your email.
 
-mail.welcome.subject=Welcome to Play20StartApp
-mail.welcome.message=Welcome to Play20StartApp. <br> Your account is validated. Enjoy !
+mail.welcome.subject=Welcome to Jury
+mail.welcome.message=Welcome to Jury. <br> Your account is validated. Enjoy !
 
-mail.reset.ask.subject=Play20StartApp - New password
+mail.reset.ask.subject=Jury - New password
 # Cannot use You've unescaped here, as the single quote stops the {0}
 mail.reset.ask.message=You asked for your password to be reset.  <br> Click on this link : {0} to change your password.
 
-mail.change.ask.subject=Play20StartApp - Validate email
+mail.change.ask.subject=Jury - Validate email
 mail.change.ask.message=You asked for your email to be changed.  <br> Click on this link : {0} to validate your email.
 
 mail.reset.fail.subject=Account Access Attempted
 mail.reset.fail.message=You (or someone else) entered this email address when trying to change the password.  However, this email address is not on our list of registered users, and so the attempted password reset has failed.
 
-mail.reset.confirm.subject=Play20StartApp - New password
+mail.reset.confirm.subject=Jury - New password
 mail.reset.confirm.message=Hello, <br><br> Your password has been reset.
 
 
@@ -180,3 +176,111 @@ not.a.member = Not a member?
 forgot.your.password = Forgot your password?
 sign.up.now = Sign up now
 or.use.social = Or use your existing account on MediaWiki site to sign in:
+
+edit.user = Edit user
+create.user = Create user
+
+save = Save
+cancel = Cancel
+
+full.name = Full name
+wiki.account = Wiki account
+language = Language
+reset.password = Reset password
+
+gallery = Gallery
+
+your.comment.here = Your comment here
+comments = Comments
+submit.comment = Submit comment
+
+images = Images
+contest.images = Contests images
+images.source = Images source
+commons.category.or.page.with.images = Commons category or page with images
+or.image.list = Or image list
+images.on.commons = Images on Commons
+images.in.database = Images in database
+import.images = Import images
+update.monuments = Update monuments
+thumbnail.urls = thumbnail urls
+contest = Contest
+
+mass.import = Mass import
+edit.greeting.message = Edit greeting message
+role=Role
+edit=Edit
+
+jury=Jury
+organizer=Organizer
+admin=Admin
+no=No
+
+campaigns=Campaigns
+campaign=Campaign
+import.from.list.page.images.category=Import from list page/images category
+examples.of.inputs=Examples of inputs
+source=Source
+import=Import
+
+name = Name
+country	= Country
+year = Year
+current.round = Current round
+id.template = Id template
+add=Add
+add.round=Add round
+number = Number
+image.distribution = Image distribution
+selected.rated = Selected/Rated
+rating.type = Rating type
+
+set.current.round = Set current round
+edit.round = Edit round
+create.round= Create round
+round.name.optional=Round name (optional)
+previous.round = Previous round
+round.name = Round name
+jurors = Jurors
+juror.name=Juror name
+image.filtering = Image filtering
+selected.by.at.least.x.jurors=Selected by at least X jurors
+average.image.rating.is.at.least=Average image rating is at least
+each.image.to.all.jurors=Each image to all jurors
+each.image.to.i.juror.s=Each image to {0} juror(s)
+category.filter=Category Filter
+category=Category
+absent=Absent
+images.should.be.IN.the.category=Images should be IN the category
+images.should.be.NOT.IN.the.category=Images should be NOT IN the category
+monument.ids.comma.separated=Monument ids (comma separated)
+minimum.megapixels=Minimum MegaPixels
+minimum.megabytes=Minimum Megabytes
+distribute.x.new.images=Distribute {0} new images
+none.selected=None selected
+all.selected=All selected
+select.all=Select all
+1-x.rating=1-{0} rating
+mails.to.import=Mails to import
+examples=Examples:
+separate.entries.with.commas.newline.or.both=Separate entries with commas/newline or both.
+entries.can.be.either.wikimedia.projects.accounts.or.emails=Entries can be either Wikimedia projects accounts or emails.
+
+filelist = File list
+round = Round
+juror = Juror
+rank= Rank
+file= File
+overall.selected = Overall selected
+total.rating = Total rating
+rating = Rating
+byrate = By rate
+csv=CSV
+
+edit.greeting.template=Edit greeting template
+variables=Variables
+variable=Variable
+value=Value
+greeting.template=Greeting template
+send.greeting.to.new.users=Send greeting to new users
+check=Check

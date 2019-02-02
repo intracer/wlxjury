@@ -3,11 +3,11 @@ application.name=Журі
 date=Дата
 filter=Фільтрувати
 
-title=Play20StartApp
+title=Jury
 
-email=Пошта
+email=Електронна пошта
 login=Логін
-fullname=Full Name
+full.name = Ім''я
 logout=Вийти
 password=Пароль
 
@@ -30,12 +30,9 @@ regions = Регіони
 
 welcome.subject = Ласкаво просимо до журі {0}
 wiki.loves.earth = Вікі любить Землю
-wiki.loves.earth.Ukraine = Вікі любить Землю 2015 в Україні
-wiki.loves.monuments.Ukraine = Вікі любить пам'ятки 2015 в Україні
-wiki.loves.earth.Russia = Вікі любить Землю 2015 в Росії
-
-
-welcome.messsage = Організаційний комітет конкурсу {0} радий запросити Вас до журі.\nЗайдіть, будь ласка, за посиланням {1} \nіз логіном: {2} і паролем: {3}\nЗ повагою, {4}
+wiki.loves.earth.Ukraine = Вікі любить Землю в Україні
+wiki.loves.monuments.Ukraine = Вікі любить пам''ятки в Україні
+wiki.loves.earth.Russia = Вікі любить Землю в Росії
 
 error.technical=Technical Error, please Retry
 validate=Validate
@@ -74,7 +71,7 @@ signup.repeat.your.password=Повторіть пароль
 resetpassword=Reset Password
 resetpassword.mailsent=A mail has been sent, please check your mail.
 resetpassword.success=Your password has been reset.
-resetpassword.new.password=New password :
+resetpassword.new.password=New password:
 
 changemail.mailsent=A mail has been sent, please check your mail.
 
@@ -84,52 +81,53 @@ mail.confirm.message=Welcome to Play20StartApp. <br> Click on this link : {0} to
 mail.welcome.subject=Welcome to Play20StartApp
 mail.welcome.message=Welcome to Play20StartApp. <br> Your account is validated. Enjoy !
 
-mail.reset.ask.subject=Play20StartApp - New password
+mail.reset.ask.subject=Jury - New password
 # Cannot use You've unescaped here, as the single quote stops the {0}
 mail.reset.ask.message=You asked for your password to be reset.  <br> Click on this link : {0} to change your password.
 
-mail.change.ask.subject=Play20StartApp - Validate email
+mail.change.ask.subject=Jury - Validate email
 mail.change.ask.message=You asked for your email to be changed.  <br> Click on this link : {0} to validate your email.
 
 mail.reset.fail.subject=Account Access Attempted
 mail.reset.fail.message=You (or someone else) entered this email address when trying to change the password.  However, this email address is not on our list of registered users, and so the attempted password reset has failed.
 
-mail.reset.confirm.subject=Play20StartApp - New password
+mail.reset.confirm.subject=Jury - New password
 mail.reset.confirm.message=Hello, <br><br> Your password has been reset.
 
-error.required=Обов'язкове поле
+error.required=Обов''язкове поле
 error.email=Потрібна адреса пошти
 
 dates = Дати
 total = Разом
 
-80=Київ
-07=Волинська
-68=Хмельницька
-05=Вінницька
-35=Кіровоградська
-65=Херсонська
-63=Харківська
 01=АР Крим
-32=Київська
-61=Тернопільська
-18=Житомирська
-48=Миколаївська
-46=Львівська
-14=Донецька
-44=Луганська
-74=Чернігівська
+05=Вінницька
+07=Волинська
 12=Дніпропетровська
-73=Чернівецька
-71=Черкаська
-59=Сумська
-26=Івано-Франківська
-56=Рівненська
-85=Севастополь
-23=Запорізька
-53=Полтавська
+14=Донецька
+18=Житомирська
 21=Закарпатська
+23=Запорізька
+26=Івано-Франківська
+32=Київська
+35=Кіровоградська
+44=Луганська
+46=Львівська
+48=Миколаївська
 51=Одеська
+53=Полтавська
+56=Рівненська
+59=Сумська
+61=Тернопільська
+63=Харківська
+65=Херсонська
+68=Хмельницька
+71=Черкаська
+73=Чернівецька
+74=Чернігівська
+80=Київ
+85=Севастополь
+
 profile=Профіль
 
 full.resolution = Повна роздільність: <nobr>{0}</nobr>; {1} Мпкс
@@ -146,3 +144,109 @@ not.a.member = Не зареєстровані?
 forgot.your.password = Забули пароль?
 sign.up.now = Зареєструватися
 or.use.social = Або використайте існуючу обліковку MediaWiki:
+
+edit.user = Редагування користувача
+create.user = Створення користувача
+
+save = Зберегти
+cancel = Скасувати
+
+wiki.account = Вікі обліковка
+language = Мова
+reset.password = Скинути пароль
+
+gallery = Галерея
+your.comment.here = Ваш коментар
+comments = Коментарі
+submit.comment = Додати коментар
+
+images = Зображення
+contest.images = Зображення зі 
+images.source = Джерело зображень
+commons.category.or.page.with.images = Категорія чи сторінка зі зображеннями на ВікіСховищі
+or.image.list = Або перелік зображень
+images.on.commons = Зображень на ВікіСховищі
+images.in.database = Зображень на базі даних
+import.images = Імпортувати зображення
+update.monuments = Оновити пам''ятки
+thumbnail.urls = адреси мініатюр
+contest = Змагання
+
+mass.import = Масовий імпорт
+edit.greeting.message = Редагувати привітання
+role=Роль
+edit=Редагувати
+
+jury=Журі
+organizer=Організатор
+admin=Адмін
+no=Немає
+
+campaigns=Кампанії
+campaign=Кампанія
+import.from.list.page.images.category=Імпортувати зі сторінки зі списком/категорії із зображеннями
+examples.of.inputs=Приклади введення:
+source=Джерело
+import=Імпорт
+
+name = Назва
+country	= Країна
+year = Рік
+current.round = Поточний раунд
+id.template = Шаблон ідентифікатора
+add=Додати
+add.round=Додати раунд
+number = Номер
+image.distribution = Поділ зображень
+selected.rated = Вибрано/Оцінено
+rating.type = Тип оцінювання
+
+set.current.round = Встановити поточний раунд
+edit.round = Редагувати раунд
+create.round= Створити раунд
+round.name.optional=Назва раунда (необов''язково)
+previous.round = Попередній раунд
+round.name = Назва раунда
+jurors = Журі
+juror.name=Ім''я
+image.filtering = Фільтрування зображень
+selected.by.at.least.x.jurors=Вибрано принаймні N членами журі
+average.image.rating.is.at.least=Середня оцінка зображення принамні
+each.image.to.all.jurors=Кожне зображення всім членам журі
+each.image.to.i.juror.s=Кожне зображення для {0} членів журі
+category.filter=Фільтр категорій
+category=Категорія
+absent=Немає
+images.should.be.IN.the.category=Зображення мають бути В категорії
+images.should.be.NOT.IN.the.category=Зображення мають бути НЕ В категорії
+monument.ids.comma.separated=Ідентифікатори пам''яток (розділені комами)
+minimum.megapixels=Мінімум мегапікселів
+minimum.megabytes=Мінімум мегабайт
+distribute.x.new.images=Розподілити {0} нових зображень
+none.selected=Не вибрано
+all.selected=Вибрано все
+select.all=Вибрати все
+1-x.rating=Оцінка: 1-{0}
+mails.to.import=Е-пошти для імпорту
+examples=Приклади:
+separate.entries.with.commas.newline.or.both=Розділіть елементи комами та/або новими рядками.
+entries.can.be.either.wikimedia.projects.accounts.or.emails=Елементи можуть бути ніками у вікіпроектах чи адресами елекронної пошти.
+
+filelist = Список файлів
+round = Раунд
+juror = Член журі
+rank= Ранг
+file= Файл
+overall.selected = Загалом вибрано
+total.rating = Загальна оцінка
+rating = Оцінка
+byrate = За рейтингом
+csv=CSV
+
+edit.greeting.template=Редагувати шаблон привітання
+variables=Змінні
+variable=Змінна
+value=Значення
+greeting.template=Шаблон привітання
+send.greeting.to.new.users=Надсилати привітання новим користувачам
+check=Перевірити

@@ -11,14 +11,14 @@ class ContestSpec extends Specification with InMemDb {
 
   "fresh database" should {
     "be empty" in {
-      inMemDbApp {
+      inMemDb {
         val contests = contestDao.findAll()
         contests.size === 0
       }
     }
 
     "create contest" in {
-      inMemDbApp {
+      inMemDb {
         val images = Some("Category:Images from Wiki Loves Earth 2015 in Ukraine")
         val contest = contestDao.create(None, "WLE", 2015, "Ukraine", images, None, None)
         (contest.name, contest.year, contest.country, contest.images) ===("WLE", 2015, "Ukraine", images)
@@ -32,7 +32,7 @@ class ContestSpec extends Specification with InMemDb {
     }
 
     "create contests" in {
-      inMemDbApp {
+      inMemDb {
         def images(contest: String, year: Int, country: String) =
           Some(s"Category:Images from $contest $year in $country")
 

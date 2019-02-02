@@ -21,14 +21,14 @@ object ImageDiscussion extends Controller with Secured {
   def addComment(pageId: Long, region: String = "all", rate: Option[Int], module: String, round: Option[Long], contestId: Option[Long]) = withAuth() {
     user =>
       implicit request =>
-        val roundId = round.getOrElse(RoundJdbc.current(user).flatMap(_.id).get)
+        val roundId = round.get
 
         editCommentForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
-            Redirect(routes.Gallery.large(user.getId, pageId, region, roundId, rate, module)),
+            Redirect(routes.LargeView.large(user.getId, pageId, region, roundId, rate, module)),
           commentBody => {
-            CommentJdbc.create(user.getId, user.fullname, roundId, contestId.orElse(user.contest), pageId, commentBody.text)
-            Redirect(routes.Gallery.large(user.getId, pageId, region, roundId, rate, module).url.concat("#comments"))
+            CommentJdbc.create(user.getId, user.fullname, roundId, contestId.orElse(user.contestId), pageId, commentBody.text)
+            Redirect(routes.LargeView.large(user.getId, pageId, region, roundId, rate, module).url.concat("#comments"))
           }
     )
   }

@@ -2,6 +2,7 @@ package controllers
 
 import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
 import org.intracer.wmua.cmd.FetchImageInfo
+import org.intracer.wmua.cmd.ImageTextFromCategory._
 import org.intracer.wmua.{ContestJury, User}
 import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}
@@ -12,10 +13,13 @@ import play.api.data.Forms._
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Controller
 import spray.util.pimpFuture
+import javax.inject.Inject
+import org.scalawiki.MwBot
+import play.api.Logger
 
 import scala.concurrent.Future
 
-object Contests extends Controller with Secured {
+class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
 
   def fetchContests(contestType: Option[String], year: Option[Int], country: Option[String]): Future[Seq[Contest]] = {
     if (contestType.isEmpty) {
@@ -27,7 +31,6 @@ object Contests extends Controller with Secured {
       }).getOrElse(Future.successful(Seq.empty[Contest]))
     }
   }
-
 
   def list(contestType: Option[String], year: Option[Int], country: Option[String]) = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
     user =>
@@ -75,12 +78,13 @@ object Contests extends Controller with Secured {
               }
             imported.foreach {
               contest =>
-                val contestJury = new ContestJury(
+                val contestJury = ContestJury(
                   id = None,
                   name = contest.contestType.name,
                   year = contest.year,
                   country = contest.country.name,
-                  images = Some(s"Category:Images from ${contest.contestType.name} ${contest.year} in ${contest.country.name}")
+                  images = Some(s"Category:Images from ${contest.contestType.name} ${contest.year} in ${contest.country.name}"),
+                  monumentIdTemplate = contest.uploadConfigs.headOption.map(_.fileTemplate)
                 )
                 createContest(contestJury)
             }
@@ -88,16 +92,16 @@ object Contests extends Controller with Secured {
           })
   }
 
-  def importListPage(formContest: String): Seq[Contest] = {
-    val wiki = Global.commons.pageText(formContest).await
+  def importListPage(pageName: String): Seq[Contest] = {
+    val wiki = commons.pageText(pageName).await
     CountryParser.parse(wiki)
   }
 
-  def importCategory(formContest: String): Seq[Contest] = {
-    val pages = Global.commons.page(formContest).categoryMembers(Set(Namespace.CATEGORY)).await
+  def importCategory(categoryName: String): Seq[Contest] = {
+    val pages = commons.page(categoryName).categoryMembers(Set(Namespace.CATEGORY)).await
 
     pages.flatMap(p => CountryParser.fromCategoryName(p.title)) ++
-      CountryParser.fromCategoryName(formContest).filter(_.country.name.nonEmpty)
+      CountryParser.fromCategoryName(categoryName).filter(_.country.name.nonEmpty)
   }
 
   def createContest(contest: ContestJury): ContestJury = {
@@ -113,6 +117,9 @@ object Contests extends Controller with Secured {
     )
   }
 
+  /**
+    * Shows contest images view
+    */
   def images(contestId: Long, inProgress: Boolean = false) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
     user =>
       implicit request =>
@@ -121,38 +128,77 @@ object Contests extends Controller with Secured {
         val sourceImageNum = getNumberOfImages(contest)
         val dbImagesNum = ImageJdbc.countByContest(contest)
 
-        val filledForm = importImagesForm.fill((contest.images.getOrElse(""), ""))
+        val filledForm = importImagesForm.fill((contest.images.getOrElse(""), "", ""))
         Ok(views.html.contest_images(filledForm, contest, user, sourceImageNum, dbImagesNum, inProgress))
   }
 
   def getNumberOfImages(contest: ContestJury): Long = {
     contest.images.fold(0L) {
       images =>
-        FetchImageInfo(images, Seq.empty, contest, Global.commons).numberOfImages.await
+        FetchImageInfo(images, Seq.empty, contest, commons).numberOfImages.await
     }
   }
 
+  /**
+    * Imports images from commons
+    */
   def importImages(contestId: Long) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) { user =>
     implicit request =>
       val contest = ContestJuryJdbc.findById(contestId).get
-      val dbImagesNum = ImageJdbc.countByContest(contest)
-
       importImagesForm.bindFromRequest.fold(
-        formWithErrors => {
-          BadRequest(views.html.contest_images(formWithErrors, contest, user, 0, dbImagesNum))
-        },
-        tuple => {
+        formWithErrors => BadRequest(views.html.contest_images(formWithErrors, contest, user, 0, ImageJdbc.countByContest(contest))), {
+          case (source, list, action) =>
 
-          val (source, list) = tuple
+            val withNewImages = contest.copy(images = Some(source))
 
-          val withNewImages = contest.copy(images = Some(source))
+            if (action == "import.images") {
+              new GlobalRefactor(commons).appendImages(source, list, withNewImages)
+            } else if (action == "update.monuments") {
+              updateImageMonuments(source, withNewImages)
+            }
 
-          val sourceImageNum = getNumberOfImages(withNewImages)
-
-          new GlobalRefactor(Global.commons).appendImages(source, list, withNewImages, max = sourceImageNum)
-
-          Redirect(routes.Contests.images(contestId))
+            Redirect(routes.Contests.images(contestId))
         })
+  }
+
+
+  def updateImageMonuments(source: String, contest: ContestJury): Unit = {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    if (contest.monumentIdTemplate.isDefined) {
+      val monumentContest = Contest.WLEUkraine(contest.year)
+      Monuments.updateLists(monumentContest)
+    }
+
+    def generatorParams: (String, String) = {
+      if (source.toLowerCase.startsWith("category:")) {
+        ("categorymembers", "cm")
+      } else if (source.toLowerCase.startsWith("template:")) {
+        ("embeddedin", "ei")
+      }
+      else {
+        ("images", "im")
+      }
+    }
+
+    val monumentIdTemplate = contest.monumentIdTemplate.get
+
+    val (generator, prefix) = generatorParams
+
+    commons.page(source).revisionsByGenerator(generator, prefix,
+      Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None) map {
+      pages =>
+
+        val idRegex = """(\d\d)-(\d\d\d)-(\d\d\d\d)"""
+
+        pages.foreach { page =>
+          for (monumentId <- page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
+            .flatMap(id => if (id.matches(idRegex)) Some(id) else None);
+               pageId <- page.id) {
+            ImageJdbc.updateMonumentId(pageId, monumentId)
+          }
+        }
+    } recover { case e: Exception => println(e) }
   }
 
   def regions(contestId: Long): Map[String, String] = {
@@ -180,7 +226,6 @@ object Contests extends Controller with Secured {
       Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use))
   )
 
-
   val importContestsForm = Form(
     single(
       "source" -> nonEmptyText
@@ -190,9 +235,8 @@ object Contests extends Controller with Secured {
   val importImagesForm = Form(
     tuple(
       "source" -> text,
-      "list" -> text
+      "list" -> text,
+      "action" -> text
     )
   )
-
 }
-

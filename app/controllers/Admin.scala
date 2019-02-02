@@ -22,8 +22,7 @@ import scala.util.Try
 /**
   * Controller for admin views
   */
-class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secured  {
-
+class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secured {
 
   /**
     * @param contestIdParam optional contest Id. If not set, contest of the admin user is used
@@ -49,25 +48,29 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
     */
   def wikiAccountInfo(users: Seq[User]): Seq[User] = {
     val names = users.flatMap(_.wikiAccount)
+    if (names.nonEmpty) {
 
-    val accounts = Global.commons.run(
-      Action(Query(
-        ListParam(Users(
-          UsUsers(names),
-          UsProp(UsEmailable, UsGender)
+      val accounts = Global.commons.run(
+        Action(Query(
+          ListParam(Users(
+            UsUsers(names),
+            UsProp(UsEmailable, UsGender)
+          ))
         ))
-      ))
-    ).await.flatMap(_.lastRevisionUser).collect {
-      case u: org.scalawiki.dto.User if u.id.isDefined => u
-    }
+      ).await.flatMap(_.lastRevisionUser).collect {
+        case u: org.scalawiki.dto.User if u.id.isDefined => u
+      }
 
-    users.map { u =>
-      val account = accounts.find(a => a.login == u.wikiAccount)
+      users.map { u =>
+        val account = accounts.find(a => a.login == u.wikiAccount)
 
-      u.copy(
-        hasWikiEmail = account.flatMap(_.emailable).getOrElse(false),
-        accountValid = account.isDefined
-      )
+        u.copy(
+          hasWikiEmail = account.flatMap(_.emailable).getOrElse(false),
+          accountValid = account.isDefined
+        )
+      }
+    } else {
+      users
     }
   }
 
@@ -96,14 +99,11 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
   def editUser(userId: Long) = withAuth(rolePermission(Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$userId"))) {
     user =>
       implicit request =>
-
         val editedUser = UserJdbc.findById(userId).get
 
         havingEditRights(user, editedUser) {
-
           val filledForm = editUserForm.fill(editedUser)
-
-          Ok(views.html.editUser(user, filledForm, RoundJdbc.current(user), user.currentContest))
+          Ok(views.html.editUser(user, filledForm, user.currentContest))
         }
   }
 
@@ -122,8 +122,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
               views.html.editUser(
                 user,
                 formWithErrors,
-                RoundJdbc.current(user),
-                contestId = Some(formWithErrors.data("contest").toLong)
+                contestId = Try(formWithErrors.data("contest").toLong).toOption
               )
             ),
           formUser => {
@@ -136,8 +135,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
                   views.html.editUser(
                     user,
                     editUserForm.fill(formUser).withError("email", "email should be unique"),
-                    RoundJdbc.current(user),
-                    contestId = formUser.contest
+                    contestId = formUser.contestId
                   )
                 )
               } else {
@@ -165,7 +163,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
                 }
 
                 val result = if (user.hasAnyRole(User.ADMIN_ROLES)) {
-                  Redirect(routes.Admin.users(formUser.contest))
+                  Redirect(routes.Admin.users(formUser.contestId))
                 } else {
                   Redirect(routes.Login.index())
                 }
@@ -210,7 +208,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
             val parsed = User.parseList(formUsers)
               .map(_.copy(
                 lang = user.lang,
-                contest = Some(contestId)
+                contestId = Some(contestId)
               ))
 
             val results = parsed.map(pu => Try(createUser(user, pu.copy(roles = Set("jury")), contest)))
@@ -227,11 +225,11 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
       implicit request =>
 
         (for (contestId <- contestIdParam.orElse(user.currentContest);
-             contest <- ContestJuryJdbc.findById(contestId)) yield {
+              contest <- ContestJuryJdbc.findById(contestId)) yield {
 
           val greeting = getGreeting(contest)
 
-          val recipient = new User(fullname = "Recipient Full Name", email = "Recipient email", id = None, contest = contest.id)
+          val recipient = new User(fullname = "Recipient Full Name", email = "Recipient email", id = None, contestId = contest.id)
 
           val substitution = if (substituteJurors) {
             val users = UserJdbc.findByContest(contestId)
@@ -303,7 +301,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
     val password = formUser.password.getOrElse(UserJdbc.randomString(12))
     val hash = UserJdbc.hash(formUser, password)
 
-    val toCreate = formUser.copy(password = Some(hash), contest = contestOpt.flatMap(_.id).orElse(creator.contest))
+    val toCreate = formUser.copy(password = Some(hash), contestId = contestOpt.flatMap(_.id).orElse(creator.contestId))
 
     val createdUser = UserJdbc.create(toCreate)
 

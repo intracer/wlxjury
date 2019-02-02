@@ -4,7 +4,6 @@
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
-        asUser: org.intracer.wmua.User,
         files: Seq[org.intracer.wmua.ImageWithRating],
         pager: Pager,
         maybeRound: Option[org.intracer.wmua.Round],
@@ -38,7 +37,7 @@
 }
 }
 
-@main("byrate", user, asUserId, asUser, maybeRound, rounds, true, None, currentRegion,
+@main("byrate", user, asUserId, maybeRound, rounds, true, None, currentRegion,
     pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), currentRegion, "byrate")
 ) {
 
@@ -62,7 +61,7 @@
                             <h1 id="@file.pageId" style="display: inline; width: 1px; height: 1px"></h1>
 
                             <div class="thumb">
-                                <a href="@routes.Gallery.large(asUserId, file.pageId, currentRegion, round.getId, None, "byrate")" >
+                                <a href="@routes.LargeView.large(asUserId, file.pageId, currentRegion, round.getId, None, "byrate")" >
                                     <img class="cropped" alt="@file.title"
                                     src="@Global.resizeTo(file.image, Global.gallerySizeX, Global.gallerySizeY)"
                                     srcset="@Global.srcSet(file.image, Global.gallerySizeX, Global.gallerySizeY)">

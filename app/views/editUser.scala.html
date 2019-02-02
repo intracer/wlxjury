@@ -1,7 +1,6 @@
 @(
         user: org.intracer.wmua.User,
         editUserForm: Form[org.intracer.wmua.User],
-        round: Option[org.intracer.wmua.Round],
         contestId: Option[Long] = None
 )(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
 
@@ -10,15 +9,15 @@
 @import org.intracer.wmua.User
 
 
-@mainAdmin(Messages("edit user"), user, user.getId, contestId = contestId) {
+@mainAdmin(Messages("edit.user"), user, user.getId, contestId = contestId) {
     <div class="row" >
         <div class="col-md-4">
 
 
             @if(!editUserForm("id").value.contains("0")) {
-                <h3>@Messages("Edit user")</h3>
+                <h3>@Messages("edit.user")</h3>
             } else {
-                <h3>@Messages("Create user")</h3>
+                <h3>@Messages("create.user")</h3>
             }
 
             @form(routes.Admin.saveUser, 'class -> "form-vertical") {
@@ -34,27 +33,27 @@
                     <input type="hidden" id="id" name="id" value='@editUserForm("id").value' />
                     <input type="hidden" name="contest" id="contest" value='@editUserForm("contest").value' />
 
-                    @text(editUserForm("fullname"))
+                    @text(editUserForm("fullname"), Messages("full.name"))
 
-                    @text(editUserForm("wikiAccount"))
+                    @text(editUserForm("wikiAccount"), Messages("wiki.account"))
 
-                    @text(editUserForm("email"))
+                    @text(editUserForm("email"), Messages("email"))
 
                     @if(user.hasAnyRole(User.ADMIN_ROLES)) {
                         @select(editUserForm("roles"),
                             (Seq("no", "jury", "organizer", "admin") ++ (
                                     if(user.hasRole("root")) Seq("root") else Seq.empty)
-                                    ).map(x => (x, x)),
-                            Seq('_label -> Messages("Role"), '_help -> "", 'class -> "form-control") ++
+                                    ).map(x => (x, Messages(x))),
+                            Seq('_label -> Messages("role"), '_help -> "", 'class -> "form-control") ++
                                     (if(!user.hasAnyRole(User.ADMIN_ROLES)) Seq('disabled -> "true") else Seq.empty): _*)
                     }
 
-                    @select(editUserForm("lang"), Seq("en", "ru", "uk").map(x => (x, User.LANGS(x))),
-                        '_label -> Messages("Language"), '_help -> "", 'class -> "form-control")
+                    @select(editUserForm("lang"), Seq("en", "fr", "ru", "uk").map(x => (x, User.LANGS(x))),
+                        '_label -> Messages("language"), '_help -> "", 'class -> "form-control")
 
                     @if(true || editUserForm("id").value.contains(user.id.toString)) {
                         <div class="form-group">
-                            <label for="password" class="control-label">@Messages("Password")</label>
+                            <label for="password" class="control-label">@Messages("password")</label>
                             <input type="password" class="form-control" id="password" name="password" placeholder="Password" value="">
                         </div>
                     } else {
@@ -63,18 +62,18 @@
                                 <div class="alert alert-success">@msg</div>
                             }
 
-                            <a href="#" class="btn" onclick="document.forms['reset-password'].submit();">@Messages("Reset password")</a>
+                            <a href="#" class="btn" onclick="document.forms['reset-password'].submit();">@Messages("reset.password")</a>
                         }
                     }
 
                 </fieldset>
 
                 <div class="form-actions">
-                    <input type="submit" class="btn btn-default btn-primary" value="@Messages("Save")">
+                    <input type="submit" class="btn btn-default btn-primary" value="@Messages("save")">
                     @if(user.hasAnyRole(User.ADMIN_ROLES)) {
-                        <a href="@routes.Admin.users(contestId)" class="btn btn-default">@Messages("Cancel")</a>
+                        <a href="@routes.Admin.users(contestId)" class="btn btn-default">@Messages("cancel")</a>
                     } else {
-                        <a href="@routes.Login.index" class="btn btn-default">@Messages("Cancel")</a>
+                        <a href="@routes.Login.index" class="btn btn-default">@Messages("cancel")</a>
                     }
                 </div>
             }

@@ -1,5 +1,6 @@
 package db.scalikejdbc
 
+import play.api.Logger
 import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import org.scalawiki.dto.Page
@@ -37,7 +38,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
         )
     } catch {
       case e: Throwable =>
-        println(e)
+        Logger.logger.error(s"Error getting image info for contest ${contest.id},  page id: ${page.id}, page title: ${page.title}", e)
         throw e
     }
   }
@@ -154,7 +155,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
           FROM rounds r
   JOIN selection s ON r.id = s.round_id
   WHERE
-  r.contest = $contestId
+  r.contest_id = $contestId
   GROUP BY r.id, s.rate
       """.map(rs => (rs.long(1), rs.int(2), rs.int(3))).list().apply()
 

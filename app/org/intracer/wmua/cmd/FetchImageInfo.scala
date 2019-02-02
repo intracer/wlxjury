@@ -19,7 +19,6 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
   val imageInfoProps = Set("timestamp", "user", "size", "url")
 
   def apply(): Future[Seq[Image]] = {
-
     val imageInfoQuery = if (titles.isEmpty)
       generatorQuery
     else
@@ -27,7 +26,6 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
 
     for (pages <- imageInfoQuery) yield
       pages.flatMap(page => ImageJdbc.fromPage(page, contest))
-
   }
 
   def generatorQuery: Future[Seq[Page]] = {
@@ -55,7 +53,6 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
     commons.run(query)
   }
 
-
   def numberOfImages: Future[Long] = {
     val query = Action(Query(TitlesParam(Seq(source)), Prop(CategoryInfo)))
     commons.run(query).map {
@@ -74,5 +71,4 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
       titlePrefix = None
     )
   }
-
 }

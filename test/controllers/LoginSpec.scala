@@ -16,14 +16,14 @@ class LoginSpec extends PlaySpecification with Results with InMemDb with Mockito
 
   "auth" should {
     "fail empty request" in {
-      inMemDbApp {
+      inMemDb {
         val result = login.auth().apply(FakeRequest().withCSRFToken)
         status(result) === BAD_REQUEST
       }
     }
 
     "fail when no users" in {
-      inMemDbApp {
+      inMemDb {
         val result = login.auth().apply(FakeRequest().withHeaders(
           "login" -> "qwerty",
           "password" -> "1234"
@@ -34,7 +34,7 @@ class LoginSpec extends PlaySpecification with Results with InMemDb with Mockito
     }
 
     "fail when wrong password" in {
-      inMemDbApp {
+      inMemDb {
         UserJdbc.create(User("name", "qwerty@dot.com"))
 
         val result = login.auth().apply(FakeRequest().withHeaders(
@@ -47,7 +47,7 @@ class LoginSpec extends PlaySpecification with Results with InMemDb with Mockito
     }
 
     "no rights" in {
-      inMemDbApp {
+      inMemDb {
         UserJdbc.create(User("name", "qwerty@dot.com", password = Some(UserJdbc.sha1("strong"))))
         val result = login.auth().apply(FakeRequest().withFormUrlEncodedBody(
           "login" -> "qwerty@dot.com",
@@ -63,7 +63,7 @@ class LoginSpec extends PlaySpecification with Results with InMemDb with Mockito
     }
 
     "root rights" in {
-      inMemDbApp {
+      inMemDb {
         UserJdbc.create(
           User("name", "qwerty@dot.com",
             password = Some(UserJdbc.sha1("strong")),

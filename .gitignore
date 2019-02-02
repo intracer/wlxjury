@@ -16,3 +16,4 @@ dist
 .env
 .vagrant
 node_modules
+package

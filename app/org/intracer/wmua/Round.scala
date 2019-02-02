@@ -9,7 +9,7 @@ import org.scalawiki.dto.Page
 case class Round(id: Option[Long],
                  number: Long,
                  name: Option[String] = None,
-                 contest: Long,
+                 contestId: Long,
                  roles: Set[String] = Set("jury"),
                  distribution: Int = 0,
                  rates: Rates = Round.binaryRound,
@@ -28,15 +28,17 @@ case class Round(id: Option[Long],
                  prevSelectedBy: Option[Int] = None,
                  prevMinAvgRate: Option[Int] = None,
                  category: Option[String] = None,
+                 excludeCategory: Option[String] = None,
                  categoryClause: Option[Int] = None,
                  regions: Option[String] = None,
                  minImageSize: Option[Int] = None,
                  hasCriteria: Boolean = false,
                  halfStar: Option[Boolean] = None,
-                 monuments: Option[String] = None) extends HasId {
+                 monuments: Option[String] = None,
+                 topImages: Option[Int] = None) extends HasId {
 
   def jurors: Seq[User] =
-    UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contest, contest))
+    UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contestId, contestId))
 
   def activeJurors: Long = if (!optionalRate) _allJurors else _activeJurors
 

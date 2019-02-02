@@ -2,8 +2,6 @@ package db.scalikejdbc
 
 import org.intracer.wmua.{Round, User}
 import scalikejdbc._
-import scalikejdbc._, jsr310._
-import java.time._
 import skinny.orm.SkinnyCRUDMapper
 
 object RoundJdbc extends SkinnyCRUDMapper[Round] {
@@ -14,6 +12,8 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
 
   val c = RoundJdbc.syntax("c")
 
+  val s = SelectionJdbc.syntax("s")
+
   override lazy val defaultAlias = createAlias("r")
 
   lazy val r = defaultAlias
@@ -23,7 +23,7 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
     name = Option(rs.string(c.name)),
     number = rs.int(c.number),
     distribution = rs.int(c.distribution),
-    contest = rs.long(c.contest),
+    contestId = rs.long(c.contestId),
     rates = Round.ratesById(rs.int(c.rates)),
     limitMin = rs.intOpt(c.limitMin),
     limitMax = rs.intOpt(c.limitMax),
@@ -43,7 +43,8 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
     minImageSize = rs.intOpt(c.minImageSize),
     hasCriteria = rs.booleanOpt(c.hasCriteria).getOrElse(false),
     halfStar = rs.booleanOpt(c.halfStar),
-    monuments = rs.stringOpt(c.monuments)
+    monuments = rs.stringOpt(c.monuments),
+    topImages = rs.intOpt(c.topImages)
   )
 
   def create(round: Round): Round = {
@@ -51,7 +52,7 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
       insert.into(RoundJdbc).namedValues(
         column.number -> round.number,
         column.name -> round.name,
-        column.contest -> round.contest,
+        column.contestId -> round.contestId,
         column.roles -> round.roles.head,
         column.distribution -> round.distribution,
         column.rates -> round.rates.id,
@@ -70,7 +71,8 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
         column.regions -> round.regions,
         column.minImageSize -> round.minImageSize,
         column.halfStar -> round.halfStar,
-        column.monuments -> round.monuments
+        column.monuments -> round.monuments,
+        column.topImages -> round.topImages
       )
     }.updateAndReturnGeneratedKey().apply()
 
@@ -85,18 +87,26 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
       )
 
   def activeRounds(contestId: Long): Seq[Round] =
-    where('contest -> contestId, 'active -> true)
+    where('contestId -> contestId, 'active -> true)
       .orderBy(r.id).apply()
 
-  def current(user: User): Option[Round] = {
-    for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById);
-         roundId <- contest.currentRound;
-         round <- findById(roundId))
-      yield round
+  def current(user: User): Seq[Round] = {
+    user.currentContest.map { contestId =>
+      where(sqls
+        .eq(r.contestId, contestId).and
+        .eq(r.active, true).and
+        .exists(
+          select.from(SelectionJdbc as s)
+            .where
+            .eq(s.juryId, user.id.get).and
+            .eq(s.roundId, r.id).sql
+        ))
+        .orderBy(r.id).apply()
+    }.getOrElse(Nil)
   }
 
   def findByContest(contest: Long): Seq[Round] =
-    where('contest -> contest)
+    where('contestId -> contest)
       .orderBy(r.id).apply()
 
   def setActive(id: Long, active: Boolean): Unit =
@@ -105,11 +115,11 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
 
   def setInactiveAllInContest(contestId: Long): Unit = withSQL {
     update(RoundJdbc).set(column.active -> false)
-      .where.eq(column.contest, contestId)
+      .where.eq(column.contestId, contestId)
   }.update().apply()
 
-  def countByContest(contest: Long): Long =
-    countBy(sqls.eq(r.contest, contest))
+  def countByContest(contestId: Long): Long =
+    countBy(sqls.eq(r.contestId, contestId))
 
   case class RoundStatRow(juror: Long, rate: Int, count: Int)
 

@@ -1,0 +1,1 @@
+alter table rounds CHANGE COLUMN contest contest_id integer;

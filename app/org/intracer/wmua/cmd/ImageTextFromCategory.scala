@@ -7,6 +7,7 @@ import org.scalawiki.wikitext.TemplateParser
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import ImageTextFromCategory._
 
 case class ImageTextFromCategory(source: String,
                                  contest: ContestJury,
@@ -70,8 +71,8 @@ case class ImageTextFromCategory(source: String,
     }
   }
 
-  def descriptions(pages: Seq[Page]): Seq[String] = {
-    pages.sortBy(_.id).map {
+  def descriptions(pages: Seq[Page], existingPageIds: Set[Long] = Set.empty): Seq[String] = {
+    pages.sortBy(_.id).filterNot(i => existingPageIds.contains(i.id.get)).map {
       page =>
         page.text.flatMap(text => namedParam(text, "Information", "description")).getOrElse("")
     }
@@ -83,12 +84,6 @@ case class ImageTextFromCategory(source: String,
         page.text.flatMap(text => namedParam(text, "Information", "author")).getOrElse("")
     }
   }
-
-  def defaultParam(text: String, templateName: String): Option[String] =
-    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt("1"))
-
-  def namedParam(text: String, templateName: String, paramName: String): Option[String] =
-    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt(paramName))
 
   def revisionsByGenerator(source: String,
                            generator: String,
@@ -103,4 +98,21 @@ case class ImageTextFromCategory(source: String,
         Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
       )
   }
+}
+
+object ImageTextFromCategory {
+
+  def defaultParam(text: String, templateName: String): Option[String] =
+    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt("1"))
+
+  /**
+    * Get value of a template parameter
+    * @param text page text, that can contain a template with parameter
+    * @param templateName template name
+    * @param paramName template parameter name
+    * @return optional value of template parameter
+    */
+  def namedParam(text: String, templateName: String, paramName: String): Option[String] =
+    TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt(paramName))
+
 }

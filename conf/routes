@@ -49,29 +49,30 @@ GET         /filelist/round/:round/user/:user/page/:page                        
 
 GET         /filelist/round/:round/user/:user/region/:region/page/:page             controllers.Gallery.fileList(user: Long, page: Int, region: String, round: Long, format:String ?= "wiki", rate: Option[Int] ?= None)
 
-GET         /large/user/:user/pageid/:pageid                                        controllers.Gallery.large(user: Long, pageid: Long, region: String = "all", round: Long = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
-
-GET         /large/user/:user/region/:region/pageid/:pageid                         controllers.Gallery.large(user: Long, pageid: Long, region: String, round: Long = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
-
-GET         /large/round/:round/user/:user/pageid/:pageid                           controllers.Gallery.large(user: Long, pageid: Long, region: String = "all", round: Long, rate: Option[Int] ?= None, module: String ?= "gallery")
-
-GET         /large/round/:round/user/:user/region/:region/pageid/:pageid            controllers.Gallery.large(user: Long, pageid: Long, region: String, round:Long, rate: Option[Int] ?= None, module: String ?= "gallery")
-
-POST        /comment/region/:region/pageid/:pageid                                  controllers.ImageDiscussion.addComment(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery", round: Option[Long] ?= None, contestId: Option[Long] ?= None)
-
-POST        /rate/round/:round/pageid/:pageId/select/:select                        controllers.Gallery.selectWS(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
-
-GET         /large/round/:round/pageid/:pageId/select/:select                       controllers.Gallery.selectByPageId(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
-
-GET         /large/round/:round/region/:region/pageid/:pageId/select/:select        controllers.Gallery.selectByPageId(round: Long, pageId: Long, select: Int, region: String, rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
-
 GET         /gallery/page/:page                                                     controllers.Gallery.listCurrent(page: Int, region: String = "all", rate: Option[Int] ?= None)
 
 GET         /gallery/region/:region/page/:page                                      controllers.Gallery.listCurrent(page: Int, region: String, rate: Option[Int] ?= None)
 
-GET         /large/pageid/:pageid                                                   controllers.Gallery.largeCurrentUser(pageid: Long, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery")
+POST        /comment/region/:region/pageid/:pageid                                  controllers.ImageDiscussion.addComment(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery", round: Option[Long] ?= None, contestId: Option[Long] ?= None)
 
-GET         /large/region/:region/pageid/:pageid                                    controllers.Gallery.largeCurrentUser(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery")
++ nocsrf
+POST        /rate/round/:round/pageid/:pageId/select/:select                        controllers.Gallery.selectWS(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
+
+GET         /large/user/:user/pageid/:pageid                                        controllers.LargeView.large(user: Long, pageid: Long, region: String = "all", round: Long = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
+
+GET         /large/user/:user/region/:region/pageid/:pageid                         controllers.LargeView.large(user: Long, pageid: Long, region: String, round: Long = 0, rate: Option[Int] ?= None, module: String ?= "gallery")
+
+GET         /large/round/:round/user/:user/pageid/:pageid                           controllers.LargeView.large(user: Long, pageid: Long, region: String = "all", round: Long, rate: Option[Int] ?= None, module: String ?= "gallery")
+
+GET         /large/round/:round/user/:user/region/:region/pageid/:pageid            controllers.LargeView.large(user: Long, pageid: Long, region: String, round:Long, rate: Option[Int] ?= None, module: String ?= "gallery")
+
+GET         /large/round/:round/pageid/:pageId/select/:select                       controllers.LargeView.rateByPageId(round: Long, pageId: Long, select: Int, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
+
+GET         /large/round/:round/region/:region/pageid/:pageId/select/:select        controllers.LargeView.rateByPageId(round: Long, pageId: Long, select: Int, region: String, rate: Option[Int] ?= None, module: String ?= "gallery", criteria: Option[Int] ?= None)
+
+GET         /large/pageid/:pageid                                                   controllers.LargeView.largeCurrentUser(pageid: Long, region: String = "all", rate: Option[Int] ?= None, module: String ?= "gallery")
+
+GET         /large/region/:region/pageid/:pageid                                    controllers.LargeView.largeCurrentUser(pageid: Long, region: String, rate: Option[Int] ?= None, module: String ?= "gallery")
 
 GET         /admin/users                                                            @controllers.Admin.users(contestId: Option[Long] ?= None)
 
@@ -89,21 +90,21 @@ POST        /users/save                                                         
 
 POST        /users/resetpasswd/:id                                                  @controllers.Admin.resetPassword(id: Long)
 
-GET         /admin/rounds                                                           controllers.Rounds.rounds(contestId: Option[Long] ?= None)
+GET         /admin/rounds                                                           @controllers.Rounds.rounds(contestId: Option[Long] ?= None)
 
-GET         /admin/rounds/edit                                                      controllers.Rounds.editRound(id: Option[Long] ?= None, contestId: Long)
+GET         /admin/rounds/edit                                                      @controllers.Rounds.editRound(id: Option[Long] ?= None, contestId: Long, topImages: Option[Int] ?= None)
 
-POST        /admin/rounds/save                                                      controllers.Rounds.saveRound()
+POST        /admin/rounds/save                                                      @controllers.Rounds.saveRound()
 
-POST        /admin/setimages                                                        controllers.Rounds.setImages()
+POST        /admin/setimages                                                        @controllers.Rounds.setImages()
 
-POST        /admin/setround                                                         controllers.Rounds.setRound()
+POST        /admin/setround                                                         @controllers.Rounds.setRound()
 
-POST        /admin/startround                                                       controllers.Rounds.startRound()
+POST        /admin/startround                                                       @controllers.Rounds.startRound()
 
-GET         /roundstat                                                              controllers.Rounds.currentRoundStat()
+GET         /roundstat                                                              @controllers.Rounds.currentRoundStat()
 
-GET         /roundstat/:round                                                       controllers.Rounds.roundStat(round: Long)
+GET         /roundstat/:round                                                       @controllers.Rounds.roundStat(round: Long)
 
 GET         /monuments                                                              controllers.Monuments.list()
 
@@ -111,17 +112,17 @@ GET         /monuments/id/:id                                                   
 
 # GET         /webjars/*file                                                          @controllers.Assets.at(file)
 
-GET         /contests                                                               controllers.Contests.list(contestType: Option[String] ?= None, year: Option[Int] ?= None, country: Option[String] ?= None)
+GET         /contests                                                               @controllers.Contests.list(contestType: Option[String] ?= None, year: Option[Int] ?= None, country: Option[String] ?= None)
 
-POST        /contests/save                                                          controllers.Contests.saveContest()
+POST        /contests/save                                                          @controllers.Contests.saveContest()
 
-POST        /contests/import                                                        controllers.Contests.importContests()
+POST        /contests/import                                                        @controllers.Contests.importContests()
 
-GET         /contest/:id/images                                                     controllers.Contests.images(id: Long)
+GET         /contest/:id/images                                                     @controllers.Contests.images(id: Long)
 
-POST        /contest/:id/importimages                                               controllers.Contests.importImages(id: Long)
+POST        /contest/:id/importimages                                               @controllers.Contests.importImages(id: Long)
 
-GET         /thumb_urls/:сontestId                                                     controllers.Gallery.thumbnailUrls(сontestId: Long)
+GET         /thumb_urls/:сontestId                                                  controllers.Gallery.thumbnailUrls(сontestId: Long)
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)
 

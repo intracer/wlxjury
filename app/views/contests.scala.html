@@ -9,12 +9,12 @@
 @import helper._
 @import b3.vertical.fieldConstructor
 
-@mainAdmin(Messages("contests"), user, user.getId) {
+@mainAdmin(Messages("campaigns"), user, user.getId) {
     <div class="row" xmlns="http://www.w3.org/1999/html">
 
-        <h3>@Messages("Import from list page/images category")</h3>
+        <h3>@Messages("import.from.list.page.images.category")</h3>
         <div class="bs-callout bs-callout-info">
-            <h4>Examples of inputs:</h4>
+            <h4>@Messages("examples.of.inputs")</h4>
             <p>
                 <ul>
                     <li>Category:Images from Wiki Loves Earth 2016
@@ -24,7 +24,7 @@
         </div>
         @b3.form(routes.Contests.importContests, 'id -> "import-contests") {
             @helper.CSRF.formField
-            @b3.text(importForm("source"), 'placeholder -> Messages("source"), '_label -> null, '_help -> "")
+            @b3.text(importForm("source"), 'placeholder -> Messages("source"), '_label -> Messages("source"), '_help -> "")
 
             <div class="btn btn-primary" onClick="document.forms['import-contests'].submit();">
             @Messages("import")
@@ -32,7 +32,7 @@
         }
     </div>
     <div class="row" >
-        <h3>@Messages("contests")</h3>
+        <h3>@Messages("campaigns")</h3>
 
         @contestsTable(fetched)
 

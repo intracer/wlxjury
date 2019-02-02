@@ -6,7 +6,7 @@ import DistributeImages._
 
 class RebalanceSpec extends Specification {
 
-  val round = new Round(Some(1), number = 1, contest = 1)
+  val round = new Round(Some(1), number = 1, contestId = 1)
   val selection = Selection(1, 1, 1)
   val juror = User("", "", Some(1))
   val image = Image(1, "")
