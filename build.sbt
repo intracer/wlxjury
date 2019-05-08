@@ -47,7 +47,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http" % "10.0.13",
 
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
-
+  "org.pac4j" % "pac4j-oidc" % pac4jVersion exclude("commons-io", "commons-io"),
 
   "nl.grons" %% "metrics-scala" % "3.5.9",
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
