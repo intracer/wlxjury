@@ -16,6 +16,8 @@ val ScalikejdbcVersion = "3.2.2"
 val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.2"
 val ScalawikiVersion = "0.5.0"
 val PlayMailerVersion = "6.0.1"
+val playPac4jVersion = "7.0.1"
+val pac4jVersion = "3.6.1"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -43,6 +45,9 @@ libraryDependencies ++= Seq(
 
   "com.typesafe.akka" %% "akka-stream" % "2.5.11",
   "com.typesafe.akka" %% "akka-http" % "10.0.13",
+
+  "org.pac4j" %% "play-pac4j" % playPac4jVersion,
+
 
   "nl.grons" %% "metrics-scala" % "3.5.9",
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
