@@ -76,7 +76,11 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
               } else {
                 importCategory(formContest)
               }
-            imported.foreach {
+
+            val existing = ContestJuryJdbc.findAll().map(c => s"${c.name}/${c.year}/${c.country}").toSet
+            val newContests = imported.filterNot(c => existing.contains(s"${c.contestType.name}/${c.year}/${c.country.name}"))
+
+            newContests.foreach {
               contest =>
                 val contestJury = ContestJury(
                   id = None,
@@ -165,7 +169,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
   def updateImageMonuments(source: String, contest: ContestJury): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    if (contest.name == "Wiki Loves Earth" && contest.country == "Ukraine") {
+    if (contest.monumentIdTemplate.isDefined) {
       val monumentContest = Contest.WLEUkraine(contest.year)
       Monuments.updateLists(monumentContest)
     }

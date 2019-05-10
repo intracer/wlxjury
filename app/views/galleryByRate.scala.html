@@ -1,8 +1,7 @@
 @import org.intracer.wmua.Region
 @import controllers.Global
 
-@(
-        user: org.intracer.wmua.User,
+@(user: org.intracer.wmua.User,
         asUserId: Long,
         files: Seq[org.intracer.wmua.ImageWithRating],
         pager: Pager,
@@ -11,7 +10,8 @@
         rate: Option[Int] = None,
         region: String = "all",
         regions: Seq[Region],
-        rates: RateDistribution, rated: Option[Boolean])(implicit flash: Flash, lang: Lang, messages: Messages)
+        rates: RateDistribution,
+        rated: Option[Boolean])(implicit flash: Flash, lang: Lang, messages: Messages)
 
     @showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
     @defining(maybeRound.get) { round =>
@@ -46,9 +46,12 @@
         @defining(maybeRound.get) { round =>
             @defining(round.id.getOrElse(0)) { roundId =>
 
-                    @if(regions.nonEmpty) {
-                        @regionNav((region: String) => s"/byrate/round/$roundId/user/$asUserId/region/$region/page/1", maybeRound, region, regions)
-                    }
+                @if(regions.nonEmpty) {
+                    @regionNav(
+                        (region: String) =>
+                            routes.Gallery.query("byrate", Some(asUserId), 1, region, roundId.asInstanceOf[Long], rate).url,
+                        maybeRound, region, regions)
+                }
 
             <div class="row" >
 
