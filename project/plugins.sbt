@@ -13,7 +13,7 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.15")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.6")
 
-addSbtPlugin("io.gatling" % "gatling-sbt" % "2.2.2")
+addSbtPlugin("io.gatling" % "gatling-sbt" % "3.0.0")
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
 
