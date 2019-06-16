@@ -12,6 +12,8 @@ GET         /logout                                                             
 
 POST        /auth                                                                   @controllers.Login.auth()
 
+POST        /socialAuth                                                             @controllers.Login.socialAuth()
+
 GET         /auth                                                                   @controllers.Login.login()
 
 GET         /signup                                                                 @controllers.Login.signUpView()

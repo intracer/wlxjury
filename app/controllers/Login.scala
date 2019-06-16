@@ -1,23 +1,29 @@
 package controllers
 
-import com.mohiva.play.silhouette.api.Silhouette
+import com.mohiva.play.silhouette.api.exceptions.ProviderException
+import com.mohiva.play.silhouette.api.{LoginEvent, Silhouette}
+import com.mohiva.play.silhouette.impl.providers.{CommonSocialProfileBuilder, SocialProvider, SocialProviderRegistry}
 import javax.inject.Inject
 import db.scalikejdbc.{RoundJdbc, UserJdbc}
 import org.intracer.wmua.User
 import play.api.Play.current
 import play.api.data.Forms._
 import play.api.data._
-import play.api.i18n.Lang
+import play.api.i18n.{Lang, Messages}
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Results._
 import play.api.mvc._
 
-class Login @Inject()(val admin: Admin, silhouette: Silhouette[DefaultEnv]) extends Controller with Secured {
+import scala.concurrent.Future
 
-  def index = withAuth() {
-    user =>
-      implicit request =>
-        indexRedirect(user)
+class Login @Inject()(val admin: Admin,
+                      silhouette: Silhouette[DefaultEnv],
+                      socialProviderRegistry: SocialProviderRegistry
+                     ) extends Controller with Secured {
+
+  def index = withAuth() { user =>
+    implicit request =>
+      indexRedirect(user)
   }
 
   def indexRedirect(user: User): Result = {
@@ -67,11 +73,43 @@ class Login @Inject()(val admin: Admin, silhouette: Silhouette[DefaultEnv]) exte
     )
   }
 
-  def signUpView() = Action { implicit request =>
+  /**
+    * Authenticates a user against a social provider.
+    *
+    * @param provider The ID of the provider to authenticate against.
+    * @return The result to display.
+    */
+  def socialAuth(provider: String) = Action.async { implicit request: Request[AnyContent] =>
+    (socialProviderRegistry.get[SocialProvider](provider) match {
+      case Some(p: SocialProvider with CommonSocialProfileBuilder) =>
+        p.authenticate().flatMap {
+          case Left(result) => Future.successful(result)
+          case Right(authInfo) => for {
+            profile <- p.retrieveProfile(authInfo)
+            user <- userService.save(profile)
+            authInfo <- authInfoRepository.save(profile.loginInfo, authInfo)
+            authenticator <- silhouette.env.authenticatorService.create(profile.loginInfo)
+            value <- silhouette.env.authenticatorService.init(authenticator)
+            result <- silhouette.env.authenticatorService.embed(value, indexRedirect(user))
+          } yield {
+            silhouette.env.eventBus.publish(LoginEvent(user, request))
+            result
+          }
+        }
+      case _ => Future.failed(new ProviderException(s"Cannot authenticate with unexpected social provider $provider"))
+    }).recover {
+      case e: ProviderException =>
+        logger.error("Unexpected provider error", e)
+        Redirect(routes.SignInController.view()).flashing("error" -> Messages("could.not.authenticate"))
+    }
+  }
+
+
+  def signUpView() = silhouette.UnsecuredAction { implicit request =>
     Ok(views.html.signUp(signUpForm))
   }
 
-  def signUp() = Action { implicit request =>
+  def signUp() = silhouette.UnsecuredAction { implicit request =>
 
     signUpForm.bindFromRequest.fold(
       formWithErrors =>
@@ -110,8 +148,8 @@ class Login @Inject()(val admin: Admin, silhouette: Silhouette[DefaultEnv]) exte
 
   val loginForm = Form(
     tuple(
-      "login" -> nonEmptyText(),
-      "password" -> nonEmptyText()
+      "login" -> nonEmptyText,
+      "password" -> nonEmptyText
     ) verifying("invalid.user.or.password", fields => fields match {
       case (l, p) => UserJdbc.login(l, p).isDefined
     })
@@ -119,9 +157,9 @@ class Login @Inject()(val admin: Admin, silhouette: Silhouette[DefaultEnv]) exte
 
   val signUpForm = Form(
     tuple(
-      "login" -> nonEmptyText(),
-      "password" -> nonEmptyText(),
-      "repeat.password" -> nonEmptyText()
+      "login" -> nonEmptyText,
+      "password" -> nonEmptyText,
+      "repeat.password" -> nonEmptyText
     ) verifying("invalid.user.or.password", fields => fields match {
       case (_, p1, p2) => p1 == p2
     })
