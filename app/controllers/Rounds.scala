@@ -135,7 +135,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
     DistributeImages.distributeImages(created, jurors, prevRound)
 
-    SetCurrentRound(round.contestId, None, created).apply()
+    SetCurrentRound(round.contestId, prevRound, created).apply()
 
     created
   }
