@@ -43,6 +43,7 @@
                                 <!--                        <th width="10%">@Messages("Min selected") </th>
                             <th width="10%">@Messages("Max selected") </th>
                             <th width="10%">@Messages("Recommended selected") </th> -->
+                            <th width="10%">@Messages("active")</th>
                             <th width="10%">@Messages("images")</th>
                             <th width="10%">@Messages("selected.rated")</th>
                         </tr>
@@ -60,6 +61,7 @@
                                 <!--                            <td>              @round.limitMin </td>
                             <td>@round.limitMax </td>
                             <td>@round.recommended.fold("")(_.toString) </td> -->
+                            <td>@if(round.active) { @Messages("yes") } else { @Messages("no") } </td>
                             <td>@roundsStat.get(round.getId).map(_.all).getOrElse(0) </td>
                             <td>@roundsStat.get(round.getId).map(_.positive).getOrElse(0) </td>
                         </tr>
