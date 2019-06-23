@@ -6,20 +6,24 @@ import com.mohiva.play.silhouette.impl.providers.{CommonSocialProfileBuilder, So
 import javax.inject.Inject
 import db.scalikejdbc.{RoundJdbc, UserJdbc}
 import org.intracer.wmua.User
-import play.api.Play.current
 import play.api.data.Forms._
 import play.api.data._
-import play.api.i18n.{Lang, Messages}
-import play.api.i18n.Messages.Implicits._
-import play.api.mvc.Results._
+import play.api.i18n.{I18nSupport, Lang, Langs, Messages}
 import play.api.mvc._
+import play.api.Logger
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class Login @Inject()(val admin: Admin,
+                      components: ControllerComponents,
+                      langs: Langs,
                       silhouette: Silhouette[DefaultEnv],
                       socialProviderRegistry: SocialProviderRegistry
-                     ) extends Controller with Secured {
+                     )(
+                       implicit
+                       assets: AssetsFinder,
+                       ex: ExecutionContext
+                     ) extends AbstractController(components) with Secured with I18nSupport {
 
   def index = withAuth() { user =>
     implicit request =>
@@ -54,7 +58,7 @@ class Login @Inject()(val admin: Admin,
     implicit request =>
       val users = UserJdbc.count()
       if (users > 0) {
-        Ok(views.html.index(loginForm))
+        Ok(views.html.index(loginForm, socialProviderRegistry))
       } else {
         Ok(views.html.signUp(signUpForm))
       }
@@ -64,7 +68,7 @@ class Login @Inject()(val admin: Admin,
 
     loginForm.bindFromRequest.fold(
       formWithErrors =>
-        BadRequest(views.html.index(formWithErrors)), {
+        BadRequest(views.html.index(formWithErrors, socialProviderRegistry)), {
         case (login, password) =>
           val user = UserJdbc.login(login, password).get
           val result = indexRedirect(user).withSession(Security.username -> login)
@@ -84,23 +88,25 @@ class Login @Inject()(val admin: Admin,
       case Some(p: SocialProvider with CommonSocialProfileBuilder) =>
         p.authenticate().flatMap {
           case Left(result) => Future.successful(result)
-          case Right(authInfo) => for {
-            profile <- p.retrieveProfile(authInfo)
-            user <- userService.save(profile)
-            authInfo <- authInfoRepository.save(profile.loginInfo, authInfo)
-            authenticator <- silhouette.env.authenticatorService.create(profile.loginInfo)
-            value <- silhouette.env.authenticatorService.init(authenticator)
-            result <- silhouette.env.authenticatorService.embed(value, indexRedirect(user))
-          } yield {
-            silhouette.env.eventBus.publish(LoginEvent(user, request))
-            result
-          }
+          case Right(authInfo) =>
+            Future.failed(new ProviderException(s"Cannot authenticate with social provider $provider - not yet implemented"))
+          //            for {
+          //            profile <- p.retrieveProfile(authInfo)
+          //            user <- userService.save(profile)
+          //            authInfo <- authInfoRepository.save(profile.loginInfo, authInfo)
+          //            authenticator <- silhouette.env.authenticatorService.create(profile.loginInfo)
+          //            value <- silhouette.env.authenticatorService.init(authenticator)
+          //            result <- silhouette.env.authenticatorService.embed(value, indexRedirect(user))
+          //          } yield {
+          //            silhouette.env.eventBus.publish(LoginEvent(user, request))
+          //            result
+          //          }
         }
       case _ => Future.failed(new ProviderException(s"Cannot authenticate with unexpected social provider $provider"))
     }).recover {
       case e: ProviderException =>
-        logger.error("Unexpected provider error", e)
-        Redirect(routes.SignInController.view()).flashing("error" -> Messages("could.not.authenticate"))
+        Logger.error("Unexpected provider error", e)
+        Redirect(routes.Login.index()).flashing("error" -> Messages("could.not.authenticate"))
     }
   }
 
@@ -124,7 +130,7 @@ class Login @Inject()(val admin: Admin,
 
           val newUser = new User(fullname = "", email = login, password = Some(password), roles = roles)
 
-          val user = admin.createNewUser(newUser, newUser)
+          val user = admin.createNewUser(newUser, newUser)(request2Messages(request).lang)
           val result = indexRedirect(user).withSession(Security.username -> password)
           user.lang.fold(result)(l => result.withLang(Lang(l)))
       }

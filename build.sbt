@@ -40,6 +40,7 @@ libraryDependencies ++= Seq(
   "org.flywaydb" %% "flyway-play" % "4.0.0",
 
   "com.mohiva" %% "play-silhouette" % PlaySilhouetteVersion,
+  "net.codingwell" %% "scala-guice" % "4.1.0",
 
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,

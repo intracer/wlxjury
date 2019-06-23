@@ -1,4 +1,4 @@
-@(user: org.intracer.wmua.User)(implicit lang: Lang, messages: Messages)
+@(user: org.intracer.wmua.User)(implicit messagesProvider: play.api.i18n.MessagesProvider)
 
 @if(user != null) {
     <ul class="nav navbar-nav navbar-right" >

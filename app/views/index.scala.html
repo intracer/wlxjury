@@ -1,6 +1,7 @@
-@(loginForm: Form[(String, String)])(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
+@import com.mohiva.play.silhouette.impl.providers.SocialProviderRegistry
+@(loginForm: Form[(String, String)], socialProviders: SocialProviderRegistry)(
+        implicit flash: Flash,  messagesProvider: play.api.i18n.MessagesProvider, req: RequestHeader, assets: controllers.AssetsFinder)
 
-
-@login(loginForm)
+@login(loginForm, socialProviders)
 
 

@@ -2,13 +2,17 @@ package db.scalikejdbc
 
 import java.time.ZonedDateTime
 
+import com.mohiva.play.silhouette.api.LoginInfo
+import com.mohiva.play.silhouette.api.services.IdentityService
 import org.intracer.wmua.User
 import play.api.data.validation.{Constraints, Invalid, Valid}
 import play.api.libs.Codecs
 import scalikejdbc._
 import skinny.orm.SkinnyCRUDMapper
 
-object UserJdbc extends SkinnyCRUDMapper[User] {
+import scala.concurrent.Future
+
+object UserJdbc extends SkinnyCRUDMapper[User] with IdentityService[User] {
 
   implicit def session: DBSession = autoSession
 
@@ -160,4 +164,6 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
   def updateHash(id: Long, hash: String): Unit =
     updateById(id)
       .withAttributes('password -> hash)
+
+  override def retrieve(loginInfo: LoginInfo): Future[Option[User]] = ???
 }

@@ -3,7 +3,7 @@
         message: String,
         user: User = null,
         asUserId: Long = 0
-)(implicit lang: Lang, messages: Messages)
+)(implicit messagesProvider: play.api.i18n.MessagesProvider)
 
 @main("error", user, asUserId) {
     <div class="alert alert-danger"> @Messages(message) </div>

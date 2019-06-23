@@ -12,7 +12,7 @@ GET         /logout                                                             
 
 POST        /auth                                                                   @controllers.Login.auth()
 
-POST        /socialAuth                                                             @controllers.Login.socialAuth()
+POST        /socialAuth/:provider                                                   @controllers.Login.socialAuth(provider)
 
 GET         /auth                                                                   @controllers.Login.login()
 

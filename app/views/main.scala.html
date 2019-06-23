@@ -10,10 +10,10 @@
 //        menu: Html = Html.empty,
         pager: Html = Html(""),
         rates: RateDistribution = new RateDistribution(Map.empty),
-        rated: Option[Boolean] = None)(content: Html)()(implicit lang: Lang, messages: Messages)
+        rated: Option[Boolean] = None)(content: Html)()(implicit messagesProvider: play.api.i18n.MessagesProvider)
 <!DOCTYPE html>
 
-<html lang="@lang.language">
+<html lang="@messagesProvider.messages.lang.language">
     <head>
         <title>@Messages(title)</title>
         <meta charset="UTF-8">
