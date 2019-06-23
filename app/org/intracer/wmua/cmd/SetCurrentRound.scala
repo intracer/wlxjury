@@ -8,12 +8,9 @@ case class SetCurrentRound(contestId: Long, prevRound: Option[Round], round: Rou
   def apply(): Unit = {
     println(s"Setting current round ${prevRound.fold("")(r => s"from ${r.getId}")} to ${round.getId}")
 
-//    prevRound.foreach(r => RoundJdbc.setActive(r.getId, active = false))
+    prevRound.foreach(r => RoundJdbc.setActive(r.getId, active = false))
 
-    RoundJdbc.setInactiveAllInContest(contestId)
-
-    ContestJuryJdbc.setCurrentRound(contestId, round.id)
-    RoundJdbc.setActive(round.getId, active = true)
+    RoundJdbc.setActive(round.getId, active = round.active)
   }
 
 }

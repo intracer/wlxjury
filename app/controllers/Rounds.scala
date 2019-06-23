@@ -36,7 +36,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
           Ok(views.html.rounds(user, rounds, roundsStat,
             editRoundForm, imagesForm.fill(contest.images),
-            selectRoundForm.fill(contest.currentRound.map(_.toString)),
+            selectRoundForm,
             currentRound, contest)
           )
         }
@@ -135,24 +135,22 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
     DistributeImages.distributeImages(created, jurors, prevRound)
 
-    SetCurrentRound(round.contestId, None, created).apply()
+    SetCurrentRound(round.contestId, prevRound, created).apply()
 
     created
   }
 
-  def setRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
-    user =>
+  def setRound() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
       implicit request =>
-        val newRoundId = selectRoundForm.bindFromRequest.get
+        val selectRound = selectRoundForm.bindFromRequest.get
 
-        newRoundId.map(_.toLong).foreach { id =>
+        val id = selectRound.roundId.toLong
           val round = RoundJdbc.findById(id)
           round.foreach { r =>
-            SetCurrentRound(r.contestId, None, r).apply()
+            SetCurrentRound(r.contestId, None, r.copy(active = selectRound.active)).apply()
           }
-        }
 
-        Redirect(routes.Rounds.rounds())
+        Redirect(routes.Rounds.rounds(round.map(_.contestId)))
   }
 
   def startRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
@@ -199,7 +197,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   def currentRoundStat() = withAuth(rolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)){
     user =>
       implicit request =>
-        RoundJdbc.current(user).map {
+        RoundJdbc.current(user).headOption.map {
           round =>
             Redirect(routes.Rounds.roundStat(round.getId))
         }.getOrElse {
@@ -270,13 +268,17 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       u.id.exists(byUserCount.contains)
     }
 
-    val stat = RoundStat(jurors, round, rounds, byUserCount, byUserRateCount, total, totalByRate)
-    stat
+    RoundStat(jurors, round, rounds, byUserCount, byUserRateCount, total, totalByRate)
   }
 
   val imagesForm = Form("images" -> optional(text))
 
-  val selectRoundForm = Form("currentRound" -> optional(text))
+  val selectRoundForm = Form(
+    mapping(
+    "currentRound" -> text,
+    "active" -> boolean
+    )(SelectRound.apply)(SelectRound.unapply)
+  )
 
   def nonEmptySeq[T]: Constraint[Seq[T]] = Constraint[Seq[T]]("constraint.required") { o =>
     if (o.nonEmpty) Valid else Invalid(ValidationError("error.required"))
@@ -297,10 +299,11 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       "returnTo" -> optional(text),
       "minMpx" -> text,
       "previousRound" -> optional(longNumber),
-      "minJurors" -> optional(number),
-      "minAvgRate" -> optional(number),
-      "categoryClause" -> text,
+      "minJurors" -> optional(text),
+      "minAvgRate" -> optional(text),
+      "categoryClause" -> optional(text),
       "source" -> optional(text),
+      "excludeCategory" -> optional(text),
       "regions" -> seq(text),
       "minSize" -> text,
       jurorsMappingKV,
@@ -314,10 +317,11 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
                 rates: Int, returnTo: Option[String],
                 minMpx: String,
                 previousRound: Option[Long],
-                prevSelectedBy: Option[Int],
-                prevMinAvgRate: Option[Int],
-                categoryClause: String,
+                prevSelectedBy: Option[String],
+                prevMinAvgRate: Option[String],
+                categoryClause: Option[String],
                 category: Option[String],
+                excludeCategory: Option[String],
                 regions: Seq[String],
                 minImageSize: String,
                 jurors: Seq[String],
@@ -329,10 +333,11 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       limitMin = None, limitMax = None, recommended = None,
       minMpx = Try(minMpx.toInt).toOption,
       previous = previousRound,
-      prevSelectedBy = prevSelectedBy,
-      prevMinAvgRate = prevMinAvgRate,
-      categoryClause = Try(categoryClause.toInt).toOption,
+      prevSelectedBy = prevSelectedBy.flatMap(s => Try(s.toInt).toOption),
+      prevMinAvgRate = prevMinAvgRate.flatMap(s => Try(s.toInt).toOption),
+      categoryClause = categoryClause.map(_.toInt),
       category = category,
+      excludeCategory = excludeCategory,
       regions = if (regions.nonEmpty) Some(regions.mkString(",")) else None,
       minImageSize = Try(minImageSize.toInt).toOption,
       monuments = monumentIds,
@@ -342,7 +347,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Long, Option[String], Long, String, Int, Int,
-    Option[String], String, Option[Long], Option[Int], Option[Int], String, Option[String],
+    Option[String], String, Option[Long], Option[String], Option[String], Option[String], Option[String], Option[String],
     Seq[String], String, Seq[String], Boolean, Option[String], Option[Int])] = {
     val round = editRound.round
     Some((
@@ -350,10 +355,11 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       editRound.returnTo,
       round.minMpx.fold("No")(_.toString),
       round.previous,
-      round.prevSelectedBy,
-      round.prevMinAvgRate,
-      round.categoryClause.fold("No")(_.toString),
+      round.prevSelectedBy.map(_.toString),
+      round.prevMinAvgRate.map(_.toString),
+      round.categoryClause.map(_.toString),
       round.category,
+      round.excludeCategory,
       round.regionIds,
       round.minImageSize.fold("No")(_.toString),
       editRound.jurors.map(_.toString),
@@ -362,6 +368,8 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       round.topImages))
   }
 }
+
+case class SelectRound(roundId: String, active: Boolean)
 
 case class RoundStat(jurors: Seq[User],
                      round: Round,

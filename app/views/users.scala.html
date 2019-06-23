@@ -26,6 +26,7 @@
 
                 <thead>
                     <tr>
+                        <th width="5%">@Messages("N")</th>
                         <th>@Messages("full.name")</th>
                         <th>@Messages("wiki.account")</th>
                         <th>@Messages("email")</th>
@@ -36,11 +37,10 @@
 
                 <tbody>
 
-                    @for(user <- users) {
+                    @for((user, index) <- users.zipWithIndex) {
                         <tr>
-                            <td>
-                                    @user.fullname
-                            </td>
+                            <td> @{index + 1} </td>
+                            <td> @user.fullname </td>
                             <td>
 
                                 @if(user.accountValid) {
@@ -87,6 +87,7 @@
                                 </p>
                             }
 
+                            <td></td>
                             <td>
                                 <input type="hidden" name="id" id="id" value="0" />
                                 <input type="hidden" name="contest" id="contest" value="@contest.id" />

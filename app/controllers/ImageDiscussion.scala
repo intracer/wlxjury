@@ -21,7 +21,7 @@ object ImageDiscussion extends Controller with Secured {
   def addComment(pageId: Long, region: String = "all", rate: Option[Int], module: String, round: Option[Long], contestId: Option[Long]) = withAuth() {
     user =>
       implicit request =>
-        val roundId = round.getOrElse(RoundJdbc.current(user).flatMap(_.id).get)
+        val roundId = round.get
 
         editCommentForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,

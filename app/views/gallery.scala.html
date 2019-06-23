@@ -18,8 +18,10 @@
 
         @defining(round.flatMap(_.id).getOrElse(0L)) { roundId =>
 
-                @if(regions.nonEmpty) {
-                @regionNav((region: String) => routes.Gallery.list(user = asUserId, round = roundId, region = region, page = 1, rate = rate).url, round, region, regions)
+            @if(regions.nonEmpty) {
+                @regionNav((region: String) =>
+                                routes.Gallery.query("gallery", Some(asUserId), 1, region, roundId, rate).url,
+                            round, region, regions)
             }
 
         <div class="row" >

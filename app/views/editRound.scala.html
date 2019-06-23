@@ -46,7 +46,7 @@
                     <input type="hidden" name="number" id="number" value='@editRoundForm("number").value' />
                     <input type="hidden" name="roles" id="roles" value='jury' />
 
-                    @b3.text(editRoundForm("round.name"), '_label -> Messages("round.name.optional"))
+                    @b3.text(editRoundForm("name"), '_label -> Messages("round.name.optional"))
 
                     @defining(!newRound) { noEdit =>
 
@@ -75,7 +75,7 @@
                                             <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
                                             @b3.select(
                                                 editRoundForm("minAvgRate"),
-                                                (0 to 20).map(x => (x.toString, x.toString)),
+                                                Seq("" -> Messages("no")) ++ (0 to 20).map(x => (x.toString, x.toString)),
                                                 '_label -> Messages("average.image.rating.is.at.least"), 'readonly -> noEdit)
                                             </div>
 
@@ -84,18 +84,13 @@
                                             }
                                         </div>
                                     }
-                                    @b3.select(
-                                        editRoundForm("categoryClause"),
-                                        Seq(
-                                            ("No", Messages("absent")),
-                                            ("1", Messages("images.should.be.IN.the.category")),
-                                            ("-1", Messages("images.should.be.NOT.IN.the.category"))
-                                        ),
-                                        '_label -> Messages("category.filter"), 'readonly -> noEdit)
 
-                                    <div id="categoryDiv" @if(editRoundForm("source").value.isEmpty) {
-                                        style="display: none"}>
-                                    @b3.text(editRoundForm("source"), '_label -> Messages("category"), 'readonly -> noEdit)
+                                    <div id="categoryDiv">
+                                    @b3.text(editRoundForm("source"), '_label -> Messages("images.should.be.IN.the.category"), 'readonly -> noEdit)
+                                    </div>
+
+                                    <div id="categoryDiv">
+                                    @b3.text(editRoundForm("excludeCategory"), '_label -> Messages("images.should.be.NOT.IN.the.category"), 'readonly -> noEdit)
                                     </div>
 
                                     @if(regions.nonEmpty) {
@@ -159,7 +154,7 @@
 
                         @b3.select(
                             editRoundForm("rates"),
-                            Round.rates.map(x => (x.id.toString, if (x.id == 1) x.name else Messages("1-x.rating", x.id))),
+                            Round.rates.map(x => (x.id.toString, if(x.id == 1) x.name else Messages("1-x.rating", x.id))),
                             '_label -> Messages("rating.type"), 'readonly -> noEdit)
 
                         @if(!newRound) {
