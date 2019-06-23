@@ -36,7 +36,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
           Ok(views.html.rounds(user, rounds, roundsStat,
             editRoundForm, imagesForm.fill(contest.images),
-            selectRoundForm.fill(contest.currentRound.map(_.toString)),
+            selectRoundForm,
             currentRound, contest)
           )
         }
@@ -140,19 +140,17 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
     created
   }
 
-  def setRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
-    user =>
+  def setRound() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
       implicit request =>
-        val newRoundId = selectRoundForm.bindFromRequest.get
+        val selectRound = selectRoundForm.bindFromRequest.get
 
-        newRoundId.map(_.toLong).foreach { id =>
+        val id = selectRound.roundId.toLong
           val round = RoundJdbc.findById(id)
           round.foreach { r =>
-            SetCurrentRound(r.contestId, None, r).apply()
+            SetCurrentRound(r.contestId, None, r.copy(active = selectRound.active)).apply()
           }
-        }
 
-        Redirect(routes.Rounds.rounds())
+        Redirect(routes.Rounds.rounds(round.map(_.contestId)))
   }
 
   def startRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
@@ -275,7 +273,12 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
   val imagesForm = Form("images" -> optional(text))
 
-  val selectRoundForm = Form("currentRound" -> optional(text))
+  val selectRoundForm = Form(
+    mapping(
+    "currentRound" -> text,
+    "active" -> boolean
+    )(SelectRound.apply)(SelectRound.unapply)
+  )
 
   def nonEmptySeq[T]: Constraint[Seq[T]] = Constraint[Seq[T]]("constraint.required") { o =>
     if (o.nonEmpty) Valid else Invalid(ValidationError("error.required"))
@@ -365,6 +368,8 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       round.topImages))
   }
 }
+
+case class SelectRound(roundId: String, active: Boolean)
 
 case class RoundStat(jurors: Seq[User],
                      round: Round,

@@ -10,8 +10,7 @@ case class SetCurrentRound(contestId: Long, prevRound: Option[Round], round: Rou
 
     prevRound.foreach(r => RoundJdbc.setActive(r.getId, active = false))
 
-    ContestJuryJdbc.setCurrentRound(contestId, round.id)
-    RoundJdbc.setActive(round.getId, active = true)
+    RoundJdbc.setActive(round.getId, active = round.active)
   }
 
 }
