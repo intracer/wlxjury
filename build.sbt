@@ -40,6 +40,7 @@ libraryDependencies ++= Seq(
   "org.flywaydb" %% "flyway-play" % "4.0.0",
 
   "com.mohiva" %% "play-silhouette" % PlaySilhouetteVersion,
+  "com.mohiva" %% "play-silhouette-crypto-jca" % PlaySilhouetteVersion,
   "net.codingwell" %% "scala-guice" % "4.1.0",
 
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
@@ -53,7 +54,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-mailer-guice" % PlayMailerVersion,
   "com.github.tototoshi" %% "scala-csv" % "1.3.4",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
-  guice, filters,
+  guice,
+  filters,
+  ehcache,
   specs2 % Test,
   jdbc % Test,
   "com.wix" % "wix-embedded-mysql" % "4.1.2" % Test,
