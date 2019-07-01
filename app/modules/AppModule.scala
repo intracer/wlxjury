@@ -5,7 +5,7 @@ import net.codingwell.scalaguice.ScalaModule
 import com.google.inject.{AbstractModule, Provides}
 import com.mohiva.play.silhouette.api.actions.{SecuredErrorHandler, UnsecuredErrorHandler}
 import com.mohiva.play.silhouette.api.crypto.{Crypter, CrypterAuthenticatorEncoder, Signer}
-import com.mohiva.play.silhouette.api.services.{AuthenticatorService, IdentityService}
+import com.mohiva.play.silhouette.api.services.AuthenticatorService
 import com.mohiva.play.silhouette.api.util.{CacheLayer, Clock, FingerprintGenerator, HTTPLayer, IDGenerator, PasswordInfo, PlayHTTPLayer}
 import com.mohiva.play.silhouette.api.{Environment, EventBus, Silhouette, SilhouetteProvider}
 import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaCrypterSettings, JcaSigner, JcaSignerSettings}
@@ -17,7 +17,6 @@ import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, PlayCa
 import com.typesafe.config.Config
 import controllers.DefaultEnv
 import db.scalikejdbc.UserService
-import org.intracer.wmua.User
 import org.scalawiki.MwBot
 import play.api.Configuration
 import play.api.mvc.{Cookie, CookieHeaderEncoding}
@@ -25,6 +24,7 @@ import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
 import play.api.libs.ws.WSClient
+import db.scalikejdbc.UserJdbc
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -35,7 +35,7 @@ class AppModule extends AbstractModule with ScalaModule {
     bind[Silhouette[DefaultEnv]].to[SilhouetteProvider[DefaultEnv]]
 //    bind[UnsecuredErrorHandler].to[CustomUnsecuredErrorHandler]
 //    bind[SecuredErrorHandler].to[CustomSecuredErrorHandler]
-//    bind[UserService].to[UserJdbc]
+    bind[UserService].toInstance(UserJdbc)
 //    bind[UserDAO].to[UserDAOImpl]
     bind[CacheLayer].to[PlayCacheLayer]
     bind[IDGenerator].toInstance(new SecureRandomIDGenerator())
@@ -76,7 +76,7 @@ class AppModule extends AbstractModule with ScalaModule {
     */
   @Provides
   def provideEnvironment(
-                          userService: IdentityService[User],
+                          userService: UserService,
                           authenticatorService: AuthenticatorService[CookieAuthenticator],
                           eventBus: EventBus): Environment[DefaultEnv] = {
 
