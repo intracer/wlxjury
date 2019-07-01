@@ -16,6 +16,7 @@ import com.mohiva.play.silhouette.impl.providers.state.{CsrfStateItemHandler, Cs
 import com.mohiva.play.silhouette.impl.util.{DefaultFingerprintGenerator, PlayCacheLayer, SecureRandomIDGenerator}
 import com.typesafe.config.Config
 import controllers.DefaultEnv
+import db.scalikejdbc.UserService
 import org.intracer.wmua.User
 import org.scalawiki.MwBot
 import play.api.Configuration
@@ -34,7 +35,7 @@ class AppModule extends AbstractModule with ScalaModule {
     bind[Silhouette[DefaultEnv]].to[SilhouetteProvider[DefaultEnv]]
 //    bind[UnsecuredErrorHandler].to[CustomUnsecuredErrorHandler]
 //    bind[SecuredErrorHandler].to[CustomSecuredErrorHandler]
-//    bind[UserService].to[UserServiceImpl]
+//    bind[UserService].to[UserJdbc]
 //    bind[UserDAO].to[UserDAOImpl]
     bind[CacheLayer].to[PlayCacheLayer]
     bind[IDGenerator].toInstance(new SecureRandomIDGenerator())
