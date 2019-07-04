@@ -60,7 +60,9 @@ libraryDependencies ++= Seq(
   specs2 % Test,
   jdbc % Test,
   "com.wix" % "wix-embedded-mysql" % "4.1.2" % Test,
-  "com.h2database" % "h2" % "1.4.193" % Test)
+  "com.h2database" % "h2" % "1.4.193" % Test,
+  "com.mohiva" %% "play-silhouette-testkit" % PlaySilhouetteVersion % Test
+)
 
 dependencyOverrides ++= Seq(
   "commons-io" % "commons-io" % "2.5"

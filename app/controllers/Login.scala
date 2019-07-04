@@ -16,7 +16,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class Login @Inject()(val admin: Admin,
                       components: ControllerComponents,
-                      langs: Langs,
                       silhouette: Silhouette[DefaultEnv],
                       socialProviderRegistry: SocialProviderRegistry
                      )(
