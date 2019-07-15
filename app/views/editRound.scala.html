@@ -69,7 +69,9 @@
                                             @b3.select(
                                                 editRoundForm("minJurors"),
                                                 Seq("0", "1", "2", "3", "4", "5", "6").map(x => (x, x)),
-                                                '_label -> Messages("selected.by.at.least.x.jurors"), 'readonly -> noEdit)
+                                                'value -> "1",
+                                                '_label -> Messages("selected.by.at.least.x.jurors"),
+                                                'readonly -> noEdit)
                                             </div>
 
                                             <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
