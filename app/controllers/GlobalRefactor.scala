@@ -49,7 +49,7 @@ class GlobalRefactor(val commons: MwBot) {
                            existing: Seq[Image],
                            idsFilter: Set[String] = Set.empty,
                            max: Long) = {
-    val existingPageIds = existing.map(_.pageId).toSet
+    val existingByPageId = existing.groupBy(_.pageId)
 
     val withImageDescriptions = contest.monumentIdTemplate.isDefined
 
@@ -66,16 +66,20 @@ class GlobalRefactor(val commons: MwBot) {
       imageInfos
     }
 
-    val result = for (images <- getImages
-      .map(_.filter(image => !existingPageIds.contains(image.pageId)))
-    ) yield {
-      val existingIds = ImageJdbc.existingIds(images.map(_.pageId).toSet).toSet
+    val result = getImages.map { images =>
 
-      val notInOtherContests = images.filterNot(image => existingIds.contains(image.pageId))
+      val newImages =  images.filter(image => !existingByPageId.contains(image.pageId))
+
+      val existingIds = ImageJdbc.existingIds(newImages.map(_.pageId).toSet).toSet
+
+      val notInOtherContests = newImages.filterNot(image => existingIds.contains(image.pageId))
 
       val categoryId = CategoryJdbc.findOrInsert(source)
       saveNewImages(contest, notInOtherContests)
-      CategoryLinkJdbc.addToCategory(categoryId, images)
+      CategoryLinkJdbc.addToCategory(categoryId, newImages)
+
+      val updatedImages =  images.filter(image => existingByPageId.contains(image.pageId) && existingByPageId(image.pageId) != image)
+      updatedImages.foreach(ImageJdbc.update)
     }
 
     Await.result(result, 500.minutes)

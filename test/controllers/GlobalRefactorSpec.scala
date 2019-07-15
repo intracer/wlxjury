@@ -132,10 +132,10 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
       }
     }
 
-    "update images" in {  // TODO fix
+    "update images" in {
       inMemDb {
-        val images1 = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
-        val images2 = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|22-345-$id}}")))
+        val images1 = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}"), monumentId = Some(s"12-345-$id")))
+        val images2 = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|22-345-$id}}"), monumentId = Some(s"22-345-$id")))
 
         val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None, Some(idTemplate))
 
@@ -153,7 +153,7 @@ class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers
           imageDao.findByContest(contestWithCategory) === images2
         }
       }
-    }.pendingUntilFixed
+    }
 
     "shared images different categories" in {
       inMemDb {
