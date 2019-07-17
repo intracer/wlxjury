@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit
 import com.wix.mysql.EmbeddedMysql.anEmbeddedMysql
 import com.wix.mysql.config.DownloadConfig.aDownloadConfig
 import com.wix.mysql.config.MysqldConfig.aMysqldConfig
-import com.wix.mysql.distribution.Version.v5_6_latest
+import com.wix.mysql.distribution.Version.v5_7_latest
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
@@ -20,7 +20,7 @@ trait InMemDb {
     val downloadConfig = aDownloadConfig()
       .withCacheDir(System.getProperty("user.home") + "/.wixMySQL/downloads")
       .build()
-    val config = aMysqldConfig(v5_6_latest)
+    val config = aMysqldConfig(v5_7_latest)
       .withFreePort()
       .withUser("WLXJURY_DB_USER", "WLXJURY_DB_PASSWORD")
       .withTimeout(60, TimeUnit.SECONDS)
