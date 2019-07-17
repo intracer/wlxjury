@@ -7,5 +7,5 @@ create table images (
   last_round int,
   width int,
   height int,
-  monument_id varchar(255)
+  monument_id varchar(190)
 );
