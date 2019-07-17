@@ -12,8 +12,6 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
   def apply() = {
     val selection: Seq[Selection] = newSelection
 
-    SelectionJdbc.removeUnrated(round.getId)
-
     Logger.logger.debug("saving selection: " + selection.size)
     SelectionJdbc.batchInsert(selection)
     Logger.logger.debug(s"saved selection")
@@ -54,6 +52,8 @@ object DistributeImages {
   def distributeImages(round: Round,
                        jurors: Seq[User],
                        prevRound: Option[Round]): Unit = {
+    SelectionJdbc.removeUnrated(round.getId)
+
     val images = getFilteredImages(round, jurors, prevRound)
 
     distributeImages(round, jurors, images)
