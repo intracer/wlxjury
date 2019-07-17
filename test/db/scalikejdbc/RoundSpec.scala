@@ -80,13 +80,14 @@ class RoundSpec extends Specification with InMemDb {
         roundDao.activeRounds(contestId) === Seq.empty
         contestDao.findById(contestId).get.currentRound === None
 
-        SetCurrentRound(contestId, None, round).apply()
+        val activeRound = round.copy(active = true)
+
+        SetCurrentRound(contestId, None, activeRound).apply()
 
         // TODO fix time issues
-        roundDao.findById(round.getId).map(_.copy(createdAt = createdAt)) ===
-          Some(round.copy(active = true).copy(createdAt = createdAt))
-        roundDao.activeRounds(contestId).map(_.copy(createdAt = createdAt)) === Seq(round.copy(active = true).copy(createdAt = createdAt))
-        contestDao.findById(contestId).get.currentRound === round.id
+        roundDao.findById(round.getId).map(_.copy(createdAt = createdAt)) === Some(activeRound.copy(createdAt = createdAt))
+        roundDao.activeRounds(contestId).map(_.copy(createdAt = createdAt)) === Seq(activeRound.copy(createdAt = createdAt))
+        contestDao.findById(contestId).get.currentRound === None
       }
     }
   }
