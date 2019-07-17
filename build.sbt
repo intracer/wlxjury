@@ -53,6 +53,8 @@ libraryDependencies ++= Seq(
   specs2 % Test,
   jdbc % Test,
   "com.wix" % "wix-embedded-mysql" % "4.2.0" % Test,
+  "net.java.dev.jna" % "jna" % "4.5.0" % Test,
+  "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test,
   "com.h2database" % "h2" % "1.4.193" % Test)
 
 dependencyOverrides ++= Seq(
