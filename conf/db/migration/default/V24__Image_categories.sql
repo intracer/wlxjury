@@ -1,6 +1,6 @@
 create table category (
   id SERIAL not null PRIMARY KEY,
-  title VARCHAR(255) UNIQUE
+  title VARCHAR(190) UNIQUE
 );
 
 create table category_members (
