@@ -1,6 +1,7 @@
 package db.scalikejdbc
 
 import java.time.ZonedDateTime
+import java.util.concurrent.TimeUnit
 
 import com.wix.mysql.EmbeddedMysql.anEmbeddedMysql
 import com.wix.mysql.config.DownloadConfig.aDownloadConfig
@@ -22,6 +23,7 @@ trait InMemDb {
     val config = aMysqldConfig(v5_7_latest)
       .withFreePort()
       .withUser("WLXJURY_DB_USER", "WLXJURY_DB_PASSWORD")
+      .withTimeout(60, TimeUnit.SECONDS)
       .build()
     val mysqld = anEmbeddedMysql(config, downloadConfig)
       .addSchema("wlxjury")
