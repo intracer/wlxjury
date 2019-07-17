@@ -52,7 +52,7 @@ libraryDependencies ++= Seq(
   guice, filters,
   specs2 % Test,
   jdbc % Test,
-  "com.wix" % "wix-embedded-mysql" % "4.1.2" % Test,
+  "com.wix" % "wix-embedded-mysql" % "4.2.0" % Test,
   "com.h2database" % "h2" % "1.4.193" % Test)
 
 dependencyOverrides ++= Seq(
