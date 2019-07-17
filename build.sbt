@@ -66,6 +66,7 @@ routesGenerator := StaticRoutesGenerator
 //doc in Compile <<= target.map(_ / "none")
 
 javaOptions in Test += "-Dconfig.file=test/resources/application.conf"
+javaOptions in Test += "-Djna.nosys=true"
 
 //rpmRelease := "1"
 
