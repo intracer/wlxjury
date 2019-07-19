@@ -12,6 +12,8 @@ import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Controller
+import play.api.Logger
+
 import scalikejdbc._
 
 import scala.util.Try
@@ -68,7 +70,12 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
         val prevRound = round.previous.flatMap(RoundJdbc.findById)
 
-        val images = round.id.fold(Seq.empty[Image])(id => DistributeImages.getFilteredImages(round, jurors, prevRound))
+        val images = round.id.fold(Seq.empty[Image]) { _ =>
+          Try(DistributeImages.getFilteredImages(round, jurors, prevRound))
+            .fold(ta => {
+              Logger.logger.error("Error loading images", ta); Nil
+            }, x => x)
+        }
 
         Ok(views.html.editRound(user, filledRound, round.id.isEmpty, rounds, Some(round.contestId), jurors,
           jurorsMapping, regions, stat, images))
@@ -106,7 +113,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
             if (round.id.isEmpty) {
               createNewRound(user, round, editForm.jurors)
             } else {
-              round.id.foreach{ roundId =>
+              round.id.foreach { roundId =>
                 RoundJdbc.updateRound(roundId, round)
                 if (editForm.newImages) {
                   val prevRound = round.previous.flatMap(RoundJdbc.findById)
@@ -141,16 +148,16 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   }
 
   def setRound() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
-      implicit request =>
-        val selectRound = selectRoundForm.bindFromRequest.get
+    implicit request =>
+      val selectRound = selectRoundForm.bindFromRequest.get
 
-        val id = selectRound.roundId.toLong
-          val round = RoundJdbc.findById(id)
-          round.foreach { r =>
-            SetCurrentRound(r.contestId, None, r.copy(active = selectRound.active)).apply()
-          }
+      val id = selectRound.roundId.toLong
+      val round = RoundJdbc.findById(id)
+      round.foreach { r =>
+        SetCurrentRound(r.contestId, None, r.copy(active = selectRound.active)).apply()
+      }
 
-        Redirect(routes.Rounds.rounds(round.map(_.contestId)))
+      Redirect(routes.Rounds.rounds(round.map(_.contestId)))
   }
 
   def startRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
@@ -183,18 +190,18 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
           //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 
-//          for (contestId <- contest.id;
-//               currentRoundId <- ContestJuryJdbc.currentRound(contestId);
-//               round <- RoundJdbc.find(currentRoundId)) {
-//            Tools.distributeImages(round, round.jurors, None)
-//          }
+          //          for (contestId <- contest.id;
+          //               currentRoundId <- ContestJuryJdbc.currentRound(contestId);
+          //               round <- RoundJdbc.find(currentRoundId)) {
+          //            Tools.distributeImages(round, round.jurors, None)
+          //          }
         }
 
         Redirect(routes.Rounds.rounds())
 
   }
 
-  def currentRoundStat() = withAuth(rolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)){
+  def currentRoundStat() = withAuth(rolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) {
     user =>
       implicit request =>
         RoundJdbc.current(user).headOption.map {
@@ -248,7 +255,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
     val statRows: Seq[RoundStatRow] = RoundJdbc.roundUserStat(roundId)
 
-    val byJuror: Map[Long, Seq[RoundStatRow]] = statRows.groupBy(_.juror).filter{
+    val byJuror: Map[Long, Seq[RoundStatRow]] = statRows.groupBy(_.juror).filter {
       case (juror, rows) => rows.map(_.count).sum > 0
     }
 
@@ -275,8 +282,8 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
   val selectRoundForm = Form(
     mapping(
-    "currentRound" -> text,
-    "active" -> boolean
+      "currentRound" -> text,
+      "active" -> boolean
     )(SelectRound.apply)(SelectRound.unapply)
   )
 
