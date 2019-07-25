@@ -58,6 +58,21 @@ case class Round(id: Option[Long],
 
   def monumentIds: Seq[String] = monuments.map(_.split(",").toSeq).getOrElse(Nil)
 
+  def fixCategory(name: String): String = {
+    if (!name.toLowerCase().startsWith("category:")) {
+      "Category:" + name
+    } else {
+      name
+    }
+  }
+
+  def withFixedCategories: Round = {
+    copy(
+      category = category.map(fixCategory),
+      excludeCategory = excludeCategory.map(fixCategory)
+    )
+  }
+
 }
 
 object Round {

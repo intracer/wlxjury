@@ -349,14 +349,14 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       minImageSize = Try(minImageSize.toInt).toOption,
       monuments = monumentIds,
       topImages = topImages
-    )
+    ).withFixedCategories
     EditRound(round, jurors.flatMap(s => Try(s.toLong).toOption), returnTo, newImages)
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Long, Option[String], Long, String, Int, Int,
     Option[String], String, Option[Long], Option[String], Option[String], Option[String], Option[String], Option[String],
     Seq[String], String, Seq[String], Boolean, Option[String], Option[Int])] = {
-    val round = editRound.round
+    val round = editRound.round.withFixedCategories
     Some((
       round.id, round.number, round.name, round.contestId, round.roles.head, round.distribution, round.rates.id,
       editRound.returnTo,

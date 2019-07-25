@@ -45,7 +45,7 @@ object RoundJdbc extends SkinnyCRUDMapper[Round] {
     halfStar = rs.booleanOpt(c.halfStar),
     monuments = rs.stringOpt(c.monuments),
     topImages = rs.intOpt(c.topImages)
-  )
+  ).withFixedCategories
 
   def create(round: Round): Round = {
     val id = withSQL {
