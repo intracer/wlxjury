@@ -129,6 +129,7 @@ profile=Профиль
 regions=Регионы
 
 full.resolution = Полное разрешение: <nobr>{0}</nobr>; {1} Мпкс
+mpx = Мпкс
 
 back.to.gallery = Обратно в галерею
 previous.image = Предыдущее изображение

@@ -131,6 +131,7 @@ total = Разом
 profile=Профіль
 
 full.resolution = Повна роздільність: <nobr>{0}</nobr>; {1} Мпкс
+mpx = Мпкс
 
 back.to.gallery = До галереї
 previous.image = Попереднє зображення

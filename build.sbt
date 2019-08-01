@@ -3,7 +3,6 @@ import sbt.Keys._
 lazy val root = identity((project in file("."))
   .enablePlugins(PlayScala, DebianPlugin, RpmPlugin, JavaAppPackaging))
 
-
 name := "wlxjury"
 
 organization := "org.intracer"

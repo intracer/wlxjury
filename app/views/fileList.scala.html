@@ -56,6 +56,7 @@
                     <th> @Messages("rank") </th>
                     <th> @Messages("file") </th>
                     <th> @ratedOrSelected(round.get, asUserId) </th>
+                    <th> @Messages("mpx") </th>
                     @for(juror <- jurors) {
                         <th> @juror.fullname </th>
                     }
@@ -87,6 +88,7 @@
                 @if(wrapInTable) {
                     <td>@file.rateString(round.get)</td>
                 }
+                <td>@file.image.mpxStr</td>
                 @for(juror <- jurors) {
                     <td> @file.jurorRateStr(juror) </td>
                 }
