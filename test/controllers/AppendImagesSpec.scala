@@ -180,5 +180,21 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
       }
     }
 
+    "get international images" in {
+      inMemDb {
+        val page = "Commons:Wiki Loves Earth 2019/Winners"
+        val g = new GlobalRefactor(Global.commons)
+
+        val contest = contestDao.create(Some(contestId + 1), "WLE", 2019, "International", Some(page), None, None, None)
+
+        g.appendImages(page, "", contest)
+
+        val contestWithCategory = contestDao.findById(contest.getId).get
+
+        eventually {
+          imageDao.findByContest(contestWithCategory).size === 325
+        }
+      }
+    }
   }
 }
