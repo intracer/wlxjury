@@ -13,7 +13,7 @@ scala:
    - 2.12.6
 
 jdk:
-  - oraclejdk8
+  - openjdk8
 
 script: "sbt clean coverage 'testOnly -- xonly timefactor 5' coverageReport"
 after_success:
