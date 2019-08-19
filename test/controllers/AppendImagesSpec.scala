@@ -10,7 +10,7 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent.Future
 
-class GlobalRefactorSpec extends Specification with Mockito with JuryTestHelpers with InMemDb {
+class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers with InMemDb {
 
   sequential
   stopOnFail
