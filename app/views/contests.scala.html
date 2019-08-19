@@ -2,9 +2,11 @@
 @(
         user: org.intracer.wmua.User,
         contests: Seq[org.intracer.wmua.ContestJury],
-        fetched: Seq[org.scalawiki.wlx.dto.Contest],
+        filtered: Seq[org.intracer.wmua.ContestJury],
         editContestForm: Form[org.intracer.wmua.ContestJury],
-        importForm: Form[String]
+        importForm: Form[String],
+        contestType: Option[String] = None,
+        year: Option[Int] = None
 )(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
 @import helper._
 @import b3.vertical.fieldConstructor
@@ -34,7 +36,7 @@
     <div class="row" >
         <h3>@Messages("campaigns")</h3>
 
-        @contestsTable(fetched)
+        @contestsTable(contests)
 
         <table class="table table-striped table-condensed" style="background-color: #CCCCCC;">
 
@@ -91,7 +93,7 @@
                     }
                 }
 
-                @for(contest <- contests) {
+                @for(contest <- filtered) {
                     <tr>
                         <td>@Messages(contest.name)</td>
                         <td>@Messages(contest.country)</td>

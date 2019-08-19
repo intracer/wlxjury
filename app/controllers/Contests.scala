@@ -36,9 +36,11 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
     user =>
       implicit request =>
         val contests = findContests
-        val fetched = Seq.empty // fetchContests(contestType, year, country).await
+        val filtered = contests.filter { c =>
+          contestType.forall(c.name.equals) && year.forall(c.year.equals)
+        }
 
-        Ok(views.html.contests(user, contests, fetched, editContestForm, importContestsForm))
+        Ok(views.html.contests(user, contests, filtered, editContestForm, importContestsForm, contestType, year))
   }
 
   def findContests: List[ContestJury] = {
