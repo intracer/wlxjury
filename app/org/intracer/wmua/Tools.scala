@@ -9,7 +9,7 @@ import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, Monument}
 import org.scalawiki.wlx.query.MonumentQuery
-import org.scalawiki.wlx.{ImageDB, ListFiller, MonumentDB}
+import org.scalawiki.wlx.{ImageDB, ImageFiller, MonumentDB}
 import play.api.{Logger, Play}
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
 
@@ -189,7 +189,7 @@ object Tools {
         uploader = None,
         year = None,
         date = None,
-        monumentId = i.monumentId,
+        monumentIds = i.monumentId.toSeq,
         pageId = Some(i.pageId)
       )
     }
@@ -250,7 +250,7 @@ object Tools {
     val mdb = new MonumentDB(contest1, allMonuments)
     val idb = new ImageDB(contest1, convertImages(allImages), Some(mdb))
 
-    ListFiller.fillLists(mdb, idb)
+    ImageFiller.fillLists(mdb, idb)
   }
 
   def byCity() = {

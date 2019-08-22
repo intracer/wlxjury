@@ -86,5 +86,30 @@ class ImageTextFromCategorySpec extends Specification with Mockito with JuryTest
 
         ImageTextFromCategory(category, contest, Some(idTemplate), commons).apply() must be_==(images).await
     }
+
+    "one image from page" in {
+      implicit ee: ExecutionEnv =>
+
+        val page = "Commons:Wiki Loves Earth 2019/Winners"
+        val idTemplate = "monumentId"
+        val contestId = 13
+        val imageId = 11
+        val descr = s"descr. {{$idTemplate|12-345-$imageId}}"
+        val images = Seq(contestImage(imageId, contestId).copy(description = Some(descr), author = Some("")))
+        val revisions = Seq(revision(imageId, s"{{Information|description=$descr}}"))
+
+        val query = mock[SinglePageQuery]
+        query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
+        query.revisionsByGenerator("images", "im",
+          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+        ) returns Future.successful(revisions)
+
+        val commons = mockBot()
+        commons.page(page) returns query
+
+        val contest = ContestJury(Some(contestId), "WLE", 2019, "International", Some(page), Some(0), None)
+
+        ImageTextFromCategory(page, contest, Some(idTemplate), commons).apply() must be_==(images).await
+    }
   }
 }
