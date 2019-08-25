@@ -73,7 +73,8 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
         val images = round.id.fold(Seq.empty[Image]) { _ =>
           Try(DistributeImages.getFilteredImages(round, jurors, prevRound))
             .fold(ta => {
-              Logger.logger.error("Error loading images", ta); Nil
+              Logger.logger.error("Error loading images", ta)
+              Nil
             }, x => x)
         }
 
@@ -201,12 +202,16 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
   }
 
-  def currentRoundStat() = withAuth(rolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) {
+  def currentRoundStat(contestId: Option[Long] = None) = withAuth(rolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) {
     user =>
       implicit request =>
-        RoundJdbc.current(user).headOption.map {
-          round =>
-            Redirect(routes.Rounds.roundStat(round.getId))
+        val activeRound = RoundJdbc.current(user).headOption.orElse {
+          val currentContestId = contestId.orElse(user.currentContest)
+          currentContestId.flatMap(contestId => RoundJdbc.activeRounds(contestId).filter(r => user.canViewOrgInfo(r)).lastOption)
+        }
+
+        activeRound.map { round =>
+          Redirect(routes.Rounds.roundStat(round.getId))
         }.getOrElse {
           Redirect(routes.Login.error("There is no active rounds in your contest"))
         }

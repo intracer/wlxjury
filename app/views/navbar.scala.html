@@ -35,16 +35,20 @@
                         }
                     }
 
+                        <!-- Link to statistics view, if user has rights -->
+                    @if(selectedRound.nonEmpty && user.canViewOrgInfo(selectedRound.get)) {
+                        <li role="presentation"><a class="brand" href="@routes.Rounds.roundStat(selectedRound.get.getId)">@Messages("statistics")</a>
+                    } else {
+                        @if(rounds.exists(round => user.canViewOrgInfo(round))) {
+                            <li role="presentation"><a class="brand" href="@routes.Rounds.currentRoundStat(contestId)
+                        }">@Messages("statistics")</a>
+                    }
+
                     @for(round <- selectedRound.toSeq) {
 
                         @if(!(user.canViewOrgInfo(round) || rounds.size > 1)) {
                             <li class="navbar-brand" style="margin-left: 10px">@Messages(round.description)</li>
                         }
-
-                            <!-- Link to statistics view, if user has rights -->
-                        @if(user.canViewOrgInfo(round)) {
-                            <li role="presentation"><a class="brand" href="@routes.Rounds.roundStat(round.getId)">@Messages("statistics")</a>
-                                }
 
                             <!-- If (viewing users summary or own gallery) and user is juror" -->
                         @if((asUserId == 0 || asUserId == user.getId) && round.roles.intersect(user.roles).nonEmpty) {
