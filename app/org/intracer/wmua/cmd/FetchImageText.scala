@@ -7,13 +7,13 @@ import org.scalawiki.wikitext.TemplateParser
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import ImageTextFromCategory._
+import FetchImageText._
 
-case class ImageTextFromCategory(source: String,
-                                 contest: ContestJury,
-                                 monumentIdTemplate: Option[String],
-                                 commons: MwBot,
-                                 max: Long = 0L) {
+case class FetchImageText(source: String,
+                          contest: ContestJury,
+                          monumentIdTemplate: Option[String],
+                          commons: MwBot,
+                          max: Long = 0L) {
 
   def generatorParams:(String, String) = {
     if (source.toLowerCase.startsWith("category:")) {
@@ -100,7 +100,7 @@ case class ImageTextFromCategory(source: String,
   }
 }
 
-object ImageTextFromCategory {
+object FetchImageText {
 
   def defaultParam(text: String, templateName: String): Option[String] =
     TemplateParser.parseOne(text, Some(templateName)).flatMap(_.getParamOpt("1"))

@@ -9,7 +9,7 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent.Future
 
-class ImageTextFromCategorySpec extends Specification with Mockito with JuryTestHelpers {
+class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers {
 
   def contestImage(id: Long, contest: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 0, 0, Some(s"12-345-$id"))
@@ -37,7 +37,7 @@ class ImageTextFromCategorySpec extends Specification with Mockito with JuryTest
 
         val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category))
 
-        ImageTextFromCategory(category, contest, None, commons).apply() must be_==(images).await
+        FetchImageText(category, contest, None, commons).apply() must be_==(images).await
     }
 
     "get images one image with text" in {
@@ -59,7 +59,7 @@ class ImageTextFromCategorySpec extends Specification with Mockito with JuryTest
 
         val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category), Some(0), None)
 
-        ImageTextFromCategory(category, contest, None, commons).apply() must be_==(images).await
+        FetchImageText(category, contest, None, commons).apply() must be_==(images).await
       }
 
     "get images one image with descr and monumentId" in {
@@ -84,7 +84,7 @@ class ImageTextFromCategorySpec extends Specification with Mockito with JuryTest
 
         val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category), Some(0), None)
 
-        ImageTextFromCategory(category, contest, Some(idTemplate), commons).apply() must be_==(images).await
+        FetchImageText(category, contest, Some(idTemplate), commons).apply() must be_==(images).await
     }
 
     "one image from page" in {
@@ -109,7 +109,7 @@ class ImageTextFromCategorySpec extends Specification with Mockito with JuryTest
 
         val contest = ContestJury(Some(contestId), "WLE", 2019, "International", Some(page), Some(0), None)
 
-        ImageTextFromCategory(page, contest, Some(idTemplate), commons).apply() must be_==(images).await
+        FetchImageText(page, contest, Some(idTemplate), commons).apply() must be_==(images).await
     }
   }
 }
