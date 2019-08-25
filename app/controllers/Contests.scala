@@ -2,7 +2,7 @@ package controllers
 
 import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
 import org.intracer.wmua.cmd.FetchImageInfo
-import org.intracer.wmua.cmd.ImageTextFromCategory._
+import org.intracer.wmua.cmd.FetchImageText._
 import org.intracer.wmua.{ContestJury, User}
 import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}

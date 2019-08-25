@@ -9,7 +9,7 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent.Future
 
-class ImageInfoFromCategorySpec extends Specification with Mockito with JuryTestHelpers {
+class FetchImageInfoSpec extends Specification with Mockito with JuryTestHelpers {
 
   def contestImage(id: Long, contest: Long) =
     Image(id, s"File:Image$id.jpg", Some(s"url$id"), Some(s"pageUrl$id"), 640, 480, None, size = Some(1234))

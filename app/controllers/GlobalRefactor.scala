@@ -2,7 +2,7 @@ package controllers
 
 import db.scalikejdbc._
 import org.intracer.wmua._
-import org.intracer.wmua.cmd.{FetchImageInfo, ImageEnricher, ImageTextFromCategory}
+import org.intracer.wmua.cmd.{FetchImageInfo, ImageEnricher, FetchImageText}
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.list.ListArgs
@@ -86,7 +86,7 @@ class GlobalRefactor(val commons: MwBot) {
   }
 
   def fetchImageDescriptions(contest: ContestJury, source: String, max: Long, imageInfos: Future[Seq[Image]]): Future[Seq[Image]] = {
-    val revInfo = ImageTextFromCategory(source, contest, contest.monumentIdTemplate, commons, max).apply()
+    val revInfo = FetchImageText(source, contest, contest.monumentIdTemplate, commons, max).apply()
     ImageEnricher.zipWithRevData(imageInfos, revInfo)
   }
 
