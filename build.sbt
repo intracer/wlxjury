@@ -48,6 +48,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-mailer-guice" % PlayMailerVersion,
   "com.github.tototoshi" %% "scala-csv" % "1.3.4",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
+  "javax.xml.bind" % "jaxb-api" % "2.3.0",
   guice, filters,
   specs2 % Test,
   jdbc % Test,
