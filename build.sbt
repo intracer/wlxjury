@@ -125,7 +125,7 @@ addCommandAlias(
 )
 
 addCommandAlias(
-  "packageDebSystemd", "; set serverLoading in Debian := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd)" +
+  "packageDebSystemd", "; enablePlugins(SystemdPlugin); set serverLoading in Debian := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd)" +
     "; internalPackageDebianSystemd"
 )
 
