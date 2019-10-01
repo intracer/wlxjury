@@ -6,6 +6,11 @@ import org.intracer.wmua._
 import org.scalawiki.dto.Namespace
 import play.api.Logger
 import spray.util.pimpFuture
+import akka.util.Timeout
+
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+
 
 case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) {
 
@@ -95,12 +100,12 @@ object DistributeImages {
                        ): Seq[Image] = {
 
     val includeFromCats = includeCategory.filter(_.trim.nonEmpty).map { category =>
-      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
+      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await(5.minutes)
       pages.flatMap(_.id)
     }.getOrElse(Nil)
 
     val excludeFromCats = excludeCategory.filter(_.trim.nonEmpty).map { category =>
-      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
+      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await(5.minutes)
       pages.flatMap(_.id)
     }.getOrElse(Nil)
 
