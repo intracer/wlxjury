@@ -12,10 +12,7 @@ import scala.concurrent.duration._
 
 case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) {
 
-  val sortedJurors = jurors.sortBy{j => j.sort.map(_.toLong)
-    .orElse(j.id.map(_ + Int.MaxValue))
-    .getOrElse(0L)
-  }
+  val sortedJurors = jurors.sorted
 
   def apply() = {
     val selection: Seq[Selection] = newSelection

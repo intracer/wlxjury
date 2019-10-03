@@ -20,7 +20,7 @@ case class User(fullname: String,
                 hasWikiEmail: Boolean = false,
                 accountValid: Boolean = true,
                 sort: Option[Int] = None
-               ) extends HasId {
+               ) extends HasId with Ordered[User] {
 
   def emailLo = email.trim.toLowerCase
 
@@ -51,6 +51,14 @@ case class User(fullname: String,
         (roles.contains("jury") && round.juryOrgView))
 
   def description: String = Seq(fullname, wikiAccount.fold("")(u => "User:" + u), email).mkString(" / ")
+
+  def sortOrBiasedId: Long = {
+    sort.map(_.toLong)
+      .orElse(id.map(_ + Int.MaxValue))
+      .getOrElse(0L)
+  }
+
+  override def compare(that: User): Int = sortOrBiasedId.compareTo(that.sortOrBiasedId)
 }
 
 object User {
