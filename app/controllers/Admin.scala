@@ -154,7 +154,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
                     userRolesFromDb(formUser)
                   }
 
-                  UserJdbc.updateUser(userId, formUser.fullname, formUser.wikiAccount, formUser.email, newRoles, formUser.lang)
+                  UserJdbc.updateUser(userId, formUser.fullname, formUser.wikiAccount, formUser.email, newRoles, formUser.lang, formUser.sort)
 
                   for (password <- formUser.password) {
                     val hash = UserJdbc.hash(formUser, password)
@@ -329,8 +329,9 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
       "password" -> optional(text),
       "roles" -> optional(text),
       "contest" -> optional(longNumber),
-      "lang" -> optional(text)
-    )(User.applyEdit)(User.unapplyEdit)
+      "lang" -> optional(text),
+      "sort" -> optional(number)
+  )(User.applyEdit)(User.unapplyEdit)
   )
 
   val importUsersForm = Form(

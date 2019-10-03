@@ -63,6 +63,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
+    sort = rs.intOpt(c.sort),
     createdAt = rs.timestampOpt(c.createdAt).map(_.toZonedDateTime),
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime)
   )
@@ -76,6 +77,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
+    sort = rs.intOpt(c.sort),
     createdAt = rs.timestampOpt(c.createdAt).map(_.toZonedDateTime),
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime)
   )
@@ -140,6 +142,7 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
         column.roles -> user.roles.headOption.getOrElse(""),
         column.contestId -> user.contestId,
         column.lang -> user.lang,
+        column.sort -> user.sort,
         column.createdAt -> user.createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
@@ -147,14 +150,15 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
   }
 
   def updateUser(id: Long, fullname: String, wikiAccount: Option[String],
-                 email: String, roles: Set[String], lang: Option[String]): Unit =
+                 email: String, roles: Set[String], lang: Option[String], sort: Option[Int]): Unit =
     updateById(id)
       .withAttributes(
         'fullname -> fullname,
         'email -> email,
         'wikiAccount -> wikiAccount,
         'roles -> roles.head,
-        'lang -> lang
+        'lang -> lang,
+        'sort -> sort
       )
 
   def updateHash(id: Long, hash: String): Unit =

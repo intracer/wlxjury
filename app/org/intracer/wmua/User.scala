@@ -18,7 +18,8 @@ case class User(fullname: String,
                 deletedAt: Option[ZonedDateTime] = None,
                 wikiAccount: Option[String] = None,
                 hasWikiEmail: Boolean = false,
-                accountValid: Boolean = true
+                accountValid: Boolean = true,
+                sort: Option[Int] = None
                ) extends HasId {
 
   def emailLo = email.trim.toLowerCase
@@ -61,14 +62,14 @@ object User {
   val ADMIN_ROLES = Set(ADMIN_ROLE, ROOT_ROLE)
   val LANGS = Map("en" -> "English", "fr" -> "Français",  "ru" -> "Русский", "uk" -> "Українська")
 
-  def unapplyEdit(user: User): Option[(Long, String, Option[String], String, Option[String], Option[String], Option[Long], Option[String])] = {
-    Some((user.getId, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.contestId, user.lang))
+  def unapplyEdit(user: User): Option[(Long, String, Option[String], String, Option[String], Option[String], Option[Long], Option[String], Option[Int])] = {
+    Some((user.getId, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.contestId, user.lang, user.sort))
   }
 
   def applyEdit(id: Long, fullname: String, wikiAccount: Option[String], email: String, password: Option[String],
-                roles: Option[String], contest: Option[Long], lang: Option[String]): User = {
+                roles: Option[String], contest: Option[Long], lang: Option[String], sort: Option[Int]): User = {
     new User(fullname, email.trim.toLowerCase, Some(id), roles.fold(Set.empty[String])(Set(_)), password, contest, lang,
-      wikiAccount = wikiAccount)
+      wikiAccount = wikiAccount, sort = sort)
   }
 
   val emailConstraint = Constraints.emailAddress

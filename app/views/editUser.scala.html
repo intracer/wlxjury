@@ -66,6 +66,10 @@
                         }
                     }
 
+                    @if(user.hasRole(User.ROOT_ROLE)) {
+                        @text(editUserForm("sort"), Messages("sort"))
+                    }
+
                 </fieldset>
 
                 <div class="form-actions">
