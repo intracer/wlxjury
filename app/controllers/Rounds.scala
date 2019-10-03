@@ -60,7 +60,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
         val regions = contestsController.regions(contestId)
 
-        val jurors = round.id.fold(loadJurors(contestId))(UserJdbc.findByRoundSelection)
+        val jurors = round.id.fold(loadJurors(contestId))(UserJdbc.findByRoundSelection).sorted
 
         val editRound = EditRound(withTopImages, jurors.flatMap(_.id), None)
 
