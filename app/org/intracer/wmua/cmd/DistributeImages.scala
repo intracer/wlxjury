@@ -6,13 +6,13 @@ import org.intracer.wmua._
 import org.scalawiki.dto.Namespace
 import play.api.Logger
 import spray.util.pimpFuture
-import akka.util.Timeout
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 
 
 case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) {
+
+  val sortedJurors = jurors.sortBy(j => j.sort.orElse(j.id.map(_ + Int.MaxValue)).getOrElse(0))
 
   def apply() = {
     val selection: Seq[Selection] = newSelection
@@ -27,14 +27,14 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
   def newSelection = {
     val selection: Seq[Selection] = round.distribution match {
       case 0 =>
-        jurors.flatMap { juror =>
+        sortedJurors.flatMap { juror =>
           images.map(img => Selection(img, juror, round))
         }
       case x if x > 0 =>
         images.zipWithIndex.flatMap {
           case (img, i) =>
             (0 until x).map(j =>
-              Selection(img, jurors((i + j) % jurors.size), round)
+              Selection(img, sortedJurors((i + j) % sortedJurors.size), round)
             )
         }
     }
