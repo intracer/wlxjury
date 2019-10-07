@@ -321,7 +321,8 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       jurorsMappingKV,
       "newImages" -> boolean,
       "monumentIds" -> optional(text),
-      "topImages" -> optional(number)
+      "topImages" -> optional(number),
+      "specialNomination" -> optional(text)
     )(applyEdit)(unapplyEdit)
   )
 
@@ -339,7 +340,8 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
                 jurors: Seq[String],
                 newImages: Boolean,
                 monumentIds: Option[String],
-                topImages: Option[Int]
+                topImages: Option[Int],
+                specialNomination: Option[String]
                ): EditRound = {
     val round = new Round(id, num, name, contest, Set(roles), distribution, Round.ratesById(rates),
       limitMin = None, limitMax = None, recommended = None,
@@ -353,14 +355,15 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       regions = if (regions.nonEmpty) Some(regions.mkString(",")) else None,
       minImageSize = Try(minImageSize.toInt).toOption,
       monuments = monumentIds,
-      topImages = topImages
+      topImages = topImages,
+      specialNomination = specialNomination
     ).withFixedCategories
     EditRound(round, jurors.flatMap(s => Try(s.toLong).toOption), returnTo, newImages)
   }
 
   def unapplyEdit(editRound: EditRound): Option[(Option[Long], Long, Option[String], Long, String, Int, Int,
     Option[String], String, Option[Long], Option[String], Option[String], Option[String], Option[String], Option[String],
-    Seq[String], String, Seq[String], Boolean, Option[String], Option[Int])] = {
+    Seq[String], String, Seq[String], Boolean, Option[String], Option[Int], Option[String])] = {
     val round = editRound.round.withFixedCategories
     Some((
       round.id, round.number, round.name, round.contestId, round.roles.head, round.distribution, round.rates.id,
@@ -377,7 +380,9 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       editRound.jurors.map(_.toString),
       editRound.newImages,
       round.monuments,
-      round.topImages))
+      round.topImages,
+      round.specialNomination
+    ))
   }
 }
 

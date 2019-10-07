@@ -9,7 +9,7 @@ import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}
 import org.scalawiki.wlx.{CampaignList, CountryParser}
 import play.api.Play.current
 import play.api.data.Form
-import play.api.data.Forms._
+import play.api.data.Forms.{optional, _}
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Controller
 import spray.util.pimpFuture
@@ -26,7 +26,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
       CampaignList.yearsContests()
     } else {
       (for (ct <- contestType; y <- year) yield {
-        val contest = Contest(ContestType.byCode(ct).get, NoAdmDivision(), y)
+        val contest = Contest(ContestType.byCode(ct).get, NoAdmDivision, y)
         CampaignList.contestsFromCategory(contest.imagesCategory)
       }).getOrElse(Future.successful(Seq.empty[Contest]))
     }
@@ -90,7 +90,8 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
                   year = contest.year,
                   country = contest.country.name,
                   images = Some(s"Category:Images from ${contest.contestType.name} ${contest.year} in ${contest.country.name}"),
-                  monumentIdTemplate = contest.uploadConfigs.headOption.map(_.fileTemplate)
+                  monumentIdTemplate = contest.uploadConfigs.headOption.map(_.fileTemplate),
+                  campaign = Some(contest.campaign)
                 )
                 createContest(contestJury)
             }
@@ -224,12 +225,13 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
       "currentRound" -> optional(longNumber),
       "monumentIdTemplate" -> optional(text),
       "greetingText" -> optional(text),
-      "useGreeting" -> boolean
+      "useGreeting" -> boolean,
+      "campaign" -> optional(text),
     )(
-      (id, name, year, country, images, currentRound, monumentIdTemplate, greetingText, useGreeting) =>
-        ContestJury(id, name, year, country, images, None, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting)))
+      (id, name, year, country, images, currentRound, monumentIdTemplate, greetingText, useGreeting, campaign) =>
+        ContestJury(id, name, year, country, images, None, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting), campaign))
     ((c: ContestJury) =>
-      Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use))
+      Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use, c.campaign))
   )
 
   val importContestsForm = Form(

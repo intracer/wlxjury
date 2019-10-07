@@ -28,7 +28,8 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
     greeting = Greeting(
       rs.stringOpt(c.column("greeting")),
       rs.booleanOpt(c.column("use_greeting")).getOrElse(true)
-    )
+    ),
+    campaign = rs.stringOpt(c.campaign),
   )
 
   def setImagesSource(id: Long, images: Option[String]): Int = {
@@ -56,7 +57,9 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
                       images: Option[String] = None,
                       categoryId: Option[Long] = None,
                       currentRound: Option[Long] = None,
-                      monumentIdTemplate: Option[String] = None): ContestJury = {
+                      monumentIdTemplate: Option[String] = None,
+                      campaign: Option[String] = None,
+            ): ContestJury = {
     val dbId = withSQL {
       insert.into(ContestJuryJdbc).namedValues(
         column.id -> id,
@@ -66,7 +69,9 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
         column.images -> images,
         column.categoryId -> categoryId,
         column.currentRound -> currentRound,
-        column.monumentIdTemplate -> monumentIdTemplate)
+        column.monumentIdTemplate -> monumentIdTemplate,
+        column.campaign -> campaign
+      )
     }.updateAndReturnGeneratedKey().apply()
 
     ContestJury(id = Some(dbId),
@@ -77,7 +82,8 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
       categoryId = categoryId,
       currentRound = currentRound,
       monumentIdTemplate = monumentIdTemplate,
-      greeting = Greeting(None, true))
+      greeting = Greeting(None, true),
+      campaign = campaign)
   }
 
   def batchInsert(contests: Seq[ContestJury]): Seq[Int] = {
@@ -90,7 +96,8 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
         c.country,
         c.images,
         c.currentRound,
-        c.monumentIdTemplate
+        c.monumentIdTemplate,
+        c.campaign
       ))
       withSQL {
         insert.into(ContestJuryJdbc).namedValues(
@@ -100,7 +107,8 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
           column.country -> sqls.?,
           column.images -> sqls.?,
           column.currentRound -> sqls.?,
-          column.monumentIdTemplate -> sqls.?
+          column.monumentIdTemplate -> sqls.?,
+          column.campaign -> sqls.?,
         )
       }.batch(batchParams: _*).apply()
     }

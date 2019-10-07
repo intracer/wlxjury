@@ -116,6 +116,9 @@
                                         Seq("No", "1", "2").map(x => (x, Messages(x.toLowerCase))),
                                         '_label -> Messages("minimum.megabytes"), 'readonly -> noEdit)
 
+                                    @if(user.hasRole(User.ROOT_ROLE)) {
+                                        @b3.text(editRoundForm("specialNomination"), '_label -> Messages("specialNomination"))
+                                    }
                                 </div>
                             </div>
                         </div>

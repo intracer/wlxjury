@@ -139,7 +139,8 @@ object DistributeImages {
       selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
       selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
       mpxAtLeast = mpxAtLeast,
-      sizeAtLeast = sizeAtLeast
+      sizeAtLeast = sizeAtLeast,
+      specialNomination = round.specialNomination
     )
 
     val filterChain = ImageWithRatingSeqFilter.makeFunChain(funGens)

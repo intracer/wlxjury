@@ -35,7 +35,9 @@ case class Round(id: Option[Long],
                  hasCriteria: Boolean = false,
                  halfStar: Option[Boolean] = None,
                  monuments: Option[String] = None,
-                 topImages: Option[Int] = None) extends HasId {
+                 topImages: Option[Int] = None,
+                 specialNomination: Option[String] = None
+                ) extends HasId {
 
   def jurors: Seq[User] =
     UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contestId, contestId))
