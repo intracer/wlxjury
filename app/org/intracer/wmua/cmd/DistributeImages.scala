@@ -57,7 +57,7 @@ object DistributeImages {
   def distributeImages(round: Round,
                        jurors: Seq[User],
                        prevRound: Option[Round]): Unit = {
-    SelectionJdbc.removeUnrated(round.getId)
+    //SelectionJdbc.removeUnrated(round.getId)
 
     val images = getFilteredImages(round, jurors, prevRound)
 
