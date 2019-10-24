@@ -192,7 +192,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
         val contestWithCategory = contestDao.findById(contest.getId).get
 
         eventually {
-          imageDao.findByContest(contestWithCategory).size === 344
+          imageDao.findByContest(contestWithCategory).size === 354
         }
       }
     }

@@ -56,8 +56,11 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
 object DistributeImages {
   def distributeImages(round: Round,
                        jurors: Seq[User],
-                       prevRound: Option[Round]): Unit = {
-    //SelectionJdbc.removeUnrated(round.getId)
+                       prevRound: Option[Round],
+                       removeUnrated: Boolean = false): Unit = {
+    if (removeUnrated) {
+      SelectionJdbc.removeUnrated(round.getId)
+    }
 
     val images = getFilteredImages(round, jurors, prevRound)
 

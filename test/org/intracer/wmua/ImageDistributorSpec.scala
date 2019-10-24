@@ -140,7 +140,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         val allJurors = firstJuror ++ moreJurors
         val allJuryIds = allJurors.map(_.getId)
 
-        DistributeImages.distributeImages(dbRound, allJurors, None)
+        DistributeImages.distributeImages(dbRound, allJurors, None, removeUnrated = true)
 
         val selection2 = selectionDao.findAll()
         selection2.size === 9
