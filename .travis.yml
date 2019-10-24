@@ -10,7 +10,7 @@ cache:
 language: scala
 
 scala:
-   - 2.12.6
+   - 2.12.10
 
 jdk:
   - openjdk8
