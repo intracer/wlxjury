@@ -143,7 +143,7 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
 
       SELECT s.jury_id
     FROM selection s
-    WHERE s.roundId = $roundId AND s.deleted_at IS NULL
+    WHERE s.round_id = $roundId AND s.deleted_at IS NULL
     GROUP BY s.jury_id
     HAVING sum(s.rate) > 0
     ) j"""
