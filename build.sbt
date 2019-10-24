@@ -9,10 +9,10 @@ organization := "org.intracer"
 
 version := "0.11-SNAPSHOT"
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.12.10"
 
-val ScalikejdbcVersion = "3.2.2"
-val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.2"
+val ScalikejdbcVersion = "3.3.5"
+val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.3"
 val ScalawikiVersion = "0.6.2"
 val PlayMailerVersion = "6.0.1"
 
@@ -24,7 +24,7 @@ resolvers += Resolver.jcenterRepo
 
 libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.6.3",
-  "com.adrianhurt" %% "play-bootstrap" % "1.2-P26-B3",
+  "com.adrianhurt" %% "play-bootstrap" % "1.5.1-P26-B3",
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "3.2.1",
 
@@ -35,20 +35,20 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % ScalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % ScalikejdbcPlayVersion,
   "org.skinny-framework" %% "skinny-orm" % "2.5.2",
-  "org.flywaydb" %% "flyway-play" % "4.0.0",
+  "org.flywaydb" %% "flyway-play" % "5.2.0",
 
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
 
-  "com.typesafe.akka" %% "akka-stream" % "2.5.11",
-  "com.typesafe.akka" %% "akka-http" % "10.0.13",
+  "com.typesafe.akka" %% "akka-stream" % "2.5.26",
+  "com.typesafe.akka" %% "akka-http" % "10.1.10",
 
-  "nl.grons" %% "metrics-scala" % "3.5.9",
+  "nl.grons" %% "metrics-scala" % "4.0.0",
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
   "com.typesafe.play" %% "play-mailer-guice" % PlayMailerVersion,
-  "com.github.tototoshi" %% "scala-csv" % "1.3.4",
+  "com.github.tototoshi" %% "scala-csv" % "1.3.6",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
-  "javax.xml.bind" % "jaxb-api" % "2.3.0",
+  "javax.xml.bind" % "jaxb-api" % "2.3.1",
   guice, filters,
   specs2 % Test,
   jdbc % Test,

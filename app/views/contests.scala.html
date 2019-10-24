@@ -24,7 +24,7 @@
                     <li>Commons:Wiki Loves Earth 2016
                 </ul>
         </div>
-        @b3.form(routes.Contests.importContests, 'id -> "import-contests") {
+        @b3.vertical.form(routes.Contests.importContests, 'id -> "import-contests") { implicit vfc =>
             @helper.CSRF.formField
             @b3.text(importForm("source"), 'placeholder -> Messages("source"), '_label -> Messages("source"), '_help -> "")
 
@@ -66,23 +66,23 @@
 
                             <td>
                                 <input type="hidden" name="id" id="id" value="0" />
-                                @inputText(editContestForm("name"), 'placeholder -> Messages("Name"), '_label -> null, '_help -> "")
+                                @inputText(editContestForm("name"), 'placeholder -> Messages("Name"), '_label -> "", '_help -> "")
                             </td>
                             <td>
-                            @inputText(editContestForm("country"), 'placeholder -> Messages("country"), '_label -> null, '_help -> "")
+                            @inputText(editContestForm("country"), 'placeholder -> Messages("country"), '_label -> "", '_help -> "")
                             </td>
                             <td>
-                            @inputText(editContestForm("year"), 'placeholder -> Messages("year"), '_label -> null, '_help -> "")
+                            @inputText(editContestForm("year"), 'placeholder -> Messages("year"), '_label -> "", '_help -> "")
                             </td>
                             <td>
-                            @inputText(editContestForm("images"), 'placeholder -> Messages("images"), '_label -> null, '_help -> "")
+                            @inputText(editContestForm("images"), 'placeholder -> Messages("images"), '_label -> "", '_help -> "")
                             </td>
                             <td>
                             </td>
                             <td>
                             </td>
                             <td>
-                            @inputText(editContestForm("monumentIdTemplate"), 'placeholder -> Messages("id.template"), '_label -> null, '_help -> "")
+                            @inputText(editContestForm("monumentIdTemplate"), 'placeholder -> Messages("id.template"), '_label -> "", '_help -> "")
                             </td>
                             <td>
                                 <div class="btn btn-primary" onClick="document.forms['add-contest'].submit();">

@@ -6,7 +6,7 @@
 
     <legend>@Messages("signup.signup")</legend>
 
-    @helper.form(action = routes.Login.signUp()) {
+    @b3.vertical.form(action = routes.Login.signUp()) { implicit vfc =>
 
         @if(signUpForm.hasGlobalErrors) {
             <div class="alert alert-danger" role="alert">
