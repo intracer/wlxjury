@@ -214,7 +214,7 @@ object Gallery extends Controller with Secured with Instrumented {
       rated = rated,
       roundId = roundId,
       regions = regions,
-      order = Map("rate" -> -1, "s.page_id" -> 1),
+      order = Map("rate" -> -1, "i.monument_id" -> 1, "s.page_id" -> 1),
       grouped = userIdOpt.isEmpty && !userDetails,
       groupWithDetails = userDetails,
       limit = pager.map(p => Limit(Some(p.pageSize), p.offset, p.startPageId))
