@@ -30,7 +30,7 @@
                     @if(user.hasAnyRole(User.ADMIN_ROLES)) {
                         @for(cId <- contestId) {
                             <li role="presentation"><a class="brand" href="@routes.Contests.images(cId)">@Messages("images")</a>
-                        <li role="presentation"><a class="brand" href="@routes.Admin.users(contestId)">@Messages("users")</a>
+                            <li role="presentation"><a class="brand" href="@routes.Admin.users(contestId)">@Messages("users")</a>
                             <li role="presentation"><a class="brand" href="@routes.Rounds.rounds(contestId)">@Messages("rounds")</a>
                         }
                     }
@@ -40,8 +40,8 @@
                         <li role="presentation"><a class="brand" href="@routes.Rounds.roundStat(selectedRound.get.getId)">@Messages("statistics")</a>
                     } else {
                         @if(rounds.exists(round => user.canViewOrgInfo(round))) {
-                            <li role="presentation"><a class="brand" href="@routes.Rounds.currentRoundStat(contestId)
-                        }">@Messages("statistics")</a>
+                            <li role="presentation"><a class="brand" href="@routes.Rounds.currentRoundStat(contestId)">@Messages("statistics")</a>
+                        }
                     }
 
                     @for(round <- selectedRound.toSeq) {
