@@ -5,7 +5,7 @@ import org.intracer.wmua.cmd.FetchImageInfo
 import org.intracer.wmua.cmd.FetchImageText._
 import org.intracer.wmua.{ContestJury, User}
 import org.scalawiki.dto.Namespace
-import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}
+import org.scalawiki.wlx.dto.{Contest, ContestType, Country, NoAdmDivision}
 import org.scalawiki.wlx.{CampaignList, CountryParser}
 import play.api.Play.current
 import play.api.data.Form
@@ -172,9 +172,14 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
   def updateImageMonuments(source: String, contest: ContestJury): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    if (contest.monumentIdTemplate.isDefined) {
-      val monumentContest = Contest.WLEUkraine(contest.year)
-      Monuments.updateLists(monumentContest)
+    if (contest.country == Country.Ukraine.name && contest.monumentIdTemplate.isDefined) {
+      val monumentContest = Seq("earth", "monuments").filter(contest.name.toLowerCase.contains) match {
+        case Seq("earth") => Some(Contest.WLEUkraine(contest.year))
+        case Seq("monuments") => Some(Contest.WLMUkraine(contest.year))
+        case _ => None
+      }
+
+      monumentContest.foreach(Monuments.updateLists)
     }
 
     def generatorParams: (String, String) = {
