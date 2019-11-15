@@ -61,7 +61,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
     val idTemplate = "MonumentId"
 
     "get images empty" in {
-      inMemDb {
+      withDb {
         val images = Seq.empty[Image]
 
         val commons = mockQuery(images, category, contestId)
@@ -77,7 +77,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
     }
 
     "get one image with text" in {
-      inMemDb {
+      withDb {
         val images = Seq(image(id = 11).copy(description = Some("descr"), monumentId = Some("")))
 
         val commons = mockQuery(images, category, contestId)
@@ -95,7 +95,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
     }
 
     "get one image with descr and monumentId" in {
-      inMemDb {
+      withDb {
         val imageId = 11
         val descr = s"descr. {{$idTemplate|12-345-$imageId}}"
         val images = Seq(image(id = 11).copy(description = Some(descr)))
@@ -115,7 +115,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
     }
 
     "get several images image with descr and monumentId" in {
-      inMemDb {
+      withDb {
         val images = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
 
         val commons = mockQuery(images, category, contestId)
@@ -133,7 +133,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
     }
 
     "update images" in {
-      inMemDb {
+      withDb {
         val images1 = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}"), monumentId = Some(s"12-345-$id")))
         val images2 = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|22-345-$id}}"), monumentId = Some(s"22-345-$id")))
 
@@ -156,7 +156,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
     }
 
     "shared images different categories" in {
-      inMemDb {
+      withDb {
         val images = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
 
         val contest1 = contestDao.create(Some(contestId + 1), "WLE", 2015, "Ukraine", Some(category + 1), None, None, Some(idTemplate))
@@ -181,7 +181,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
     }
 
     "get international images" in {
-      inMemDb {
+      withDb {
         val page = "Commons:Wiki Loves Earth 2019/Winners"
         val g = new GlobalRefactor(Global.commons)
 

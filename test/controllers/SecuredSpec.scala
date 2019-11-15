@@ -22,7 +22,7 @@ class SecuredSpec extends Specification with Mockito with TestDb {
 
   "user" should {
     "load from db" in {
-      inMemDb {
+      withDb {
         val username = "user@server.com"
         val user = User("fullname", username, None, Set("jury"), Some("password hash"), Some(10), createdAt = Some(now))
 
@@ -34,7 +34,7 @@ class SecuredSpec extends Specification with Mockito with TestDb {
     }
 
     "be None if not in db" in {
-      inMemDb {
+      withDb {
         val username = "user login"
         val user = User("fullname", username, None, Set("jury"), Some("password hash"), Some(10))
 

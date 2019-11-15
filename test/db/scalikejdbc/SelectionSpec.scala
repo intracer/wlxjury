@@ -17,14 +17,14 @@ class SelectionSpec extends Specification with TestDb {
 
   "fresh database" should {
     "be empty" in {
-      inMemDb {
+      withDb {
         val selection = selectionDao.findAll()
         selection.size === 0
       }
     }
 
     "insert selection" in {
-      inMemDb {
+      withDb {
 
         val s = Selection(-1, 20, 0, 30, Some(40), Some(now))
 
@@ -43,7 +43,7 @@ class SelectionSpec extends Specification with TestDb {
     }
 
     "batch insert selections" in {
-      inMemDb {
+      withDb {
         val s = sameTime(Seq(
           Selection(20, 1, 0, 10),
           Selection(21, 2, 1, 11),
@@ -60,7 +60,7 @@ class SelectionSpec extends Specification with TestDb {
 
     "rate selections" in {
 
-      inMemDb {
+      withDb {
         val s = sameTime(Seq(
           Selection(pageId = 1, roundId = 20, juryId = 10),
           Selection(pageId = 1, roundId = 20, juryId = 11),

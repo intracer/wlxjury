@@ -15,7 +15,7 @@ class ContestsSpec extends PlaySpecification with TestDb {
 
   "import contests" should {
     "import Ukraine" in {
-      inMemDbApp { app =>
+      testDbApp { app =>
         implicit val materializer = app.materializer
 
         val bot = MwBot.fromHost("commons.wikimedia.org")

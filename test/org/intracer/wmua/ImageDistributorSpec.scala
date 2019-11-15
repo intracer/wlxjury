@@ -67,7 +67,7 @@ class ImageDistributorSpec extends Specification with TestDb {
   "ImageDistributor" should {
 
     "first round 1 juror to image, one juror" in {
-      inMemDb {
+      withDb {
         val distribution = 1
 
         createContests(contest1, contest2)
@@ -94,7 +94,7 @@ class ImageDistributorSpec extends Specification with TestDb {
     }
 
     "create first round 1 juror to image" in {
-      inMemDb {
+      withDb {
         val distribution = 1
 
         createContests(contest1, contest2)
@@ -121,7 +121,7 @@ class ImageDistributorSpec extends Specification with TestDb {
     }
 
     "first round 1 juror to image, add jurors" in {
-      inMemDb {
+      withDb {
         val distribution = 1
 
         createContests(contest1, contest2)
@@ -153,7 +153,7 @@ class ImageDistributorSpec extends Specification with TestDb {
     }
 
     "first round 1 juror to image, rate and add jurors" in {
-      inMemDb {
+      withDb {
         val distribution = 1
 
         createContests(contest1, contest2)
@@ -189,7 +189,7 @@ class ImageDistributorSpec extends Specification with TestDb {
     }.pendingUntilFixed
 
     "create first round 2 jurors to image" in {
-      inMemDb {
+      withDb {
         val distribution = 2
         val numImages = 9
         val numJurors = 3
@@ -223,7 +223,7 @@ class ImageDistributorSpec extends Specification with TestDb {
     }
 
     "create second round 1 juror to image in the first" in {
-      inMemDb {
+      withDb {
         val distribution = 1
 
         createContests(contest1, contest2)
@@ -261,7 +261,7 @@ class ImageDistributorSpec extends Specification with TestDb {
     }
 
     "create second round 2 jurors to image in the first" in {
-      inMemDb {
+      withDb {
 
         val distribution = 2
         val numImages = 2

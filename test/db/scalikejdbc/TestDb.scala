@@ -15,8 +15,8 @@ trait TestDb {
 
   def now = ZonedDateTime.now.withNano(0)
 
-  def inMemDbApp[T](block: Application => T)
-                   (implicit additionalConfig: Map[String, String] = Map.empty): T = {
+  def testDbApp[T](block: Application => T)
+                  (implicit additionalConfig: Map[String, String] = Map.empty): T = {
     val downloadConfig = aDownloadConfig()
       .withCacheDir(System.getProperty("user.home") + "/.wixMySQL/downloads")
       .build()
@@ -50,8 +50,8 @@ trait TestDb {
     }
   }
 
-  def inMemDb[T](block: => T)
-                (implicit additionalConfig: Map[String, String] = Map.empty): T = {
-    inMemDbApp(_ => block)
+  def withDb[T](block: => T)
+               (implicit additionalConfig: Map[String, String] = Map.empty): T = {
+    testDbApp(_ => block)
   }
 }

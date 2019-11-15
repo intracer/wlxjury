@@ -54,7 +54,7 @@ class GallerySpec extends Specification with TestDb {
 
   "juror" should {
     "see assigned images in binary round" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -72,7 +72,7 @@ class GallerySpec extends Specification with TestDb {
     }
 
     "see images filtered by rate in binary round" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -99,7 +99,7 @@ class GallerySpec extends Specification with TestDb {
     }
 
     "see images ordered by rate in binary round" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -124,7 +124,7 @@ class GallerySpec extends Specification with TestDb {
     }
 
     "see images ordered by rate in rated round" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.ratesById(10))
         val images = createImages(6)
@@ -149,7 +149,7 @@ class GallerySpec extends Specification with TestDb {
 
   "organizer" should {
     "see rating by selection" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(10)
@@ -186,7 +186,7 @@ class GallerySpec extends Specification with TestDb {
     }
 
     "see details by selection rejected not accounted" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(2)
@@ -221,7 +221,7 @@ class GallerySpec extends Specification with TestDb {
     }
 
     "see details by selection" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(10)
