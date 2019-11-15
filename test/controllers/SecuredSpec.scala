@@ -1,12 +1,12 @@
 package controllers
 
-import db.scalikejdbc.{InMemDb, UserJdbc}
+import db.scalikejdbc.{TestDb, UserJdbc}
 import org.intracer.wmua.User
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.mvc.{RequestHeader, Security, Session}
 
-class SecuredSpec extends Specification with Mockito with InMemDb {
+class SecuredSpec extends Specification with Mockito with TestDb {
 
   sequential
 

@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, InMemDb}
+import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, TestDb}
 import org.intracer.wmua.{Image, JuryTestHelpers}
 import org.mockito.stubbing.OngoingStubbing
 import org.scalawiki.dto.{Namespace, Page, Revision}
@@ -10,7 +10,7 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent.Future
 
-class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers with InMemDb {
+class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers with TestDb {
 
   sequential
   stopOnFail

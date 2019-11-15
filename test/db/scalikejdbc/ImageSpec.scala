@@ -3,7 +3,7 @@ package db.scalikejdbc
 import org.intracer.wmua.Image
 import org.specs2.mutable.Specification
 
-class ImageSpec extends Specification with InMemDb {
+class ImageSpec extends Specification with TestDb {
 
   sequential
 

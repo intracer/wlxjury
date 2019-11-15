@@ -3,7 +3,7 @@ package db.scalikejdbc
 import org.intracer.wmua.ContestJury
 import org.specs2.mutable.Specification
 
-class ContestSpec extends Specification with InMemDb {
+class ContestSpec extends Specification with TestDb {
 
   sequential
 

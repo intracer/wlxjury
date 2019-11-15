@@ -1,12 +1,10 @@
 package db.scalikejdbc
 
-import java.time.ZonedDateTime
-
 import org.intracer.wmua.cmd.SetCurrentRound
 import org.intracer.wmua.{Round, User}
 import org.specs2.mutable.Specification
 
-class RoundSpec extends Specification with InMemDb {
+class RoundSpec extends Specification with TestDb {
 
   sequential
   stopOnFail

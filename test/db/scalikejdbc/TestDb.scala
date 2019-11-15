@@ -11,7 +11,7 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
 
-trait InMemDb {
+trait TestDb {
 
   def now = ZonedDateTime.now.withNano(0)
 

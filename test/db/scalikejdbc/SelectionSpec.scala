@@ -3,7 +3,7 @@ package db.scalikejdbc
 import org.intracer.wmua.Selection
 import org.specs2.mutable.Specification
 
-class SelectionSpec extends Specification with InMemDb {
+class SelectionSpec extends Specification with TestDb {
 
   sequential
 

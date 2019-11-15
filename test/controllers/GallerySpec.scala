@@ -5,7 +5,7 @@ import org.intracer.wmua.{Selection, _}
 import org.specs2.mutable.Specification
 import play.api.Application
 
-class GallerySpec extends Specification with InMemDb {
+class GallerySpec extends Specification with TestDb {
 
   sequential
 

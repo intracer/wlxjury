@@ -1,13 +1,13 @@
 package controllers
 
-import db.scalikejdbc.{InMemDb, UserJdbc}
+import db.scalikejdbc.{TestDb, UserJdbc}
 import org.intracer.wmua.User
 import org.specs2.mock.Mockito
 import play.api.mvc._
 import play.api.test.CSRFTokenHelper._
 import play.api.test._
 
-class LoginSpec extends PlaySpecification with Results with InMemDb with Mockito {
+class LoginSpec extends PlaySpecification with Results with TestDb with Mockito {
 
   sequential
 

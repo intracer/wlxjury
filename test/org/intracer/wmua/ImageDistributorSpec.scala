@@ -4,7 +4,7 @@ import db.scalikejdbc._
 import org.intracer.wmua.cmd.DistributeImages
 import org.specs2.mutable.Specification
 
-class ImageDistributorSpec extends Specification with InMemDb {
+class ImageDistributorSpec extends Specification with TestDb {
 
   sequential
 

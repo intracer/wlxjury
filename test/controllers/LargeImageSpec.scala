@@ -7,7 +7,7 @@ import play.api.mvc.Security
 import play.api.test.CSRFTokenHelper._
 import play.api.test.{FakeRequest, PlaySpecification}
 
-class LargeImageSpec extends PlaySpecification with InMemDb {
+class LargeImageSpec extends PlaySpecification with TestDb {
 
   sequential
 

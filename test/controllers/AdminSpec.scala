@@ -1,11 +1,11 @@
 package controllers
 
-import db.scalikejdbc.InMemDb
+import db.scalikejdbc.TestDb
 import org.intracer.wmua.{ContestJury, User}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-class AdminSpec extends Specification with InMemDb with Mockito {
+class AdminSpec extends Specification with TestDb with Mockito {
 
   val sender = User("Admin User", "email@server.com", None, contestId = None)
 

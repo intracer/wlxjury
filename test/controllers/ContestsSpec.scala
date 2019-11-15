@@ -1,13 +1,13 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, InMemDb, UserJdbc}
+import db.scalikejdbc.{ContestJuryJdbc, TestDb, UserJdbc}
 import org.intracer.wmua.{ContestJury, User}
 import org.scalawiki.MwBot
 import play.api.mvc.Security
 import play.api.test.{FakeRequest, PlaySpecification}
 import play.api.test.CSRFTokenHelper._
 
-class ContestsSpec extends PlaySpecification with InMemDb {
+class ContestsSpec extends PlaySpecification with TestDb {
 
   val userDao = UserJdbc
   val contestDao = ContestJuryJdbc
