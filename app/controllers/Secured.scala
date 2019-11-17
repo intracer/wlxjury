@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{RoundJdbc, UserJdbc}
+import db.scalikejdbc.{Round, UserJdbc}
 import org.intracer.wmua.User
 import play.api.mvc._
 
@@ -46,7 +46,7 @@ trait Secured {
     }
 
   def roundPermission(roles: Set[String], roundId: Long)(user: User): Boolean =
-    RoundJdbc.findById(roundId).exists { round =>
+    Round.findById(roundId).exists { round =>
       contestPermission(roles, Some(round.contestId))(user)
     }
 }

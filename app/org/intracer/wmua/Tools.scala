@@ -89,7 +89,7 @@ object Tools {
 
     globalRefactor.appendImages(contest.images.get, "", contest)
 
-    val round = RoundJdbc.findById(133L).get
+    val round = Round.findById(133L).get
 
     DistributeImages.distributeImages(round, round.jurors, None)
   }
@@ -168,7 +168,7 @@ object Tools {
 
   def addCriteria() = {
     val roundId = 315
-    val round = RoundJdbc.findById(roundId).get
+    val round = Round.findById(roundId).get
     val images = Seq.empty
     val jurors = UserJdbc.findByRoundSelection(roundId)
     val selection = SelectionJdbc.byRound(roundId)

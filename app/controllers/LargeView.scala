@@ -2,7 +2,7 @@ package controllers
 
 import controllers.Gallery.getQuery
 import db.scalikejdbc.rewrite.ImageDbNew.Limit
-import db.scalikejdbc.{MonumentJdbc, RoundJdbc, SelectionJdbc}
+import db.scalikejdbc.{MonumentJdbc, Round, SelectionJdbc}
 import org.intracer.wmua._
 import play.api.mvc.{Controller, EssentialAction, Request, Result}
 import play.api.i18n.Messages.Implicits._
@@ -33,7 +33,7 @@ object LargeView extends Controller with Secured {
     user =>
       implicit request =>
 
-        val roundOption = RoundJdbc.findById(roundId).filter(_.active)
+        val roundOption = Round.findById(roundId).filter(_.active)
 
         roundOption.fold(Redirect(routes.Gallery.list(user.getId, 1, region, roundId, rate))) { round =>
 
@@ -54,7 +54,7 @@ object LargeView extends Controller with Secured {
       user =>
         implicit request =>
           SelectionJdbc.removeImage(pageId, roundId)
-          val round = RoundJdbc.findById(roundId).get
+          val round = Round.findById(roundId).get
           checkLargeIndex(user, rate, pageId, region, round, module)
     }
 
@@ -108,7 +108,7 @@ object LargeView extends Controller with Secured {
            region: String,
            roundId: Long,
            module: String)(implicit request: Request[Any]): Result = {
-    val maybeRound = if (roundId == 0) RoundJdbc.current(user).headOption else RoundJdbc.findById(roundId)
+    val maybeRound = if (roundId == 0) Round.current(user).headOption else Round.findById(roundId)
     val round = maybeRound.get
 
     val query = getQuery(asUserId, rate, round.id, regions = Set(region).filter(_ != "all"))

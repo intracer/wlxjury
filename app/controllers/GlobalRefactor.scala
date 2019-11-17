@@ -158,7 +158,7 @@ class GlobalRefactor(val commons: MwBot) {
     //    val roundId = RoundJdbc.create(round).id
     //    ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
 
-    val round = RoundJdbc.findById(89).get
+    val round = Round.findById(89).get
 
     getCategories(parent).map {
       categories =>

@@ -1,13 +1,15 @@
 @import controllers.Global
-
 @import org.intracer.wmua.Region
+@import db.scalikejdbc.Round
+@import org.intracer.wmua.ImageWithRating
+@import org.intracer.wmua.User
 @(
-        user: org.intracer.wmua.User,
+        user: User,
         asUserId: Long,
-        files: Seq[org.intracer.wmua.ImageWithRating],
+        files: Seq[ImageWithRating],
         pager: Pager,
-        maybeRound: Option[org.intracer.wmua.Round],
-        rounds: Seq[org.intracer.wmua.Round],
+        maybeRound: Option[Round],
+        rounds: Seq[Round],
         rate: Option[Int] = None,
         currentRegion: String = "all",
         regions: Seq[Region])(implicit flash: Flash, lang: Lang, messages: Messages)

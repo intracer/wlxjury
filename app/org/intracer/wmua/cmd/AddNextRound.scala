@@ -1,7 +1,6 @@
 package org.intracer.wmua.cmd
 
-import db.scalikejdbc.RoundJdbc
-import org.intracer.wmua.Round
+import db.scalikejdbc.Round
 
 case class AddNextRound(
                          contestId: Long,
@@ -11,7 +10,7 @@ case class AddNextRound(
                          name: Option[String] = None) {
 
   def apply(): (Round, Round) = {
-    val rounds = RoundJdbc.findByContest(contestId)
+    val rounds = Round.findByContest(contestId)
     val prevRound = rounds.last
     if (prevRound.number >= roundNumber) {
       println(s"last round has number ${prevRound.number}, not going to create round number $roundNumber")

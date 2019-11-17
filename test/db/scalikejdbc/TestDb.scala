@@ -16,7 +16,7 @@ trait TestDb {
 
   val contestDao = ContestJuryJdbc
   val imageDao = ImageJdbc
-  val roundDao = RoundJdbc
+  val roundDao = Round
   val selectionDao = SelectionJdbc
   val userDao = UserJdbc
 

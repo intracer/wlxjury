@@ -1,9 +1,9 @@
 package org.intracer.wmua.cmd
 
-import org.intracer.wmua.{Image, ImageWithRating, Round}
+import db.scalikejdbc.Round
+import org.intracer.wmua.{Image, ImageWithRating}
 import org.scalawiki.wlx.dto.{Contest, SpecialNomination}
 import org.scalawiki.wlx.query.MonumentQuery
-import org.scalawiki.wlx.stat.SpecialNominations
 import play.api.Logger
 
 import scala.runtime.ScalaRunTime

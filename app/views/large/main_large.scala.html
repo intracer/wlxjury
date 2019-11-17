@@ -1,19 +1,22 @@
+@import db.scalikejdbc.Round
+@import org.intracer.wmua.ImageWithRating
+@import org.intracer.wmua.User
 @(
         title: String,
-        user: org.intracer.wmua.User = null,
+        user: User = null,
         asUserId: Long,
         score: Double,
         url: String,
         readOnly: Boolean = false,
-        files: Seq[org.intracer.wmua.ImageWithRating],
+        files: Seq[ImageWithRating],
         index: Int,
         page: Int,
         rate: Option[Int],
         region: String = "all",
-        round: org.intracer.wmua.Round,
+        round: Round,
         module: String = "byrate",
-        preload: Iterable[org.intracer.wmua.ImageWithRating] = Seq.empty,
-        byCriteria: Map[Int, Int] = Map.empty)(content: Html)(implicit lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
+        preload: Iterable[ImageWithRating] = Seq.empty,
+        byCriteria: Map[Int, Int] = Map.empty)(content: Html)(implicit lang: Lang, request: Request[Any], messages: Messages)
 
 <!DOCTYPE html>
 

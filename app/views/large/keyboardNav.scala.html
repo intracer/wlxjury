@@ -1,12 +1,16 @@
-@(user: org.intracer.wmua.User,
+@import db.scalikejdbc.Round
+@import org.intracer.wmua.ImageWithRating
+@import org.intracer.wmua.User
+
+@(user: User,
   asUserId: Long,
-  files: Seq[org.intracer.wmua.ImageWithRating],
+  files: Seq[ImageWithRating],
   index: Int,
   page: Int,
   rate: Option[Int],
   region: String = "all",
-  round: org.intracer.wmua.Round,
-  module: String = "gallery")(implicit lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
+  round: Round,
+  module: String = "gallery")(implicit lang: Lang, request: Request[Any], messages: Messages)
 <script src="@routes.Assets.at("javascripts/jquery.hotkeys.js")"></script>
 <script>
     @if(index < files.size-1) {

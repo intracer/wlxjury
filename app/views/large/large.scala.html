@@ -1,5 +1,9 @@
 @import controllers.Global
-
+@import org.intracer.wmua.User
+@import org.intracer.wmua.Selection
+@import org.intracer.wmua.Comment
+@import org.scalawiki.wlx.dto.Monument
+@import db.scalikejdbc.Round
 @(
         user: org.intracer.wmua.User,
         asUserId: Long,
@@ -10,13 +14,13 @@
         page: Int,
         rate: Option[Int],
         region: String = "all",
-        round: org.intracer.wmua.Round,
-        monument: Option[org.scalawiki.wlx.dto.Monument],
+        round: Round,
+        monument: Option[Monument],
         module : String = "gallery",
-        comments: Seq[org.intracer.wmua.Comment],
-        selection: Seq[(org.intracer.wmua.Selection, org.intracer.wmua.User)],
+        comments: Seq[Comment],
+        selection: Seq[(Selection, User)],
         byCriteria: Map[Int, Int] = Map.empty)(
-        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
+        implicit flash: Flash, lang: Lang, request: Request[Any], messages: Messages)
 
     @main_large(module,
     user,

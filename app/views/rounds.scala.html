@@ -1,13 +1,15 @@
 @import org.intracer.wmua.ContestJury
 @import controllers.SelectRound
+@import db.scalikejdbc.Round
+@import org.intracer.wmua.User
 @(
-        adminUser: org.intracer.wmua.User,
-        rounds: Seq[org.intracer.wmua.Round],
+        adminUser: User,
+        rounds: Seq[Round],
         roundsStat: Map[Long, RateDistribution],
         editRoundForm: Form[controllers.EditRound],
         editImagesForm: Form[Option[String]],
         selectRoundForm: Form[SelectRound],
-        round: Option[org.intracer.wmua.Round],
+        round: Option[Round],
         contest: ContestJury
 )(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
     @import helper._

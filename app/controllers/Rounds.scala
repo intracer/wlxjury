@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.RoundJdbc.RoundStatRow
+import db.scalikejdbc.Round.RoundStatRow
 import db.scalikejdbc._
 import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import javax.inject.Inject
@@ -32,7 +32,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       implicit request =>
         val roundsView = for (contestId <- user.currentContest.orElse(contestIdParam);
                               contest <- ContestJuryJdbc.findById(contestId)) yield {
-          val rounds = RoundJdbc.findByContest(contestId)
+          val rounds = Round.findByContest(contestId)
           val currentRound = rounds.find(_.id == contest.currentRound)
 
           val roundsStat = ImageJdbc.roundsStat(contestId).groupBy(_._1).map {
@@ -62,15 +62,15 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   def editRound(roundId: Option[Long], contestId: Long, topImages: Option[Int]) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
     user =>
       implicit request =>
-        val number = RoundJdbc.findByContest(contestId).size + 1
+        val number = Round.findByContest(contestId).size + 1
 
-        val round: Round = roundId.flatMap(RoundJdbc.findById).getOrElse(
+        val round: Round = roundId.flatMap(Round.findById).getOrElse(
           new Round(id = None, contestId = contestId, number = number)
         )
 
         val withTopImages = topImages.map(n => round.copy(topImages = Some(n))).getOrElse(round)
 
-        val rounds = RoundJdbc.findByContest(contestId)
+        val rounds = Round.findByContest(contestId)
 
         val regions = contestsController.regions(contestId)
 
@@ -82,7 +82,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
         val stat = round.id.map(id => getRoundStat(id, round))
 
-        val prevRound = round.previous.flatMap(RoundJdbc.findById)
+        val prevRound = round.previous.flatMap(Round.findById)
 
         val images = round.id.fold(Seq.empty[Image]) { _ =>
           Try(DistributeImages.getFilteredImages(round, jurors, prevRound))
@@ -104,7 +104,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
           formWithErrors => {
             // binding failure, you retrieve the form containing errors,
             val contestId: Option[Long] = formWithErrors.data.get("contest").map(_.toLong)
-            val rounds = contestId.map(RoundJdbc.findByContest).getOrElse(Seq.empty)
+            val rounds = contestId.map(Round.findByContest).getOrElse(Seq.empty)
             val jurors = UserJdbc.loadJurors(contestId.get)
             val hasRoundId = formWithErrors.data.get("id").exists(_.nonEmpty)
 
@@ -116,9 +116,9 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
               createNewRound(user, round, editForm.jurors)
             } else {
               round.id.foreach { roundId =>
-                RoundJdbc.updateRound(roundId, round)
+                Round.updateRound(roundId, round)
                 if (editForm.newImages) {
-                  val prevRound = round.previous.flatMap(RoundJdbc.findById)
+                  val prevRound = round.previous.flatMap(Round.findById)
 
                   val jurors = UserJdbc.findByRoundSelection(roundId)
                   DistributeImages.distributeImages(round, jurors, prevRound)
@@ -134,11 +134,11 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
     //  val contest: Contest = Contest.byId(round.contest).head
 
-    val count = RoundJdbc.countByContest(round.contestId)
+    val count = Round.countByContest(round.contestId)
 
-    val created = RoundJdbc.create(round.copy(number = count + 1))
+    val created = Round.create(round.copy(number = count + 1))
 
-    val prevRound = created.previous.flatMap(RoundJdbc.findById)
+    val prevRound = created.previous.flatMap(Round.findById)
 
     val jurors = UserJdbc.loadJurors(round.contestId, jurorIds)
 
@@ -154,7 +154,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       val selectRound = selectRoundForm.bindFromRequest.get
 
       val id = selectRound.roundId.toLong
-      val round = RoundJdbc.findById(id)
+      val round = Round.findById(id)
       round.foreach { r =>
         SetCurrentRound(r.contestId, None, r.copy(active = selectRound.active)).apply()
       }
@@ -167,7 +167,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
         for (contestId <- user.currentContest;
              contest <- ContestJuryJdbc.findById(contestId)) {
-          val rounds = RoundJdbc.findByContest(contestId)
+          val rounds = Round.findByContest(contestId)
 
           for (currentRound <- rounds.find(_.id == contest.currentRound);
                nextRound <- rounds.find(_.number == currentRound.number + 1)) {
@@ -204,9 +204,9 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   def currentRoundStat(contestId: Option[Long] = None) = withAuth(rolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) {
     user =>
       implicit request =>
-        val activeRound = RoundJdbc.current(user).headOption.orElse {
+        val activeRound = Round.current(user).headOption.orElse {
           val currentContestId = contestId.orElse(user.currentContest)
-          currentContestId.flatMap(contestId => RoundJdbc.activeRounds(contestId).filter(r => user.canViewOrgInfo(r)).lastOption)
+          currentContestId.flatMap(contestId => Round.activeRounds(contestId).filter(r => user.canViewOrgInfo(r)).lastOption)
         }
 
         activeRound.map { round =>
@@ -220,7 +220,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
     user =>
       implicit request =>
 
-        RoundJdbc.findById(roundId).map { round =>
+        Round.findById(roundId).map { round =>
 
             if (!user.canViewOrgInfo(round)) {
               onUnAuthorized(user)
@@ -254,9 +254,9 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   //  })
 
   def getRoundStat(roundId: Long, round: Round): RoundStat = {
-    val rounds = RoundJdbc.findByContest(round.contestId)
+    val rounds = Round.findByContest(round.contestId)
 
-    val statRows: Seq[RoundStatRow] = RoundJdbc.roundUserStat(roundId)
+    val statRows: Seq[RoundStatRow] = Round.roundUserStat(roundId)
 
     val byJuror: Map[Long, Seq[RoundStatRow]] = statRows.groupBy(_.juror).filter {
       case (juror, rows) => rows.map(_.count).sum > 0
@@ -270,7 +270,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       }
     }
 
-    val totalByRate = RoundJdbc.roundRateStat(roundId).toMap
+    val totalByRate = Round.roundRateStat(roundId).toMap
 
     val total = SelectionQuery(roundId = Some(roundId), grouped = true).count()
 

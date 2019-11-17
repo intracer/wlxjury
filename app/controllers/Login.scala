@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
-import db.scalikejdbc.{RoundJdbc, UserJdbc}
+import db.scalikejdbc.{Round, UserJdbc}
 import org.intracer.wmua.User
 import play.api.Play.current
 import play.api.data.Forms._
@@ -24,7 +24,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
     if (user.hasAnyRole(User.ORG_COM_ROLES)) {
       Redirect(routes.Rounds.currentRoundStat())
     } else if (user.hasAnyRole(User.JURY_ROLES)) {
-      val maybeRound = RoundJdbc.current(user).headOption
+      val maybeRound = Round.current(user).headOption
       maybeRound.fold {
         Redirect(routes.Login.error("no.round.yet"))
       } {

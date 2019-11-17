@@ -1,14 +1,13 @@
 package org.intracer.wmua.cmd
 
 import controllers.Global.commons
-import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, SelectionJdbc}
+import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, Round, SelectionJdbc}
 import org.intracer.wmua._
 import org.scalawiki.dto.Namespace
 import play.api.Logger
 import spray.util.pimpFuture
 
 import scala.concurrent.duration._
-
 
 case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) {
 

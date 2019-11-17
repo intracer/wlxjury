@@ -3,7 +3,8 @@
   import java.io.{StringWriter, Writer}
 
   import com.github.tototoshi.csv.CSVWriter
-  import org.intracer.wmua.{ImageWithRating, Round, User}
+  import db.scalikejdbc.Round
+  import org.intracer.wmua.{ImageWithRating, User}
 
   object Csv {
 

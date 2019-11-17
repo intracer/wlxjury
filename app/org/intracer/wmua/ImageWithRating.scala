@@ -4,6 +4,8 @@ import java.text.DecimalFormat
 import java.util.Locale
 import java.text.NumberFormat
 
+import db.scalikejdbc.Round
+
 case class ImageWithRating(
                             image: Image,
                             selection: Seq[Selection],
