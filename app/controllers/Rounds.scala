@@ -59,7 +59,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
     * @param topImages
     * @return
     */
-  def editRound(roundId: Option[Long], contestId: Long, topImages: Option[Int]) = withAuth(rolePermission(User.ADMIN_ROLES)) {
+  def editRound(roundId: Option[Long], contestId: Long, topImages: Option[Int]) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
     user =>
       implicit request =>
         val number = RoundJdbc.findByContest(contestId).size + 1
@@ -162,8 +162,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       Redirect(routes.Rounds.rounds(round.map(_.contestId)))
   }
 
-  def startRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
-    user =>
+  def startRound() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
       implicit request =>
 
         for (contestId <- user.currentContest;
@@ -183,8 +182,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
     DistributeImages.distributeImages(round, round.jurors, None)
   }
 
-  def setImages() = withAuth(rolePermission(User.ADMIN_ROLES)) {
-    user =>
+  def setImages() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
       implicit request =>
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
         for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById)) {
@@ -222,8 +220,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
     user =>
       implicit request =>
 
-        RoundJdbc.findById(roundId).map {
-          round =>
+        RoundJdbc.findById(roundId).map { round =>
 
             if (!user.canViewOrgInfo(round)) {
               onUnAuthorized(user)
