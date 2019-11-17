@@ -1,6 +1,5 @@
 package db.scalikejdbc
 
-import org.intracer.wmua.Round
 import org.intracer.wmua.cmd.SetCurrentRound
 import org.specs2.mutable.Specification
 

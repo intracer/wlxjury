@@ -1,5 +1,6 @@
 package views
 
+import db.scalikejdbc.Round
 import org.intracer.wmua._
 import play.api.test.{Helpers, PlaySpecification}
 import play.twirl.api.Html

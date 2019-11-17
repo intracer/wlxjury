@@ -3,6 +3,7 @@ package org.intracer.wmua
 import org.intracer.wmua.cmd.DistributeImages
 import org.specs2.mutable.Specification
 import DistributeImages._
+import db.scalikejdbc.Round
 
 class RebalanceSpec extends Specification {
 
