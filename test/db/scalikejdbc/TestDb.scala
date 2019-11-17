@@ -7,6 +7,7 @@ import com.wix.mysql.EmbeddedMysql.anEmbeddedMysql
 import com.wix.mysql.config.DownloadConfig.aDownloadConfig
 import com.wix.mysql.config.MysqldConfig.aMysqldConfig
 import com.wix.mysql.distribution.Version.v5_7_latest
+import org.intracer.wmua.{ContestJury, User}
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
@@ -54,4 +55,15 @@ trait TestDb {
                (implicit additionalConfig: Map[String, String] = Map.empty): T = {
     testDbApp(_ => block)
   }
+
+  def createContests(contestIds: Long*) = contestIds.map {
+    id =>
+      val contest = ContestJuryJdbc.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
+      ContestJuryJdbc.setImagesSource(id, Some("Images from " + contest.name))
+      contest
+  }
+
+  def contestUser(i: Int, role: String = "jury")(implicit contest: ContestJury) =
+    User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), contest.id, Some("en"), Some(now))
+
 }

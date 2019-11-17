@@ -15,13 +15,6 @@ class ImageSpec extends Specification with TestDb {
   def addToContest(contestId: Long, images: Seq[Image]) =
     CategoryLinkJdbc.addToCategory(ContestJuryJdbc.findById(contestId).flatMap(_.categoryId).get, images)
 
-  def createContests(contestIds: Long*) = contestIds.foreach {
-    id =>
-      val contest = ContestJuryJdbc.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
-      ContestJuryJdbc.setImagesSource(id, Some("Images from " + contest.name))
-  }
-
-
   "fresh database" should {
 
     "be empty" in {

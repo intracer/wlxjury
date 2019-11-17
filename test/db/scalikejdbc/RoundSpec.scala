@@ -1,7 +1,7 @@
 package db.scalikejdbc
 
+import org.intracer.wmua.Round
 import org.intracer.wmua.cmd.SetCurrentRound
-import org.intracer.wmua.{Round, User}
 import org.specs2.mutable.Specification
 
 class RoundSpec extends Specification with TestDb {
@@ -22,13 +22,10 @@ class RoundSpec extends Specification with TestDb {
 
     "insert round" in {
       withDb {
-
         val round = Round(None, 1, Some("Round 1"), 10, Set("jury"), 3, Round.ratesById(10), active = true, createdAt = now)
-
         val created = roundDao.create(round)
 
         val id = created.id
-
         created === round.copy(id = id)
 
         val found = roundDao.findById(id.get)
@@ -39,25 +36,23 @@ class RoundSpec extends Specification with TestDb {
       }
     }
 
-    def contestUser(contest: Long, role: String, i: Int) =
-      User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), Some(contest), Some("en"), Some(now))
-
     "jurors" in {
       withDb {
 
+        implicit val contest = createContests(10).head
         val round = Round(None, 1, Some("Round 1"), 10, Set("jury"), 3, Round.ratesById(10), active = true)
         roundDao.create(round)
 
-        val jurors = (1 to 3).map(i => contestUser(10, "jury", i))
+        val jurors = (1 to 3).map(i => contestUser(i))
         val dbJurors = jurors.map(userDao.create).map(u => u.copy(roles = u.roles + s"USER_ID_${u.getId}"))
 
-        val preJurors = (1 to 3).map(i => contestUser(10, "prejury", i + 10))
+        val preJurors = (1 to 3).map(i => contestUser(i + 10, "prejury"))
         preJurors.foreach(userDao.create)
 
-        val orgCom = contestUser(10, "organizer", 20)
+        val orgCom = contestUser(20, "organizer")
         userDao.create(orgCom)
 
-        val otherContestJurors = (1 to 3).map(i => contestUser(20, "jury", i + 30))
+        val otherContestJurors = (1 to 3).map(i => contestUser(i + 30) (contest.copy(id = Some(20))))
         otherContestJurors.foreach(userDao.create)
 
         round.jurors === dbJurors

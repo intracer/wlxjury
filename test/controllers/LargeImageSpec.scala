@@ -25,9 +25,6 @@ class LargeImageSpec extends PlaySpecification with TestDb {
   def contestImage(id: Long, contestId: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
-  def contestUser(i: Int, contestId: Long = contest.getId, role: String = "jury") =
-    User("fullname" + i, "email" + i, None, Set(role), contestId = Some(contestId))
-
   def setUp(rates: Rates = Round.binaryRound) = {
     contest = contestDao.create(None, "WLE", 2015, "Ukraine")
     round = roundDao.create(
