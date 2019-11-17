@@ -7,8 +7,6 @@ class UserDbSpec extends Specification with TestDb {
 
   sequential
 
-  val userDao = UserJdbc
-
   "fresh database" should {
     "be empty" in {
       withDb {

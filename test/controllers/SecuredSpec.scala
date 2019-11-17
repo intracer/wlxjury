@@ -10,8 +10,6 @@ class SecuredSpec extends Specification with Mockito with TestDb {
 
   sequential
 
-  val userDao = UserJdbc
-
   def mockRequest(username: String): RequestHeader = {
     val request = mock[RequestHeader]
     val session = mock[Session]

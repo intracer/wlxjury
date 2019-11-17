@@ -7,8 +7,6 @@ class ContestSpec extends Specification with TestDb {
 
   sequential
 
-  val contestDao = ContestJuryJdbc
-
   "fresh database" should {
     "be empty" in {
       withDb {

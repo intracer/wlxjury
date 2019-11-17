@@ -7,7 +7,6 @@ class SelectionSpec extends Specification with TestDb {
 
   sequential
 
-  val selectionDao = SelectionJdbc
   val time = now
 
   def sameTime(s: Seq[Selection]) = s.map(_.copy(createdAt = Some(time)))

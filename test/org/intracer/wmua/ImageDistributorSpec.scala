@@ -8,11 +8,6 @@ class ImageDistributorSpec extends Specification with TestDb {
 
   sequential
 
-  val imageDao = ImageJdbc
-  val userDao = UserJdbc
-  val roundDao = RoundJdbc
-  val selectionDao = SelectionJdbc
-
   val (contest1, contest2) = (10, 20)
 
   def image(id: Long) =

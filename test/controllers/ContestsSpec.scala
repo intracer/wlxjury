@@ -9,8 +9,6 @@ import play.api.test.CSRFTokenHelper._
 
 class ContestsSpec extends PlaySpecification with TestDb {
 
-  val userDao = UserJdbc
-  val contestDao = ContestJuryJdbc
   val email = "email@1.com"
 
   "import contests" should {

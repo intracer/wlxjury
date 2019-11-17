@@ -7,8 +7,6 @@ class ImageSpec extends Specification with TestDb {
 
   sequential
 
-  val imageDao = ImageJdbc
-
   def image(id: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 

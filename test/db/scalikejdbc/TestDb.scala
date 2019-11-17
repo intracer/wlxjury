@@ -14,6 +14,12 @@ import play.api.test.Helpers.running
 
 trait TestDb {
 
+  val contestDao = ContestJuryJdbc
+  val imageDao = ImageJdbc
+  val roundDao = RoundJdbc
+  val selectionDao = SelectionJdbc
+  val userDao = UserJdbc
+
   def now = ZonedDateTime.now.withNano(0)
 
   def testDbApp[T](block: Application => T)
@@ -55,6 +61,7 @@ trait TestDb {
                (implicit additionalConfig: Map[String, String] = Map.empty): T = {
     testDbApp(_ => block)
   }
+
 
   def createContests(contestIds: Long*) = contestIds.map {
     id =>

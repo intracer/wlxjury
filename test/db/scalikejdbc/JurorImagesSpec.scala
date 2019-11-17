@@ -9,12 +9,6 @@ class JurorImagesSpec extends Specification with TestDb {
 
   sequential
 
-  val contestDao = ContestJuryJdbc
-  val roundDao = RoundJdbc
-  val userDao = UserJdbc
-  val imageDao = ImageJdbc
-  val selectionDao = SelectionJdbc
-
   implicit var contest: ContestJury = _
   var round: Round = _
   var user: User = _

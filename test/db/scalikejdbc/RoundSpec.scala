@@ -9,9 +9,6 @@ class RoundSpec extends Specification with TestDb {
   sequential
   stopOnFail
 
-  val roundDao = RoundJdbc
-  val userDao = UserJdbc
-
   "rounds" should {
     "be empty" in {
       withDb {

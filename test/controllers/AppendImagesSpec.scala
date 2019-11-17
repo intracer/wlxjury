@@ -15,9 +15,6 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
   sequential
   stopOnFail
 
-  val contestDao = ContestJuryJdbc
-  val imageDao = ImageJdbc
-
   def image(id: Long) =
     Image(id, s"File:Image$id.jpg", Some(s"url$id"), None, 640, 480, Some(s"12-345-$id"), size = Some(1234))
 
