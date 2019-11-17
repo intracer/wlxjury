@@ -14,12 +14,19 @@ import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Controller
 import play.api.Logger
 
-import scalikejdbc._
-
 import scala.util.Try
 
+/**
+  * Controller for displaying pages related to contest rounds
+  * @param contestsController
+  */
 class Rounds @Inject()(val contestsController: Contests) extends Controller with Secured {
 
+  /**
+    * Shows list of rounds in a contest
+    * @param contestIdParam
+    * @return
+    */
   def rounds(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
@@ -45,6 +52,13 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
         roundsView.getOrElse(Redirect(routes.Login.index())) // TODO message
   }
 
+  /**
+    * Shows round editing page
+    * @param roundId
+    * @param contestId
+    * @param topImages
+    * @return
+    */
   def editRound(roundId: Option[Long], contestId: Long, topImages: Option[Int]) = withAuth(rolePermission(User.ADMIN_ROLES)) {
     user =>
       implicit request =>
@@ -60,7 +74,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
         val regions = contestsController.regions(contestId)
 
-        val jurors = round.id.fold(loadJurors(contestId))(UserJdbc.findByRoundSelection).sorted
+        val jurors = round.id.fold(UserJdbc.loadJurors(contestId))(UserJdbc.findByRoundSelection).sorted
 
         val editRound = EditRound(withTopImages, jurors.flatMap(_.id), None)
 
@@ -82,19 +96,6 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
           jurorsMapping, regions, stat, images))
   }
 
-  def loadJurors(contestId: Long): Seq[User] = {
-    UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, Seq("jury")).and.eq(UserJdbc.u.contestId, contestId))
-  }
-
-  def loadJurors(contestId: Long, jurorIds: Seq[Long]): Seq[User] = {
-    UserJdbc.findAllBy(
-      sqls
-        .in(UserJdbc.u.id, jurorIds).and
-        .in(UserJdbc.u.roles, Seq("jury")).and
-        .eq(UserJdbc.u.contestId, contestId)
-    )
-  }
-
   def saveRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
     user =>
       implicit request =>
@@ -104,7 +105,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
             // binding failure, you retrieve the form containing errors,
             val contestId: Option[Long] = formWithErrors.data.get("contest").map(_.toLong)
             val rounds = contestId.map(RoundJdbc.findByContest).getOrElse(Seq.empty)
-            val jurors = loadJurors(contestId.get)
+            val jurors = UserJdbc.loadJurors(contestId.get)
             val hasRoundId = formWithErrors.data.get("id").exists(_.nonEmpty)
 
             BadRequest(views.html.editRound(user, formWithErrors, newRound = !hasRoundId, rounds, contestId, jurors, jurorsMapping))
@@ -139,7 +140,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
     val prevRound = created.previous.flatMap(RoundJdbc.findById)
 
-    val jurors = loadJurors(round.contestId, jurorIds)
+    val jurors = UserJdbc.loadJurors(round.contestId, jurorIds)
 
     DistributeImages.distributeImages(created, jurors, prevRound)
 

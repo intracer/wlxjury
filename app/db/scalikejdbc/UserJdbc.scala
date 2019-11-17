@@ -164,4 +164,17 @@ object UserJdbc extends SkinnyCRUDMapper[User] {
   def updateHash(id: Long, hash: String): Unit =
     updateById(id)
       .withAttributes('password -> hash)
+
+  def loadJurors(contestId: Long): Seq[User] = {
+    findAllBy(sqls.in(UserJdbc.u.roles, Seq("jury")).and.eq(UserJdbc.u.contestId, contestId))
+  }
+
+  def loadJurors(contestId: Long, jurorIds: Seq[Long]): Seq[User] = {
+    findAllBy(
+      sqls
+        .in(UserJdbc.u.id, jurorIds).and
+        .in(UserJdbc.u.roles, Seq("jury")).and
+        .eq(UserJdbc.u.contestId, contestId)
+    )
+  }
 }
