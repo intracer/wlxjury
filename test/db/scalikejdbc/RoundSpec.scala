@@ -40,9 +40,9 @@ class RoundSpec extends Specification with TestDb {
         roundDao.create(round)
 
         val jurors = createUsers(1 to 3).map(u => u.copy(roles = u.roles + s"USER_ID_${u.getId}"))
-        val preJurors = createUsers(11 to 13).map(_.copy(roles = Set("prejury")))
-        val orgCom = createUsers(20).map(_.copy(roles = Set("organizer")))
-        val otherContestJurors = createUsers(31 to 33)(contest.copy(id = Some(20)))
+        val preJurors = createUsers("prejury", 11 to 13)
+        val orgCom = createUsers("organizer", 20)
+        val otherContestJurors = createUsers(31 to 33)(contest.copy(id = Some(20)), implicitly)
 
         round.jurors === jurors
       }

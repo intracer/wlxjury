@@ -64,19 +64,23 @@ trait TestDb {
 
 
   def createContests(contestIds: Long*): Seq[ContestJury] = contestIds.map { id =>
-      val contest = ContestJuryJdbc.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
-      ContestJuryJdbc.setImagesSource(id, Some("Images from " + contest.name))
-      contest
+    val contest = ContestJuryJdbc.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
+    ContestJuryJdbc.setImagesSource(id, Some("Images from " + contest.name))
+    contest
   }
 
   def contestUser(i: Long, role: String = "jury")(implicit contest: ContestJury) =
     User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), contest.id, Some("en"), Some(now))
 
-  def createUsers(userIndexes: Seq[Int])(implicit contest: ContestJury): Seq[User] = createUsers(userIndexes:_*)
+  def createUsers(userIndexes: Seq[Int])(implicit contest: ContestJury, d: DummyImplicit): Seq[User] = createUsers(userIndexes: _*)
 
-  def createUsers(userIndexes: Int*)(implicit contest: ContestJury): Seq[User] = {
+  def createUsers(userIndexes: Int*)(implicit contest: ContestJury): Seq[User] = createUsers("jury", userIndexes: _*)
+
+  def createUsers(role: String, userIndexes: Seq[Int])(implicit contest: ContestJury, d: DummyImplicit): Seq[User] = createUsers(role, userIndexes: _*)
+
+  def createUsers(role: String, userIndexes: Int*)(implicit contest: ContestJury): Seq[User] = {
     userIndexes
-      .map(contestUser(_))
+      .map(contestUser(_, role))
       .map(userDao.create)
   }
 }
