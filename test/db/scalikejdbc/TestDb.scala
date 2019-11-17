@@ -63,14 +63,20 @@ trait TestDb {
   }
 
 
-  def createContests(contestIds: Long*) = contestIds.map {
-    id =>
+  def createContests(contestIds: Long*): Seq[ContestJury] = contestIds.map { id =>
       val contest = ContestJuryJdbc.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
       ContestJuryJdbc.setImagesSource(id, Some("Images from " + contest.name))
       contest
   }
 
-  def contestUser(i: Int, role: String = "jury")(implicit contest: ContestJury) =
+  def contestUser(i: Long, role: String = "jury")(implicit contest: ContestJury) =
     User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), contest.id, Some("en"), Some(now))
 
+  def createUsers(userIndexes: Seq[Int])(implicit contest: ContestJury): Seq[User] = createUsers(userIndexes:_*)
+
+  def createUsers(userIndexes: Int*)(implicit contest: ContestJury): Seq[User] = {
+    userIndexes
+      .map(contestUser(_))
+      .map(userDao.create)
+  }
 }

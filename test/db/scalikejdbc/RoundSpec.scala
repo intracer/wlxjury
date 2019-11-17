@@ -35,24 +35,16 @@ class RoundSpec extends Specification with TestDb {
 
     "jurors" in {
       withDb {
-
         implicit val contest = createContests(10).head
         val round = Round(None, 1, Some("Round 1"), 10, Set("jury"), 3, Round.ratesById(10), active = true)
         roundDao.create(round)
 
-        val jurors = (1 to 3).map(i => contestUser(i))
-        val dbJurors = jurors.map(userDao.create).map(u => u.copy(roles = u.roles + s"USER_ID_${u.getId}"))
+        val jurors = createUsers(1 to 3).map(u => u.copy(roles = u.roles + s"USER_ID_${u.getId}"))
+        val preJurors = createUsers(11 to 13).map(_.copy(roles = Set("prejury")))
+        val orgCom = createUsers(20).map(_.copy(roles = Set("organizer")))
+        val otherContestJurors = createUsers(31 to 33)(contest.copy(id = Some(20)))
 
-        val preJurors = (1 to 3).map(i => contestUser(i + 10, "prejury"))
-        preJurors.foreach(userDao.create)
-
-        val orgCom = contestUser(20, "organizer")
-        userDao.create(orgCom)
-
-        val otherContestJurors = (1 to 3).map(i => contestUser(i + 30) (contest.copy(id = Some(20))))
-        otherContestJurors.foreach(userDao.create)
-
-        round.jurors === dbJurors
+        round.jurors === jurors
       }
     }
 
