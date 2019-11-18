@@ -1,7 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{TestDb, UserJdbc}
-import org.intracer.wmua.User
+import db.scalikejdbc.{TestDb, User, UserJdbc}
 import org.specs2.mock.Mockito
 import play.api.mvc._
 import play.api.test.CSRFTokenHelper._

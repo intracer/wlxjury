@@ -2,7 +2,6 @@ package db.scalikejdbc
 
 import java.time.ZonedDateTime
 
-import org.intracer.wmua.User
 import play.api.data.validation.{Constraints, Invalid, Valid}
 import play.api.libs.Codecs
 import scalikejdbc._

@@ -1,7 +1,7 @@
 package org.intracer.wmua.cmd
 
 import controllers.Global.commons
-import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, Round, SelectionJdbc}
+import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, Round, SelectionJdbc, User}
 import org.intracer.wmua._
 import org.scalawiki.dto.Namespace
 import play.api.Logger

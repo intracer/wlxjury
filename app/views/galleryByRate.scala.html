@@ -2,7 +2,7 @@
 @import controllers.Global
 @import db.scalikejdbc.Round
 @import org.intracer.wmua.ImageWithRating
-@(user: org.intracer.wmua.User,
+@(user: db.scalikejdbc.User,
         asUserId: Long,
         files: Seq[ImageWithRating],
         pager: Pager,

@@ -1,9 +1,7 @@
 package controllers
 
 import javax.inject.Inject
-
-import db.scalikejdbc.{Round, UserJdbc}
-import org.intracer.wmua.User
+import db.scalikejdbc.{Round, User, UserJdbc}
 import play.api.Play.current
 import play.api.data.Forms._
 import play.api.data._

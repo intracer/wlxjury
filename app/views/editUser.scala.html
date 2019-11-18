@@ -1,12 +1,12 @@
 @(
-        user: org.intracer.wmua.User,
-        editUserForm: Form[org.intracer.wmua.User],
+        user: db.scalikejdbc.User,
+        editUserForm: Form[db.scalikejdbc.User],
         contestId: Option[Long] = None
 )(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
 
 @import views.html.bootstrap._
 @import helper._
-@import org.intracer.wmua.User
+@import db.scalikejdbc.User
 
 
 @mainAdmin(Messages("edit.user"), user, user.getId, contestId = contestId) {

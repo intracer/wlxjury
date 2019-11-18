@@ -2,7 +2,7 @@ package db.scalikejdbc
 
 import java.time.ZonedDateTime
 
-import org.intracer.wmua.{HasId, ImageWithRating, User}
+import org.intracer.wmua.{HasId, ImageWithRating}
 import org.scalawiki.dto.Page
 import scalikejdbc._
 import skinny.orm.SkinnyCRUDMapper

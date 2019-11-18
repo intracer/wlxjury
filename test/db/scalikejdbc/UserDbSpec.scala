@@ -1,6 +1,5 @@
 package db.scalikejdbc
 
-import org.intracer.wmua.User
 import org.specs2.mutable.Specification
 
 class UserDbSpec extends Specification with TestDb {

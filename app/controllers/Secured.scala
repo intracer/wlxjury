@@ -1,7 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{Round, UserJdbc}
-import org.intracer.wmua.User
+import db.scalikejdbc.{Round, User, UserJdbc}
 import play.api.mvc._
 
 /**

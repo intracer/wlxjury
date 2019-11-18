@@ -7,7 +7,7 @@ import com.wix.mysql.EmbeddedMysql.anEmbeddedMysql
 import com.wix.mysql.config.DownloadConfig.aDownloadConfig
 import com.wix.mysql.config.MysqldConfig.aMysqldConfig
 import com.wix.mysql.distribution.Version.v5_7_latest
-import org.intracer.wmua.{ContestJury, User}
+import org.intracer.wmua.ContestJury
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running

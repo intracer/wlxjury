@@ -1,7 +1,7 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, TestDb, UserJdbc}
-import org.intracer.wmua.{ContestJury, User}
+import db.scalikejdbc.{ContestJuryJdbc, TestDb, User, UserJdbc}
+import org.intracer.wmua.ContestJury
 import org.scalawiki.MwBot
 import play.api.mvc.Security
 import play.api.test.{FakeRequest, PlaySpecification}

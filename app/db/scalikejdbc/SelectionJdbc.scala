@@ -2,7 +2,7 @@ package db.scalikejdbc
 
 import java.time.ZonedDateTime
 
-import org.intracer.wmua.{CriteriaRate, Selection, User}
+import org.intracer.wmua.{CriteriaRate, Selection}
 import scalikejdbc._
 import skinny.orm.SkinnyCRUDMapper
 

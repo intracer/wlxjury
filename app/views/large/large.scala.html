@@ -1,11 +1,11 @@
 @import controllers.Global
-@import org.intracer.wmua.User
+@import db.scalikejdbc.User
 @import org.intracer.wmua.Selection
 @import org.intracer.wmua.Comment
 @import org.scalawiki.wlx.dto.Monument
 @import db.scalikejdbc.Round
 @(
-        user: org.intracer.wmua.User,
+        user: db.scalikejdbc.User,
         asUserId: Long,
         files: Seq[org.intracer.wmua.ImageWithRating],
         index: Int,

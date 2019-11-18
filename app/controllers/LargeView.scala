@@ -2,7 +2,7 @@ package controllers
 
 import controllers.Gallery.getQuery
 import db.scalikejdbc.rewrite.ImageDbNew.Limit
-import db.scalikejdbc.{MonumentJdbc, Round, SelectionJdbc}
+import db.scalikejdbc.{MonumentJdbc, Round, SelectionJdbc, User}
 import org.intracer.wmua._
 import play.api.mvc.{Controller, EssentialAction, Request, Result}
 import play.api.i18n.Messages.Implicits._

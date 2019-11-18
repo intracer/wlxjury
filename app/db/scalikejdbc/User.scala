@@ -1,9 +1,9 @@
-package org.intracer.wmua
+package db.scalikejdbc
 
 import java.time.ZonedDateTime
 
-import db.scalikejdbc.Round
 import javax.mail.internet.InternetAddress
+import org.intracer.wmua.HasId
 import play.api.data.validation.{Constraints, Invalid, Valid}
 
 import scala.util.Try
