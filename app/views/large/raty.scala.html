@@ -136,6 +136,29 @@
             }
             }
         });
+
+        $('#rate-image5').raty({
+            score: @{byCriteria.getOrElse(5, 0)/k},
+            half: @(k == 2),
+            cancel: true,
+            starHalf: 'star-half@sizeSuffix ',
+            starOff: 'star-off@sizeSuffix ',
+            starOn: 'star-on@sizeSuffix ',
+            cancelOff: 'cancel-off@sizeSuffix ',
+            cancelOn: 'cancel-on@sizeSuffix ',
+            number: @(round.rates.id / k),
+            precision: false,
+            space: false,
+            hints:[ '', '', '', '', '', '', '', '', '', '' ],
+            @if(readOnly) {
+            readOnly : 'true'
+            } else {
+            click : function(score, evt) {
+                document.location.href = '@url' + Math.round(score*@k) + '?module=@module@rateParam(rate, "", "&", Some(5))';
+                return false;
+            }
+            }
+        });
         }
 
 

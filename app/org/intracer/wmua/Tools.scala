@@ -21,8 +21,8 @@ object Tools {
 
   def main(args: Array[String]) {
     Class.forName("com.mysql.jdbc.Driver")
-    val url: String = "jdbc:mysql://localhost/wlxjury?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8"
-    //"jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
+    val url: String = //"jdbc:mysql://localhost/wlxjury?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8"
+    "jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
     println(s"URL:" + url)
 
     val config = ConfigFactory.load()
@@ -46,7 +46,8 @@ object Tools {
 //    newlyPictured()
     //    addCriteria()
     //    fetchMonumentDb()
-    byCity()
+    //byCity()
+    addCriteria()
     //fillLists()
   }
 
@@ -167,13 +168,14 @@ object Tools {
   }
 
   def addCriteria() = {
-    val roundId = 315
-    val round = RoundJdbc.findById(roundId).get
-    val images = Seq.empty
-    val jurors = UserJdbc.findByRoundSelection(roundId)
-    val selection = SelectionJdbc.byRound(roundId)
+    for (roundId <- 715 to 721) {
+      val round = RoundJdbc.findById(roundId).get
+      val images = Seq.empty
+      val jurors = UserJdbc.findByRoundSelection(roundId)
+      val selection = SelectionJdbc.byRound(roundId)
 
-    DistributeImages(round, images, jurors).addCriteriaRates(selection)
+      DistributeImages(round, images, jurors).addCriteriaRates(selection)
+    }
   }
 
   def convertImages(images: Seq[Image]) = {
