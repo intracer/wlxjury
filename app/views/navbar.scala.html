@@ -1,5 +1,4 @@
 @import db.scalikejdbc.User
-@import db.scalikejdbc.UserJdbc
 @import db.scalikejdbc.Round
 @(
         title: String,
@@ -123,7 +122,7 @@
                             @(new UiSelectionDto[Option[Long]](
                                 { userId: Option[Long] => routes.Gallery.query(module = title, userId, page = 1, region = region, round = round.getId, rate) },
                                 Some(asUserId),
-                                UserJdbc.findByRoundSelection(round.getId).map(u => (Some(u.getId), SelectionItem(u.fullname, localized = false))),
+                                User.findByRoundSelection(round.getId).map(u => (Some(u.getId), SelectionItem(u.fullname, localized = false))),
                                 Some(Some(0L) -> SelectionItem("all"))
                             ).toDropDown())
 

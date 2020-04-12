@@ -165,12 +165,12 @@ class GlobalRefactor(val commons: MwBot) {
 
         val jurors = categories.map("WLMUA2015_" + _.title.split("-")(1).trim.replaceAll(" ", "_"))
         val logins = jurors ++ Seq(contest.name + "OrgCom")
-        val passwords = logins.map(s => UserJdbc.randomString(8)) // !! i =>
+        val passwords = logins.map(s => User.randomString(8)) // !! i =>
       val users = logins.zip(passwords).map {
         case (login, password) =>
-          UserJdbc.create(
+          User.create(
             login,
-            login, UserJdbc.sha1(contest.country + "/" + password),
+            login, User.sha1(contest.country + "/" + password),
             if //(login.contains("Jury"))
             (jurors.contains(login))
               Set("jury")
@@ -209,12 +209,12 @@ class GlobalRefactor(val commons: MwBot) {
 
     val name = shortContest + contest.year + shortCountry + "Admin"
 
-    val password = UserJdbc.randomString(8)
-    val hash = UserJdbc.sha1(contest.country + "/" + password)
+    val password = User.randomString(8)
+    val hash = User.sha1(contest.country + "/" + password)
     val user = User(name, name, None, Set("admin"), Some(hash), contest.id, Some("en"))
 
     println(s"admin user: $name / $password")
-    UserJdbc.create(user)
+    User.create(user)
   }
 
   def categoriesToContests(contest: String, year: Int, parent: String, categories: Seq[Page]): Seq[ContestJury] = {

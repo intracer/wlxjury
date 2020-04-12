@@ -13,7 +13,7 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
   override val tableName = "selection"
 
   val s = SelectionJdbc.syntax("s")
-  val u = UserJdbc.u
+  val u = User.u
   val c = CriteriaRate.c
 
   private def isNotDeleted = sqls.isNull(s.deletedAt)
@@ -94,13 +94,13 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
 
   def byRoundAndImageWithJury(roundId: Long, imageId: Long): Seq[(Selection, User)] = withSQL {
     select.from(SelectionJdbc as s)
-      .innerJoin(UserJdbc as u).on(u.id, s.juryId)
+      .innerJoin(User as u).on(u.id, s.juryId)
       .where.eq(s.roundId, roundId).and
       .eq(s.pageId, imageId).and
       .gt(s.rate, 0).and
       .append(isNotDeleted)
       .orderBy(s.rate).desc
-  }.map(rs => (SelectionJdbc(s)(rs), UserJdbc(u)(rs))).list().apply()
+  }.map(rs => (SelectionJdbc(s)(rs), User(u)(rs))).list().apply()
 
   def findBy(pageId: Long, juryId: Long, roundId: Long): Option[Selection] =
     where('pageId -> pageId, 'juryId -> juryId, 'roundId -> roundId)

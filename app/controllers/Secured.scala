@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{Round, User, UserJdbc}
+import db.scalikejdbc.{Round, User}
 import play.api.mvc._
 
 /**
@@ -17,7 +17,7 @@ trait Secured {
   def userFromRequest(request: RequestHeader): Option[User] = {
     request.session.get(Security.username)
       .map(_.trim.toLowerCase)
-      .flatMap(UserJdbc.byUserName)
+      .flatMap(User.byUserName)
   }
 
   def onUnAuthenticated(request: RequestHeader) = Results.Redirect(routes.Login.login())

@@ -1,6 +1,6 @@
 package org.intracer.wmua.cmd
 
-import db.scalikejdbc.{ContestJuryJdbc, UserJdbc}
+import db.scalikejdbc.{ContestJuryJdbc, User}
 
 case class AddUsers(
                      contestId: Long,
@@ -15,7 +15,7 @@ case class AddUsers(
 
     val country = contest.country.replaceAll("[ \\-\\&]", "")
 
-    val existingUsers = UserJdbc.findByContest(contestId).filter(_.roles.contains(role))
+    val existingUsers = User.findByContest(contestId).filter(_.roles.contains(role))
 
     val start = existingUsers.size + 1
     val range = start to toNumber
@@ -27,21 +27,21 @@ case class AddUsers(
 
     println(s"New logins: ${logins.mkString(", ")}")
 
-    val passwords = logins.map(s => UserJdbc.randomString(8))
+    val passwords = logins.map(s => User.randomString(8))
 
     val users = logins.zip(passwords).map {
       case (login, password) =>
-        UserJdbc.create(
+        User.create(
           login,
           login,
-          UserJdbc.sha1(contest.country + "/" + password),
+          User.sha1(contest.country + "/" + password),
           Set(role),
           contest.id,
           Some("en")
         )
     }
 
-    val total = UserJdbc.findByContest(contestId).filter(_.roles.contains(role))
+    val total = User.findByContest(contestId).filter(_.roles.contains(role))
     require (total.size == toNumber, s"Only ${total.size} users in DB, $toNumber expected")
 
     println(s"Successfully created ${users.size} users")

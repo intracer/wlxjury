@@ -74,7 +74,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
         val regions = contestsController.regions(contestId)
 
-        val jurors = round.id.fold(UserJdbc.loadJurors(contestId))(UserJdbc.findByRoundSelection).sorted
+        val jurors = round.id.fold(User.loadJurors(contestId))(User.findByRoundSelection).sorted
 
         val editRound = EditRound(withTopImages, jurors.flatMap(_.id), None)
 
@@ -105,7 +105,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
             // binding failure, you retrieve the form containing errors,
             val contestId: Option[Long] = formWithErrors.data.get("contest").map(_.toLong)
             val rounds = contestId.map(Round.findByContest).getOrElse(Seq.empty)
-            val jurors = UserJdbc.loadJurors(contestId.get)
+            val jurors = User.loadJurors(contestId.get)
             val hasRoundId = formWithErrors.data.get("id").exists(_.nonEmpty)
 
             BadRequest(views.html.editRound(user, formWithErrors, newRound = !hasRoundId, rounds, contestId, jurors, jurorsMapping))
@@ -120,7 +120,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
                 if (editForm.newImages) {
                   val prevRound = round.previous.flatMap(Round.findById)
 
-                  val jurors = UserJdbc.findByRoundSelection(roundId)
+                  val jurors = User.findByRoundSelection(roundId)
                   DistributeImages.distributeImages(round, jurors, prevRound)
                 }
               }
@@ -140,7 +140,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
     val prevRound = created.previous.flatMap(Round.findById)
 
-    val jurors = UserJdbc.loadJurors(round.contestId, jurorIds)
+    val jurors = User.loadJurors(round.contestId, jurorIds)
 
     DistributeImages.distributeImages(created, jurors, prevRound)
 
@@ -274,7 +274,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
     val total = SelectionQuery(roundId = Some(roundId), grouped = true).count()
 
-    val jurors = UserJdbc.findByContest(round.contestId).filter { u =>
+    val jurors = User.findByContest(round.contestId).filter { u =>
       u.id.exists(byUserCount.contains)
     }
 
