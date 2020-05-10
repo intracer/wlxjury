@@ -18,7 +18,7 @@ trait TestDb {
   val imageDao = ImageJdbc
   val roundDao = Round
   val selectionDao = SelectionJdbc
-  val userDao = UserJdbc
+  val userDao = User
 
   def now = ZonedDateTime.now.withNano(0)
 

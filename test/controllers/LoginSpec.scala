@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{TestDb, User, UserJdbc}
+import db.scalikejdbc.{TestDb, User}
 import org.specs2.mock.Mockito
 import play.api.mvc._
 import play.api.test.CSRFTokenHelper._
@@ -34,7 +34,7 @@ class LoginSpec extends PlaySpecification with Results with TestDb with Mockito 
 
     "fail when wrong password" in {
       withDb {
-        UserJdbc.create(User("name", "qwerty@dot.com"))
+        User.create(User("name", "qwerty@dot.com"))
 
         val result = login.auth().apply(FakeRequest().withHeaders(
           "login" -> "qwerty@dot.com",
@@ -47,7 +47,7 @@ class LoginSpec extends PlaySpecification with Results with TestDb with Mockito 
 
     "no rights" in {
       withDb {
-        UserJdbc.create(User("name", "qwerty@dot.com", password = Some(UserJdbc.sha1("strong"))))
+        User.create(User("name", "qwerty@dot.com", password = Some(User.sha1("strong"))))
         val result = login.auth().apply(FakeRequest().withFormUrlEncodedBody(
           "login" -> "qwerty@dot.com",
           "password" -> "strong"
@@ -63,9 +63,9 @@ class LoginSpec extends PlaySpecification with Results with TestDb with Mockito 
 
     "root rights" in {
       withDb {
-        UserJdbc.create(
+        User.create(
           User("name", "qwerty@dot.com",
-            password = Some(UserJdbc.sha1("strong")),
+            password = Some(User.sha1("strong")),
             roles = Set(User.ROOT_ROLE))
         )
         val result = login.auth().apply(FakeRequest().withFormUrlEncodedBody(
