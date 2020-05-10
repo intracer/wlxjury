@@ -1,7 +1,7 @@
 import sbt.Keys._
 
 lazy val root = identity((project in file("."))
-  .enablePlugins(PlayScala, PlayNettyServer, DebianPlugin, RpmPlugin, JavaAppPackaging))
+  .enablePlugins(PlayScala, PlayNettyServer, JavaAgent, DebianPlugin, RpmPlugin, JavaAppPackaging))
   .disablePlugins(PlayAkkaHttpServer)
 
 name := "wlxjury"
@@ -50,6 +50,7 @@ libraryDependencies ++= Seq(
   "com.github.tototoshi" %% "scala-csv" % "1.3.6",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
   "javax.xml.bind" % "jaxb-api" % "2.3.1",
+  "io.kamon" %% "kamon-bundle" % "2.1.0",
   guice, filters,
   specs2 % Test,
   jdbc % Test,
