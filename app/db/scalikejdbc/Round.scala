@@ -5,7 +5,7 @@ import java.time.ZonedDateTime
 import org.intracer.wmua.{HasId, ImageWithRating}
 import org.scalawiki.dto.Page
 import scalikejdbc._
-import skinny.orm.SkinnyCRUDMapper
+import skinny.orm.{SkinnyCRUDMapper, SkinnyJoinTable}
 
 case class Round(id: Option[Long],
                  number: Long,
@@ -37,11 +37,12 @@ case class Round(id: Option[Long],
                  halfStar: Option[Boolean] = None,
                  monuments: Option[String] = None,
                  topImages: Option[Int] = None,
-                 specialNomination: Option[String] = None
+                 specialNomination: Option[String] = None,
+                 users: Seq[User] = Nil
                 ) extends HasId {
 
   def jurors: Seq[User] =
-    UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contestId, contestId))
+    User.findAllBy(sqls.in(User.u.roles, roles.toSeq).and.eq(User.u.contestId, contestId))
 
   def activeJurors: Long = if (!optionalRate) _allJurors else _activeJurors
 
@@ -78,6 +79,8 @@ case class Round(id: Option[Long],
 
 }
 
+case class RoundUser(roundId: Long, userId: Long, active: Boolean)
+
 case class Rates(id: Int, name: String, minRate: Int = 0, maxRate: Int = 1)
 
 object Rates {
@@ -101,6 +104,11 @@ object Round extends SkinnyCRUDMapper[Round] {
   override lazy val defaultAlias = createAlias("r")
 
   lazy val r = defaultAlias
+
+  val usersRef = hasManyThrough[User](
+    through = RoundUser,
+    many = User,
+    merge = (round, users) => round.copy(users = users)) //.byDefault
 
   val binaryRound = new Rates(1, "+/-", -1, 1)
 
@@ -232,4 +240,8 @@ object Round extends SkinnyCRUDMapper[Round] {
   WHERE s.round_id = $roundId) t
   GROUP BY rate""".map(rs => (rs.int(1), rs.int(2))).list().apply()
 
+}
+
+object RoundUser extends SkinnyJoinTable[RoundUser] {
+  override def defaultAlias = createAlias("round_user")
 }
