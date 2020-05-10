@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{TestDb, User, UserJdbc}
+import db.scalikejdbc.{TestDb, User}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.mvc.{RequestHeader, Security, Session}
