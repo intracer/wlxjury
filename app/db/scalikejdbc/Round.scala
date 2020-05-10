@@ -41,7 +41,7 @@ case class Round(id: Option[Long],
                 ) extends HasId {
 
   def jurors: Seq[User] =
-    UserJdbc.findAllBy(sqls.in(UserJdbc.u.roles, roles.toSeq).and.eq(UserJdbc.u.contestId, contestId))
+    User.findAllBy(sqls.in(User.u.roles, roles.toSeq).and.eq(User.u.contestId, contestId))
 
   def activeJurors: Long = if (!optionalRate) _allJurors else _activeJurors
 
