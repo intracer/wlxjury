@@ -25,16 +25,12 @@ trait Secured {
     request.session.get(Security.username)
       .map(_.trim.toLowerCase)
       .flatMap(User.byUserName)
-      .map(addUserAndRequestIdToContext)
   }
 
-  def addUserAndRequestIdToContext(user: User): User = {
-    user.id.map { id =>
+  def addUserAndRequestIdToContext(user: User): Context = {
       Kamon.currentContext()
-        .withEntry(UserId, Some(id.toString))
+        .withEntry(UserId, Some(user.id.toString))
         .withEntry(RequestId, Some(UUID.randomUUID().toString))
-    }
-    user
   }
 
   def onUnAuthenticated(request: RequestHeader) = Results.Redirect(routes.Login.login())
@@ -44,11 +40,15 @@ trait Secured {
   def withAuth(permission: Permission = rolePermission(User.ADMIN_ROLES ++ Set("jury", "organizer")))
               (f: => User => Request[AnyContent] => Result) = {
     Security.Authenticated(userFromRequest, onUnAuthenticated) { user =>
-      Action(request => if (permission(user))
-        f(user)(request)
-      else
-        onUnAuthorized(user)
-      )
+      Action { request =>
+        if (permission(user)) {
+          Kamon.runWithContext(addUserAndRequestIdToContext(user)) {
+            f(user)(request)
+          }
+        } else {
+          onUnAuthorized(user)
+        }
+      }
     }
   }
 
