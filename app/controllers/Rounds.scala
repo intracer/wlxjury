@@ -23,7 +23,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   def rounds(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
-        val roundsView = for (contestId <- user.currentContest.orElse(contestIdParam);
+        val roundsView = for (contestId <- contestIdParam.orElse(user.currentContest);
                               contest <- ContestJuryJdbc.findById(contestId)) yield {
           val rounds = RoundJdbc.findByContest(contestId)
           val currentRound = rounds.find(_.id == contest.currentRound)
