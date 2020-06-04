@@ -30,7 +30,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
   def users(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
-        (for (contestId <- user.currentContest.orElse(contestIdParam);
+        (for (contestId <- contestIdParam.orElse(user.currentContest);
               contest <- ContestJuryJdbc.findById(contestId)) yield {
           val users = User.findByContest(contestId).sorted
           val withWiki = wikiAccountInfo(users)
