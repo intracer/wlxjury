@@ -1,7 +1,11 @@
 package controllers
 
+import java.util.UUID
+
 import db.scalikejdbc.{Round, User}
+import kamon.Kamon
 import play.api.mvc._
+import kamon.context.Context
 
 /**
   * Base trait for secured controllers
@@ -9,6 +13,9 @@ import play.api.mvc._
 trait Secured {
 
   type Permission = User => Boolean
+
+  val UserId = Context.key[Option[String]]("userId", None)
+  val RequestId = Context.key[Option[String]]("requestId", None)
 
   /**
     * @param request HTTP request with username set in session
@@ -18,6 +25,16 @@ trait Secured {
     request.session.get(Security.username)
       .map(_.trim.toLowerCase)
       .flatMap(User.byUserName)
+      .map(addUserAndRequestIdToContext)
+  }
+
+  def addUserAndRequestIdToContext(user: User): User = {
+    user.id.map { id =>
+      Kamon.currentContext()
+        .withEntry(UserId, Some(id.toString))
+        .withEntry(RequestId, Some(UUID.randomUUID().toString))
+    }
+    user
   }
 
   def onUnAuthenticated(request: RequestHeader) = Results.Redirect(routes.Login.login())
@@ -42,7 +59,7 @@ trait Secured {
   def contestPermission(roles: Set[String], contestId: Option[Long])(user: User): Boolean = {
     isRoot(user) ||
       (user.hasAnyRole(roles) && user.isInContest(contestId))
-    }
+  }
 
   def roundPermission(roles: Set[String], roundId: Long)(user: User): Boolean =
     Round.findById(roundId).exists { round =>
