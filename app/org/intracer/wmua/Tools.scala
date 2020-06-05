@@ -91,7 +91,7 @@ object Tools {
 
     val round = Round.findById(133L).get
 
-    DistributeImages.distributeImages(round, round.jurors, None)
+    DistributeImages.distributeImages(round, round.availableJurors, None)
   }
 
   def addUsers(contest: ContestJury, number: Int) = {

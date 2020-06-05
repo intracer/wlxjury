@@ -41,14 +41,14 @@ case class Round(id: Option[Long],
                  users: Seq[User] = Nil
                 ) extends HasId {
 
-  def jurors: Seq[User] =
+  def availableJurors: Seq[User] =
     User.findAllBy(sqls.in(User.u.roles, roles.toSeq).and.eq(User.u.contestId, contestId))
 
-  def activeJurors: Long = if (!optionalRate) _allJurors else _activeJurors
+  def numberOfJurorsForAverageRate: Long = if (!optionalRate) numberOfAssignedJurors else numberOfActiveJurors
 
-  lazy val _activeJurors = SelectionJdbc.activeJurors(id.get)
+  lazy val numberOfActiveJurors = SelectionJdbc.activeJurors(id.get)
 
-  lazy val _allJurors = SelectionJdbc.allJurors(id.get)
+  lazy val numberOfAssignedJurors = SelectionJdbc.allJurors(id.get)
 
   def allImages: Seq[ImageWithRating] = ImageJdbc.byRoundMerged(id.get)
 

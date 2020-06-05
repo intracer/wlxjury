@@ -43,7 +43,7 @@ class RoundSpec extends Specification with TestDb {
         val orgCom = createUsers("organizer", 20)
         val otherContestJurors = createUsers(31 to 33)(contest.copy(id = Some(20)), implicitly)
 
-        round.jurors === jurors
+        round.availableJurors === jurors
       }
     }
 

@@ -179,7 +179,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   }
 
   def distributeImages(contest: ContestJury, round: Round) {
-    DistributeImages.distributeImages(round, round.jurors, None)
+    DistributeImages.distributeImages(round, round.availableJurors, None)
   }
 
   def setImages() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
