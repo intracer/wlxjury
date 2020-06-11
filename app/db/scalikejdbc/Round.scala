@@ -97,15 +97,15 @@ object Round extends SkinnyCRUDMapper[Round] {
 
   override val tableName = "rounds"
 
-  val c = Round.syntax("c")
+  lazy val c = Round.syntax("c")
 
-  val s = SelectionJdbc.syntax("s")
+  lazy val s = SelectionJdbc.syntax("s")
 
   override lazy val defaultAlias = createAlias("r")
 
   lazy val r = defaultAlias
 
-  val usersRef = hasManyThrough[User](
+  lazy val usersRef = hasManyThrough[User](
     through = RoundUser,
     many = User,
     merge = (round, users) => round.copy(users = users)) //.byDefault
