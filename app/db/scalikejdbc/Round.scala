@@ -44,11 +44,11 @@ case class Round(id: Option[Long],
   def availableJurors: Seq[User] =
     User.findAllBy(sqls.in(User.u.roles, roles.toSeq).and.eq(User.u.contestId, contestId))
 
-  def numberOfJurorsForAverageRate: Long = if (!optionalRate) numberOfAssignedJurors else numberOfActiveJurors
-
   lazy val numberOfActiveJurors = SelectionJdbc.activeJurors(id.get)
 
   lazy val numberOfAssignedJurors = SelectionJdbc.allJurors(id.get)
+
+  def numberOfJurorsForAverageRate: Long = if (!optionalRate) numberOfAssignedJurors else numberOfActiveJurors
 
   def allImages: Seq[ImageWithRating] = ImageJdbc.byRoundMerged(id.get)
 
@@ -77,9 +77,23 @@ case class Round(id: Option[Long],
     )
   }
 
+  def addUser(ru: RoundUser)(implicit session: DBSession = RoundUser.autoSession): Unit = {
+    RoundUser.withColumns { c =>
+      RoundUser.createWithNamedValues(c.roundId -> id, c.userId -> ru.userId, c.role -> ru.role, c.active -> ru.active)
+    }
+  }
+
+  def deleteUser(user: User)(implicit session: DBSession = RoundUser.autoSession): Unit = {
+    RoundUser.withColumns { c =>
+      withSQL {
+        delete.from(RoundUser).where.eq(c.roundId, id).and.eq(c.userId, user.id)
+      }.update.apply()
+    }
+  }
+
 }
 
-case class RoundUser(roundId: Long, userId: Long, active: Boolean)
+case class RoundUser(roundId: Long, userId: Long, role: String, active: Boolean)
 
 case class Rates(id: Int, name: String, minRate: Int = 0, maxRate: Int = 1)
 
@@ -105,11 +119,6 @@ object Round extends SkinnyCRUDMapper[Round] {
 
   lazy val r = defaultAlias
 
-  lazy val usersRef = hasManyThrough[User](
-    through = RoundUser,
-    many = User,
-    merge = (round, users) => round.copy(users = users)) //.byDefault
-
   val binaryRound = new Rates(1, "+/-", -1, 1)
 
   val rateRounds = (3 to 20).map(i => new Rates(i, s"1-$i rating", 1, i))
@@ -117,6 +126,11 @@ object Round extends SkinnyCRUDMapper[Round] {
   val rates = Seq(binaryRound) ++ rateRounds
 
   val ratesById = rates.groupBy(_.id).mapValues(_.head)
+
+  lazy val usersRef = hasManyThrough[User](
+    through = RoundUser,
+    many = User,
+    merge = (round, users) => round.copy(users = users)).byDefault
 
   override def extract(rs: WrappedResultSet, c: ResultName[Round]): Round = new Round(
     id = Some(rs.long(c.id)),
@@ -244,4 +258,14 @@ object Round extends SkinnyCRUDMapper[Round] {
 
 object RoundUser extends SkinnyJoinTable[RoundUser] {
   override def defaultAlias = createAlias("round_user")
+  lazy val ru = RoundUser.syntax("ru")
+
+  override def extract(rs: WrappedResultSet, ru: ResultName[RoundUser]): RoundUser =
+    RoundUser(rs.long(ru.roundId), rs.long(ru.userId), rs.string(ru.role), rs.boolean(ru.active))
+
+  def apply(r: Round, u: User): Option[RoundUser] =
+    for (rId <- r.id; uId <- u.id) yield RoundUser(rId, uId, u.roles.head, true)
+
+  def activeJurors(roundId: Long): List[RoundUser] = where('roundId -> roundId, 'active -> true).apply()
+
 }
