@@ -32,7 +32,7 @@ class RoundSpec extends Specification with TestDb {
       }
     }
 
-    "jurors" in {
+    "available jurors" in {
       withDb {
         implicit val contest = createContests(10).head
         val round = Round(None, 1, Some("Round 1"), 10, Set("jury"), 3, Round.ratesById(10), active = true)

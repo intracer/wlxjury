@@ -113,7 +113,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
           editForm => {
             val round = editForm.round.copy(active = true)
             if (round.id.isEmpty) {
-              createNewRound(user, round, editForm.jurors)
+              createNewRound(round, editForm.jurors)
             } else {
               round.id.foreach { roundId =>
                 Round.updateRound(roundId, round)
@@ -130,9 +130,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
         )
   }
 
-  def createNewRound(user: User, round: Round, jurorIds: Seq[Long]): Round = {
-
-    //  val contest: Contest = Contest.byId(round.contest).head
+  def createNewRound(round: Round, jurorIds: Seq[Long]): Round = {
 
     val count = Round.countByContest(round.contestId)
 
@@ -141,6 +139,8 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
     val prevRound = created.previous.flatMap(Round.findById)
 
     val jurors = User.loadJurors(round.contestId, jurorIds)
+
+    created.addUsers(jurors.map(u => RoundUser(created.getId, u.getId, u.roles.head, true)))
 
     DistributeImages.distributeImages(created, jurors, prevRound)
 

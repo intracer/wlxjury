@@ -1,14 +1,19 @@
 package org.intracer.wmua
 
+import controllers.{Contests, Rounds}
 import db.scalikejdbc._
 import org.intracer.wmua.cmd.DistributeImages
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-class ImageDistributorSpec extends Specification with TestDb {
+class ImageDistributorSpec extends Specification with TestDb with Mockito {
 
   sequential
 
   val (contest1, contest2) = (10, 20)
+
+
+  val roundsController = new Rounds(mock[Contests])
 
   def image(id: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
@@ -58,23 +63,23 @@ class ImageDistributorSpec extends Specification with TestDb {
         implicit val contest = createContests(contest1, contest2).head
         val images = createImages(9, contest1, contest2)
 
-        val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
-        val dbRound = roundDao.create(round)
-
         val oneJuror = createJurors(1)
         oneJuror.size === 1
         val juryIds = oneJuror.map(_.getId)
 
-        DistributeImages.distributeImages(dbRound, oneJuror, None)
+        val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
+        val dbRound = roundsController.createNewRound(round, juryIds)
 
         val selection1 = selectionDao.findAll()
-
         selection1.size === 9
 
         selection1.map(_.roundId).toSet === Set(dbRound.getId)
         selection1.map(_.rate).toSet === Set(0)
         selection1.map(_.pageId) === images.map(_.pageId)
         selection1.map(_.juryId).toSet === juryIds.toSet
+
+        val roundWithJurors = roundDao.findById(dbRound.getId).get
+        roundWithJurors.users === oneJuror
       }
     }
 
