@@ -9,8 +9,6 @@ class RoundUsersSpec extends Specification with TestDb {
   "round users" should {
     "assign round to jurors" in {
       withDb {
-        roundDao.usersRef // init ref TODO fix somehow
-
         implicit val contest = contestDao.create(None, "WLE", 2015, "Ukraine")
 
         val round1 = roundDao.create(Round(None, 1, Some("Round 1"), 10))
@@ -28,7 +26,8 @@ class RoundUsersSpec extends Specification with TestDb {
           RoundUser(round1, jurorNonActive).map(_.copy(active = false)),
           RoundUser(round1, organiser)
         ).flatten
-        roundUsers.foreach(round1.addUser)
+
+        round1.addUsers(roundUsers)
 
         eventually {
           RoundUser.findAll() === roundUsers

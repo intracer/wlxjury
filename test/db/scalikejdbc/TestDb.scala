@@ -59,7 +59,10 @@ trait TestDb {
 
   def withDb[T](block: => T)
                (implicit additionalConfig: Map[String, String] = Map.empty): T = {
-    testDbApp(_ => block)
+    testDbApp { _ =>
+      roundDao.usersRef // init ref TODO fix somehow
+      block
+    }
   }
 
 

@@ -83,6 +83,15 @@ case class Round(id: Option[Long],
     }
   }
 
+  def addUsers(users: Seq[RoundUser]): Unit = {
+      DB localTx { implicit session => withSQL {
+        val c = RoundUser.column
+          insert.into(RoundUser)
+            .namedValues(c.roundId -> sqls.?, c.userId -> sqls.?, c.role -> sqls.?, c.active -> sqls.?)
+        }.batch(users.map(ru => Seq(id, ru.userId, ru.role, ru.active)): _*).apply()
+    }
+  }
+
   def deleteUser(user: User)(implicit session: DBSession = RoundUser.autoSession): Unit = {
     RoundUser.withColumns { c =>
       withSQL {
