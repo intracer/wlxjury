@@ -285,8 +285,8 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
   val selectRoundForm = Form(
     mapping(
-      "currentRound" -> text,
-      "active" -> boolean
+      "currentId" -> text,
+      "setActive" -> boolean
     )(SelectRound.apply)(SelectRound.unapply)
   )
 
