@@ -1,18 +1,20 @@
 package org.intracer.wmua.cmd
 
 import controllers.Global.commons
-import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, SelectionJdbc}
+import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, Round, SelectionJdbc, User}
 import org.intracer.wmua._
 import org.scalawiki.dto.Namespace
 import play.api.Logger
 import spray.util.pimpFuture
 
+import scala.concurrent.duration._
+
 case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) {
+
+  val sortedJurors = jurors.sorted
 
   def apply() = {
     val selection: Seq[Selection] = newSelection
-
-    SelectionJdbc.removeUnrated(round.getId)
 
     Logger.logger.debug("saving selection: " + selection.size)
     SelectionJdbc.batchInsert(selection)
@@ -24,14 +26,14 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
   def newSelection = {
     val selection: Seq[Selection] = round.distribution match {
       case 0 =>
-        jurors.flatMap { juror =>
+        sortedJurors.flatMap { juror =>
           images.map(img => Selection(img, juror, round))
         }
       case x if x > 0 =>
         images.zipWithIndex.flatMap {
           case (img, i) =>
             (0 until x).map(j =>
-              Selection(img, jurors((i + j) % jurors.size), round)
+              Selection(img, sortedJurors((i + j) % sortedJurors.size), round)
             )
         }
     }
@@ -53,7 +55,12 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
 object DistributeImages {
   def distributeImages(round: Round,
                        jurors: Seq[User],
-                       prevRound: Option[Round]): Unit = {
+                       prevRound: Option[Round],
+                       removeUnrated: Boolean = false): Unit = {
+    if (removeUnrated) {
+      SelectionJdbc.removeUnrated(round.getId)
+    }
+
     val images = getFilteredImages(round, jurors, prevRound)
 
     distributeImages(round, jurors, images)
@@ -95,12 +102,12 @@ object DistributeImages {
                        ): Seq[Image] = {
 
     val includeFromCats = includeCategory.filter(_.trim.nonEmpty).map { category =>
-      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
+      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await(5.minutes)
       pages.flatMap(_.id)
     }.getOrElse(Nil)
 
     val excludeFromCats = excludeCategory.filter(_.trim.nonEmpty).map { category =>
-      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await
+      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await(5.minutes)
       pages.flatMap(_.id)
     }.getOrElse(Nil)
 
@@ -134,7 +141,8 @@ object DistributeImages {
       selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
       selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
       mpxAtLeast = mpxAtLeast,
-      sizeAtLeast = sizeAtLeast
+      sizeAtLeast = sizeAtLeast,
+      specialNomination = round.specialNomination
     )
 
     val filterChain = ImageWithRatingSeqFilter.makeFunChain(funGens)

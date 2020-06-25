@@ -1,15 +1,15 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc}
+import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, User}
 import org.intracer.wmua.cmd.FetchImageInfo
-import org.intracer.wmua.cmd.ImageTextFromCategory._
-import org.intracer.wmua.{ContestJury, User}
+import org.intracer.wmua.cmd.FetchImageText._
+import org.intracer.wmua.ContestJury
 import org.scalawiki.dto.Namespace
-import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}
+import org.scalawiki.wlx.dto.{Contest, ContestType, Country, NoAdmDivision}
 import org.scalawiki.wlx.{CampaignList, CountryParser}
 import play.api.Play.current
 import play.api.data.Form
-import play.api.data.Forms._
+import play.api.data.Forms.{optional, _}
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Controller
 import spray.util.pimpFuture
@@ -26,7 +26,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
       CampaignList.yearsContests()
     } else {
       (for (ct <- contestType; y <- year) yield {
-        val contest = Contest(ContestType.byCode(ct).get, NoAdmDivision(), y)
+        val contest = Contest(ContestType.byCode(ct).get, NoAdmDivision, y)
         CampaignList.contestsFromCategory(contest.imagesCategory)
       }).getOrElse(Future.successful(Seq.empty[Contest]))
     }
@@ -36,9 +36,11 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
     user =>
       implicit request =>
         val contests = findContests
-        val fetched = Seq.empty // fetchContests(contestType, year, country).await
+        val filtered = contests.filter { c =>
+          contestType.forall(c.name.equals) && year.forall(c.year.equals)
+        }
 
-        Ok(views.html.contests(user, contests, fetched, editContestForm, importContestsForm))
+        Ok(views.html.contests(user, contests, filtered, editContestForm, importContestsForm, contestType, year))
   }
 
   def findContests: List[ContestJury] = {
@@ -76,7 +78,11 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
               } else {
                 importCategory(formContest)
               }
-            imported.foreach {
+
+            val existing = ContestJuryJdbc.findAll().map(c => s"${c.name}/${c.year}/${c.country}").toSet
+            val newContests = imported.filterNot(c => existing.contains(s"${c.contestType.name}/${c.year}/${c.country.name}"))
+
+            newContests.foreach {
               contest =>
                 val contestJury = ContestJury(
                   id = None,
@@ -84,7 +90,8 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
                   year = contest.year,
                   country = contest.country.name,
                   images = Some(s"Category:Images from ${contest.contestType.name} ${contest.year} in ${contest.country.name}"),
-                  monumentIdTemplate = contest.uploadConfigs.headOption.map(_.fileTemplate)
+                  monumentIdTemplate = contest.uploadConfigs.headOption.map(_.fileTemplate),
+                  campaign = Some(contest.campaign)
                 )
                 createContest(contestJury)
             }
@@ -165,9 +172,14 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
   def updateImageMonuments(source: String, contest: ContestJury): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    if (contest.monumentIdTemplate.isDefined) {
-      val monumentContest = Contest.WLEUkraine(contest.year)
-      Monuments.updateLists(monumentContest)
+    if (contest.country == Country.Ukraine.name && contest.monumentIdTemplate.isDefined) {
+      val monumentContest = Seq("earth", "monuments").filter(contest.name.toLowerCase.contains) match {
+        case Seq("earth") => Some(Contest.WLEUkraine(contest.year))
+        case Seq("monuments") => Some(Contest.WLMUkraine(contest.year))
+        case _ => None
+      }
+
+      monumentContest.foreach(Monuments.updateLists)
     }
 
     def generatorParams: (String, String) = {
@@ -218,12 +230,13 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
       "currentRound" -> optional(longNumber),
       "monumentIdTemplate" -> optional(text),
       "greetingText" -> optional(text),
-      "useGreeting" -> boolean
+      "useGreeting" -> boolean,
+      "campaign" -> optional(text),
     )(
-      (id, name, year, country, images, currentRound, monumentIdTemplate, greetingText, useGreeting) =>
-        ContestJury(id, name, year, country, images, None, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting)))
+      (id, name, year, country, images, currentRound, monumentIdTemplate, greetingText, useGreeting, campaign) =>
+        ContestJury(id, name, year, country, images, None, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting), campaign))
     ((c: ContestJury) =>
-      Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use))
+      Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use, c.campaign))
   )
 
   val importContestsForm = Form(

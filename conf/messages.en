@@ -159,6 +159,7 @@ total = Total
 51=Odessa O.
 
 full.resolution = Full resolution: <nobr>{0}</nobr>; {1} Mpx
+mpx = Mpx
 
 back.to.gallery = Back to gallery
 previous.image = Previous image
@@ -215,6 +216,8 @@ jury=Jury
 organizer=Organizer
 admin=Admin
 no=No
+yes=Yes
+
 
 campaigns=Campaigns
 campaign=Campaign
@@ -261,6 +264,9 @@ none.selected=None selected
 all.selected=All selected
 select.all=Select all
 1-x.rating=1-{0} rating
+active=Active
+start.stop=Start/Stop
+
 mails.to.import=Mails to import
 examples=Examples:
 separate.entries.with.commas.newline.or.both=Separate entries with commas/newline or both.

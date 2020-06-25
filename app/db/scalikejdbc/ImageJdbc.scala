@@ -89,6 +89,18 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
     }
   }
 
+  def update(image: Image): Unit =
+    updateById(image.pageId).withAttributes(
+      'title -> image.title,
+      'url -> image.url,
+      'pageUrl -> image.pageUrl,
+      'width -> image.width,
+      'height -> image.height,
+      'monumentId -> image.monumentId,
+      'description -> image.description,
+      'size -> image.size,
+    )
+
   def updateResolution(pageId: Long, width: Int, height: Int): Unit =
     updateById(pageId).withAttributes(
       'width -> width,
@@ -119,7 +131,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
     }.map(ImageJdbc(i)).list().apply()
 
   def countByCategory(categoryId: Long): Long = {
-    import sqls.{ distinct, count => _count}
+    import sqls.{distinct, count => _count}
 
     withSQL {
       select(_count(distinct(i.pageId))).from(ImageJdbc as i)

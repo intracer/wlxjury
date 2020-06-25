@@ -1,8 +1,7 @@
 package controllers
 
 import javax.inject.Inject
-
-import db.scalikejdbc.{ContestJuryJdbc, RoundJdbc, UserJdbc}
+import db.scalikejdbc.{ContestJuryJdbc, Round, User}
 import org.intracer.wmua._
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.Query
@@ -31,9 +30,9 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
   def users(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
-        (for (contestId <- user.currentContest.orElse(contestIdParam);
+        (for (contestId <- contestIdParam.orElse(user.currentContest);
               contest <- ContestJuryJdbc.findById(contestId)) yield {
-          val users = UserJdbc.findByContest(contestId)
+          val users = User.findByContest(contestId).sorted
           val withWiki = wikiAccountInfo(users)
 
           Ok(views.html.users(user, withWiki, editUserForm.copy(data = Map("roles" -> "jury")), contest))
@@ -99,7 +98,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
   def editUser(userId: Long) = withAuth(rolePermission(Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$userId"))) {
     user =>
       implicit request =>
-        val editedUser = UserJdbc.findById(userId).get
+        val editedUser = User.findById(userId).get
 
         havingEditRights(user, editedUser) {
           val filledForm = editUserForm.fill(editedUser)
@@ -129,7 +128,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
             havingEditRights(user, formUser) {
 
               val userId = formUser.getId
-              val count = UserJdbc.countByEmail(userId, formUser.email)
+              val count = User.countByEmail(userId, formUser.email)
               if (count > 0) {
                 BadRequest(
                   views.html.editUser(
@@ -154,11 +153,11 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
                     userRolesFromDb(formUser)
                   }
 
-                  UserJdbc.updateUser(userId, formUser.fullname, formUser.wikiAccount, formUser.email, newRoles, formUser.lang)
+                  User.updateUser(userId, formUser.fullname, formUser.wikiAccount, formUser.email, newRoles, formUser.lang, formUser.sort)
 
                   for (password <- formUser.password) {
-                    val hash = UserJdbc.hash(formUser, password)
-                    UserJdbc.updateHash(userId, hash)
+                    val hash = User.hash(formUser, password)
+                    User.updateHash(userId, hash)
                   }
                 }
 
@@ -183,7 +182,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
     */
   def userRolesFromDb(user: User): Set[String] = {
     (for (userId <- user.id;
-          dbUser <- UserJdbc.findById(userId))
+          dbUser <- User.findById(userId))
       yield dbUser.roles).getOrElse(Set.empty)
   }
 
@@ -232,7 +231,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
           val recipient = new User(fullname = "Recipient Full Name", email = "Recipient email", id = None, contestId = contest.id)
 
           val substitution = if (substituteJurors) {
-            val users = UserJdbc.findByContest(contestId)
+            val users = User.findByContest(contestId)
             users.map {
               recipient =>
                 fillGreeting(greeting.text.get, contest, user, recipient.copy(password = Some("***PASSWORD***")))
@@ -298,12 +297,12 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
   }
 
   def createUser(creator: User, formUser: User, contestOpt: Option[ContestJury])(implicit lang: Lang): User = {
-    val password = formUser.password.getOrElse(UserJdbc.randomString(12))
-    val hash = UserJdbc.hash(formUser, password)
+    val password = formUser.password.getOrElse(User.randomString(12))
+    val hash = User.hash(formUser, password)
 
     val toCreate = formUser.copy(password = Some(hash), contestId = contestOpt.flatMap(_.id).orElse(creator.contestId))
 
-    val createdUser = UserJdbc.create(toCreate)
+    val createdUser = User.create(toCreate)
 
     contestOpt.foreach { contest =>
       if (contest.greeting.use) {
@@ -329,8 +328,9 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
       "password" -> optional(text),
       "roles" -> optional(text),
       "contest" -> optional(longNumber),
-      "lang" -> optional(text)
-    )(User.applyEdit)(User.unapplyEdit)
+      "lang" -> optional(text),
+      "sort" -> optional(number)
+  )(User.applyEdit)(User.unapplyEdit)
   )
 
   val importUsersForm = Form(
@@ -349,14 +349,14 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
   def resetPassword(id: Long) = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
     user =>
       implicit request =>
-        val editedUser = UserJdbc.findById(id).get
+        val editedUser = User.findById(id).get
 
-        val password = UserJdbc.randomString(8)
+        val password = User.randomString(8)
         val contest: Option[ContestJury] = editedUser.currentContest.flatMap(ContestJuryJdbc.findById)
         val contestName = contest.fold("")(_.name)
-        val hash = UserJdbc.hash(editedUser, password)
+        val hash = User.hash(editedUser, password)
 
-        UserJdbc.updateHash(editedUser.getId, hash)
+        User.updateHash(editedUser.getId, hash)
 
         val juryhome = "http://localhost:9000"
         //        User.updateUser(formUser.fullname, formUser.email, hash, formUser.roles, formUser.contest)

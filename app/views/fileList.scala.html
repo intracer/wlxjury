@@ -1,16 +1,18 @@
-@import org.intracer.wmua.User
+@import db.scalikejdbc.User
 @import controllers.Global._
 @import org.intracer.wmua.Region
+@import db.scalikejdbc.Round
+@import org.intracer.wmua.ImageWithRating
 @(
-        user: org.intracer.wmua.User, /* logged in user */
+        user: User, /* logged in user */
         asUserId: Long, /* viewing files of user with asUserId id  */
-        asUser: org.intracer.wmua.User, /* viewing files of user asUser  */
-        files: Seq[org.intracer.wmua.ImageWithRating],
+        asUser: User, /* viewing files of user asUser  */
+        files: Seq[ImageWithRating],
         ranks: Seq[String],
         jurors: Seq[User],
         pager: Pager, /* not used */
-        round: Option[org.intracer.wmua.Round],
-        rounds: Seq[org.intracer.wmua.Round],
+        round: Option[Round],
+        rounds: Seq[Round],
         rate: Option[Int],
         region: String = "all",
         regions: Seq[Region],
@@ -25,7 +27,7 @@
 
 @row(content: Html) = {@wrapInIf("tr", wrapInTable)(content)}
 
-@ratedOrSelected(round: org.intracer.wmua.Round, asUserId: Long) = {
+@ratedOrSelected(round: Round, asUserId: Long) = {
 @if(asUserId==0) {
         @if(round.isBinary) { @Messages("overall.selected")} else {@Messages("total.rating")}
     } else {
@@ -56,6 +58,7 @@
                     <th> @Messages("rank") </th>
                     <th> @Messages("file") </th>
                     <th> @ratedOrSelected(round.get, asUserId) </th>
+                    <th> @Messages("mpx") </th>
                     @for(juror <- jurors) {
                         <th> @juror.fullname </th>
                     }
@@ -87,6 +90,7 @@
                 @if(wrapInTable) {
                     <td>@file.rateString(round.get)</td>
                 }
+                <td>@file.image.mpxStr</td>
                 @for(juror <- jurors) {
                     <td> @file.jurorRateStr(juror) </td>
                 }

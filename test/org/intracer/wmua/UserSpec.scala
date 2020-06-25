@@ -1,5 +1,6 @@
 package org.intracer.wmua
 
+import db.scalikejdbc.User
 import org.specs2.mutable.Specification
 
 class UserSpec extends Specification {

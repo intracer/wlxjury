@@ -1,11 +1,13 @@
+@import db.scalikejdbc.Round
+@import org.intracer.wmua.Comment
 @(
         objectId: Long,
         rate: Option[Int],
         region: String = "all",
-        round: org.intracer.wmua.Round,
+        round: Round,
         module : String = "gallery",
-        comments: Seq[org.intracer.wmua.Comment])(
-        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
+        comments: Seq[Comment])(
+        implicit flash: Flash, lang: Lang, request: Request[Any], messages: Messages)
 @import helper._
 
 @if(round.active || comments.nonEmpty) {

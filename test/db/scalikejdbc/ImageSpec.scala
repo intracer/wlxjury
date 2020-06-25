@@ -3,11 +3,9 @@ package db.scalikejdbc
 import org.intracer.wmua.Image
 import org.specs2.mutable.Specification
 
-class ImageSpec extends Specification with InMemDb {
+class ImageSpec extends Specification with TestDb {
 
   sequential
-
-  val imageDao = ImageJdbc
 
   def image(id: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
@@ -15,24 +13,17 @@ class ImageSpec extends Specification with InMemDb {
   def addToContest(contestId: Long, images: Seq[Image]) =
     CategoryLinkJdbc.addToCategory(ContestJuryJdbc.findById(contestId).flatMap(_.categoryId).get, images)
 
-  def createContests(contestIds: Long*) = contestIds.foreach {
-    id =>
-      val contest = ContestJuryJdbc.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
-      ContestJuryJdbc.setImagesSource(id, Some("Images from " + contest.name))
-  }
-
-
   "fresh database" should {
 
     "be empty" in {
-      inMemDb {
+      withDb {
         val images = imageDao.findAll()
         images.size === 0
       }
     }
 
     "insert image" in {
-      inMemDb {
+      withDb {
         val id = 10
         val contestId = 20
         createContests(contestId)
@@ -50,7 +41,7 @@ class ImageSpec extends Specification with InMemDb {
     }
 
     "find by contest " in {
-      inMemDb {
+      withDb {
         val (contest1, contest2) = (10, 20)
         createContests(contest1, contest2)
 
@@ -67,7 +58,7 @@ class ImageSpec extends Specification with InMemDb {
     }
 
     "contests can share images" in {
-      inMemDb {
+      withDb {
         val (contest1, contest2) = (10, 20)
         createContests(contest1, contest2)
 

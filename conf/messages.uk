@@ -131,6 +131,7 @@ total = Разом
 profile=Профіль
 
 full.resolution = Повна роздільність: <nobr>{0}</nobr>; {1} Мпкс
+mpx = Мпкс
 
 back.to.gallery = До галереї
 previous.image = Попереднє зображення
@@ -181,6 +182,8 @@ jury=Журі
 organizer=Організатор
 admin=Адмін
 no=Немає
+yes=Так
+
 
 campaigns=Кампанії
 campaign=Кампанія
@@ -227,6 +230,8 @@ none.selected=Не вибрано
 all.selected=Вибрано все
 select.all=Вибрати все
 1-x.rating=Оцінка: 1-{0}
+active=Активний
+
 mails.to.import=Е-пошти для імпорту
 examples=Приклади:
 separate.entries.with.commas.newline.or.both=Розділіть елементи комами та/або новими рядками.

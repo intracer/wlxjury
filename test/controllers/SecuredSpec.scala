@@ -1,16 +1,13 @@
 package controllers
 
-import db.scalikejdbc.{InMemDb, UserJdbc}
-import org.intracer.wmua.User
+import db.scalikejdbc.{TestDb, User}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import play.api.mvc.{RequestHeader, Security, Session}
 
-class SecuredSpec extends Specification with Mockito with InMemDb {
+class SecuredSpec extends Specification with Mockito with TestDb {
 
   sequential
-
-  val userDao = UserJdbc
 
   def mockRequest(username: String): RequestHeader = {
     val request = mock[RequestHeader]
@@ -22,7 +19,7 @@ class SecuredSpec extends Specification with Mockito with InMemDb {
 
   "user" should {
     "load from db" in {
-      inMemDb {
+      withDb {
         val username = "user@server.com"
         val user = User("fullname", username, None, Set("jury"), Some("password hash"), Some(10), createdAt = Some(now))
 
@@ -34,7 +31,7 @@ class SecuredSpec extends Specification with Mockito with InMemDb {
     }
 
     "be None if not in db" in {
-      inMemDb {
+      withDb {
         val username = "user login"
         val user = User("fullname", username, None, Set("jury"), Some("password hash"), Some(10))
 

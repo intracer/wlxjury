@@ -76,14 +76,14 @@ object Gallery extends Controller with Secured with Instrumented {
                    rated: Option[Boolean] = None) = withAuth() { user =>
     implicit request =>
         timerList.time {
-          val maybeRound = if (roundId == 0) RoundJdbc.current(user).headOption else RoundJdbc.findById(roundId)
+          val maybeRound = if (roundId == 0) Round.activeRounds(user).headOption else Round.findById(roundId)
 
           val roundContestId = maybeRound.map(_.contestId).getOrElse(0L)
           val round = maybeRound.get
           val rounds = if (user.canViewOrgInfo(round)) {
-            RoundJdbc.findByContest(roundContestId).filter(user.canViewOrgInfo)
+            Round.findByContest(roundContestId).filter(user.canViewOrgInfo)
           } else {
-            RoundJdbc.current(user)
+            Round.activeRounds(user)
           }
 
           if (isNotAuthorized(user, maybeRound, roundContestId, rounds)) {
@@ -120,7 +120,7 @@ object Gallery extends Controller with Secured with Instrumented {
                 )
               case "csv" =>
                 val jurors = if (user.canViewOrgInfo(round) && asUserId == 0) {
-                  UserJdbc.findByRoundSelection(roundId)
+                  User.findByRoundSelection(roundId)
                 } else {
                   Seq(asUser)
                 }
@@ -132,7 +132,7 @@ object Gallery extends Controller with Secured with Instrumented {
                 val ranks = ImageWithRating.rankImages(files, round)
 
                 val jurors = if (user.canViewOrgInfo(round) && asUserId == 0) {
-                  UserJdbc.findByRoundSelection(roundId)
+                  User.findByRoundSelection(roundId)
                 } else {
                   Seq(asUser)
                 }
@@ -175,7 +175,7 @@ object Gallery extends Controller with Secured with Instrumented {
     if (asUserId == 0) {
       null
     } else if (asUserId != user.getId) {
-      UserJdbc.findById(asUserId).get
+      User.findById(asUserId).get
     } else {
       user
     }
@@ -214,7 +214,7 @@ object Gallery extends Controller with Secured with Instrumented {
       rated = rated,
       roundId = roundId,
       regions = regions,
-      order = Map("rate" -> -1, "s.page_id" -> 1),
+      order = Map("rate" -> -1, "i.monument_id" -> 1, "s.page_id" -> 1),
       grouped = userIdOpt.isEmpty && !userDetails,
       groupWithDetails = userDetails,
       limit = pager.map(p => Limit(Some(p.pageSize), p.offset, p.startPageId))

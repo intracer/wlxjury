@@ -1,7 +1,6 @@
-@import org.intracer.wmua.Round
-@import org.intracer.wmua.User
+@import db.scalikejdbc.User
 @import org.intracer.wmua.Image
-
+@import db.scalikejdbc.Round
 @(
         user: User,
         editRoundForm: Form[controllers.EditRound],
@@ -69,7 +68,9 @@
                                             @b3.select(
                                                 editRoundForm("minJurors"),
                                                 Seq("0", "1", "2", "3", "4", "5", "6").map(x => (x, x)),
-                                                '_label -> Messages("selected.by.at.least.x.jurors"), 'readonly -> noEdit)
+                                                'value -> "1",
+                                                '_label -> Messages("selected.by.at.least.x.jurors"),
+                                                'readonly -> noEdit)
                                             </div>
 
                                             <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
@@ -106,7 +107,7 @@
 
                                     @b3.select(
                                         editRoundForm("minMpx"),
-                                        Seq("No", "1", "2").map(x => (x, Messages(x.toLowerCase))),
+                                        Seq("No", "1", "2", "3", "4").map(x => (x, Messages(x.toLowerCase))),
                                         '_label -> Messages("minimum.megapixels"), 'readonly -> noEdit)
 
                                     @b3.select(
@@ -114,6 +115,9 @@
                                         Seq("No", "1", "2").map(x => (x, Messages(x.toLowerCase))),
                                         '_label -> Messages("minimum.megabytes"), 'readonly -> noEdit)
 
+                                    @if(user.hasRole(User.ROOT_ROLE)) {
+                                        @b3.text(editRoundForm("specialNomination"), '_label -> Messages("specialNomination"))
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -122,7 +126,7 @@
                             style="display: none"}>
                         @b3.select(
                             editRoundForm("jurors"),
-                            jurors.map(u => (u.getId.toString, u.description)).sortBy(_._2),
+                            jurors.map(u => (u.getId.toString, u.description)),
                             '_label -> Messages("jurors"), 'multiple -> true, 'readonly -> noEdit)
                         </div>
                     @if(!newRound) {

@@ -9,7 +9,7 @@ import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, Monument}
 import org.scalawiki.wlx.query.MonumentQuery
-import org.scalawiki.wlx.{ImageDB, ListFiller, MonumentDB}
+import org.scalawiki.wlx.{ImageDB, ImageFiller, MonumentDB}
 import play.api.{Logger, Play}
 import scalikejdbc.{ConnectionPool, GlobalSettings, LoggingSQLAndTimeSettings}
 
@@ -89,9 +89,9 @@ object Tools {
 
     globalRefactor.appendImages(contest.images.get, "", contest)
 
-    val round = RoundJdbc.findById(133L).get
+    val round = Round.findById(133L).get
 
-    DistributeImages.distributeImages(round, round.jurors, None)
+    DistributeImages.distributeImages(round, round.availableJurors, None)
   }
 
   def addUsers(contest: ContestJury, number: Int) = {
@@ -104,13 +104,13 @@ object Tools {
       jurors ++ orgCom
 
     //  (1 to number).map(i => country + "Jury" + i) ++ Seq(country + "OrgCom")
-    val passwords = logins.map(s => UserJdbc.randomString(8)) // !! i =>
+    val passwords = logins.map(s => User.randomString(8)) // !! i =>
 
     logins.zip(passwords).foreach {
       case (login, password) =>
-        UserJdbc.create(
+        User.create(
           login,
-          login, UserJdbc.sha1(contest.country + "/" + password),
+          login, User.sha1(contest.country + "/" + password),
           if //(login.contains("Jury"))
           (jurors.contains(login))
             Set("jury")
@@ -168,9 +168,9 @@ object Tools {
 
   def addCriteria() = {
     val roundId = 315
-    val round = RoundJdbc.findById(roundId).get
+    val round = Round.findById(roundId).get
     val images = Seq.empty
-    val jurors = UserJdbc.findByRoundSelection(roundId)
+    val jurors = User.findByRoundSelection(roundId)
     val selection = SelectionJdbc.byRound(roundId)
 
     DistributeImages(round, images, jurors).addCriteriaRates(selection)
@@ -189,7 +189,7 @@ object Tools {
         uploader = None,
         year = None,
         date = None,
-        monumentId = i.monumentId,
+        monumentIds = i.monumentId.toSeq,
         pageId = Some(i.pageId)
       )
     }
@@ -250,7 +250,7 @@ object Tools {
     val mdb = new MonumentDB(contest1, allMonuments)
     val idb = new ImageDB(contest1, convertImages(allImages), Some(mdb))
 
-    ListFiller.fillLists(mdb, idb)
+    ImageFiller.fillLists(mdb, idb)
   }
 
   def byCity() = {

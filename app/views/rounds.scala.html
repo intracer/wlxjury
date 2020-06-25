@@ -1,34 +1,22 @@
 @import org.intracer.wmua.ContestJury
+@import controllers.SelectRound
+@import db.scalikejdbc.Round
+@import db.scalikejdbc.User
 @(
-        adminUser: org.intracer.wmua.User,
-        rounds: Seq[org.intracer.wmua.Round],
+        adminUser: User,
+        rounds: Seq[Round],
         roundsStat: Map[Long, RateDistribution],
         editRoundForm: Form[controllers.EditRound],
         editImagesForm: Form[Option[String]],
-        selectRoundForm: Form[Option[String]],
-        round: Option[org.intracer.wmua.Round],
+        selectRoundForm: Form[SelectRound],
+        round: Option[Round],
         contest: ContestJury
 )(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
-    @import helper._
 
     @mainAdmin(Messages("rounds"), adminUser, adminUser.getId,
         rounds = rounds, selectedRound = round, contestId = contest.id) {
         <div class="row" >
             <h3>@Messages("campaign") @contest.fullName</h3>
-
-            @if(rounds.size > 1) {
-                @form(routes.Rounds.setRound(), 'class -> "form-inline", 'id -> "set-round", 'role -> "form") {
-                    <div class="form-group">
-                    @helper.CSRF.formField
-                    @select(selectRoundForm("currentRound"), rounds.map(r => (r.id.map(_.toString).get, r.description)),
-                        '_label -> Messages("current.round"), '_help -> "", 'class -> "form-control")
-                    </div>
-
-                    <div class="form-group">
-                        <input type="submit" class="btn btn-primary" value="@Messages("set.current.round")">
-                    </div>
-                }
-            }
 
             @if(rounds.nonEmpty) {
                 <table class="table table-striped table-condensed" style="background-color: #CCCCCC ;">
@@ -43,6 +31,7 @@
                                 <!--                        <th width="10%">@Messages("Min selected") </th>
                             <th width="10%">@Messages("Max selected") </th>
                             <th width="10%">@Messages("Recommended selected") </th> -->
+                            <th width="10%">@Messages("active")</th>
                             <th width="10%">@Messages("images")</th>
                             <th width="10%">@Messages("selected.rated")</th>
                         </tr>
@@ -60,6 +49,7 @@
                                 <!--                            <td>              @round.limitMin </td>
                             <td>@round.limitMax </td>
                             <td>@round.recommended.fold("")(_.toString) </td> -->
+                            <td>@snippets.startStop(round.active, round.getId, contest.getId, routes.Rounds.setRound)</td>
                             <td>@roundsStat.get(round.getId).map(_.all).getOrElse(0) </td>
                             <td>@roundsStat.get(round.getId).map(_.positive).getOrElse(0) </td>
                         </tr>

@@ -5,25 +5,16 @@ import org.intracer.wmua.{Selection, _}
 import org.specs2.mutable.Specification
 import play.api.Application
 
-class GallerySpec extends Specification with InMemDb {
+class GallerySpec extends Specification with TestDb {
 
   sequential
 
-  val contestDao = ContestJuryJdbc
-  val roundDao = RoundJdbc
-  val userDao = UserJdbc
-  val imageDao = ImageJdbc
-  val selectionDao = SelectionJdbc
-
-  var contest: ContestJury = _
+  implicit var contest: ContestJury = _
   var round: Round = _
   var user: User = _
 
   def contestImage(id: Long, contestId: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
-
-  def contestUser(i: Int, contestId: Long = contest.getId, role: String = "jury") =
-    User("fullname" + i, "email" + i, None, Set(role), contestId = Some(contestId))
 
   def setUp(rates: Rates = Round.binaryRound) = {
     contest = contestDao.create(None, "WLE", 2015, "Ukraine")
@@ -54,7 +45,7 @@ class GallerySpec extends Specification with InMemDb {
 
   "juror" should {
     "see assigned images in binary round" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -72,7 +63,7 @@ class GallerySpec extends Specification with InMemDb {
     }
 
     "see images filtered by rate in binary round" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -99,7 +90,7 @@ class GallerySpec extends Specification with InMemDb {
     }
 
     "see images ordered by rate in binary round" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
@@ -124,7 +115,7 @@ class GallerySpec extends Specification with InMemDb {
     }
 
     "see images ordered by rate in rated round" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.ratesById(10))
         val images = createImages(6)
@@ -149,7 +140,7 @@ class GallerySpec extends Specification with InMemDb {
 
   "organizer" should {
     "see rating by selection" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(10)
@@ -186,7 +177,7 @@ class GallerySpec extends Specification with InMemDb {
     }
 
     "see details by selection rejected not accounted" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(2)
@@ -221,7 +212,7 @@ class GallerySpec extends Specification with InMemDb {
     }
 
     "see details by selection" in {
-      inMemDb {
+      withDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(10)

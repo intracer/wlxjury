@@ -1,6 +1,6 @@
 @(importImagesForm: Form[(String, String, String)],
         contest: org.intracer.wmua.ContestJury,
-        user: org.intracer.wmua.User,
+        user: db.scalikejdbc.User,
         sourceImages: Long,
         dbImages: Long,
         inProgress: Boolean = false
@@ -10,7 +10,7 @@
 
     @mainAdmin(Messages("contest.images"), user, user.getId, contestId = contest.id) {
         <h3>@Messages("contest") @contest.fullName</h3>
-        @form(routes.Contests.importImages(contest.getId), 'class -> "form-vertical", 'id -> "import-images") {
+        @b3.vertical.form(routes.Contests.importImages(contest.getId), 'id -> "import-images") { implicit vfc =>
             @helper.CSRF.formField
 
             <h4>@Messages("images.source")</h4>

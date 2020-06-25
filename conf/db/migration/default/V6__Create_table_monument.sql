@@ -1,5 +1,5 @@
 CREATE TABLE monument (
-  id varchar(255),
+  id varchar(190),
   name varchar(400) not null,
   description varchar(4000),
   place text,

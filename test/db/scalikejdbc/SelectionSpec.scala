@@ -3,11 +3,10 @@ package db.scalikejdbc
 import org.intracer.wmua.Selection
 import org.specs2.mutable.Specification
 
-class SelectionSpec extends Specification with InMemDb {
+class SelectionSpec extends Specification with TestDb {
 
   sequential
 
-  val selectionDao = SelectionJdbc
   val time = now
 
   def sameTime(s: Seq[Selection]) = s.map(_.copy(createdAt = Some(time)))
@@ -17,14 +16,14 @@ class SelectionSpec extends Specification with InMemDb {
 
   "fresh database" should {
     "be empty" in {
-      inMemDb {
+      withDb {
         val selection = selectionDao.findAll()
         selection.size === 0
       }
     }
 
     "insert selection" in {
-      inMemDb {
+      withDb {
 
         val s = Selection(-1, 20, 0, 30, Some(40), Some(now))
 
@@ -43,7 +42,7 @@ class SelectionSpec extends Specification with InMemDb {
     }
 
     "batch insert selections" in {
-      inMemDb {
+      withDb {
         val s = sameTime(Seq(
           Selection(20, 1, 0, 10),
           Selection(21, 2, 1, 11),
@@ -60,7 +59,7 @@ class SelectionSpec extends Specification with InMemDb {
 
     "rate selections" in {
 
-      inMemDb {
+      withDb {
         val s = sameTime(Seq(
           Selection(pageId = 1, roundId = 20, juryId = 10),
           Selection(pageId = 1, roundId = 20, juryId = 11),

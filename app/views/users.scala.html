@@ -1,9 +1,9 @@
 @import org.intracer.wmua.ContestJury
 @import scala.reflect.macros.whitebox
 @(
-        adminUser: org.intracer.wmua.User,
-        users: Seq[org.intracer.wmua.User],
-        editUserForm: Form[org.intracer.wmua.User],
+        adminUser: db.scalikejdbc.User,
+        users: Seq[db.scalikejdbc.User],
+        editUserForm: Form[db.scalikejdbc.User],
         contest: ContestJury)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
     @import helper._
     @import views.html.bootstrap._

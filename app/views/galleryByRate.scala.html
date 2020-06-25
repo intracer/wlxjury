@@ -1,19 +1,20 @@
 @import org.intracer.wmua.Region
 @import controllers.Global
-
-@(user: org.intracer.wmua.User,
+@import db.scalikejdbc.Round
+@import org.intracer.wmua.ImageWithRating
+@(user: db.scalikejdbc.User,
         asUserId: Long,
-        files: Seq[org.intracer.wmua.ImageWithRating],
+        files: Seq[ImageWithRating],
         pager: Pager,
-        maybeRound: Option[org.intracer.wmua.Round],
-        rounds: Seq[org.intracer.wmua.Round],
+        maybeRound: Option[Round],
+        rounds: Seq[Round],
         rate: Option[Int] = None,
         region: String = "all",
         regions: Seq[Region],
         rates: RateDistribution,
         rated: Option[Boolean])(implicit flash: Flash, lang: Lang, messages: Messages)
 
-    @showRateGalery(file: org.intracer.wmua.ImageWithRating, index: Int) = {
+    @showRateGalery(file: ImageWithRating, index: Int) = {
     @defining(maybeRound.get) { round =>
 
         <div style="margin-bottom: 10px;

@@ -14,7 +14,7 @@ object CategoryJdbc extends SkinnyCRUDMapper[Category] {
 
   override lazy val defaultAlias = createAlias("cat")
 
-  val c = UserJdbc.syntax("cat")
+  val c = CategoryJdbc.syntax("cat")
 
   override def extract(rs: WrappedResultSet, c: ResultName[Category]): Category = Category(
     id = rs.long(c.id),

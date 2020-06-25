@@ -1,7 +1,8 @@
+@import db.scalikejdbc.Round
 @(      score: Double,
         url: String,
         readOnly: Boolean = false,
-        round: org.intracer.wmua.Round,
+        round: Round,
         rate: Option[Int],
         module: String = "byrate",
         byCriteria: Map[Int, Int] = Map.empty

@@ -1,13 +1,12 @@
 package controllers
 
-import db.scalikejdbc.{InMemDb, UserJdbc}
-import org.intracer.wmua.User
+import db.scalikejdbc.{TestDb, User}
 import org.specs2.mock.Mockito
 import play.api.mvc._
 import play.api.test.CSRFTokenHelper._
 import play.api.test._
 
-class LoginSpec extends PlaySpecification with Results with InMemDb with Mockito {
+class LoginSpec extends PlaySpecification with Results with TestDb with Mockito {
 
   sequential
 
@@ -16,14 +15,14 @@ class LoginSpec extends PlaySpecification with Results with InMemDb with Mockito
 
   "auth" should {
     "fail empty request" in {
-      inMemDb {
+      withDb {
         val result = login.auth().apply(FakeRequest().withCSRFToken)
         status(result) === BAD_REQUEST
       }
     }
 
     "fail when no users" in {
-      inMemDb {
+      withDb {
         val result = login.auth().apply(FakeRequest().withHeaders(
           "login" -> "qwerty",
           "password" -> "1234"
@@ -34,8 +33,8 @@ class LoginSpec extends PlaySpecification with Results with InMemDb with Mockito
     }
 
     "fail when wrong password" in {
-      inMemDb {
-        UserJdbc.create(User("name", "qwerty@dot.com"))
+      withDb {
+        User.create(User("name", "qwerty@dot.com"))
 
         val result = login.auth().apply(FakeRequest().withHeaders(
           "login" -> "qwerty@dot.com",
@@ -47,8 +46,8 @@ class LoginSpec extends PlaySpecification with Results with InMemDb with Mockito
     }
 
     "no rights" in {
-      inMemDb {
-        UserJdbc.create(User("name", "qwerty@dot.com", password = Some(UserJdbc.sha1("strong"))))
+      withDb {
+        User.create(User("name", "qwerty@dot.com", password = Some(User.sha1("strong"))))
         val result = login.auth().apply(FakeRequest().withFormUrlEncodedBody(
           "login" -> "qwerty@dot.com",
           "password" -> "strong"
@@ -63,10 +62,10 @@ class LoginSpec extends PlaySpecification with Results with InMemDb with Mockito
     }
 
     "root rights" in {
-      inMemDb {
-        UserJdbc.create(
+      withDb {
+        User.create(
           User("name", "qwerty@dot.com",
-            password = Some(UserJdbc.sha1("strong")),
+            password = Some(User.sha1("strong")),
             roles = Set(User.ROOT_ROLE))
         )
         val result = login.auth().apply(FakeRequest().withFormUrlEncodedBody(

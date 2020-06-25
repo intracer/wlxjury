@@ -1,6 +1,9 @@
 package org.intracer.wmua.cmd
 
-import org.intracer.wmua.{Image, ImageWithRating, Round}
+import db.scalikejdbc.Round
+import org.intracer.wmua.{Image, ImageWithRating}
+import org.scalawiki.wlx.dto.{Contest, SpecialNomination}
+import org.scalawiki.wlx.query.MonumentQuery
 import play.api.Logger
 
 import scala.runtime.ScalaRunTime
@@ -84,6 +87,15 @@ case class SizeAtLeast(size: Int) extends ImageFilterGen {
   def apply = imageFilter(_.size.exists(_ >= size))
 }
 
+case class SpecialNominationFilter(specialNominationName: String) extends ImageFilterGen {
+  val specialNominationIds = SpecialNomination.nominations.find(_.name == specialNominationName).map { nomination =>
+    val map = SpecialNomination.getMonumentsMap(Seq(nomination), MonumentQuery.create(Contest.WLMUkraine(2019)))
+    map.values.flatten.map(_.id).toSet
+  }.getOrElse(Set.empty)
+
+  def apply = imageFilter(_.monumentId.exists(specialNominationIds.contains))
+}
+
 
 object ImageWithRatingSeqFilter {
   def funGenerators(round: Option[Round] = None,
@@ -100,7 +112,8 @@ object ImageWithRatingSeqFilter {
                     selectTopByRating: Option[Int] = None,
                     selectedAtLeast: Option[Int] = None,
                     mpxAtLeast: Option[Int] = None,
-                    sizeAtLeast: Option[Int] = None
+                    sizeAtLeast: Option[Int] = None,
+                    specialNomination: Option[String] = None
                    ): Seq[ImageFilterGen] = {
 
     val setMap = Map(
@@ -120,7 +133,8 @@ object ImageWithRatingSeqFilter {
       selectTopByRating.map(top => SelectTopByRating(top, round.get)) -> selectTopByRating,
       selectedAtLeast.map(n => SelectedAtLeast(n)) -> selectedAtLeast,
       mpxAtLeast.map(MegaPixelsAtLeast) -> mpxAtLeast,
-      sizeAtLeast.map(SizeAtLeast) -> sizeAtLeast
+      sizeAtLeast.map(SizeAtLeast) -> sizeAtLeast,
+        specialNomination.map(SpecialNominationFilter) -> specialNomination
     )
 
     (setMap.filter(_._2.nonEmpty).keys ++ optionMap.filter(_._2.nonEmpty).keys.flatten).toSeq

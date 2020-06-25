@@ -1,12 +1,12 @@
-@(
-        selection: org.intracer.wmua.Selection, round:
-        org.intracer.wmua.Round,
+@import db.scalikejdbc.Round
+@import org.intracer.wmua.Selection
+@(selection: Selection,
+        round: Round,
         title: String,
         module: String,
         asUserId: Long,
         region: String,
-        pageId: Long
-        )
+        pageId: Long)
 
 <div style="margin-bottom: 10px; color: #ffffff;">
 

@@ -102,7 +102,9 @@ POST        /admin/setround                                                     
 
 POST        /admin/startround                                                       @controllers.Rounds.startRound()
 
-GET         /roundstat                                                              @controllers.Rounds.currentRoundStat()
+POST        /round/setrounduser                                                     @controllers.Rounds.setRoundUser()
+
+GET         /roundstat                                                              @controllers.Rounds.currentRoundStat(contestId: Option[Long] ?= None)
 
 GET         /roundstat/:round                                                       @controllers.Rounds.roundStat(round: Long)
 
@@ -122,7 +124,7 @@ GET         /contest/:id/images                                                 
 
 POST        /contest/:id/importimages                                               @controllers.Contests.importImages(id: Long)
 
-GET         /thumb_urls/:сontestId                                                  controllers.Gallery.thumbnailUrls(сontestId: Long)
+GET         /thumb_urls/:contestId                                                  controllers.Gallery.thumbnailUrls(contestId: Long)
 
 #GET         /round/:round/:region                                controllers.Gallery.round2(region: String, round:Int)
 

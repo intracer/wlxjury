@@ -2,7 +2,7 @@ package controllers
 
 import db.scalikejdbc._
 import org.intracer.wmua._
-import org.intracer.wmua.cmd.{FetchImageInfo, ImageEnricher, ImageTextFromCategory}
+import org.intracer.wmua.cmd.{FetchImageInfo, ImageEnricher, FetchImageText}
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.list.ListArgs
@@ -49,9 +49,9 @@ class GlobalRefactor(val commons: MwBot) {
                            existing: Seq[Image],
                            idsFilter: Set[String] = Set.empty,
                            max: Long) = {
-    val existingPageIds = existing.map(_.pageId).toSet
+    val existingByPageId = existing.groupBy(_.pageId)
 
-    val withImageDescriptions = contest.monumentIdTemplate.isDefined
+    val withImageDescriptions = contest.monumentIdTemplate.isDefined || contest.country.toLowerCase == "international"
 
     val titlesSeq: Seq[String] = if (titles.trim.isEmpty)
       Seq.empty
@@ -66,23 +66,27 @@ class GlobalRefactor(val commons: MwBot) {
       imageInfos
     }
 
-    val result = for (images <- getImages
-      .map(_.filter(image => !existingPageIds.contains(image.pageId)))
-    ) yield {
-      val existingIds = ImageJdbc.existingIds(images.map(_.pageId).toSet).toSet
+    val result = getImages.map { images =>
 
-      val notInOtherContests = images.filterNot(image => existingIds.contains(image.pageId))
+      val newImages =  images.filter(image => !existingByPageId.contains(image.pageId))
+
+      val existingIds = ImageJdbc.existingIds(newImages.map(_.pageId).toSet).toSet
+
+      val notInOtherContests = newImages.filterNot(image => existingIds.contains(image.pageId))
 
       val categoryId = CategoryJdbc.findOrInsert(source)
       saveNewImages(contest, notInOtherContests)
-      CategoryLinkJdbc.addToCategory(categoryId, images)
+      CategoryLinkJdbc.addToCategory(categoryId, newImages)
+
+      val updatedImages =  images.filter(image => existingByPageId.contains(image.pageId) && existingByPageId(image.pageId) != image)
+      updatedImages.foreach(ImageJdbc.update)
     }
 
     Await.result(result, 500.minutes)
   }
 
   def fetchImageDescriptions(contest: ContestJury, source: String, max: Long, imageInfos: Future[Seq[Image]]): Future[Seq[Image]] = {
-    val revInfo = ImageTextFromCategory(source, contest, contest.monumentIdTemplate, commons, max).apply()
+    val revInfo = FetchImageText(source, contest, contest.monumentIdTemplate, commons, max).apply()
     ImageEnricher.zipWithRevData(imageInfos, revInfo)
   }
 
@@ -154,19 +158,19 @@ class GlobalRefactor(val commons: MwBot) {
     //    val roundId = RoundJdbc.create(round).id
     //    ContestJuryJdbc.setCurrentRound(round.contest, roundId.get)
 
-    val round = RoundJdbc.findById(89).get
+    val round = Round.findById(89).get
 
     getCategories(parent).map {
       categories =>
 
         val jurors = categories.map("WLMUA2015_" + _.title.split("-")(1).trim.replaceAll(" ", "_"))
         val logins = jurors ++ Seq(contest.name + "OrgCom")
-        val passwords = logins.map(s => UserJdbc.randomString(8)) // !! i =>
+        val passwords = logins.map(s => User.randomString(8)) // !! i =>
       val users = logins.zip(passwords).map {
         case (login, password) =>
-          UserJdbc.create(
+          User.create(
             login,
-            login, UserJdbc.sha1(contest.country + "/" + password),
+            login, User.sha1(contest.country + "/" + password),
             if //(login.contains("Jury"))
             (jurors.contains(login))
               Set("jury")
@@ -205,12 +209,12 @@ class GlobalRefactor(val commons: MwBot) {
 
     val name = shortContest + contest.year + shortCountry + "Admin"
 
-    val password = UserJdbc.randomString(8)
-    val hash = UserJdbc.sha1(contest.country + "/" + password)
+    val password = User.randomString(8)
+    val hash = User.sha1(contest.country + "/" + password)
     val user = User(name, name, None, Set("admin"), Some(hash), contest.id, Some("en"))
 
     println(s"admin user: $name / $password")
-    UserJdbc.create(user)
+    User.create(user)
   }
 
   def categoriesToContests(contest: String, year: Int, parent: String, categories: Seq[Page]): Seq[ContestJury] = {

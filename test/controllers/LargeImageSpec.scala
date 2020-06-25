@@ -7,15 +7,9 @@ import play.api.mvc.Security
 import play.api.test.CSRFTokenHelper._
 import play.api.test.{FakeRequest, PlaySpecification}
 
-class LargeImageSpec extends PlaySpecification with InMemDb {
+class LargeImageSpec extends PlaySpecification with TestDb {
 
   sequential
-
-  val contestDao = ContestJuryJdbc
-  val roundDao = RoundJdbc
-  val userDao = UserJdbc
-  val imageDao = ImageJdbc
-  val selectionDao = SelectionJdbc
 
   var contest: ContestJury = _
   var round: Round = _
@@ -24,9 +18,6 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
 
   def contestImage(id: Long, contestId: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
-
-  def contestUser(i: Int, contestId: Long = contest.getId, role: String = "jury") =
-    User("fullname" + i, "email" + i, None, Set(role), contestId = Some(contestId))
 
   def setUp(rates: Rates = Round.binaryRound) = {
     contest = contestDao.create(None, "WLE", 2015, "Ukraine")
@@ -71,7 +62,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   def mkJson(elems: String*) = Json.parse(elems.mkString("[", ",", "]"))
 
   "get 1 unrated image" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -88,7 +79,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "get 1 rated image" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -105,7 +96,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "get 2 unrated images" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -123,7 +114,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "get 2 rated images" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -142,7 +133,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "get first unrated image from 2" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -161,7 +152,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "get last unrated image from 2" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -180,7 +171,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "get first rated image from 2" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -199,7 +190,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "get last rated image from 2" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -218,7 +209,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "rate 1 unrated image" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -236,7 +227,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "unrate 1 rated image" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -254,7 +245,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "rerate 1 rated image" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -272,7 +263,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "rerate 1st rated image from two rated" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -291,7 +282,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "rerate 2nd rated image from two rated" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -310,7 +301,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "rate 1st unrated image from two" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -329,7 +320,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "rate 2nd unrated image from two" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -348,7 +339,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "rate 1st unrated image from two unrated" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -366,7 +357,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "rate 2nd unrated image from two unrated" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
@@ -384,7 +375,7 @@ class LargeImageSpec extends PlaySpecification with InMemDb {
   }
 
   "rate unrated image from the middle of many" in {
-    inMemDbApp { app =>
+    testDbApp { app =>
       implicit val materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))

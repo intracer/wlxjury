@@ -1,11 +1,14 @@
 @import org.intracer.wmua.Region
+@import db.scalikejdbc.User
+@import org.intracer.wmua.ImageWithRating
+@import db.scalikejdbc.Round
 @(
-        user: org.intracer.wmua.User,
+        user: User,
         asUserId: Long,
-        pageFiles: Seq[org.intracer.wmua.ImageWithRating],
+        pageFiles: Seq[ImageWithRating],
         pager: Pager,
-        round: Option[org.intracer.wmua.Round],
-        rounds: Seq[org.intracer.wmua.Round],
+        round: Option[Round],
+        rounds: Seq[Round],
         rate: Option[Int],
         region: String = "all",
         regions: Seq[Region],

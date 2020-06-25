@@ -2,7 +2,7 @@ package org.intracer.wmua
 
 import java.time.ZonedDateTime
 
-import db.scalikejdbc.SelectionJdbc
+import db.scalikejdbc.{Round, SelectionJdbc, User}
 import org.scalawiki.dto.Page
 
 case class Selection(pageId: Long, juryId: Long, roundId: Long,

@@ -12,8 +12,8 @@
         <appender-ref ref="STDOUT" />
     </appender>
 
-    <logger name="play" level="TRACE" />
-    <logger name="application" level="TRACE" />
+    <logger name="play" level="DEBUG" />
+    <logger name="application" level="DEBUG" />
 
     <logger name="com.gargoylesoftware.htmlunit.javascript" level="OFF" />
 
