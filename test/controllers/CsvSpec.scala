@@ -1,5 +1,6 @@
 package controllers
 
+import db.scalikejdbc.{Round, User}
 import org.intracer.wmua._
 import org.specs2.mutable.Specification
 

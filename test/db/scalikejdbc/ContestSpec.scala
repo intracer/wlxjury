@@ -3,22 +3,20 @@ package db.scalikejdbc
 import org.intracer.wmua.ContestJury
 import org.specs2.mutable.Specification
 
-class ContestSpec extends Specification with InMemDb {
+class ContestSpec extends Specification with TestDb {
 
   sequential
 
-  val contestDao = ContestJuryJdbc
-
   "fresh database" should {
     "be empty" in {
-      inMemDb {
+      withDb {
         val contests = contestDao.findAll()
         contests.size === 0
       }
     }
 
     "create contest" in {
-      inMemDb {
+      withDb {
         val images = Some("Category:Images from Wiki Loves Earth 2015 in Ukraine")
         val contest = contestDao.create(None, "WLE", 2015, "Ukraine", images, None, None)
         (contest.name, contest.year, contest.country, contest.images) ===("WLE", 2015, "Ukraine", images)
@@ -32,7 +30,7 @@ class ContestSpec extends Specification with InMemDb {
     }
 
     "create contests" in {
-      inMemDb {
+      withDb {
         def images(contest: String, year: Int, country: String) =
           Some(s"Category:Images from $contest $year in $country")
 

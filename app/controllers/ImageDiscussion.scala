@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.RoundJdbc
+import db.scalikejdbc.Round
 import org.intracer.wmua.CommentJdbc
 import play.api.data.Form
 import play.api.data.Forms._

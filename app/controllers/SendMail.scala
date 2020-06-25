@@ -1,8 +1,7 @@
 package controllers
 
+import db.scalikejdbc.User
 import javax.inject.Inject
-
-import org.intracer.wmua.User
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.email.{EmailUser, Subject, Target, Text}

@@ -4,6 +4,8 @@ import java.text.DecimalFormat
 import java.util.Locale
 import java.text.NumberFormat
 
+import db.scalikejdbc.{Round, User}
+
 case class ImageWithRating(
                             image: Image,
                             selection: Seq[Selection],
@@ -57,13 +59,13 @@ case class ImageWithRating(
 
   def ratedJurors(round: Round): Long =
     if (round.isBinary) {
-      round._allJurors
+      round.numberOfAssignedJurors
     } else if (selection.headOption.exists(_.juryId == 0) && !round.optionalRate)
       countFromDb
     else if (selection.size == 1 && selection.headOption.exists(_.juryId != 0))
       1
     else if (round.optionalRate)
-      round.activeJurors
+      round.numberOfJurorsForAverageRate
     else selection.count(_.rate > 0)
 
   def rateString(round: Round): String = {

@@ -1,16 +1,17 @@
 @import org.intracer.wmua.ContestJury
 @import controllers.SelectRound
+@import db.scalikejdbc.Round
+@import db.scalikejdbc.User
 @(
-        adminUser: org.intracer.wmua.User,
-        rounds: Seq[org.intracer.wmua.Round],
+        adminUser: User,
+        rounds: Seq[Round],
         roundsStat: Map[Long, RateDistribution],
         editRoundForm: Form[controllers.EditRound],
         editImagesForm: Form[Option[String]],
         selectRoundForm: Form[SelectRound],
-        round: Option[org.intracer.wmua.Round],
+        round: Option[Round],
         contest: ContestJury
 )(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
-    @import helper._
 
     @mainAdmin(Messages("rounds"), adminUser, adminUser.getId,
         rounds = rounds, selectedRound = round, contestId = contest.id) {
@@ -48,17 +49,7 @@
                                 <!--                            <td>              @round.limitMin </td>
                             <td>@round.limitMax </td>
                             <td>@round.recommended.fold("")(_.toString) </td> -->
-                            <td>
-                                @if(round.active) { @Messages("yes") } else { @Messages("no") }
-                                @form(routes.Rounds.setRound(), 'class -> "form-inline", 'id -> s"set-round-${round.id.get}", 'role -> "form") {
-                                        @helper.CSRF.formField
-                                        <input type="hidden" id="currentRound-@round.id.get" name="currentRound" value='@round.id.get' />
-                                        <input type="hidden" id="roundActive-@round.id.get" name="active" value='@{!round.active}' />
-                                        <button type="submit" class="btn-sm @if(round.active) {btn-danger} else {btn-success}">
-                                            <span class="glyphicon @if(round.active) { glyphicon-stop } else {  glyphicon-play }"></span>
-                                        </button>
-                                }
-                            </td>
+                            <td>@snippets.startStop(round.active, round.getId, contest.getId, routes.Rounds.setRound)</td>
                             <td>@roundsStat.get(round.getId).map(_.all).getOrElse(0) </td>
                             <td>@roundsStat.get(round.getId).map(_.positive).getOrElse(0) </td>
                         </tr>

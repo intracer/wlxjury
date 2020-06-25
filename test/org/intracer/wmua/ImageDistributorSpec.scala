@@ -1,55 +1,45 @@
 package org.intracer.wmua
 
+import controllers.{Contests, Rounds}
 import db.scalikejdbc._
 import org.intracer.wmua.cmd.DistributeImages
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-class ImageDistributorSpec extends Specification with InMemDb {
+class ImageDistributorSpec extends Specification with TestDb with Mockito {
 
   sequential
 
-  val imageDao = ImageJdbc
-  val userDao = UserJdbc
-  val roundDao = RoundJdbc
-  val selectionDao = SelectionJdbc
-
   val (contest1, contest2) = (10, 20)
+
+
+  val roundsController = new Rounds(mock[Contests])
 
   def image(id: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
-  def contestUser(contest: Long, role: String, i: Int) =
-    User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), Some(contest), Some("en"))
-
   def createJurors(
-                    contest: Long,
                     jurorsNum: Int,
                     preJurors: Boolean = true,
                     orgCom: Boolean = true,
-                    otherContest: Option[Long] = Some(20),
-                    start: Int = 1) = {
+                    otherContestId: Option[Long] = Some(20),
+                    start: Int = 1)(implicit contest: ContestJury) = {
 
-    val jurors = (start until jurorsNum + start).map(i => contestUser(contest, "jury", i))
+    val jurors = (start until jurorsNum + start).map(contestUser(_))
     val dbJurors = jurors.map(userDao.create)
 
-    val preJurors = (start until jurorsNum + start).map(i => contestUser(contest, "prejury", i + 100))
+    val preJurors = (start until jurorsNum + start).map(i => contestUser(i + 100, "prejury"))
     preJurors.foreach(userDao.create)
 
     if (start == 1) {
-      val orgCom = contestUser(contest, "organizer", 200)
+      val orgCom = contestUser(200, "organizer")
       userDao.create(orgCom)
 
-      val otherContestJurors = (1 to jurorsNum).map(i => contestUser(20, "jury", i + 300))
+      val otherContestJurors = (1 to jurorsNum).map(i => contestUser(i + 300, "jury")(contest.copy(id = otherContestId)))
       otherContestJurors.foreach(userDao.create)
     }
 
     dbJurors
-  }
-
-  def createContests(contestIds: Long*) = contestIds.foreach {
-    id =>
-      val contest = ContestJuryJdbc.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
-      ContestJuryJdbc.setImagesSource(id, Some("Images from " + contest.name))
   }
 
   def createImages(number: Int, contest1: Long, contest2: Long) = {
@@ -67,43 +57,43 @@ class ImageDistributorSpec extends Specification with InMemDb {
   "ImageDistributor" should {
 
     "first round 1 juror to image, one juror" in {
-      inMemDb {
+      withDb {
         val distribution = 1
 
-        createContests(contest1, contest2)
+        implicit val contest = createContests(contest1, contest2).head
         val images = createImages(9, contest1, contest2)
 
-        val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
-        val dbRound = roundDao.create(round)
-
-        val oneJuror = createJurors(contest1, 1)
+        val oneJuror = createJurors(1)
         oneJuror.size === 1
         val juryIds = oneJuror.map(_.getId)
 
-        DistributeImages.distributeImages(dbRound, oneJuror, None)
+        val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
+        val dbRound = roundsController.createNewRound(round, juryIds)
 
         val selection1 = selectionDao.findAll()
-
         selection1.size === 9
 
         selection1.map(_.roundId).toSet === Set(dbRound.getId)
         selection1.map(_.rate).toSet === Set(0)
         selection1.map(_.pageId) === images.map(_.pageId)
         selection1.map(_.juryId).toSet === juryIds.toSet
+
+        val roundWithJurors = roundDao.findById(dbRound.getId).get
+        roundWithJurors.users === oneJuror
       }
     }
 
     "create first round 1 juror to image" in {
-      inMemDb {
+      withDb {
         val distribution = 1
 
-        createContests(contest1, contest2)
+        implicit val contest = createContests(contest1, contest2).head
         val images = createImages(9, contest1, contest2)
 
         val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
         val dbRound = roundDao.create(round)
 
-        val dbJurors = createJurors(contest1, 3)
+        val dbJurors = createJurors( 3)
         dbJurors.size === 3
         val juryIds = dbJurors.map(_.getId)
 
@@ -121,22 +111,22 @@ class ImageDistributorSpec extends Specification with InMemDb {
     }
 
     "first round 1 juror to image, add jurors" in {
-      inMemDb {
+      withDb {
         val distribution = 1
 
-        createContests(contest1, contest2)
+        implicit val contest = createContests(contest1, contest2).head
         val images = createImages(9, contest1, contest2)
 
         val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
         val dbRound = roundDao.create(round)
 
-        val firstJuror = createJurors(contest1, 1)
+        val firstJuror = createJurors(1)
         DistributeImages.distributeImages(dbRound, firstJuror, None)
 
         val selection1 = selectionDao.findAll()
         selection1.size === 9
 
-        val moreJurors = createJurors(contest1, 2, start = 2)
+        val moreJurors = createJurors(2, start = 2)
         val allJurors = firstJuror ++ moreJurors
         val allJuryIds = allJurors.map(_.getId)
 
@@ -153,16 +143,16 @@ class ImageDistributorSpec extends Specification with InMemDb {
     }
 
     "first round 1 juror to image, rate and add jurors" in {
-      inMemDb {
+      withDb {
         val distribution = 1
 
-        createContests(contest1, contest2)
+        implicit val contest = createContests(contest1, contest2).head
         val images = createImages(9, contest1, contest2)
 
         val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
         val dbRound = roundDao.create(round)
 
-        val firstJuror = createJurors(contest1, 1)
+        val firstJuror = createJurors(1)
         val juryIds1 = firstJuror.map(_.getId)
 
         DistributeImages.distributeImages(dbRound, firstJuror, None)
@@ -170,7 +160,7 @@ class ImageDistributorSpec extends Specification with InMemDb {
         SelectionJdbc.rate(images(0).pageId, juryIds1(0), dbRound.getId, 1)
         SelectionJdbc.rate(images(1).pageId, juryIds1(0), dbRound.getId, -1)
 
-        val moreJurors = createJurors(contest1, 2, start = 2)
+        val moreJurors = createJurors(2, start = 2)
 
         val allJurors = firstJuror ++ moreJurors
         val allJuryIds = allJurors.map(_.getId)
@@ -189,18 +179,18 @@ class ImageDistributorSpec extends Specification with InMemDb {
     }.pendingUntilFixed
 
     "create first round 2 jurors to image" in {
-      inMemDb {
+      withDb {
         val distribution = 2
         val numImages = 9
         val numJurors = 3
 
-        createContests(contest1, contest2)
+        implicit val contest = createContests(contest1, contest2).head
         val images = createImages(numImages, contest1, contest2)
 
         val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
         val dbRound = roundDao.create(round)
 
-        val dbJurors = createJurors(contest1, numJurors)
+        val dbJurors = createJurors(numJurors)
         val juryIds = dbJurors.map(_.getId)
 
         DistributeImages.distributeImages(dbRound, dbJurors, None)
@@ -223,16 +213,16 @@ class ImageDistributorSpec extends Specification with InMemDb {
     }
 
     "create second round 1 juror to image in the first" in {
-      inMemDb {
+      withDb {
         val distribution = 1
 
-        createContests(contest1, contest2)
+        implicit val contest = createContests(contest1, contest2).head
         val images = createImages(9, contest1, contest2)
 
         val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.binaryRound, active = true)
         val dbRound = roundDao.create(round)
 
-        val dbJurors = createJurors(contest1, 3)
+        val dbJurors = createJurors(3)
         val juryIds = dbJurors.map(_.getId)
 
         DistributeImages.distributeImages(dbRound, dbJurors, None)
@@ -261,18 +251,18 @@ class ImageDistributorSpec extends Specification with InMemDb {
     }
 
     "create second round 2 jurors to image in the first" in {
-      inMemDb {
+      withDb {
 
         val distribution = 2
         val numImages = 2
         val numJurors = 2
-        createContests(contest1, contest2)
+        implicit val contest = createContests(contest1, contest2).head
         val images = createImages(numImages, contest1, contest2)
 
         val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
         val dbRound = roundDao.create(round)
 
-        val dbJurors = createJurors(contest1, numJurors)
+        val dbJurors = createJurors(numJurors)
         val juryIds = dbJurors.map(_.getId)
 
         DistributeImages.distributeImages(dbRound, dbJurors, None)

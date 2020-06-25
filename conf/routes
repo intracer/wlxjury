@@ -102,6 +102,8 @@ POST        /admin/setround                                                     
 
 POST        /admin/startround                                                       @controllers.Rounds.startRound()
 
+POST        /round/setrounduser                                                     @controllers.Rounds.setRoundUser()
+
 GET         /roundstat                                                              @controllers.Rounds.currentRoundStat(contestId: Option[Long] ?= None)
 
 GET         /roundstat/:round                                                       @controllers.Rounds.roundStat(round: Long)

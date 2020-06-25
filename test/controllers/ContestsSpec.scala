@@ -1,21 +1,19 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, InMemDb, UserJdbc}
-import org.intracer.wmua.{ContestJury, User}
+import db.scalikejdbc.{ContestJuryJdbc, TestDb, User}
+import org.intracer.wmua.ContestJury
 import org.scalawiki.MwBot
 import play.api.mvc.Security
 import play.api.test.{FakeRequest, PlaySpecification}
 import play.api.test.CSRFTokenHelper._
 
-class ContestsSpec extends PlaySpecification with InMemDb {
+class ContestsSpec extends PlaySpecification with TestDb {
 
-  val userDao = UserJdbc
-  val contestDao = ContestJuryJdbc
   val email = "email@1.com"
 
   "import contests" should {
     "import Ukraine" in {
-      inMemDbApp { app =>
+      testDbApp { app =>
         implicit val materializer = app.materializer
 
         val bot = MwBot.fromHost("commons.wikimedia.org")

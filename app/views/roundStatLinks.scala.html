@@ -1,5 +1,5 @@
-@import org.intracer.wmua.User
-@import org.intracer.wmua.Round
+@import db.scalikejdbc.User
+@import db.scalikejdbc.Round
 @(round: Round, user: User, rate: Int, byUserRateCount: Map[Long, Map[Int, Int]])
     @defining(byUserRateCount.getOrElse(user.getId, Map.empty).toSeq.collect({
         case (x, y)

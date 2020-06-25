@@ -1,9 +1,7 @@
 package controllers
 
 import javax.inject.Inject
-
-import db.scalikejdbc.{RoundJdbc, UserJdbc}
-import org.intracer.wmua.User
+import db.scalikejdbc.{Round, User}
 import play.api.Play.current
 import play.api.data.Forms._
 import play.api.data._
@@ -24,7 +22,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
     if (user.hasAnyRole(User.ORG_COM_ROLES)) {
       Redirect(routes.Rounds.currentRoundStat())
     } else if (user.hasAnyRole(User.JURY_ROLES)) {
-      val maybeRound = RoundJdbc.current(user).headOption
+      val maybeRound = Round.activeRounds(user).headOption
       maybeRound.fold {
         Redirect(routes.Login.error("no.round.yet"))
       } {
@@ -46,7 +44,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
 
   def login = Action {
     implicit request =>
-      val users = UserJdbc.count()
+      val users = User.count()
       if (users > 0) {
         Ok(views.html.index(loginForm))
       } else {
@@ -60,7 +58,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
       formWithErrors =>
         BadRequest(views.html.index(formWithErrors)), {
         case (login, password) =>
-          val user = UserJdbc.login(login, password).get
+          val user = User.login(login, password).get
           val result = indexRedirect(user).withSession(Security.username -> login)
           user.lang.fold(result)(l => result.withLang(Lang(l)))
       }
@@ -78,7 +76,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
         BadRequest(views.html.signUp(formWithErrors)), {
         case (login: String, password: String, _) =>
 
-          val users = UserJdbc.count()
+          val users = User.count()
           val roles = if (users > 0)
             Set.empty[String]
           else
@@ -113,7 +111,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
       "login" -> nonEmptyText(),
       "password" -> nonEmptyText()
     ) verifying("invalid.user.or.password", fields => fields match {
-      case (l, p) => UserJdbc.login(l, p).isDefined
+      case (l, p) => User.login(l, p).isDefined
     })
   )
 

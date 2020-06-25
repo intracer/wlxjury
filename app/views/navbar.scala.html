@@ -1,11 +1,11 @@
-@import org.intracer.wmua.User
-@import db.scalikejdbc.UserJdbc
+@import db.scalikejdbc.User
+@import db.scalikejdbc.Round
 @(
         title: String,
-        user: org.intracer.wmua.User = null,
+        user: User = null,
         asUserId: Long = 0,
-        selectedRound: Option[org.intracer.wmua.Round],
-        rounds: Seq[org.intracer.wmua.Round] = Seq.empty,
+        selectedRound: Option[Round],
+        rounds: Seq[Round] = Seq.empty,
         gallery: Boolean = false,
         rate: Option[Int] = None,
         region: String = "all",
@@ -122,7 +122,7 @@
                             @(new UiSelectionDto[Option[Long]](
                                 { userId: Option[Long] => routes.Gallery.query(module = title, userId, page = 1, region = region, round = round.getId, rate) },
                                 Some(asUserId),
-                                UserJdbc.findByRoundSelection(round.getId).map(u => (Some(u.getId), SelectionItem(u.fullname, localized = false))),
+                                User.findByRoundSelection(round.getId).map(u => (Some(u.getId), SelectionItem(u.fullname, localized = false))),
                                 Some(Some(0L) -> SelectionItem("all"))
                             ).toDropDown())
 

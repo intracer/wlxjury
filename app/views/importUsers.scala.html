@@ -1,5 +1,5 @@
 @(
-        adminUser: org.intracer.wmua.User,
+        adminUser: db.scalikejdbc.User,
         importUserForm: Form[String],
         contestId: Long)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
 @import helper._

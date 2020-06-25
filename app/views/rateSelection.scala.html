@@ -1,3 +1,4 @@
+@import db.scalikejdbc.Rates
 @(      module: String = "gallery",
         roundId: Int,
         asUserId: Int,
@@ -5,7 +6,6 @@
         region: String = "all"
         )(implicit lang: Lang, messages: Messages)
 
-@import org.intracer.wmua.Rates
 <div class="btn-group" style="margin-top : 10px">
     <a class="btn" href="#">@Messages(rate.fold("all")(r => Rates.map(r)))</a>
     <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>

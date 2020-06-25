@@ -1,15 +1,18 @@
-@(
-        selections: Seq[(org.intracer.wmua.Selection, org.intracer.wmua.User)],
-        round: org.intracer.wmua.Round,
+@import db.scalikejdbc.Round
+@import org.intracer.wmua.Selection
+@import db.scalikejdbc.User
+@(selections: Seq[(Selection, User)],
+        round: Round,
         module: String,
-        region: String
-        )
+        region: String)
 
-<div style="margin-right: 5px; margin-top: 5px; padding: 5px;">
+<div style="margin-right: 5px;
+    margin-top: 5px;
+    padding: 5px;">
     <ol>
-    @for((selection, user) <- selections) {
-        <li>@showRate(selection, round, user.fullname, module, user.getId, region, selection.pageId)
-    }
+        @for((selection, user) <- selections) {
+            <li>@showRate(selection, round, user.fullname, module, user.getId, region, selection.pageId)
+            }
     </ol>
 </div>
 

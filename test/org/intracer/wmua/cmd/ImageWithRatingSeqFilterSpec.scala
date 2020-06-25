@@ -1,6 +1,6 @@
 package org.intracer.wmua.cmd
 
-import org.intracer.wmua.Round
+import db.scalikejdbc.Round
 import org.specs2.mutable.Specification
 
 class ImageWithRatingSeqFilterSpec extends Specification {

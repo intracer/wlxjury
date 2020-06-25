@@ -1,7 +1,6 @@
 package org.intracer.wmua.cmd
 
-import db.scalikejdbc.RoundJdbc
-import org.intracer.wmua.Round
+import db.scalikejdbc.Round
 
 case class AddRound(
                      contestId: Long,
@@ -22,7 +21,7 @@ case class AddRound(
       rates = Round.ratesById(rates),
       minMpx = minMpx)
 
-    RoundJdbc.create(round)
+    Round.create(round)
   }
 
 }

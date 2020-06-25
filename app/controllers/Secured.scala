@@ -1,7 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{RoundJdbc, UserJdbc}
-import org.intracer.wmua.User
+import db.scalikejdbc.{Round, User}
 import play.api.mvc._
 
 /**
@@ -18,7 +17,7 @@ trait Secured {
   def userFromRequest(request: RequestHeader): Option[User] = {
     request.session.get(Security.username)
       .map(_.trim.toLowerCase)
-      .flatMap(UserJdbc.byUserName)
+      .flatMap(User.byUserName)
   }
 
   def onUnAuthenticated(request: RequestHeader) = Results.Redirect(routes.Login.login())
@@ -46,7 +45,7 @@ trait Secured {
     }
 
   def roundPermission(roles: Set[String], roundId: Long)(user: User): Boolean =
-    RoundJdbc.findById(roundId).exists { round =>
+    Round.findById(roundId).exists { round =>
       contestPermission(roles, Some(round.contestId))(user)
     }
 }

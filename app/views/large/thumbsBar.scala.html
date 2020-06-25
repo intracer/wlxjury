@@ -1,18 +1,19 @@
 @import controllers.Global
-
+@import db.scalikejdbc.Round
+@import db.scalikejdbc.User
+@import org.intracer.wmua.ImageWithRating
 @(
-        user: org.intracer.wmua.User,
+        user: User,
         asUserId: Long,
-        files: Seq[org.intracer.wmua.ImageWithRating],
+        files: Seq[ImageWithRating],
         index: Int,
         start: Int,
         end: Int,
         rate: Option[Int],
         region: String = "all",
-        round: org.intracer.wmua.Round,
+        round: Round,
         module : String = "gallery")(
-        implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
-
+        implicit flash: Flash, lang: Lang, request: Request[Any], messages: Messages)
 
 @thumbSmall(style:String) = {
     <div class="@style">
