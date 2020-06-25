@@ -108,7 +108,7 @@ object LargeView extends Controller with Secured {
            region: String,
            roundId: Long,
            module: String)(implicit request: Request[Any]): Result = {
-    val maybeRound = if (roundId == 0) Round.current(user).headOption else Round.findById(roundId)
+    val maybeRound = if (roundId == 0) Round.activeRounds(user).headOption else Round.findById(roundId)
     val round = maybeRound.get
 
     val query = getQuery(asUserId, rate, round.id, regions = Set(region).filter(_ != "all"))

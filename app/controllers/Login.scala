@@ -22,7 +22,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
     if (user.hasAnyRole(User.ORG_COM_ROLES)) {
       Redirect(routes.Rounds.currentRoundStat())
     } else if (user.hasAnyRole(User.JURY_ROLES)) {
-      val maybeRound = Round.current(user).headOption
+      val maybeRound = Round.activeRounds(user).headOption
       maybeRound.fold {
         Redirect(routes.Login.error("no.round.yet"))
       } {

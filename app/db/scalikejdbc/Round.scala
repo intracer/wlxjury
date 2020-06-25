@@ -216,7 +216,7 @@ object Round extends SkinnyCRUDMapper[Round] {
     where('contestId -> contestId, 'active -> true)
       .orderBy(r.id).apply()
 
-  def current(user: User): Seq[Round] = {
+  def activeRounds(user: User): Seq[Round] = {
     user.currentContest.map { contestId =>
       where(sqls
         .eq(r.contestId, contestId).and

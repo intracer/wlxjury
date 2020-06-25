@@ -76,14 +76,14 @@ object Gallery extends Controller with Secured with Instrumented {
                    rated: Option[Boolean] = None) = withAuth() { user =>
     implicit request =>
         timerList.time {
-          val maybeRound = if (roundId == 0) Round.current(user).headOption else Round.findById(roundId)
+          val maybeRound = if (roundId == 0) Round.activeRounds(user).headOption else Round.findById(roundId)
 
           val roundContestId = maybeRound.map(_.contestId).getOrElse(0L)
           val round = maybeRound.get
           val rounds = if (user.canViewOrgInfo(round)) {
             Round.findByContest(roundContestId).filter(user.canViewOrgInfo)
           } else {
-            Round.current(user)
+            Round.activeRounds(user)
           }
 
           if (isNotAuthorized(user, maybeRound, roundContestId, rounds)) {

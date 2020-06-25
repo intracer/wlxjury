@@ -211,7 +211,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   def currentRoundStat(contestId: Option[Long] = None) = withAuth(rolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) {
     user =>
       implicit request =>
-        val activeRound = Round.current(user).headOption.orElse {
+        val activeRound = Round.activeRounds(user).headOption.orElse {
           val currentContestId = contestId.orElse(user.currentContest)
           currentContestId.flatMap(contestId => Round.activeRounds(contestId).filter(r => user.canViewOrgInfo(r)).lastOption)
         }
