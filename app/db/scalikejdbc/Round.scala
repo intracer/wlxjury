@@ -2,7 +2,6 @@ package db.scalikejdbc
 
 import java.time.ZonedDateTime
 
-import db.scalikejdbc.Round.updateById
 import org.intracer.wmua.{HasId, ImageWithRating}
 import org.scalawiki.dto.Page
 import scalikejdbc._
@@ -125,6 +124,8 @@ object Round extends SkinnyCRUDMapper[Round] {
 
   lazy val s = SelectionJdbc.syntax("s")
 
+  lazy val ru = RoundUser.syntax("ru")
+
   override lazy val defaultAlias = createAlias("r")
 
   lazy val r = defaultAlias
@@ -222,10 +223,11 @@ object Round extends SkinnyCRUDMapper[Round] {
         .eq(r.contestId, contestId).and
         .eq(r.active, true).and
         .exists(
-          select.from(SelectionJdbc as s)
+          select.from(RoundUser as ru)
             .where
-            .eq(s.juryId, user.id.get).and
-            .eq(s.roundId, r.id).sql
+            .eq(ru.userId, user.getId).and
+            .eq(ru.roundId, r.id).and
+            .eq(ru.active, true).sql
         ))
         .orderBy(r.id).apply()
     }.getOrElse(Nil)
@@ -238,10 +240,6 @@ object Round extends SkinnyCRUDMapper[Round] {
   def setActive(id: Long, active: Boolean): Unit =
     updateById(id)
       .withAttributes('active -> active)
-
-  def setRoundUser(roundId: Long, userId: Long, active: Boolean) = {
-
-  }
 
   def setInactiveAllInContest(contestId: Long): Unit = withSQL {
     update(Round).set(column.active -> false)
