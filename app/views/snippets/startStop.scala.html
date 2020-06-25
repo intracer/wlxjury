@@ -1,4 +1,4 @@
-@(active: Boolean, id: Long, submit: () => Call)(implicit lang: Lang, messages: Messages)
+@(active: Boolean, id: Long, submit: () => Call)(implicit lang: Lang, messages: Messages, req: RequestHeader)
 @import helper._
 @if(active) { @Messages("yes") } else { @Messages("no") }
 @form(submit(), 'class -> "form-inline", 'id -> s"set-active-form-$id", 'role -> "form") {
