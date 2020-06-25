@@ -25,7 +25,8 @@ case class User(fullname: String,
                 wikiAccount: Option[String] = None,
                 hasWikiEmail: Boolean = false,
                 accountValid: Boolean = true,
-                sort: Option[Int] = None
+                sort: Option[Int] = None,
+                active: Option[Boolean] = Some(true),
                ) extends HasId with Ordered[User] {
 
   def emailLo = email.trim.toLowerCase

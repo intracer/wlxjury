@@ -162,6 +162,13 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       Redirect(routes.Rounds.rounds(round.map(_.contestId)))
   }
 
+  def setRoundUser() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
+    implicit request =>
+      val setRoundUser = setRoundUserForm.bindFromRequest.get
+      RoundUser.setActive(setRoundUser.roundId.toLong, setRoundUser.userId.toLong, setRoundUser.active)
+      Redirect(routes.Rounds.roundStat(setRoundUser.roundId.toLong))
+  }
+
   def startRound() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
       implicit request =>
 
@@ -274,9 +281,10 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 
     val total = SelectionQuery(roundId = Some(roundId), grouped = true).count()
 
+    val roundUsers = RoundUser.byRoundId(roundId).groupBy(_.userId)
     val jurors = User.findByContest(round.contestId).filter { u =>
       u.id.exists(byUserCount.contains)
-    }
+    }.map(u => u.copy(active = roundUsers.get(u.getId).flatMap(_.headOption.map(_.active))))
 
     RoundStat(jurors, round, rounds, byUserCount, byUserRateCount, total, totalByRate)
   }
@@ -288,6 +296,14 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       "currentId" -> text,
       "setActive" -> boolean
     )(SelectRound.apply)(SelectRound.unapply)
+  )
+
+  val setRoundUserForm = Form(
+    mapping(
+      "parentId" -> text,
+      "currentId" -> text,
+      "setActive" -> boolean
+    )(SetRoundUser.apply)(SetRoundUser.unapply)
   )
 
   def nonEmptySeq[T]: Constraint[Seq[T]] = Constraint[Seq[T]]("constraint.required") { o =>
@@ -385,6 +401,8 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
 }
 
 case class SelectRound(roundId: String, active: Boolean)
+
+case class SetRoundUser(roundId: String, userId: String, active: Boolean)
 
 case class RoundStat(jurors: Seq[User],
                      round: Round,

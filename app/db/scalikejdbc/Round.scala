@@ -2,6 +2,7 @@ package db.scalikejdbc
 
 import java.time.ZonedDateTime
 
+import db.scalikejdbc.Round.updateById
 import org.intracer.wmua.{HasId, ImageWithRating}
 import org.scalawiki.dto.Page
 import scalikejdbc._
@@ -238,6 +239,10 @@ object Round extends SkinnyCRUDMapper[Round] {
     updateById(id)
       .withAttributes('active -> active)
 
+  def setRoundUser(roundId: Long, userId: Long, active: Boolean) = {
+
+  }
+
   def setInactiveAllInContest(contestId: Long): Unit = withSQL {
     update(Round).set(column.active -> false)
       .where.eq(column.contestId, contestId)
@@ -267,7 +272,7 @@ object Round extends SkinnyCRUDMapper[Round] {
 
 object RoundUser extends SkinnyJoinTable[RoundUser] {
   override def defaultAlias = createAlias("round_user")
-  lazy val ru = RoundUser.syntax("ru")
+  lazy val ru = RoundUser.syntax("round_user")
 
   override def extract(rs: WrappedResultSet, ru: ResultName[RoundUser]): RoundUser =
     RoundUser(rs.long(ru.roundId), rs.long(ru.userId), rs.string(ru.role), rs.boolean(ru.active))
@@ -277,4 +282,9 @@ object RoundUser extends SkinnyJoinTable[RoundUser] {
 
   def activeJurors(roundId: Long): List[RoundUser] = where('roundId -> roundId, 'active -> true).apply()
 
+  def byRoundId(roundId: Long): List[RoundUser] = where('roundId -> roundId).apply()
+
+  def setActive(roundId: Long, userId: Long, active: Boolean): Int =
+    updateBy(sqls.eq(ru.roundId, roundId).and.eq(ru.userId, userId))
+      .withAttributes('active -> active)
 }

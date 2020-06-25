@@ -12,7 +12,6 @@
         round: Option[Round],
         contest: ContestJury
 )(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
-    @import helper._
 
     @mainAdmin(Messages("rounds"), adminUser, adminUser.getId,
         rounds = rounds, selectedRound = round, contestId = contest.id) {
@@ -50,9 +49,7 @@
                                 <!--                            <td>              @round.limitMin </td>
                             <td>@round.limitMax </td>
                             <td>@round.recommended.fold("")(_.toString) </td> -->
-                            <td>
-                                @snippets.startStop(round.active, round.getId, routes.Rounds.setRound)
-                            </td>
+                            <td>@snippets.startStop(round.active, round.getId, contest.getId, routes.Rounds.setRound)</td>
                             <td>@roundsStat.get(round.getId).map(_.all).getOrElse(0) </td>
                             <td>@roundsStat.get(round.getId).map(_.positive).getOrElse(0) </td>
                         </tr>
