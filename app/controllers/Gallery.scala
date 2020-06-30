@@ -247,14 +247,14 @@ object Gallery extends Controller with Secured with Instrumented {
     )
   }
 
-  def resizedImagesUrls(contestId: Long) = {
+  def resizedImagesUrls(contestId: Long): List[String] = {
     val images = ImageJdbc.findByContestId(contestId)
     val urls = for (image <- images;
                     (x, y) <- Global.smallSizes;
-                    factor <- Seq(1.0, 1.5, 2.0)
-    ) yield Global.resizeTo(image, (x * factor).toInt, (y * factor).toInt)
+                    factor <- Global.sizeFactors
+    ) yield Seq(Global.resizeTo(image, (x * factor).toInt, (y * factor).toInt), Global.resizeTo(image, (y * factor).toInt))
 
-    urls.sorted.distinct
+    urls.flatten.sorted.distinct
   }
 
   def urlsStream(urls: collection.immutable.Iterable[String], filename: String): Result = {

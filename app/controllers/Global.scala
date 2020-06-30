@@ -4,6 +4,7 @@ import java.net.URLEncoder
 
 import _root_.db.scalikejdbc.ContestJuryJdbc
 import com.codahale.metrics.MetricRegistry
+import com.typesafe.config.ConfigFactory
 import org.intracer.wmua._
 import org.scalawiki.MwBot
 
@@ -22,12 +23,16 @@ object Global {
     (thumbSizeX, thumbSizeY)
   )
 
+  val sizeFactors = Seq(1.0, 1.5, 2.0)
+
   val metrics = new MetricRegistry()
 
   lazy val commons = MwBot.fromHost(COMMONS_WIKIMEDIA_ORG)
 
+  lazy val thumbsHost = ConfigFactory.load().getString("wlxjury.thumbs.host")
+
   val useLegacyThumbUrl = true
-  val thumbUrl: (Image, Int) => String = if (useLegacyThumbUrl) legacyThumbUlr else thumbPhpUrl
+  val thumbUrl: (Image, Int, Int) => String = if (useLegacyThumbUrl) legacyThumbUlr else thumbPhpUrl
 
   def initCountry(category: String, countryOpt: Option[String]) = {
     val country = countryOpt.fold(category.replace("Category:Images from Wiki Loves Earth 2014 in ", ""))(identity)
@@ -54,7 +59,7 @@ object Global {
     val isSvg = info.title.toLowerCase.endsWith(".svg")
 
     if (px < info.width || isPdf || isTif || isSvg) {
-      thumbUrl(info, px)
+      thumbUrl(info, px, resizeToHeight)
     } else {
       info.url.getOrElse("")
     }
@@ -69,7 +74,7 @@ object Global {
     val isSvg = info.title.toLowerCase.endsWith(".svg")
 
     if (px < info.width || isPdf || isTif || isSvg) {
-      thumbUrl(info, px)
+      thumbUrl(info, px, resizeToHeight)
     } else {
       info.url.getOrElse("")
     }
@@ -79,12 +84,12 @@ object Global {
     s"${resizeTo(image, (resizeToWidth * 1.5).toInt, (resizeToHeight * 1.5).toInt)} 1.5x, ${resizeTo(image, resizeToWidth * 2, resizeToHeight * 2)} 2x"
   }
 
-  def thumbPhpUrl(info: Image, px: Int) = {
+  def thumbPhpUrl(info: Image, px: Int, resizeToHeight: Int) = {
     val file = URLEncoder.encode(info.title.replaceFirst("File:", "").replace(" ", "_"), "UTF-8")
     s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
   }
 
-  def legacyThumbUlr(info: Image, px: Int) = {
+  def legacyThumbUlr(info: Image, px: Int, resizeToHeight: Int) = {
     val isPdf = info.title.toLowerCase.endsWith(".pdf")
     val isTif = info.title.toLowerCase.endsWith(".tif")
 
@@ -96,7 +101,10 @@ object Global {
     } else {
       url.substring(lastSlash + 1)
     }
-    url.replace("//upload.wikimedia.org/wikipedia/commons/", "//upload.wikimedia.org/wikipedia/commons/thumb/") + "/" +
+
+    val imageHost = if (resizeToHeight <= gallerySizeY * 2) thumbsHost else "upload.wikimedia.org"
+
+    url.replace("//upload.wikimedia.org/wikipedia/commons/", s"//$imageHost/wikipedia/commons/thumb/") + "/" +
       (if (isPdf) "page1-" else
       if (isTif) "lossy-page1-" else
         "") +
