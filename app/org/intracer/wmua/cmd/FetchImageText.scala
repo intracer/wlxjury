@@ -1,6 +1,6 @@
 package org.intracer.wmua.cmd
 
-import org.intracer.wmua.{ContestJury, Image}
+import org.intracer.wmua.Image
 import org.scalawiki.MwBot
 import org.scalawiki.dto.Page
 import org.scalawiki.wikitext.TemplateParser
@@ -8,6 +8,7 @@ import org.scalawiki.wikitext.TemplateParser
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import FetchImageText._
+import db.scalikejdbc.ContestJury
 
 case class FetchImageText(source: String,
                           contest: ContestJury,

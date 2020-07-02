@@ -1,7 +1,7 @@
 package controllers
 
 import db.scalikejdbc.{TestDb, User}
-import org.intracer.wmua.ContestJury
+import db.scalikejdbc.ContestJury
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 

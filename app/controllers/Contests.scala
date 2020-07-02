@@ -1,9 +1,9 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, User}
+import db.scalikejdbc.{ContestJury, ImageJdbc, User}
 import org.intracer.wmua.cmd.FetchImageInfo
 import org.intracer.wmua.cmd.FetchImageText._
-import org.intracer.wmua.ContestJury
+import db.scalikejdbc.ContestJury
 import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, ContestType, Country, NoAdmDivision}
 import org.scalawiki.wlx.{CampaignList, CountryParser}
@@ -44,7 +44,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
   }
 
   def findContests: List[ContestJury] = {
-    ContestJuryJdbc.findAll() //.map(_.copy(messages = applicationMessages))
+    ContestJury.findAll() //.map(_.copy(messages = applicationMessages))
   }
 
   def saveContest() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
@@ -79,7 +79,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
                 importCategory(formContest)
               }
 
-            val existing = ContestJuryJdbc.findAll().map(c => s"${c.name}/${c.year}/${c.country}").toSet
+            val existing = ContestJury.findAll().map(c => s"${c.name}/${c.year}/${c.country}").toSet
             val newContests = imported.filterNot(c => existing.contains(s"${c.contestType.name}/${c.year}/${c.country.name}"))
 
             newContests.foreach {
@@ -112,7 +112,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
   }
 
   def createContest(contest: ContestJury): ContestJury = {
-    ContestJuryJdbc.create(
+    ContestJury.create(
       contest.id,
       contest.name,
       contest.year,
@@ -130,7 +130,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
   def images(contestId: Long, inProgress: Boolean = false) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
     user =>
       implicit request =>
-        val contest = ContestJuryJdbc.findById(contestId).get
+        val contest = ContestJury.findById(contestId).get
 
         val sourceImageNum = getNumberOfImages(contest)
         val dbImagesNum = ImageJdbc.countByContest(contest)
@@ -151,7 +151,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
     */
   def importImages(contestId: Long) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) { user =>
     implicit request =>
-      val contest = ContestJuryJdbc.findById(contestId).get
+      val contest = ContestJury.findById(contestId).get
       importImagesForm.bindFromRequest.fold(
         formWithErrors => BadRequest(views.html.contest_images(formWithErrors, contest, user, 0, ImageJdbc.countByContest(contest))), {
           case (source, list, action) =>
@@ -214,7 +214,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
   }
 
   def regions(contestId: Long): Map[String, String] = {
-    ContestJuryJdbc.findById(contestId)
+    ContestJury.findById(contestId)
       .filter(_.country == "Ukraine")
       .map(_ => KOATUU.regions)
       .getOrElse(Map.empty)

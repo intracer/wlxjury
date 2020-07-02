@@ -1,9 +1,9 @@
 @import db.scalikejdbc.User
 @(
         user: db.scalikejdbc.User,
-        contests: Seq[org.intracer.wmua.ContestJury],
-        filtered: Seq[org.intracer.wmua.ContestJury],
-        editContestForm: Form[org.intracer.wmua.ContestJury],
+        contests: Seq[db.scalikejdbc.ContestJury],
+        filtered: Seq[db.scalikejdbc.ContestJury],
+        editContestForm: Form[db.scalikejdbc.ContestJury],
         importForm: Form[String],
         contestType: Option[String] = None,
         year: Option[Int] = None

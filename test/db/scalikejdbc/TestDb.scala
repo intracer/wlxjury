@@ -7,14 +7,14 @@ import com.wix.mysql.EmbeddedMysql.anEmbeddedMysql
 import com.wix.mysql.config.DownloadConfig.aDownloadConfig
 import com.wix.mysql.config.MysqldConfig.aMysqldConfig
 import com.wix.mysql.distribution.Version.v5_7_latest
-import org.intracer.wmua.ContestJury
+import db.scalikejdbc.ContestJury
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
 
 trait TestDb {
 
-  val contestDao = ContestJuryJdbc
+  val contestDao = ContestJury
   val imageDao = ImageJdbc
   val roundDao = Round
   val selectionDao = SelectionJdbc
@@ -67,8 +67,8 @@ trait TestDb {
 
 
   def createContests(contestIds: Long*): Seq[ContestJury] = contestIds.map { id =>
-    val contest = ContestJuryJdbc.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
-    ContestJuryJdbc.setImagesSource(id, Some("Images from " + contest.name))
+    val contest = ContestJury.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
+    ContestJury.setImagesSource(id, Some("Images from " + contest.name))
     contest
   }
 

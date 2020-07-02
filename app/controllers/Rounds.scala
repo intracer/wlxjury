@@ -31,7 +31,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
     user =>
       implicit request =>
         val roundsView = for (contestId <- contestIdParam.orElse(user.currentContest);
-                              contest <- ContestJuryJdbc.findById(contestId)) yield {
+                              contest <- ContestJury.findById(contestId)) yield {
           val rounds = Round.findByContest(contestId)
           val currentRound = rounds.find(_.id == contest.currentRound)
 
@@ -173,12 +173,12 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
       implicit request =>
 
         for (contestId <- user.currentContest;
-             contest <- ContestJuryJdbc.findById(contestId)) {
+             contest <- ContestJury.findById(contestId)) {
           val rounds = Round.findByContest(contestId)
 
           for (currentRound <- rounds.find(_.id == contest.currentRound);
                nextRound <- rounds.find(_.number == currentRound.number + 1)) {
-            ContestJuryJdbc.setCurrentRound(contestId, nextRound.id)
+            ContestJury.setCurrentRound(contestId, nextRound.id)
           }
         }
 
@@ -192,8 +192,8 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   def setImages() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
       implicit request =>
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
-        for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById)) {
-          ContestJuryJdbc.setImagesSource(contest.getId, imagesSource)
+        for (contest <- user.currentContest.flatMap(ContestJury.findById)) {
+          ContestJury.setImagesSource(contest.getId, imagesSource)
 
           //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 

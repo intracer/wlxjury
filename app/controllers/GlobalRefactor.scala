@@ -30,7 +30,7 @@ class GlobalRefactor(val commons: MwBot) {
 
   def appendImages(source: String, imageList: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
 
-    ContestJuryJdbc.setImagesSource(contest.getId, Some(source))
+    ContestJury.setImagesSource(contest.getId, Some(source))
 
     val existingImages = ImageJdbc.findByContest(contest)
 
@@ -128,7 +128,7 @@ class GlobalRefactor(val commons: MwBot) {
 
         contests.foreach {
           contest =>
-            val dbContest = ContestJuryJdbc.where('country -> contest.country, 'year -> year, 'name -> contestName).apply().head
+            val dbContest = ContestJury.where('country -> contest.country, 'year -> year, 'name -> contestName).apply().head
             //GlobalRefactor.appendImages(contest.images.get, dbContest)
             addAdmin(dbContest)
         }

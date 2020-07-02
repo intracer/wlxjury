@@ -85,7 +85,7 @@ object Tools {
   }
 
   def initImages(): Unit = {
-    val contest = ContestJuryJdbc.findById(77L).get
+    val contest = ContestJury.findById(77L).get
 
     globalRefactor.appendImages(contest.images.get, "", contest)
 
@@ -196,8 +196,8 @@ object Tools {
   }
 
   def newlyPictured() = {
-    val contestJury2017 = ContestJuryJdbc.findById(64).get
-    val contestJuryAll = ContestJuryJdbc.findById(66).get
+    val contestJury2017 = ContestJury.findById(64).get
+    val contestJuryAll = ContestJury.findById(66).get
 
     val allImages = ImageJdbc.findByContest(contestJuryAll)
     val images2017 = ImageJdbc.findByContest(contestJury2017)
@@ -240,7 +240,7 @@ object Tools {
 
   def fillLists() = {
 
-    val contestJury = ContestJuryJdbc.findById(67).get
+    val contestJury = ContestJury.findById(67).get
 
     val allImages = ImageJdbc.findByContest(contestJury)
 
@@ -255,7 +255,7 @@ object Tools {
 
   def byCity() = {
 
-    val contest = ContestJuryJdbc.findById(67).get
+    val contest = ContestJury.findById(67).get
 
     val codes = Map("80" -> "Київ",
       "07" -> "Волинська",

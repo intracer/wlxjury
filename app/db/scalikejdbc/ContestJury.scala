@@ -1,12 +1,28 @@
 package db.scalikejdbc
 
 import _root_.play.api.i18n.Messages
-import controllers.Greeting
-import org.intracer.wmua.ContestJury
+import org.intracer.wmua.HasId
 import scalikejdbc._
 import skinny.orm.SkinnyCRUDMapper
+import controllers.Greeting
 
-object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
+case class ContestJury(id: Option[Long],
+                       name: String,
+                       year: Int,
+                       country: String,
+                       images: Option[String],
+                       categoryId: Option[Long] = None,
+                       currentRound: Option[Long] = None,
+                       monumentIdTemplate: Option[String] = None,
+                       greeting: Greeting = Greeting(None, use = true),
+                       campaign: Option[String] = None) extends HasId {
+  //def localName = Messages("wiki.loves.earth." + country, year)(messages)
+  def fullName = s"$name $year in $country"
+
+  def getImages = images.getOrElse("Category:Images from " + name)
+}
+
+object ContestJury extends SkinnyCRUDMapper[ContestJury] {
 
   var messages: Messages = _
 
@@ -61,7 +77,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
                       campaign: Option[String] = None,
             ): ContestJury = {
     val dbId = withSQL {
-      insert.into(ContestJuryJdbc).namedValues(
+      insert.into(ContestJury).namedValues(
         column.id -> id,
         column.name -> name,
         column.year -> year,
@@ -87,7 +103,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
   }
 
   def batchInsert(contests: Seq[ContestJury]): Seq[Int] = {
-    val column = ContestJuryJdbc.column
+    val column = ContestJury.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] = contests.map(c => Seq(
         c.id,
@@ -100,7 +116,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
         c.campaign
       ))
       withSQL {
-        insert.into(ContestJuryJdbc).namedValues(
+        insert.into(ContestJury).namedValues(
           column.id -> sqls.?,
           column.name -> sqls.?,
           column.year -> sqls.?,

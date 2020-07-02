@@ -11,7 +11,7 @@ class ImageSpec extends Specification with TestDb {
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
   def addToContest(contestId: Long, images: Seq[Image]) =
-    CategoryLinkJdbc.addToCategory(ContestJuryJdbc.findById(contestId).flatMap(_.categoryId).get, images)
+    CategoryLinkJdbc.addToCategory(ContestJury.findById(contestId).flatMap(_.categoryId).get, images)
 
   "fresh database" should {
 

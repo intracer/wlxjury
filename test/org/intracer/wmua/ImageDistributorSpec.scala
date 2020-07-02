@@ -48,8 +48,8 @@ class ImageDistributorSpec extends Specification with TestDb with Mockito {
 
     imageDao.batchInsert(images1 ++ images2)
 
-    CategoryLinkJdbc.addToCategory(ContestJuryJdbc.findById(contest1).flatMap(_.categoryId).get, images1)
-    CategoryLinkJdbc.addToCategory(ContestJuryJdbc.findById(contest2).flatMap(_.categoryId).get, images2)
+    CategoryLinkJdbc.addToCategory(ContestJury.findById(contest1).flatMap(_.categoryId).get, images1)
+    CategoryLinkJdbc.addToCategory(ContestJury.findById(contest2).flatMap(_.categoryId).get, images2)
 
     images1
   }
