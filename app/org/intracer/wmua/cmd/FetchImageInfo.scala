@@ -42,15 +42,18 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
   }
 
   def titlesQuery: Future[Seq[Page]] = {
+    def queryUpTo50(upTo50: Seq[String]) = {
+      val trimmed = upTo50.map(_.trim).filterNot(_.isEmpty)
+      val urlDecoded = trimmed
+        .map(t => URLDecoder.decode(t, "UTF8"))
+        .map(_.replace("https://commons.wikimedia.org/wiki/", ""))
 
-    val trimmed = titles.map(_.trim).filterNot(_.isEmpty)
-    val urlDecoded = trimmed
-      .map(t => URLDecoder.decode(t, "UTF8"))
-      .map(_.replace("https://commons.wikimedia.org/wiki/", ""))
+      val iiProps = IiProp(IiPropArgs.byNames(imageInfoProps.toSeq): _*)
+      val query = Action(Query(TitlesParam(urlDecoded), Prop(ImageInfo(iiProps))))
+      commons.run(query)
+    }
 
-    val iiProps = IiProp(IiPropArgs.byNames(imageInfoProps.toSeq): _*)
-    val query = Action(Query(TitlesParam(urlDecoded), Prop(ImageInfo(iiProps))))
-    commons.run(query)
+    Future.sequence(titles.sliding(50, 50).map(queryUpTo50)).map(_.flatten.toSeq)
   }
 
   def numberOfImages: Future[Long] = {
