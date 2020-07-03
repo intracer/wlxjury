@@ -23,7 +23,7 @@ class LargeViewSpec extends PlaySpecification {
 
       val html = views.html.large.main_large(
         title = "title",
-        user = User("name", "email", id = Some(1), roles = Set("jury"), contestId = Some(1)),
+        user = User("name", "email", id = Some(1), roles = Set("jury"), contestIds = Some(1)),
         asUserId = 0,
         score = 0.0,
         readOnly = false,

@@ -27,7 +27,7 @@ object ImageDiscussion extends Controller with Secured {
           formWithErrors => // binding failure, you retrieve the form containing errors,
             Redirect(routes.LargeView.large(user.getId, pageId, region, roundId, rate, module)),
           commentBody => {
-            CommentJdbc.create(user.getId, user.fullname, roundId, contestId.orElse(user.contestId), pageId, commentBody.text)
+            CommentJdbc.create(user.getId, user.fullname, roundId, contestId.orElse(user.currentContestId), pageId, commentBody.text)
             Redirect(routes.LargeView.large(user.getId, pageId, region, roundId, rate, module).url.concat("#comments"))
           }
     )

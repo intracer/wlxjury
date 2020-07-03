@@ -22,7 +22,7 @@ class JurorImagesSpec extends Specification with TestDb {
       Round(None, 1, contestId = contest.getId, rates = rates, active = true)
     )
     user = userDao.create(
-      User("fullname", "email", None, Set("jury"), contestId = contest.id)
+      User("fullname", "email", None, Set("jury"), contestIds = contest.id)
     )
   }
 

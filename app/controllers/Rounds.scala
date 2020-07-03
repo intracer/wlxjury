@@ -30,7 +30,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   def rounds(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
-        val roundsView = for (contestId <- contestIdParam.orElse(user.currentContest);
+        val roundsView = for (contestId <- contestIdParam.orElse(user.currentContestId);
                               contest <- ContestJury.findById(contestId)) yield {
           val rounds = Round.findByContest(contestId)
           val currentRound = rounds.find(_.id == contest.currentRound)
@@ -172,7 +172,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   def startRound() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
       implicit request =>
 
-        for (contestId <- user.currentContest;
+        for (contestId <- user.currentContestId;
              contest <- ContestJury.findById(contestId)) {
           val rounds = Round.findByContest(contestId)
 
@@ -192,7 +192,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
   def setImages() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
       implicit request =>
         val imagesSource: Option[String] = imagesForm.bindFromRequest.get
-        for (contest <- user.currentContest.flatMap(ContestJury.findById)) {
+        for (contest <- user.currentContestId.flatMap(ContestJury.findById)) {
           ContestJury.setImagesSource(contest.getId, imagesSource)
 
           //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
@@ -212,7 +212,7 @@ class Rounds @Inject()(val contestsController: Contests) extends Controller with
     user =>
       implicit request =>
         val activeRound = Round.activeRounds(user).headOption.orElse {
-          val currentContestId = contestId.orElse(user.currentContest)
+          val currentContestId = contestId.orElse(user.currentContestId)
           currentContestId.flatMap(contestId => Round.activeRounds(contestId).filter(r => user.canViewOrgInfo(r)).lastOption)
         }
 

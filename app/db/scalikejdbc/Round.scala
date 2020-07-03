@@ -99,7 +99,6 @@ case class Round(id: Option[Long],
       }.update.apply()
     }
   }
-
 }
 
 case class RoundUser(roundId: Long, userId: Long, role: String, active: Boolean)
@@ -218,7 +217,7 @@ object Round extends SkinnyCRUDMapper[Round] {
       .orderBy(r.id).apply()
 
   def activeRounds(user: User): Seq[Round] = {
-    user.currentContest.map { contestId =>
+    user.currentContestId.map { contestId =>
       where(sqls
         .eq(r.contestId, contestId).and
         .eq(r.active, true).and

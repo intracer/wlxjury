@@ -30,7 +30,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
   def users(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
-        (for (contestId <- contestIdParam.orElse(user.currentContest);
+        (for (contestId <- contestIdParam.orElse(user.currentContestId);
               contest <- ContestJury.findById(contestId)) yield {
           val users = User.findByContest(contestId).sorted
           val withWiki = wikiAccountInfo(users)
@@ -102,7 +102,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
 
         havingEditRights(user, editedUser) {
           val filledForm = editUserForm.fill(editedUser)
-          Ok(views.html.editUser(user, filledForm, user.currentContest))
+          Ok(views.html.editUser(user, filledForm, user.currentContestId))
         }
   }
 
@@ -134,7 +134,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
                   views.html.editUser(
                     user,
                     editUserForm.fill(formUser).withError("email", "email should be unique"),
-                    contestId = formUser.contestId
+                    contestId = formUser.currentContestId
                   )
                 )
               } else {
@@ -162,7 +162,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
                 }
 
                 val result = if (user.hasAnyRole(User.ADMIN_ROLES)) {
-                  Redirect(routes.Admin.users(formUser.contestId))
+                  Redirect(routes.Admin.users(formUser.currentContestId))
                 } else {
                   Redirect(routes.Login.index())
                 }
@@ -190,14 +190,14 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
     user =>
       implicit request =>
 
-        val contestId = contestIdParam.orElse(user.currentContest).get
+        val contestId = contestIdParam.orElse(user.currentContestId).get
         Ok(views.html.importUsers(user, importUsersForm, contestId))
   }
 
   def importUsers(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
-        val contestId = contestIdParam.orElse(user.currentContest).get
+        val contestId = contestIdParam.orElse(user.currentContestId).get
 
         importUsersForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
@@ -207,7 +207,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
             val parsed = User.parseList(formUsers)
               .map(_.copy(
                 lang = user.lang,
-                contestId = Some(contestId)
+                currentContestId = Some(contestId)
               ))
 
             val results = parsed.map(pu => Try(createUser(user, pu.copy(roles = Set("jury")), contest)))
@@ -223,12 +223,12 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
     user =>
       implicit request =>
 
-        (for (contestId <- contestIdParam.orElse(user.currentContest);
+        (for (contestId <- contestIdParam.orElse(user.currentContestId);
               contest <- ContestJury.findById(contestId)) yield {
 
           val greeting = getGreeting(contest)
 
-          val recipient = new User(fullname = "Recipient Full Name", email = "Recipient email", id = None, contestId = contest.id)
+          val recipient = new User(fullname = "Recipient Full Name", email = "Recipient email", id = None, currentContestId = contest.id)
 
           val substitution = if (substituteJurors) {
             val users = User.findByContest(contestId)
@@ -278,7 +278,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
   def saveGreeting(contestIdParam: Option[Long] = None) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
     user =>
       implicit request =>
-        val contestId = contestIdParam.orElse(user.currentContest).get
+        val contestId = contestIdParam.orElse(user.currentContestId).get
 
         greetingTemplateForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
@@ -292,7 +292,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
   }
 
   def createNewUser(user: User, formUser: User)(implicit lang: Lang): User = {
-    val contest: Option[ContestJury] = formUser.currentContest.flatMap(ContestJury.findById)
+    val contest: Option[ContestJury] = formUser.currentContestId.flatMap(ContestJury.findById)
     createUser(user, formUser, contest)
   }
 
@@ -300,7 +300,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
     val password = formUser.password.getOrElse(User.randomString(12))
     val hash = User.hash(formUser, password)
 
-    val toCreate = formUser.copy(password = Some(hash), contestId = contestOpt.flatMap(_.id).orElse(creator.contestId))
+    val toCreate = formUser.copy(password = Some(hash), currentContestId = contestOpt.flatMap(_.id).orElse(creator.currentContestId))
 
     val createdUser = User.create(toCreate)
 
@@ -352,7 +352,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
         val editedUser = User.findById(id).get
 
         val password = User.randomString(8)
-        val contest: Option[ContestJury] = editedUser.currentContest.flatMap(ContestJury.findById)
+        val contest: Option[ContestJury] = editedUser.currentContestId.flatMap(ContestJury.findById)
         val contestName = contest.fold("")(_.name)
         val hash = User.hash(editedUser, password)
 

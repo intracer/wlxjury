@@ -3,7 +3,7 @@ package db.scalikejdbc
 import _root_.play.api.i18n.Messages
 import org.intracer.wmua.HasId
 import scalikejdbc._
-import skinny.orm.SkinnyCRUDMapper
+import skinny.orm.{SkinnyCRUDMapper, SkinnyJoinTable}
 import controllers.Greeting
 
 case class ContestJury(id: Option[Long],
@@ -15,12 +15,39 @@ case class ContestJury(id: Option[Long],
                        currentRound: Option[Long] = None,
                        monumentIdTemplate: Option[String] = None,
                        greeting: Greeting = Greeting(None, use = true),
-                       campaign: Option[String] = None) extends HasId {
+                       campaign: Option[String] = None,
+                       users: Seq[User] = Nil) extends HasId {
   //def localName = Messages("wiki.loves.earth." + country, year)(messages)
   def fullName = s"$name $year in $country"
 
   def getImages = images.getOrElse("Category:Images from " + name)
+
+  def addUser(cu: ContestUser)(implicit session: DBSession = RoundUser.autoSession): Unit = {
+    ContestUser.withColumns { c =>
+      ContestUser.createWithNamedValues(c.contestId -> id, c.userId -> cu.userId, c.role -> cu.role)
+    }
+  }
+
+  def addUsers(users: Seq[ContestUser]): Unit = {
+    DB localTx { implicit session => withSQL {
+      val c = ContestUser.column
+      insert.into(ContestUser)
+        .namedValues(c.contestId -> sqls.?, c.userId -> sqls.?, c.role -> sqls.?)
+    }.batch(users.map(cu => Seq(id, cu.userId, cu.role)): _*).apply()
+    }
+  }
+
+  def deleteUser(user: User)(implicit session: DBSession = RoundUser.autoSession): Unit = {
+    ContestUser.withColumns { c =>
+      withSQL {
+        delete.from(ContestUser).where.eq(c.contestId, id).and.eq(c.userId, user.id)
+      }.update.apply()
+    }
+  }
+
 }
+
+case class ContestUser(contestId: Long, userId: Long, role: String)
 
 object ContestJury extends SkinnyCRUDMapper[ContestJury] {
 
@@ -31,6 +58,11 @@ object ContestJury extends SkinnyCRUDMapper[ContestJury] {
   implicit def session: DBSession = autoSession
 
   override lazy val defaultAlias = createAlias("m")
+
+  lazy val contestUser = hasManyThrough[User](
+    through = ContestUser,
+    many = User,
+    merge = (contest, users) => contest.copy(users = users)).byDefault
 
   override def extract(rs: WrappedResultSet, c: ResultName[ContestJury]): ContestJury = ContestJury(
     id = rs.longOpt(c.id),
@@ -130,3 +162,23 @@ object ContestJury extends SkinnyCRUDMapper[ContestJury] {
     }
   }
 }
+
+object ContestUser extends SkinnyJoinTable[ContestUser] {
+  override def defaultAlias = createAlias("contest_user")
+  lazy val cu = ContestUser.syntax("contest_user")
+
+  override def extract(rs: WrappedResultSet, cu: ResultName[ContestUser]): ContestUser =
+    ContestUser(rs.long(cu.contestId), rs.long(cu.userId), rs.string(cu.role))
+
+  def apply(c: ContestJury, u: User): Option[ContestUser] =
+    for (cId <- c.id; uId <- u.id) yield ContestUser(cId, uId, u.roles.head)
+
+  def availableJurors(contestId: Long): List[ContestUser] = where('contestId -> contestId, 'role -> User.JURY_ROLE).apply()
+
+  def byContestId(contestId: Long): List[ContestUser] = where('contestId -> contestId).apply()
+
+  def setRole(contestId: Long, userId: Long, role: String): Int =
+    updateBy(sqls.eq(cu.contestId, contestId).and.eq(cu.userId, userId))
+      .withAttributes('role -> role)
+}
+

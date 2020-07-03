@@ -162,7 +162,7 @@ object Gallery extends Controller with Secured with Instrumented {
   }
 
   def isNotAuthorized(user: User, maybeRound: Option[Round], roundContest: Long, rounds: Seq[Round]): Boolean = {
-    val userContest = user.currentContest.getOrElse(0L)
+    val userContest = user.currentContestId.getOrElse(0L)
     val notAuthorized = maybeRound.isEmpty ||
       (!user.hasRole("root") && userContest != roundContest) ||
       (user.roles.intersect(Set("admin", "organizer", "root")).isEmpty

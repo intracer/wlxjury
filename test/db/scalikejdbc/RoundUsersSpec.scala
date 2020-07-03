@@ -14,9 +14,9 @@ class RoundUsersSpec extends Specification with TestDb {
         val round1 = roundDao.create(Round(None, 1, Some("Round 1"), 10))
         val round2 = roundDao.create(Round(None, 2, Some("Round 2"), 10))
 
-        val jurorActive = userDao.create(User("activeJuror", "email1", None, Set("jury"), contestId = contest.id))
-        val jurorNonActive = userDao.create(User("nonActiveJuror", "email2", None, Set("jury"), contestId = contest.id))
-        val organiser = userDao.create(User("organiser", "email3", None, Set("jury"), contestId = contest.id))
+        val jurorActive = userDao.create(User("activeJuror", "email1", None, Set("jury"), contestIds = contest.id))
+        val jurorNonActive = userDao.create(User("nonActiveJuror", "email2", None, Set("jury"), contestIds = contest.id))
+        val organiser = userDao.create(User("organiser", "email3", None, Set("jury"), contestIds = contest.id))
 
         round1.users === Nil
         round2.users === Nil

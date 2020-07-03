@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
 
 class AdminSpec extends Specification with TestDb with Mockito {
 
-  val sender = User("Admin User", "email@server.com", None, contestId = None)
+  val sender = User("Admin User", "email@server.com")
 
   "fill template" should {
 

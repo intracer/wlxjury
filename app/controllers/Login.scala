@@ -36,7 +36,7 @@ class Login @Inject()(val admin: Admin) extends Controller with Secured {
     } else if (user.hasRole(User.ROOT_ROLE)) {
       Redirect(routes.Contests.list())
     } else if (user.hasAnyRole(User.ADMIN_ROLES)) {
-      Redirect(routes.Admin.users(user.contestId))
+      Redirect(routes.Admin.users(user.currentContestId))
     } else {
       Redirect(routes.Login.error("You don't have permission to access this page"))
     }

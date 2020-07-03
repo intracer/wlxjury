@@ -18,7 +18,7 @@ case class User(fullname: String,
                 id: Option[Long] = None,
                 roles: Set[String] = Set.empty,
                 password: Option[String] = None,
-                contestId: Option[Long] = None,
+                currentContestId: Option[Long] = None,
                 lang: Option[String] = None,
                 createdAt: Option[ZonedDateTime] = None,
                 deletedAt: Option[ZonedDateTime] = None,
@@ -27,33 +27,37 @@ case class User(fullname: String,
                 accountValid: Boolean = true,
                 sort: Option[Int] = None,
                 active: Option[Boolean] = Some(true),
+                contests: Seq[ContestUser] = Nil
                ) extends HasId with Ordered[User] {
+
+  val contestIds = contests.map(_.contestId)
 
   def emailLo = email.trim.toLowerCase
 
-  def currentContest = contestId
-
   def hasRole(role: String) = roles.contains(role)
+
+  def hasRole(role: String, contestId: Long) = roles.contains(role)
 
   def hasAnyRole(otherRoles: Set[String]) = roles.intersect(otherRoles).nonEmpty
 
-  def sameContest(other: User): Boolean = isInContest(other.contestId)
-
   def isInContest(refContestId: Option[Long]): Boolean =
-    (for (c <- contestId; oc <- refContestId) yield c == oc)
+    (for (oc <- refContestId) yield contests.map(_.contestId).contains(oc))
       .getOrElse(false)
+
+  def shareContest(refContestIds: Seq[Long]): Boolean =
+    refContestIds.toSet.intersect(contestIds.toSet).nonEmpty
 
   def isAdmin(refContestId: Option[Long]) =
     hasRole(User.ADMIN_ROLE) && isInContest(refContestId) ||
       hasRole(User.ROOT_ROLE)
 
   def canEdit(otherUser: User) =
-    isAdmin(otherUser.contestId) ||
+    isAdmin(otherUser.currentContestId) ||
       id == otherUser.id
 
   def canViewOrgInfo(round: Round) =
     hasRole("root") ||
-      (contestId.contains(round.contestId) &&
+      (contestIds.contains(round.contestId) &&
         hasAnyRole(Set("organizer", "admin", "root")) ||
         (roles.contains("jury") && round.juryOrgView))
 
@@ -78,12 +82,12 @@ object User extends SkinnyCRUDMapper[User] {
   val LANGS = Map("en" -> "English", "fr" -> "Français",  "ru" -> "Русский", "uk" -> "Українська")
 
   def unapplyEdit(user: User): Option[(Long, String, Option[String], String, Option[String], Option[String], Option[Long], Option[String], Option[Int])] = {
-    Some((user.getId, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.contestId, user.lang, user.sort))
+    Some((user.getId, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.currentContestId, user.lang, user.sort))
   }
 
   def applyEdit(id: Long, fullname: String, wikiAccount: Option[String], email: String, password: Option[String],
                 roles: Option[String], contest: Option[Long], lang: Option[String], sort: Option[Int]): User = {
-    new User(fullname, email.trim.toLowerCase, Some(id), roles.fold(Set.empty[String])(Set(_)), password, contest, lang,
+    new User(fullname, email.trim.toLowerCase, Some(id), roles.fold(Set.empty[String])(Set(_)), password, currentContestId = contest, lang,
       wikiAccount = wikiAccount, sort = sort)
   }
 
@@ -94,14 +98,14 @@ object User extends SkinnyCRUDMapper[User] {
     def fromUserName(str: String): Option[User] = {
       val withoutPrefix = str.replaceFirst("User:", "")
       Some(withoutPrefix).filter(_.trim.nonEmpty).map { _ =>
-        User(id = None, contestId = None, fullname = "", email = "", wikiAccount = Some(withoutPrefix))
+        User(id = None, fullname = "", email = "", wikiAccount = Some(withoutPrefix))
       }
     }
 
     def fromInternetAddress(internetAddress: InternetAddress): Option[User] = {
       Constraints.emailAddress()(internetAddress.getAddress) match {
         case Valid =>
-          Some(User(id = None, contestId = None,
+          Some(User(id = None,
             fullname = Option(internetAddress.getPersonal).getOrElse(""),
             email = internetAddress.getAddress))
         case Invalid(_) => None
@@ -114,8 +118,6 @@ object User extends SkinnyCRUDMapper[User] {
       }.toOption.flatMap(_.headOption.flatMap(fromInternetAddress)).orElse(fromUserName(str))
     }
   }
-
-
 
   implicit def session: DBSession = autoSession
 
@@ -166,7 +168,6 @@ object User extends SkinnyCRUDMapper[User] {
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
     roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
-    contestId = rs.longOpt(c.contestId),
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
@@ -180,7 +181,6 @@ object User extends SkinnyCRUDMapper[User] {
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
     roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
-    contestId = rs.longOpt(c.contestId),
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
@@ -190,7 +190,7 @@ object User extends SkinnyCRUDMapper[User] {
   )
 
   def findByContest(contest: Long): Seq[User] =
-    where('contestId -> contest).orderBy(u.id).apply()
+    ContestUser.byContestId(contest)
 
   def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
     import SelectionJdbc.s
@@ -230,13 +230,12 @@ object User extends SkinnyCRUDMapper[User] {
         column.email -> email.trim.toLowerCase,
         column.password -> password,
         column.roles -> roles.headOption.getOrElse("jury"),
-        column.contestId -> contestId,
         column.lang -> lang,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
     User(id = Some(id), fullname = fullname, email = email, password = Some(password),
-      roles = roles ++ Set("USER_ID_" + id), contestId = contestId, createdAt = createdAt)
+      roles = roles ++ Set("USER_ID_" + id), createdAt = createdAt)
   }
 
   def create(user: User): User = {
@@ -247,7 +246,6 @@ object User extends SkinnyCRUDMapper[User] {
         column.wikiAccount -> user.wikiAccount,
         column.password -> user.password,
         column.roles -> user.roles.headOption.getOrElse(""),
-        column.contestId -> user.contestId,
         column.lang -> user.lang,
         column.sort -> user.sort,
         column.createdAt -> user.createdAt)

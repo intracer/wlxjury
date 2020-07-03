@@ -20,7 +20,7 @@ class ContestsSpec extends PlaySpecification with TestDb {
         val contestsController = new Contests(bot)
 
         val user = userDao.create(
-          User("fullname", email, None, Set("root"), contestId = None)
+          User("fullname", email, None, Set("root"), contestIds = None)
         )
         FakeRequest("POST", "/")
         val request = FakeRequest("POST", "/contests/import")
