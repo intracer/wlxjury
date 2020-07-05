@@ -18,6 +18,8 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
 
   val imageInfoProps = Set("timestamp", "user", "size", "url")
 
+  var missingImages: Set[String] = Set.empty
+
   def apply(): Future[Seq[Image]] = {
     val imageInfoQuery = if (titles.isEmpty)
       generatorQuery
@@ -53,7 +55,16 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
       commons.run(query)
     }
 
-    Future.sequence(titles.sliding(50, 50).map(queryUpTo50)).map(_.flatten.toSeq)
+    val uniqueNormalizedTitles = titles.map(_.replace("_", " ")).distinct
+
+    Future.sequence(uniqueNormalizedTitles.sliding(50, 50).map(queryUpTo50)).map { batches =>
+      val pages = batches.flatten.toSeq
+      val fetchedTitles = pages.map(_.title)
+      if (fetchedTitles.size != titles.size) {
+        missingImages = uniqueNormalizedTitles.toSet -- fetchedTitles.toSet
+      }
+      pages
+    }
   }
 
   def numberOfImages: Future[Long] = {
