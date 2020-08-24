@@ -1,13 +1,11 @@
 package controllers
 
-import db.scalikejdbc.{CategoryJdbc, ContestJuryJdbc, ImageJdbc, InMemDb}
+import db.scalikejdbc.{CategoryJdbc, ContestJuryJdbc, ImageJdbc, TestDb}
 import org.intracer.wmua.JuryTestHelpers
 import org.specs2.mutable.Specification
 
-class ImagesFromListSpec extends Specification with JuryTestHelpers with InMemDb {
+class ImagesFromListSpec extends Specification with JuryTestHelpers with TestDb {
 
-  val contestDao = ContestJuryJdbc
-  val imageDao = ImageJdbc
   val categoryDao = CategoryJdbc
 
   val categoryName = "Category:Category Name"
@@ -16,7 +14,7 @@ class ImagesFromListSpec extends Specification with JuryTestHelpers with InMemDb
   "contest" should {
 
     "import from list" in {
-      inMemDb {
+      withDb {
         val list = resourceAsString("ArmeniaImageList.txt")
         val names = list.split("\n")
         val uniqueNormalizedNames = names.map(_.replace("_", " ")).distinct
