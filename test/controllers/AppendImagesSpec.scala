@@ -18,11 +18,11 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
   def image(id: Long) =
     Image(id, s"File:Image$id.jpg", Some(s"url$id"), None, 640, 480, Some(s"12-345-$id"), size = Some(1234))
 
-  def imageInfo(id: Long) = new Page(Some(id), Namespace.FILE, s"File:Image$id.jpg", images = Seq(
+  def imageInfo(id: Long) = new Page(Some(id), Some(Namespace.FILE), s"File:Image$id.jpg", images = Seq(
     new org.scalawiki.dto.Image(s"File:Image$id.jpg", Some(s"url$id"), Some(s"pageUrl$id"), Some(1234), Some(640), Some(480))
   ))
 
-  def revision(id: Long, text: String) = new Page(Some(id), Namespace.FILE, s"File:Image$id.jpg", revisions = Seq(
+  def revision(id: Long, text: String) = new Page(Some(id), Some(Namespace.FILE), s"File:Image$id.jpg", revisions = Seq(
     new Revision(Some(id + 100), Some(id), content = Some(text))
   ))
 
