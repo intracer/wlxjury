@@ -14,7 +14,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
   def contestImage(id: Long, contest: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 0, 0, Some(s"12-345-$id"))
 
-  def revision(id: Long, text: String) = new Page(Some(id), Namespace.FILE, s"File:Image$id.jpg", revisions = Seq(
+  def revision(id: Long, text: String) = new Page(Some(id), Some(Namespace.FILE), s"File:Image$id.jpg", revisions = Seq(
     new Revision(Some(id + 100), Some(id), content = Some(text))
   ))
 
