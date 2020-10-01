@@ -51,7 +51,7 @@ class GlobalRefactor(val commons: MwBot) {
                            max: Long) = {
     val existingByPageId = existing.groupBy(_.pageId)
 
-    val withImageDescriptions = contest.monumentIdTemplate.isDefined || contest.country.toLowerCase == "international"
+    val withImageDescriptions = contest.monumentIdTemplate.isDefined
 
     val titlesSeq: Seq[String] = if (titles.trim.isEmpty)
       Seq.empty
