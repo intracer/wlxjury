@@ -82,7 +82,7 @@ case class FetchImageText(source: String,
     commons.page(source)
       .withContext(Map("contestId" -> contest.id.getOrElse(0).toString, "max" -> max.toString))
       .revisionsByGenerator(generator, generatorPrefix,
-        Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+        namespaces, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
       )
   }
 }
