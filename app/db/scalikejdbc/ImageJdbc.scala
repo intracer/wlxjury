@@ -71,7 +71,8 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
         i.height,
         i.monumentId,
         i.description,
-        i.size
+        i.size,
+        i.author
       ))
       withSQL {
         insert.into(ImageJdbc).namedValues(
@@ -83,7 +84,8 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
           column.height -> sqls.?,
           column.monumentId -> sqls.?,
           column.description -> sqls.?,
-          column.size -> sqls.?
+          column.size -> sqls.?,
+          column.author -> sqls.?
         )
       }.batch(batchParams: _*).apply()
     }
