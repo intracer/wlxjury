@@ -45,8 +45,8 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val category = "Category:Category Name"
         val contestId = 13
         val imageId = 11
-        val images = Seq(contestImage(imageId, contestId).copy(description = Some("descr"), monumentId = Some(""), author = Some("")))
-        val revisions = Seq(revision(imageId, "{{Information|description=descr}}"))
+        val images = Seq(contestImage(imageId, contestId).copy(description = Some("descr"), monumentId = Some(""), author = Some("Author")))
+        val revisions = Seq(revision(imageId, "{{Information|description=descr|author=Author}}"))
 
         val query = mock[SinglePageQuery]
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
@@ -70,8 +70,8 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val contestId = 13
         val imageId = 11
         val descr = s"descr. {{$idTemplate|12-345-$imageId}}"
-        val images = Seq(contestImage(imageId, contestId).copy(description = Some(descr), author = Some("")))
-        val revisions = Seq(revision(imageId, s"{{Information|description=$descr}}"))
+        val images = Seq(contestImage(imageId, contestId).copy(description = Some(descr), author = Some("Author")))
+        val revisions = Seq(revision(imageId, s"{{Information|description=$descr|author=Author}}"))
 
         val query = mock[SinglePageQuery]
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
