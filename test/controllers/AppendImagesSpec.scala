@@ -34,7 +34,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
 
   def queryRevisions(query: SinglePageQuery, revisions: Seq[Page]): OngoingStubbing[Future[Seq[Page]]] = {
     query.revisionsByGenerator("categorymembers", "cm",
-      Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+      Set(Namespace.FILE), Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
     ) returns Future.successful(revisions)
   }
 
