@@ -29,7 +29,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val query = mock[SinglePageQuery]
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.revisionsByGenerator("categorymembers", "cm",
-          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+          Set(Namespace.FILE), Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
         val commons = mockBot()
@@ -51,7 +51,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val query = mock[SinglePageQuery]
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.revisionsByGenerator("categorymembers", "cm",
-          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+          Set(Namespace.FILE), Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
         val commons = mockBot()
@@ -76,7 +76,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val query = mock[SinglePageQuery]
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.revisionsByGenerator("categorymembers", "cm",
-          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+          Set(Namespace.FILE), Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
         val commons = mockBot()
@@ -101,7 +101,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val query = mock[SinglePageQuery]
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.revisionsByGenerator("images", "im",
-          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+          Set(Namespace.FILE), Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
         val commons = mockBot()
