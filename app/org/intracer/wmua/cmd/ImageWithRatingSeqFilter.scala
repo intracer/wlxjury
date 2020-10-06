@@ -2,8 +2,10 @@ package org.intracer.wmua.cmd
 
 import db.scalikejdbc.Round
 import org.intracer.wmua.{Image, ImageWithRating}
+import org.scalawiki.wlx.MonumentDB
 import org.scalawiki.wlx.dto.{Contest, SpecialNomination}
 import org.scalawiki.wlx.query.MonumentQuery
+import org.scalawiki.wlx.stat.ContestStat
 import play.api.Logger
 
 import scala.runtime.ScalaRunTime
@@ -89,7 +91,13 @@ case class SizeAtLeast(size: Int) extends ImageFilterGen {
 
 case class SpecialNominationFilter(specialNominationName: String) extends ImageFilterGen {
   val specialNominationIds = SpecialNomination.nominations.find(_.name == specialNominationName).map { nomination =>
-    val map = SpecialNomination.getMonumentsMap(Seq(nomination), MonumentQuery.create(Contest.WLMUkraine(2019)))
+    val contest = Contest.WLMUkraine(2020)
+    val stat = if (nomination.cities.nonEmpty) {
+      ContestStat(contest, 2012).copy(monumentDb = Some(MonumentDB.getMonumentDb(contest, MonumentQuery.create(contest))))
+    } else {
+      ContestStat(contest, 2012)
+    }
+    val map = SpecialNomination.getMonumentsMap(Seq(nomination), stat)
     map.values.flatten.map(_.id).toSet
   }.getOrElse(Set.empty)
 
