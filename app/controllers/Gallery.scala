@@ -247,8 +247,8 @@ object Gallery extends Controller with Secured with Instrumented {
     )
   }
 
-  def resizedImagesUrls(contestId: Long): List[String] = {
-    val images = ImageJdbc.findByContestId(contestId)
+  def resizedImagesUrls(contestId: Long, roundId: Option[Long]): List[String] = {
+    val images = roundId.fold(ImageJdbc.findByContestId(contestId))(ImageJdbc.byRound)
     val urls = for (image <- images;
                     (x, y) <- Global.smallSizes;
                     factor <- Global.sizeFactors
@@ -267,18 +267,17 @@ object Gallery extends Controller with Secured with Instrumented {
     )
   }
 
-  def thumbnailUrls(contestId: Long) = withAuth() {
-    user =>
-      implicit request =>
-        val contest = ContestJuryJdbc.findById(contestId).get
-        if (user.isAdmin(Some(contestId))) {
-          val urls = resizedImagesUrls(contestId)
-          val name = "WLXJury_Round_Thumb_Urls" + contest.fullName.replaceAll(" ", "_")
-          urlsStream(urls, name)
-        }
-        else {
-          onUnAuthorized(user)
-        }
+  def thumbnailUrls(contestId: Long, roundId: Option[Long]) = withAuth() { user =>
+    implicit request =>
+      val contest = ContestJuryJdbc.findById(contestId).get
+      if (user.isAdmin(Some(contestId))) {
+        val urls = resizedImagesUrls(contestId, roundId)
+        val name = "WLXJury_Round_Thumb_Urls" + contest.fullName.replaceAll(" ", "_")
+        urlsStream(urls, name)
+      }
+      else {
+        onUnAuthorized(user)
+      }
   }
 }
 

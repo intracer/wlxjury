@@ -85,6 +85,10 @@
                             </button>
                         </a>
                     @total
+                    @if(user.isAdmin(Some(round.contestId))) {
+                        <br>
+                        <a href="/thumb_urls/@round.contestId?roundId=@round.getId">@Messages("thumbnail.urls")</a>
+                    }
                 </th>
                 <th>
                     <div class="btn-group">

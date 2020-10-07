@@ -309,6 +309,14 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
     case (img, sel) => ImageWithRating(img, Seq(sel))
   }
 
+  def byRound(roundId: Long): List[Image] = withSQL {
+    select(distinct(i.result.*)).from(ImageJdbc as i)
+      .innerJoin(SelectionJdbc as s).on(i.pageId, s.pageId)
+      .where.eq(s.roundId, roundId)
+  }.map { rs =>
+    ImageJdbc(i)(rs)
+  }.list().apply()
+
   def byRatingMerged(rate: Int, roundId: Long): Seq[ImageWithRating] = {
     val raw = ImageJdbc.byRating(rate, roundId)
     val merged = raw.groupBy(_.pageId).mapValues(iws => new ImageWithRating(iws.head.image, iws.map(_.selection.head)))
