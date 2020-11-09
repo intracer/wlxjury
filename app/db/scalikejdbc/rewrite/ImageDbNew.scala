@@ -5,6 +5,7 @@ import db.scalikejdbc.{ImageJdbc, SelectionJdbc}
 import org.intracer.wmua.{Image, ImageWithRating, Region, Selection}
 import scalikejdbc.{DBSession, _}
 import _root_.play.api.i18n.Messages
+import org.scalawiki.wlx.dto.Country.Ukraine
 
 object ImageDbNew extends SQLSyntaxSupport[Image] {
 
@@ -31,10 +32,13 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                             grouped: Boolean = false,
                             groupWithDetails: Boolean = false,
                             order: Map[String, Int] = Map.empty,
+                            subRegions: Boolean = false,
                             driver: String = "mysql") {
 
     val reader: WrappedResultSet => ImageWithRating =
       if (grouped) Readers.groupedReader else Readers.rowReader
+
+    val regionColumn = if (subRegions) "adm1" else "adm0"
 
     def query(count: Boolean = false,
               idOnly: Boolean = false,
@@ -47,7 +51,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         else "")
       } else {
         if (byRegion)
-          "m.adm0, count(DISTINCT i.page_id)"
+          s"m.$regionColumn, count(DISTINCT i.page_id)"
         else if (!grouped)
           sqls"""${i.result.*}, ${s.result.*} """.value
         else
@@ -55,7 +59,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       })
 
       val groupBy = if (byRegion) {
-        " group by m.adm0"
+        s" group by m.$regionColumn"
       } else if (grouped) {
         " group by s.page_id"
       } else ""
@@ -91,8 +95,11 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def regions(byRegion: Map[String, Int])(implicit messages: Messages): Seq[Region] = {
-      for ((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id, 0) > 0)
-        yield Region(id, Messages(id), byRegion(id))
+      byRegion.keys.map { id =>
+        val adm = Ukraine.byId(id)
+        val name = if (messages.isDefinedAt(id)) messages(id) else adm.map(_.name).getOrElse("Unknown")
+        Region(id, name, byRegion(id))
+      }.toSeq
     }
 
     def single(sql: String): Int = {
@@ -118,7 +125,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           rate.map(r => "s.rate = " + r),
           rated.map(r => if (r) "s.rate > 0" else "s.rate = 0"),
           regions.headOption.map { _ =>
-            "m.adm0 in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
+            s"m.$regionColumn in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
           }
           //          limit.flatMap(_.startPageId).filter(_ => count).map(_ => "s.rate > 0")
         )
