@@ -65,7 +65,8 @@ object LargeView extends Controller with Secured {
                       round: Round,
                       module: String): Result = {
 
-    val query = getQuery(asUser.getId, rate, round.id, regions = Set(region).filter(_ != "all"))
+    val subRegions = round.specialNomination.contains("Віа Регіа")
+    val query = getQuery(asUser.getId, rate, round.id, regions = Set(region).filter(_ != "all"), subRegions = subRegions)
 
     val rank = query.imageRank(pageId)
 
@@ -111,7 +112,8 @@ object LargeView extends Controller with Secured {
     val maybeRound = if (roundId == 0) Round.activeRounds(user).headOption else Round.findById(roundId)
     val round = maybeRound.get
 
-    val query = getQuery(asUserId, rate, round.id, regions = Set(region).filter(_ != "all"))
+    val subRegions = round.specialNomination.contains("Віа Регіа")
+    val query = getQuery(asUserId, rate, round.id, regions = Set(region).filter(_ != "all"), subRegions = subRegions)
     val rank = query.imageRank(pageId)
     val offset = Math.max(0, rank - 3)
     val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()
