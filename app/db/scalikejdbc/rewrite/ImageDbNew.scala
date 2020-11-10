@@ -91,15 +91,24 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
 
     def byRegionStat()(implicit messages: Messages): Seq[Region] = {
       val map = SQL(query(byRegion = true)).map(rs => rs.string(1) -> rs.int(2)).list().apply().toMap
-      regions(map)
+      regions(map, subRegions)
     }
 
-    def regions(byRegion: Map[String, Int])(implicit messages: Messages): Seq[Region] = {
-      byRegion.keys.map { id =>
+    def regions(byRegion: Map[String, Int], subRegions: Boolean = false)(implicit messages: Messages): Seq[Region] = {
+      val regions = byRegion.keys.map { id =>
         val adm = Ukraine.byId(id)
         val name = if (messages.isDefinedAt(id)) messages(id) else adm.map(_.name).getOrElse("Unknown")
         Region(id, name, byRegion(id))
       }.toSeq
+
+      if (subRegions) {
+        val kyivPictures = regions.filter(_.id.startsWith("80-")).map(_.count).sum
+        val withoutKyivRegions = regions.filterNot(_.id.startsWith("80-"))
+        val unsorted = withoutKyivRegions ++ Seq(Region("80", messages("80"), kyivPictures))
+        unsorted.sortBy(_.name)
+      } else {
+        regions
+      }
     }
 
     def single(sql: String): Int = {
@@ -125,7 +134,11 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           rate.map(r => "s.rate = " + r),
           rated.map(r => if (r) "s.rate > 0" else "s.rate = 0"),
           regions.headOption.map { _ =>
-            s"m.$regionColumn in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
+            if (regions.headOption.exists(_.length > 2)) {
+              s"m.$regionColumn in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
+            } else {
+              s"m.adm0 in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
+            }
           }
           //          limit.flatMap(_.startPageId).filter(_ => count).map(_ => "s.rate > 0")
         )
@@ -243,5 +256,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         rs.string(1) -> rs.int(2)
       }
     }
+
   }
+
 }
