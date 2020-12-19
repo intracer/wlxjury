@@ -107,7 +107,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         val unsorted = withoutKyivRegions ++ Seq(Region("80", messages("80"), kyivPictures))
         unsorted.sortBy(_.name)
       } else {
-        regions
+        regions.sortBy(_.id)
       }
     }
 
