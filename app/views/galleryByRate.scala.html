@@ -16,7 +16,7 @@
 
     @showRateGalery(file: ImageWithRating, index: Int) = {
     @defining(maybeRound.get) { round =>
-
+        @if(round.rates.id > 0) {
         <div style="margin-bottom: 10px;
             color: #ffffff;"> <b>@file.rankStr</b>
             <span style="margin-left: 5px;
@@ -37,6 +37,7 @@
             }
             </span>
         </div>
+    }
     }
     }
 
