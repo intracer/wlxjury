@@ -29,7 +29,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "3.2.1",
 
-  "mysql" % "mysql-connector-java" % "5.1.40",
+  "mysql" % "mysql-connector-java" % "8.0.25",
   "org.scalikejdbc" %% "scalikejdbc" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % ScalikejdbcPlayVersion,
@@ -53,7 +53,7 @@ libraryDependencies ++= Seq(
   guice, filters,
   specs2 % Test,
   jdbc % Test,
-  "com.wix" % "wix-embedded-mysql" % "4.2.0" % Test,
+  "com.wix" % "wix-embedded-mysql" % "4.6.1" % Test,
   "net.java.dev.jna" % "jna" % "4.5.0" % Test,
   "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test,
   "com.h2database" % "h2" % "1.4.193" % Test)

@@ -1,0 +1,1 @@
+alter table selection MODIFY column created_at timestamp null;

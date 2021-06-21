@@ -47,8 +47,7 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
         column.pageId -> pageId,
         column.rate -> rate,
         column.juryId -> juryId,
-        column.roundId -> roundId,
-        column.createdAt -> createdAt)
+        column.roundId -> roundId)
     }.updateAndReturnGeneratedKey().apply()
 
     Selection(pageId = pageId, juryId = juryId, roundId = roundId, rate = rate, id = Some(id), createdAt = createdAt)
@@ -61,15 +60,13 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
         i.pageId,
         i.rate,
         i.juryId,
-        i.roundId,
-        i.createdAt))
+        i.roundId))
       withSQL {
         insert.into(SelectionJdbc).namedValues(
           column.pageId -> sqls.?,
           column.rate -> sqls.?,
           column.juryId -> sqls.?,
-          column.roundId -> sqls.?,
-          column.createdAt -> sqls.?
+          column.roundId -> sqls.?
         )
       }.batch(batchParams: _*).apply()
     }

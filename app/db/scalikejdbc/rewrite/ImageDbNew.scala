@@ -43,12 +43,13 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     def query(count: Boolean = false,
               idOnly: Boolean = false,
               noLimit: Boolean = false,
-              byRegion: Boolean = false): String = {
+              byRegion: Boolean = false,
+              ranked: Boolean = false): String = {
 
       val columns: String = "select  " + (if (count || idOnly) {
-        "i.page_id as pi_on_i" + (if (grouped)
-          ",  sum(s.rate) as rate, count(s.rate) as rate_count"
-        else "")
+        "i.page_id as pi_on_i" +
+          (if (ranked) s", ROW_NUMBER() over (${orderBy()}) ranked" else "") +
+        (if (grouped) ", sum(s.rate) as rate, count(s.rate) as rate_count" else "")
       } else {
         if (byRegion)
           s"m.$regionColumn, count(DISTINCT i.page_id)"
@@ -85,8 +86,8 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       single(query(count = true))
     }
 
-    def imageRank(pageId: Long) = {
-      single(imageRankSql(pageId, query(idOnly = true, noLimit = true)))
+    def imageRank(pageId: Long): Int = {
+      single(imageRankSql(pageId, query(ranked = true, idOnly = true, noLimit = true)))
     }
 
     def byRegionStat()(implicit messages: Messages): Seq[Region] = {
@@ -172,13 +173,9 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
 
     def imageRankSql(pageId: Long, sql: String): String = {
       val result = if (driver == "mysql") {
-        s"""SELECT rank
-            FROM (
-                  SELECT @row_num := @row_num + 1 'rank', t.pi_on_i as page_id
-                  FROM (SELECT @row_num := 0) r,
-                  ($sql) t
-                  ) t2
-            WHERE page_id = $pageId;"""
+        s"""SELECT ranked, pi_on_i
+            FROM ($sql) t
+            WHERE pi_on_i = $pageId;"""
       } else {
         s"""SELECT rank FROM
             (SELECT rownum as rank, t.pi_on_i as page_id
