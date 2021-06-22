@@ -1,7 +1,7 @@
 import sbt.Keys._
 
 lazy val root = identity((project in file("."))
-  .enablePlugins(PlayScala, PlayNettyServer, DebianPlugin, RpmPlugin, JavaAppPackaging))
+  .enablePlugins(PlayScala, PlayNettyServer, DebianPlugin, SystemdPlugin, JavaServerAppPackaging))
   .disablePlugins(PlayAkkaHttpServer)
 
 name := "wlxjury"
