@@ -23,6 +23,8 @@ resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
 resolvers += Resolver.jcenterRepo
 
+resolvers += Resolver.mavenLocal
+
 libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.6.3",
   "com.adrianhurt" %% "play-bootstrap" % "1.5.1-P26-B3",
@@ -102,11 +104,11 @@ debianPackageRecommends in Debian ++= Seq("virtual-mysql-server")
 
 addCommandAlias(
   "packageAll", "; clean" +
-    "; packageDebianSystemV" +
+    "; packageDebSystemV" +
     "; clean " +
-    "; packageDebianUpstart" +
+    "; packageDebUpstart" +
     "; clean " +
-    "; packageDebianSystemd" +
+    "; packageDebSystemd" +
     "; clean " +
     "; packageRpmSystemV" +
     "; clean " +
