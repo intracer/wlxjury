@@ -98,8 +98,6 @@ packageDescription :=
 
 maintainer := "Ilya Korniiko <intracer@gmail.com>"
 
-debianPackageDependencies in Debian ++= Seq("java8-runtime")
-
 debianPackageRecommends in Debian ++= Seq("virtual-mysql-server")
 
 addCommandAlias(
