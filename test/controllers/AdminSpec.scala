@@ -20,7 +20,7 @@ class AdminSpec extends Specification with TestDb with Mockito {
         val admin = new Admin(mock[SMTPOrWikiMail])
         val filled = admin.fillGreeting(template, contest, sender, sender)
         filled === "Organizing committee of Wiki Loves Earth 2016 Ukraine is glad to welcome you as a jury member\n" +
-          "Please visit http://jury.wikilovesearth.org.ua/\n" +
+          "Please visit https://jury.wle.org.ua/\n" +
           "Regards, Admin User"
       }
     }
