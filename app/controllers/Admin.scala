@@ -35,9 +35,17 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
           val users = User.findByContest(contestId).sorted
           val withWiki = wikiAccountInfo(users)
 
-          Ok(views.html.users(user, withWiki, editUserForm.copy(data = Map("roles" -> "jury")), contest))
+          Ok(views.html.users(user, withWiki, editUserForm.copy(data = Map("roles" -> "jury")), Some(contest)))
         }).getOrElse(Redirect(routes.Login.index())) // TODO message
   }
+
+  def allUsers() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
+    user =>
+      implicit request =>
+          val users = User.findAll()
+          Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), None))
+  }
+
 
   /**
     * Checks if wiki accounts are valid and can be emailed via wiki acount

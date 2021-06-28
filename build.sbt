@@ -8,7 +8,7 @@ name := "wlxjury"
 
 organization := "org.intracer"
 
-version := "0.11-SNAPSHOT"
+version := "0.13"
 
 scalaVersion := "2.12.10"
 
