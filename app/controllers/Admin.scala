@@ -43,7 +43,8 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
     user =>
       implicit request =>
           val users = User.findAll()
-          Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), None))
+          val contests = ContestJuryJdbc.findAll()
+          Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), None, contests))
   }
 
 

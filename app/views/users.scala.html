@@ -4,12 +4,18 @@
         adminUser: db.scalikejdbc.User,
         users: Seq[db.scalikejdbc.User],
         editUserForm: Form[db.scalikejdbc.User],
-        contestOpt: Option[ContestJury])(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
+        contestOpt: Option[ContestJury],
+        contests: List[ContestJury] = Nil
+)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
     @import helper._
     @import views.html.bootstrap._
 
     @mainAdmin(Messages("users"), adminUser, adminUser.getId, contestId = contestOpt.flatMap(_.id)) {
         <div class="row">
+
+            @if(contests.nonEmpty) {
+                @contestsTable(contests)
+            }
 
             @for(contest <- contestOpt) {
                 <h3>@Messages("contest") @contest.fullName</h3>
