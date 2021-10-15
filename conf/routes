@@ -79,9 +79,9 @@ GET         /monuments/id/:id                                                   
 
 # GET         /webjars/*file                                                          @controllers.Assets.at(file)
 
-GET         /contests                                                               @controllers.Contests.list(contestType: Option[String] ?= None, year: Option[Int] ?= None, country: Option[String] ?= None)
-POST        /contests/save                                                          @controllers.Contests.saveContest()
-POST        /contests/import                                                        @controllers.Contests.importContests()
+GET         /contests                                                               @controllers.ContestsController.list(contestType: Option[String] ?= None, year: Option[Int] ?= None, country: Option[String] ?= None)
+POST        /contests/save                                                          @controllers.ContestsController.saveContest()
+POST        /contests/import                                                        @controllers.ContestsController.importContests()
 GET         /contest/:id/images                                                     @controllers.ImagesController.images(id: Long)
 POST        /contest/:id/importimages                                               @controllers.ImagesController.importImages(id: Long)
 

@@ -20,7 +20,7 @@ import scala.util.Try
   * Controller for displaying pages related to contest rounds
   * @param contestsController
   */
-class Rounds @Inject()(val contestsController: Contests) extends Controller with Secured {
+class Rounds @Inject()(val contestsController: ContestsController) extends Controller with Secured {
 
   /**
     * Shows list of rounds in a contest

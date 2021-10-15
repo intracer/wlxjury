@@ -16,7 +16,7 @@ import spray.util.pimpFuture
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
+class ContestsController @Inject()(val commons: MwBot) extends Controller with Secured {
 
   def fetchContests(contestType: Option[String], year: Option[Int], country: Option[String]): Future[Seq[Contest]] = {
     if (contestType.isEmpty) {
