@@ -97,7 +97,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
 
     def regions(byRegion: Map[String, Int], subRegions: Boolean = false)(implicit messages: Messages): Seq[Region] = {
       val regions = byRegion.keys.filterNot(_ == null).map { id =>
-        val adm = Ukraine.byId(id)
+        val adm = Ukraine.byMonumentId(id)
         val name = if (messages.isDefinedAt(id)) messages(id) else adm.map(_.name).getOrElse("Unknown")
         Region(id, name, byRegion(id))
       }.toSeq

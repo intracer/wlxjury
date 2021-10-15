@@ -73,7 +73,7 @@ class ImagesController @Inject()(val commons: MwBot) extends Controller with Sec
         case _ => None
       }
 
-      monumentContest.foreach(Monuments.updateLists)
+      monumentContest.foreach(MonumentsController.updateLists)
     }
 
     def generatorParams: (String, String) = {

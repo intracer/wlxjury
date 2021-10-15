@@ -9,7 +9,7 @@ import play.api.mvc.Controller
 
 case class CommentBody(id: Long, text: String)
 
-object ImageDiscussion extends Controller with Secured {
+object ImageDiscussionController extends Controller with Secured {
 
   val editCommentForm = Form(
     mapping(

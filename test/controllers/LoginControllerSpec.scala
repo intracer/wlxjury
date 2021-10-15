@@ -6,12 +6,12 @@ import play.api.mvc._
 import play.api.test.CSRFTokenHelper._
 import play.api.test._
 
-class LoginSpec extends PlaySpecification with Results with TestDb with Mockito {
+class LoginControllerSpec extends PlaySpecification with Results with TestDb with Mockito {
 
   sequential
 
-  val admin = new Admin(mock[SMTPOrWikiMail])
-  val login = new Login(admin)
+  val admin = new UserController(mock[SMTPOrWikiMail])
+  val login = new LoginController(admin)
 
   "auth" should {
     "fail empty request" in {

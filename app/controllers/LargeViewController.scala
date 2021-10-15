@@ -1,13 +1,13 @@
 package controllers
 
-import controllers.Gallery.getQuery
+import controllers.GalleryController.getQuery
 import db.scalikejdbc.rewrite.ImageDbNew.Limit
 import db.scalikejdbc.{MonumentJdbc, Round, SelectionJdbc, User}
 import org.intracer.wmua._
 import play.api.mvc.{Controller, EssentialAction, Request, Result}
 import play.api.i18n.Messages.Implicits._
 
-object LargeView extends Controller with Secured {
+object LargeViewController extends Controller with Secured {
 
   import play.api.Play.current
   import play.api.libs.json._

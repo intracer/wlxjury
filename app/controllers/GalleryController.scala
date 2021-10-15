@@ -14,7 +14,7 @@ import play.api.mvc._
 /**
   * Backend for getting and displaying images
   */
-object Gallery extends Controller with Secured with Instrumented {
+object GalleryController extends Controller with Secured with Instrumented {
 
   import Pager._
   import play.api.Play.current

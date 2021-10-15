@@ -9,7 +9,7 @@ import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{Action, Controller}
 
-object Monuments extends Controller {
+object MonumentsController extends Controller {
 
   def list = Action {
     implicit request =>

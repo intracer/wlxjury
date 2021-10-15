@@ -10,7 +10,7 @@ import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Results._
 import play.api.mvc._
 
-class Login @Inject()(val admin: Admin) extends Controller with Secured {
+class LoginController @Inject()(val admin: UserController) extends Controller with Secured {
 
   def index = withAuth() {
     user =>

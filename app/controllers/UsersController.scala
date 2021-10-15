@@ -21,7 +21,7 @@ import scala.util.Try
 /**
   * Controller for admin views
   */
-class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secured {
+class UserController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secured {
 
   /**
     * @param contestIdParam optional contest Id. If not set, contest of the admin user is used
