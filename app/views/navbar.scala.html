@@ -24,26 +24,26 @@
                 @if(user != null) {
 
                     @if(user.hasRole(User.ROOT_ROLE)) {
-                        <li role="presentation"><a class="brand" href="@routes.Contests.list()">@Messages("Contests")</a>
+                        <li role="presentation"><a class="brand" href="@routes.ContestsController.list()">@Messages("Contests")</a>
                     @if(contestId.isEmpty) {
-                        <li role="presentation"><a class="brand" href="@routes.Admin.allUsers()">@Messages("users")</a>
+                        <li role="presentation"><a class="brand" href="@routes.UsersController.allUsers()">@Messages("users")</a>
                     }
                     }
                         <!-- Admin items: images,  users and rounds setup -->
                     @if(user.hasAnyRole(User.ADMIN_ROLES)) {
                         @for(cId <- contestId) {
-                            <li role="presentation"><a class="brand" href="@routes.Contests.images(cId)">@Messages("images")</a>
-                            <li role="presentation"><a class="brand" href="@routes.Admin.users(contestId)">@Messages("users")</a>
-                            <li role="presentation"><a class="brand" href="@routes.Rounds.rounds(contestId)">@Messages("rounds")</a>
+                            <li role="presentation"><a class="brand" href="@routes.ImagesController.images(cId)">@Messages("images")</a>
+                            <li role="presentation"><a class="brand" href="@routes.UsersController.users(contestId)">@Messages("users")</a>
+                            <li role="presentation"><a class="brand" href="@routes.RoundsController.rounds(contestId)">@Messages("rounds")</a>
                         }
                     }
 
                         <!-- Link to statistics view, if user has rights -->
                     @if(selectedRound.nonEmpty && user.canViewOrgInfo(selectedRound.get)) {
-                        <li role="presentation"><a class="brand" href="@routes.Rounds.roundStat(selectedRound.get.getId)">@Messages("statistics")</a>
+                        <li role="presentation"><a class="brand" href="@routes.RoundsController.roundStat(selectedRound.get.getId)">@Messages("statistics")</a>
                     } else {
                         @if(rounds.exists(round => user.canViewOrgInfo(round))) {
-                            <li role="presentation"><a class="brand" href="@routes.Rounds.currentRoundStat(contestId)">@Messages("statistics")</a>
+                            <li role="presentation"><a class="brand" href="@routes.RoundsController.currentRoundStat(contestId)">@Messages("statistics")</a>
                         }
                     }
 
@@ -60,7 +60,7 @@
                         @if(user.canViewOrgInfo(round) || (rounds.size > 1)) {
                             <li role="presentation" class="brand" style="margin-left: 10px">
                             @(new UiSelectionDto[Long](
-                                itemUrlFunction = (roundId: Long) => routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate),
+                                itemUrlFunction = (roundId: Long) => routes.GalleryController.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate),
                                 selectedItemId = selectedRound.flatMap(_.id).get,
                                 items = rounds.map {
                                         r => (r.getId, SelectionItem(r.description, localized = false))
@@ -113,7 +113,7 @@
 
                             <li role="presentation" class="brand" >
                             @(new UiSelectionDto[Long](
-                                { roundId: Long => routes.Gallery.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate) },
+                                { roundId: Long => routes.GalleryController.query(module = title, Some(asUserId), page = 1, region = region, roundId, rate) },
                                 round.getId,
                                 rounds.map(r => (r.getId, SelectionItem(r.description, localized = false)))
                             ).toDropDown())
@@ -123,7 +123,7 @@
 
                             <li role="presentation">
                             @(new UiSelectionDto[Option[Long]](
-                                { userId: Option[Long] => routes.Gallery.query(module = title, userId, page = 1, region = region, round = round.getId, rate) },
+                                { userId: Option[Long] => routes.GalleryController.query(module = title, userId, page = 1, region = region, round = round.getId, rate) },
                                 Some(asUserId),
                                 User.findByRoundSelection(round.getId).map(u => (Some(u.getId), SelectionItem(u.fullname, localized = false))),
                                 Some(Some(0L) -> SelectionItem("all"))
@@ -131,7 +131,7 @@
 
                             @if(round.isBinary) {
                                 @(new UiSelectionDto[Option[Int]](
-                                    routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.getId, _),
+                                    routes.GalleryController.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.getId, _),
                                     rate,
                                     Seq(
                                         Some(1) -> SelectionItem("selected"),
@@ -142,7 +142,7 @@
                                 ).toDropDown())
                             } else {
                                 @(new UiSelectionDto[Option[Boolean]](
-                                    routes.Gallery.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.getId, None, _),
+                                    routes.GalleryController.query(module = title, user = Some(asUserId), page = 1, region = region, round = round.getId, None, _),
                                     rated,
                                     Seq(
                                         Some(true) -> SelectionItem("rated"),
@@ -165,7 +165,7 @@
 
                             @(new UiSelectionDto[String](
                                 { module: String =>
-                                    routes.Gallery.query(module, Some(asUserId), page = 1, region = region, round = round.getId, rate = rate)
+                                    routes.GalleryController.query(module, Some(asUserId), page = 1, region = region, round = round.getId, rate = rate)
                                 },
                                 title,
                                 Seq(

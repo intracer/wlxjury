@@ -49,7 +49,7 @@ class RoundsController @Inject()(val contestsController: ContestsController) ext
             currentRound, contest)
           )
         }
-        roundsView.getOrElse(Redirect(routes.Login.index())) // TODO message
+        roundsView.getOrElse(Redirect(routes.LoginController.index())) // TODO message
   }
 
   /**
@@ -125,7 +125,7 @@ class RoundsController @Inject()(val contestsController: ContestsController) ext
                 }
               }
             }
-            Redirect(routes.Rounds.rounds(Some(round.contestId)))
+            Redirect(routes.RoundsController.rounds(Some(round.contestId)))
           }
         )
   }
@@ -159,14 +159,14 @@ class RoundsController @Inject()(val contestsController: ContestsController) ext
         SetCurrentRound(r.contestId, None, r.copy(active = selectRound.active)).apply()
       }
 
-      Redirect(routes.Rounds.rounds(round.map(_.contestId)))
+      Redirect(routes.RoundsController.rounds(round.map(_.contestId)))
   }
 
   def setRoundUser() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
     implicit request =>
       val setRoundUser = setRoundUserForm.bindFromRequest.get
       RoundUser.setActive(setRoundUser.roundId.toLong, setRoundUser.userId.toLong, setRoundUser.active)
-      Redirect(routes.Rounds.roundStat(setRoundUser.roundId.toLong))
+      Redirect(routes.RoundsController.roundStat(setRoundUser.roundId.toLong))
   }
 
   def startRound() = withAuth(rolePermission(User.ADMIN_ROLES)) { user =>
@@ -182,7 +182,7 @@ class RoundsController @Inject()(val contestsController: ContestsController) ext
           }
         }
 
-        Redirect(routes.Rounds.rounds())
+        Redirect(routes.RoundsController.rounds())
   }
 
   def distributeImages(contest: ContestJury, round: Round) {
@@ -204,7 +204,7 @@ class RoundsController @Inject()(val contestsController: ContestsController) ext
           //          }
         }
 
-        Redirect(routes.Rounds.rounds())
+        Redirect(routes.RoundsController.rounds())
 
   }
 
@@ -217,9 +217,9 @@ class RoundsController @Inject()(val contestsController: ContestsController) ext
         }
 
         activeRound.map { round =>
-          Redirect(routes.Rounds.roundStat(round.getId))
+          Redirect(routes.RoundsController.roundStat(round.getId))
         }.getOrElse {
-          Redirect(routes.Login.error("There is no active rounds in your contest"))
+          Redirect(routes.LoginController.error("There is no active rounds in your contest"))
         }
   }
 
@@ -237,7 +237,7 @@ class RoundsController @Inject()(val contestsController: ContestsController) ext
               Ok(views.html.roundStat(user, round, stat))
             }
         }.getOrElse {
-          Redirect(routes.Login.error("Round not found"))
+          Redirect(routes.LoginController.error("Round not found"))
         }
   }
 

@@ -10,7 +10,7 @@ class LoginControllerSpec extends PlaySpecification with Results with TestDb wit
 
   sequential
 
-  val admin = new UserController(mock[SMTPOrWikiMail])
+  val admin = new UsersController(mock[SMTPOrWikiMail])
   val login = new LoginController(admin)
 
   "auth" should {

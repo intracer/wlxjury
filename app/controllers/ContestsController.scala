@@ -55,7 +55,7 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
           },
           formContest => {
             createContest(formContest)
-            Redirect(routes.Contests.list())
+            Redirect(routes.ContestsController.list())
           })
   }
 
@@ -92,7 +92,7 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
                 )
                 createContest(contestJury)
             }
-            Redirect(routes.Contests.list())
+            Redirect(routes.ContestsController.list())
           })
   }
 

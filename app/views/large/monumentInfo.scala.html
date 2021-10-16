@@ -11,7 +11,7 @@
         @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br>
         @Html(Monument.wikiLinkToUrl(m.place.getOrElse(""), "uk.wikipedia.org"))
 
-        @if(false){  <a href="@routes.Monuments.byId(m.id)"><i class="icon-forward"></i></a> }
+        @if(false){  <a href="@routes.MonumentsController.byId(m.id)"><i class="icon-forward"></i></a> }
 
     </div>
 

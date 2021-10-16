@@ -33,7 +33,7 @@
             </tbody>
         </table>
 
-        @form(routes.Admin.saveGreeting(Some(contestId)), 'id -> "greeting-template") {
+        @form(routes.UsersController.saveGreeting(Some(contestId)), 'id -> "greeting-template") {
             <div class="form-group">
 
                 @textarea(field = importUserForm("greetingtemplate"),
@@ -46,7 +46,7 @@
                 <div class="form-actions">
                     <input type="submit" class="btn btn-default btn-primary" value="@Messages("save")">
                     <a href="#substitution" class="btn btn-info" data-toggle="collapse">@Messages("check")</a>
-                    <a href="@routes.Admin.users(Some(contestId))" class="btn btn-default">@Messages("cancel")</a>
+                    <a href="@routes.UsersController.users(Some(contestId))" class="btn btn-default">@Messages("cancel")</a>
                 </div>
             </div>
 

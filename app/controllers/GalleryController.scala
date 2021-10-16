@@ -63,7 +63,7 @@ object GalleryController extends Controller with Secured with Instrumented {
   def listCurrent(page: Int = 1, region: String = "all", rate: Option[Int]) = withAuth() {
     user =>
       implicit request =>
-        Redirect(routes.Gallery.list(user.getId, page, region, 0, rate))
+        Redirect(routes.GalleryController.list(user.getId, page, region, 0, rate))
   }
 
   def listGeneric(

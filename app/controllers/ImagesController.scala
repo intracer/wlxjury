@@ -58,7 +58,7 @@ class ImagesController @Inject()(val commons: MwBot) extends Controller with Sec
               updateImageMonuments(source, withNewImages)
             }
 
-            Redirect(routes.Contests.images(contestId))
+            Redirect(routes.ImagesController.images(contestId))
         })
   }
 
