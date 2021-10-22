@@ -28,17 +28,14 @@ case class FetchImageText(source: String,
   }
 
   def apply(): Future[Seq[Image]] = {
-
     val (generator, prefix) = generatorParams
-
     val future = revisionsByGenerator(source, generator, prefix,
       Set(Namespace.FILE), Set("content", "timestamp", "user", "comment"), limit = "50")
 
     future.map { pages =>
-
-      val images = pages.sortBy(_.id).map(page =>
+      val images = pages.sortBy(_.id).map { page =>
         Image(page.id.get, page.title, None, None, 0, 0, None, None)
-      )
+      }
 
       val ids: Seq[String] = monumentIdTemplate.fold(Array.fill(pages.size)("").toSeq)(t => monumentIds(pages, t))
       val authorsSeq: Seq[String] = authors(pages)

@@ -29,11 +29,8 @@ class GlobalRefactor(val commons: MwBot) {
   }
 
   def appendImages(source: String, imageList: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
-
     ContestJuryJdbc.setImagesSource(contest.getId, Some(source))
-
     val existingImages = ImageJdbc.findByContest(contest)
-
     initImagesFromSource(contest, source, imageList, existingImages, idsFilter, max)
   }
 
@@ -50,13 +47,12 @@ class GlobalRefactor(val commons: MwBot) {
                            idsFilter: Set[String] = Set.empty,
                            max: Long) = {
     val existingByPageId = existing.groupBy(_.pageId)
-
     val withImageDescriptions = contest.monumentIdTemplate.isDefined
-
-    val titlesSeq: Seq[String] = if (titles.trim.isEmpty)
-      Seq.empty
-    else
+    val titlesSeq: Seq[String] = if (titles.trim.isEmpty) {
+      Nil
+    } else {
       titles.split("(\r\n|\n|\r)")
+    }
 
     val imageInfos = FetchImageInfo(source, titlesSeq, contest, commons, max).apply()
 
