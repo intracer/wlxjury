@@ -1,6 +1,6 @@
 package org.intracer.wmua
 
-import controllers.{Contests, Rounds}
+import controllers.{ContestsController, RoundsController}
 import db.scalikejdbc._
 import org.intracer.wmua.cmd.DistributeImages
 import org.specs2.mock.Mockito
@@ -13,7 +13,7 @@ class ImageDistributorSpec extends Specification with TestDb with Mockito {
   val (contest1, contest2) = (10, 20)
 
 
-  val roundsController = new Rounds(mock[Contests])
+  val roundsController = new RoundsController(mock[ContestsController])
 
   def image(id: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))

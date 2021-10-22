@@ -21,10 +21,10 @@
                 <h3>@Messages("contest") @contest.fullName</h3>
 
                 <div style="margin-bottom: 10px">
-                    <a href="@routes.Admin.importUsers(contest.id)" style="margin-right: 5px">
+                    <a href="@routes.UsersController.importUsers(contest.id)" style="margin-right: 5px">
                         <div class="btn btn-primary">@Messages("mass.import")</div>
                     </a>
-                    <a href="@routes.Admin.editGreeting(contest.id)">
+                    <a href="@routes.UsersController.editGreeting(contest.id)">
                         <div class="btn btn-primary">@Messages("edit.greeting.message")</div>
                     </a>
                 </div>
@@ -91,7 +91,7 @@
                     }
 
                     @for(contest <- contestOpt) {
-                    @form(routes.Admin.saveUser, 'class -> "form-vertical", 'id -> "add-user") {
+                    @form(routes.UsersController.saveUser, 'class -> "form-vertical", 'id -> "add-user") {
                         @helper.CSRF.formField
                         <tr>
                             @if(editUserForm.hasGlobalErrors) {

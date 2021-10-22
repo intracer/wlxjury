@@ -48,7 +48,7 @@ case class FetchImageText(source: String,
       }.zip(descrs).map {
         case (image, descr) => image.copy(description = Some(descr))
       }.zip(authorsSeq).map {
-        case (image, author) => image.copy(author = Some(author))
+        case (image, author) => image.copy(author = Some(author.take(256)))
       }
     }
   }
@@ -56,7 +56,7 @@ case class FetchImageText(source: String,
   def monumentIds(pages: Seq[Page], monumentIdTemplate: String): Seq[String] = {
     pages.sortBy(_.id).map { page =>
         page.text.flatMap(text => defaultParam(text, monumentIdTemplate))
-          .map(id => if (id.length < 100) id else id.substring(0, 100)).getOrElse("")
+          .map(id => id.take(100)).getOrElse("")
     }
   }
 

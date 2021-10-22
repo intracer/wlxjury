@@ -11,7 +11,7 @@
     <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
     <ul class="dropdown-menu">
         @for((rate, rateName) <- Rates.pairs) {
-            <li><a href="@routes.Gallery.query(module = module, user = Some(asUserId), page = 1, region = region, round = roundId, rate = rate)">@Messages(rateName)</a></li>
+            <li><a href="@routes.GalleryController.query(module = module, user = Some(asUserId), page = 1, region = region, round = roundId, rate = rate)">@Messages(rateName)</a></li>
         }
     </ul>
 </div>

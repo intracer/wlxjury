@@ -1,13 +1,13 @@
 package controllers
 
-import controllers.Gallery.getQuery
+import controllers.GalleryController.getQuery
 import db.scalikejdbc.rewrite.ImageDbNew.Limit
 import db.scalikejdbc.{MonumentJdbc, Round, SelectionJdbc, User}
 import org.intracer.wmua._
 import play.api.mvc.{Controller, EssentialAction, Request, Result}
 import play.api.i18n.Messages.Implicits._
 
-object LargeView extends Controller with Secured {
+object LargeViewController extends Controller with Secured {
 
   import play.api.Play.current
   import play.api.libs.json._
@@ -35,7 +35,7 @@ object LargeView extends Controller with Secured {
 
         val roundOption = Round.findById(roundId).filter(_.active)
 
-        roundOption.fold(Redirect(routes.Gallery.list(user.getId, 1, region, roundId, rate))) { round =>
+        roundOption.fold(Redirect(routes.GalleryController.list(user.getId, 1, region, roundId, rate))) { round =>
 
           val result = checkLargeIndex(user, rate, pageId, region, round, module)
 
@@ -91,13 +91,13 @@ object LargeView extends Controller with Secured {
     val roundId = round.getId
 
     if (newIndex >= 0) {
-      Redirect(routes.LargeView.large(asUser.getId, newPageId, region, roundId, rate, module))
+      Redirect(routes.LargeViewController.large(asUser.getId, newPageId, region, roundId, rate, module))
     } else {
 
       if (module == "gallery") {
-        Redirect(routes.Gallery.list(asUser.getId, 1, region, roundId, rate))
+        Redirect(routes.GalleryController.list(asUser.getId, 1, region, roundId, rate))
       } else {
-        Redirect(routes.Gallery.byRate(asUser.getId, 1, region, roundId))
+        Redirect(routes.GalleryController.byRate(asUser.getId, 1, region, roundId))
       }
     }
   }
@@ -121,9 +121,9 @@ object LargeView extends Controller with Secured {
     val index = files.indexWhere(_.pageId == pageId)
     if (index < 0) {
       return Redirect(if (files.nonEmpty) {
-        routes.LargeView.large(asUserId, files.head.pageId, region, round.getId, rate, module)
+        routes.LargeViewController.large(asUserId, files.head.pageId, region, round.getId, rate, module)
       } else {
-        routes.Gallery.list(asUserId, 1, region, round.getId, rate)
+        routes.GalleryController.list(asUserId, 1, region, round.getId, rate)
       })
     }
 

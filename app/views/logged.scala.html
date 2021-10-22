@@ -8,12 +8,12 @@
             </a>
         <ul class="dropdown-menu">
             <li>
-                <a href="@routes.Admin.editUser(user.getId)">
+                <a href="@routes.UsersController.editUser(user.getId)">
                     <span class="glyphicon glyphicon-user"></span> @Messages("profile")
                 </a>
             </li>
             <li>
-                <a href="@routes.Login.logout()">
+                <a href="@routes.LoginController.logout()">
                     <span class="glyphicon glyphicon-off"></span> @Messages("logout")
                 </a>
             </li>
