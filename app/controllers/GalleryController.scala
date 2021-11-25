@@ -228,9 +228,7 @@ object GalleryController extends Controller with Secured with Instrumented {
                rate: Option[Int], module: String, criteria: Option[Int]): EssentialAction = withAuth() {
     user =>
       implicit request =>
-
         SelectionJdbc.rate(pageId = pageId, juryId = user.getId, roundId = roundId, rate = select)
-
         Ok("success")
   }
 
@@ -255,7 +253,10 @@ object GalleryController extends Controller with Secured with Instrumented {
     val urls = for (image <- images;
                     (x, y) <- Global.smallSizes;
                     factor <- Global.sizeFactors
-                    ) yield Seq(Global.resizeTo(image, (x * factor).toInt, (y * factor).toInt), Global.resizeTo(image, (y * factor).toInt))
+                    ) yield Seq(
+      Global.resizeTo(image, (x * factor).toInt, (y * factor).toInt),
+      Global.resizeTo(image, (y * factor).toInt)
+    )
 
     urls.flatten.sorted.distinct
   }

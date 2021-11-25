@@ -1,4 +1,5 @@
 application.name=Outil de jury
+author=Auteur
 
 date=Date
 filter=Filtre

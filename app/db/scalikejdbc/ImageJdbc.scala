@@ -54,7 +54,8 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
     height = rs.int(c.height),
     monumentId = rs.stringOpt(c.monumentId),
     description = rs.stringOpt(c.description),
-    size = rs.intOpt(c.size)
+    size = rs.intOpt(c.size),
+    author = rs.stringOpt(c.author)
   )
 
   def apply(c: ResultName[Image])(rs: WrappedResultSet): Image = extract(rs, c)
