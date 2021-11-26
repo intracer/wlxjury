@@ -138,8 +138,9 @@ object GalleryController extends Controller with Secured with Instrumented {
                 Seq(asUser)
               }
 
+              val showAuthor = maybeRound.exists(user.canViewOrgInfo) && files.exists(_.image.author.nonEmpty)
               Ok(views.html.fileList(user, asUserId, asUser,
-                files, ranks, jurors, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates)
+                files, ranks, jurors, pager, maybeRound, rounds, rate, region, byReg, "wiki", useTable, rates, showAuthor)
               )
             case "byrate" =>
               if (region != "grouped") {
