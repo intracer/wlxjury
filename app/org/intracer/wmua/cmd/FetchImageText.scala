@@ -41,11 +41,11 @@ case class FetchImageText(source: String,
       val authorsSeq: Seq[String] = authors(pages)
       val descrs: Seq[String] = descriptions(pages)
       images.zip(ids).map {
-        case (image, id) => image.copy(monumentId = Some(id))
+        case (image, id) => image.copy(monumentId = Some(id).filterNot(_.trim.isEmpty))
       }.zip(descrs).map {
         case (image, descr) => image.copy(description = Some(descr))
       }.zip(authorsSeq).map {
-        case (image, author) => image.copy(author = Some(author.take(256)))
+        case (image, author) => image.copy(author = Some(author.take(256)).filterNot(_.trim.isEmpty))
       }
     }
   }

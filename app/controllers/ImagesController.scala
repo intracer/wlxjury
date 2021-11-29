@@ -34,8 +34,7 @@ class ImagesController @Inject()(val commons: MwBot) extends Controller with Sec
   }
 
   def getNumberOfImages(contest: ContestJury): Long = {
-    contest.images.fold(0L) {
-      images =>
+    contest.images.fold(0L) { images =>
         FetchImageInfo(images, Seq.empty, contest, commons).numberOfImages.await
     }
   }
@@ -61,7 +60,6 @@ class ImagesController @Inject()(val commons: MwBot) extends Controller with Sec
             Redirect(routes.ImagesController.images(contestId))
         })
   }
-
 
   def updateImageMonuments(source: String, contest: ContestJury): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global

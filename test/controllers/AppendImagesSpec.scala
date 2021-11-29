@@ -71,7 +71,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
 
     "get one image with text" in {
       withDb {
-        val images = Seq(image(id = 11).copy(description = Some("descr"), monumentId = Some("")))
+        val images = Seq(image(id = 11).copy(description = Some("descr"), monumentId = None))
         val commons = mockQuery(images, category, contestId)
         val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None, Some("NaturalMonument"))
 
