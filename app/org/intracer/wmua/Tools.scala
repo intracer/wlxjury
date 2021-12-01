@@ -79,21 +79,6 @@ object Tools {
     }
   }
 
-  def globalRefactor = {
-    val commons = MwBot.fromHost(MwBot.commons)
-    new GlobalRefactor(commons)
-  }
-
-  def initImages(): Unit = {
-    val contest = ContestJuryJdbc.findById(77L).get
-
-    globalRefactor.appendImages(contest.images.get, "", contest)
-
-    val round = Round.findById(133L).get
-
-    DistributeImages.distributeImages(round, round.availableJurors, None)
-  }
-
   def addUsers(contest: ContestJury, number: Int) = {
     val country = contest.country.replaceAll("[ \\-\\&]", "")
     val jurors = (1 to number).map(i => country + "ESPCJuror" + i)

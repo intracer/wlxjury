@@ -34,22 +34,6 @@ object Global {
   val useLegacyThumbUrl = true
   val thumbUrl: (Image, Int, Int) => String = if (useLegacyThumbUrl) legacyThumbUlr else thumbPhpUrl
 
-  def initCountry(category: String, countryOpt: Option[String]) = {
-    val country = countryOpt.fold(category.replace("Category:Images from Wiki Loves Earth 2014 in ", ""))(identity)
-
-    //"Ukraine"
-    val contestOpt = ContestJuryJdbc.where('country -> country).apply().headOption
-
-    for (contest <- contestOpt) {
-      globalRefactor.initContest(category, contest)
-    }
-  }
-
-  def globalRefactor = {
-    val commons = MwBot.fromHost(MwBot.commons)
-    new GlobalRefactor(commons)
-  }
-
   def resizeTo(info: Image, resizeToWidth: Int, resizeToHeight: Int): String = {
 
     val px = info.resizeTo(resizeToWidth, resizeToHeight)
