@@ -82,6 +82,21 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
       }
     }
 
+    "get images from list" in {
+      val images = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
+      withDb {
+        val contest = contestDao.create(Some(contestId + 1), "WLE", 2019, "International", Some(category), None, None, None)
+        val ic = mockController(images, category, contestId)
+        val imageList = images.map(_.title).mkString(System.lineSeparator)
+        ic.appendImages("", imageList, contest)
+
+        val contestWithCategory = contestDao.findById(contest.getId).get
+        eventually {
+          imageDao.findByContest(contestWithCategory) === images
+        }
+      }
+    }
+
     "update images" in {
       withDb {
         val images1 = (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}"), monumentId = Some(s"12-345-$id")))

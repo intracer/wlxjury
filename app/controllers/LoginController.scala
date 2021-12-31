@@ -12,9 +12,7 @@ import play.api.mvc._
 
 class LoginController @Inject()(val admin: UsersController) extends Controller with Secured {
 
-  def index = withAuth() {
-    user =>
-      implicit request =>
+  def index = withAuth() { user => implicit request =>
         indexRedirect(user)
   }
 
