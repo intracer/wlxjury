@@ -54,7 +54,8 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
     height = rs.int(c.height),
     monumentId = rs.stringOpt(c.monumentId),
     description = rs.stringOpt(c.description),
-    size = rs.intOpt(c.size)
+    size = rs.intOpt(c.size),
+    author = rs.stringOpt(c.author)
   )
 
   def apply(c: ResultName[Image])(rs: WrappedResultSet): Image = extract(rs, c)
@@ -71,7 +72,8 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
         i.height,
         i.monumentId,
         i.description,
-        i.size
+        i.size,
+        i.author
       ))
       withSQL {
         insert.into(ImageJdbc).namedValues(
@@ -83,7 +85,8 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
           column.height -> sqls.?,
           column.monumentId -> sqls.?,
           column.description -> sqls.?,
-          column.size -> sqls.?
+          column.size -> sqls.?,
+          column.author -> sqls.?
         )
       }.batch(batchParams: _*).apply()
     }
@@ -306,6 +309,14 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
   }.list().apply().map {
     case (img, sel) => ImageWithRating(img, Seq(sel))
   }
+
+  def byRound(roundId: Long): List[Image] = withSQL {
+    select(distinct(i.result.*)).from(ImageJdbc as i)
+      .innerJoin(SelectionJdbc as s).on(i.pageId, s.pageId)
+      .where.eq(s.roundId, roundId)
+  }.map { rs =>
+    ImageJdbc(i)(rs)
+  }.list().apply()
 
   def byRatingMerged(rate: Int, roundId: Long): Seq[ImageWithRating] = {
     val raw = ImageJdbc.byRating(rate, roundId)

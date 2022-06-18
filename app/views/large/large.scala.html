@@ -43,7 +43,9 @@
 
                     @navigationButtons(user, asUserId, files, index, page, rate, region, round, module)
                     @thumbsBar(user, asUserId, files, index, start, end, rate, region, round, module)
-
+                    @if(user.canViewOrgInfo(round)){
+                        @authorInfo(files(index).image, user)
+                    }
                     @monumentInfo(files(index).image, monument)
                     @fullSizeUrl(files(index).image, round)
                     @juryStat(selection, round, module, region)

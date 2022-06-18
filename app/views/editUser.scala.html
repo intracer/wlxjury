@@ -20,7 +20,7 @@
                 <h3>@Messages("create.user")</h3>
             }
 
-            @form(routes.Admin.saveUser, 'class -> "form-vertical") {
+            @form(routes.UsersController.saveUser, 'class -> "form-vertical") {
                 @helper.CSRF.formField
 
                 @if(editUserForm.hasGlobalErrors) {
@@ -75,15 +75,15 @@
                 <div class="form-actions">
                     <input type="submit" class="btn btn-default btn-primary" value="@Messages("save")">
                     @if(user.hasAnyRole(User.ADMIN_ROLES)) {
-                        <a href="@routes.Admin.users(contestId)" class="btn btn-default">@Messages("cancel")</a>
+                        <a href="@routes.UsersController.users(contestId)" class="btn btn-default">@Messages("cancel")</a>
                     } else {
-                        <a href="@routes.Login.index" class="btn btn-default">@Messages("cancel")</a>
+                        <a href="@routes.LoginController.index" class="btn btn-default">@Messages("cancel")</a>
                     }
                 </div>
             }
 
             <div style="display: none;">
-            @form(routes.Admin.resetPassword(editUserForm("id").value.map(_.toLong).get), 'class -> "form-vertical", 'id -> "reset-password") {
+            @form(routes.UsersController.resetPassword(editUserForm("id").value.map(_.toLong).get), 'class -> "form-vertical", 'id -> "reset-password") {
                 <input type="submit" class="btn" value="@Messages("Reset password")">
                 }
             </div>

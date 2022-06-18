@@ -21,7 +21,7 @@
 Name2 Surname2 &lt;mail2@@server.com&gt;</pre>
         </div>
 
-        @form(routes.Admin.importUsers(Some(contestId)), 'id -> "import-users") {
+        @form(routes.UsersController.importUsers(Some(contestId)), 'id -> "import-users") {
             <div class="form-group">
                 @helper.CSRF.formField
 
@@ -31,7 +31,7 @@ Name2 Surname2 &lt;mail2@@server.com&gt;</pre>
 
                 <div class="form-actions">
                     <input type="submit" class="btn btn-default btn-primary" value="@Messages("import")">
-                    <a href="@routes.Admin.users(Some(contestId))" class="btn btn-default">@Messages("cancel")</a>
+                    <a href="@routes.UsersController.users(Some(contestId))" class="btn btn-default">@Messages("cancel")</a>
                 </div>
 
             </div>

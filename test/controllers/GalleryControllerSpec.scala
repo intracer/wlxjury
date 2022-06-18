@@ -5,7 +5,7 @@ import org.intracer.wmua.{Selection, _}
 import org.specs2.mutable.Specification
 import play.api.Application
 
-class GallerySpec extends Specification with TestDb {
+class GalleryControllerSpec extends Specification with TestDb {
 
   sequential
 
@@ -52,7 +52,7 @@ class GallerySpec extends Specification with TestDb {
         createSelection(images.slice(0, 3), rate = 0)
 
         /// test
-        val result = Gallery.getSortedImages(user.getId, None, round.id, "gallery")
+        val result = GalleryController.getSortedImages(user.getId, None, round.id, "gallery")
 
         /// check
         result.size === 3
@@ -78,7 +78,7 @@ class GallerySpec extends Specification with TestDb {
 
         for (rate <- -1 to 1) yield {
           /// test
-          val result = Gallery.getSortedImages(user.getId, Some(rate), round.id, "gallery")
+          val result = GalleryController.getSortedImages(user.getId, Some(rate), round.id, "gallery")
 
           /// check
           result.size === 2
@@ -104,7 +104,7 @@ class GallerySpec extends Specification with TestDb {
         }
 
         /// test
-        val result = Gallery.getSortedImages(user.getId, None, round.id, "gallery")
+        val result = GalleryController.getSortedImages(user.getId, None, round.id, "gallery")
 
         /// check
         result.size === 6
@@ -127,7 +127,7 @@ class GallerySpec extends Specification with TestDb {
         selectionDao.batchInsert(selections)
 
         /// test
-        val result = Gallery.getSortedImages(user.getId, None, round.id, "gallery")
+        val result = GalleryController.getSortedImages(user.getId, None, round.id, "gallery")
 
         /// check
         result.size === 6
@@ -161,7 +161,7 @@ class GallerySpec extends Specification with TestDb {
         selectionDao.batchInsert(selectedByX)
 
         /// test
-        val result = Gallery.getSortedImages(0, None, round.id, "gallery")
+        val result = GalleryController.getSortedImages(0, None, round.id, "gallery")
 
         /// check
         result.size === 4
@@ -200,7 +200,7 @@ class GallerySpec extends Specification with TestDb {
         selectionDao.batchInsert(selections)
 
         /// test
-        val result = Gallery.getSortedImages(0, None, round.id, "filelist")
+        val result = GalleryController.getSortedImages(0, None, round.id, "filelist")
 
         /// check
         result.size === 2
@@ -233,7 +233,7 @@ class GallerySpec extends Specification with TestDb {
         selectionDao.batchInsert(selectedByX)
 
         /// test
-        val result = Gallery.getSortedImages(0, None, round.id, "filelist")
+        val result = GalleryController.getSortedImages(0, None, round.id, "filelist")
 
         /// check
         result.size === 4

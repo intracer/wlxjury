@@ -20,9 +20,9 @@ trait Secured {
       .flatMap(User.byUserName)
   }
 
-  def onUnAuthenticated(request: RequestHeader) = Results.Redirect(routes.Login.login())
+  def onUnAuthenticated(request: RequestHeader) = Results.Redirect(routes.LoginController.login())
 
-  def onUnAuthorized(user: User) = Results.Redirect(routes.Login.error("You don't have permission to access this page"))
+  def onUnAuthorized(user: User) = Results.Redirect(routes.LoginController.error("You don't have permission to access this page"))
 
   def withAuth(permission: Permission = rolePermission(User.ADMIN_ROLES ++ Set("jury", "organizer")))
               (f: => User => Request[AnyContent] => Result) = {

@@ -9,7 +9,7 @@ import play.api.mvc.Controller
 
 case class CommentBody(id: Long, text: String)
 
-object ImageDiscussion extends Controller with Secured {
+object ImageDiscussionController extends Controller with Secured {
 
   val editCommentForm = Form(
     mapping(
@@ -25,10 +25,10 @@ object ImageDiscussion extends Controller with Secured {
 
         editCommentForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
-            Redirect(routes.LargeView.large(user.getId, pageId, region, roundId, rate, module)),
+            Redirect(routes.LargeViewController.large(user.getId, pageId, region, roundId, rate, module)),
           commentBody => {
             CommentJdbc.create(user.getId, user.fullname, roundId, contestId.orElse(user.currentContestId), pageId, commentBody.text)
-            Redirect(routes.LargeView.large(user.getId, pageId, region, roundId, rate, module).url.concat("#comments"))
+            Redirect(routes.LargeViewController.large(user.getId, pageId, region, roundId, rate, module).url.concat("#comments"))
           }
     )
   }

@@ -1,21 +1,22 @@
 import sbt.Keys._
 
 lazy val root = identity((project in file("."))
-  .enablePlugins(PlayScala, PlayNettyServer, DebianPlugin, RpmPlugin, JavaAppPackaging))
+  .enablePlugins(PlayScala, PlayNettyServer, DebianPlugin, SystemdPlugin, JavaServerAppPackaging))
   .disablePlugins(PlayAkkaHttpServer)
 
 name := "wlxjury"
 
 organization := "org.intracer"
 
-version := "0.11-SNAPSHOT"
+version := "0.13"
 
 scalaVersion := "2.12.10"
 
 val ScalikejdbcVersion = "3.3.5"
 val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.3"
-val ScalawikiVersion = "0.6.2"
+val ScalawikiVersion = "0.6.6.1"
 val PlayMailerVersion = "6.0.1"
+val MockServerVersion = "5.7.0"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -23,13 +24,15 @@ resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
 resolvers += Resolver.jcenterRepo
 
+resolvers += Resolver.mavenLocal
+
 libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.6.3",
   "com.adrianhurt" %% "play-bootstrap" % "1.5.1-P26-B3",
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "3.2.1",
 
-  "mysql" % "mysql-connector-java" % "5.1.40",
+  "mysql" % "mysql-connector-java" % "8.0.25",
   "org.scalikejdbc" %% "scalikejdbc" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % ScalikejdbcPlayVersion,
@@ -53,10 +56,12 @@ libraryDependencies ++= Seq(
   guice, filters,
   specs2 % Test,
   jdbc % Test,
-  "com.wix" % "wix-embedded-mysql" % "4.2.0" % Test,
+  "com.wix" % "wix-embedded-mysql" % "4.6.1" % Test,
+  "org.mock-server" % "mockserver-netty" % MockServerVersion % Test,
   "net.java.dev.jna" % "jna" % "4.5.0" % Test,
   "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test,
-  "com.h2database" % "h2" % "1.4.193" % Test)
+  "com.h2database" % "h2" % "1.4.193" % Test
+)
 
 dependencyOverrides ++= Seq(
   "commons-io" % "commons-io" % "2.5"
@@ -96,17 +101,15 @@ packageDescription :=
 
 maintainer := "Ilya Korniiko <intracer@gmail.com>"
 
-debianPackageDependencies in Debian ++= Seq("java8-runtime")
-
 debianPackageRecommends in Debian ++= Seq("virtual-mysql-server")
 
 addCommandAlias(
   "packageAll", "; clean" +
-    "; packageDebianSystemV" +
+    "; packageDebSystemV" +
     "; clean " +
-    "; packageDebianUpstart" +
+    "; packageDebUpstart" +
     "; clean " +
-    "; packageDebianSystemd" +
+    "; packageDebSystemd" +
     "; clean " +
     "; packageRpmSystemV" +
     "; clean " +

@@ -18,7 +18,8 @@
         regions: Seq[Region],
         outputFormat: String = "wiki",
         wrapInTable: Boolean,
-        rates: RateDistribution
+        rates: RateDistribution,
+        showAuthor: Boolean = false
 )(implicit flash: Flash, lang: Lang, messages: Messages)
 
 @wrapInIf(tag: String, condition: Boolean)(content: Html) = {@if(condition) {<@tag> @content </@tag>} else {@content}}
@@ -56,6 +57,9 @@
             <table class="table table-striped table-condensed">
                 <thead>
                     <th> @Messages("rank") </th>
+                    @if(showAuthor) {
+                        <th> @Messages("author") </th>
+                    }
                     <th> @Messages("file") </th>
                     <th> @ratedOrSelected(round.get, asUserId) </th>
                     <th> @Messages("mpx") </th>
@@ -70,6 +74,12 @@
             @row {
                 @if(wrapInTable) {
                     <td> @rank </td>
+                }
+
+                @if(wrapInTable) {
+                    @if(showAuthor) {
+                        <td> @file.image.parsedAuthor.getOrElse("") </td>
+                    }
                 }
 
                 @cell {
@@ -101,6 +111,9 @@
         </tbody>
             <tfoot>
                 <th> @Messages("rank") </th>
+                @if(showAuthor) {
+                    <th> @Messages("author") </th>
+                }
                 <th> @Messages("file") </th>
                 <th> @ratedOrSelected(round.get, asUserId) </th>
                 @for(juror <- jurors) {

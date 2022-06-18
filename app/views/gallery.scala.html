@@ -23,7 +23,7 @@
 
             @if(regions.nonEmpty) {
                 @regionNav((region: String) =>
-                                routes.Gallery.query("gallery", Some(asUserId), 1, region, roundId, rate).url,
+                                routes.GalleryController.query("gallery", Some(asUserId), 1, region, roundId, rate).url,
                             round, region, regions)
             }
 

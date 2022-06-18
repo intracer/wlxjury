@@ -1,11 +1,10 @@
 package controllers
 
-import db.scalikejdbc.{ContestJury, ImageJdbc, User}
-import org.intracer.wmua.cmd.FetchImageInfo
-import org.intracer.wmua.cmd.FetchImageText._
-import db.scalikejdbc.ContestJury
+import db.scalikejdbc.{ContestJuryJdbc, User}
+import org.intracer.wmua.ContestJury
+import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
-import org.scalawiki.wlx.dto.{Contest, ContestType, Country, NoAdmDivision}
+import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}
 import org.scalawiki.wlx.{CampaignList, CountryParser}
 import play.api.Play.current
 import play.api.data.Form
@@ -13,13 +12,14 @@ import play.api.data.Forms.{optional, _}
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.Controller
 import spray.util.pimpFuture
+
 import javax.inject.Inject
 import org.scalawiki.MwBot
 import play.api.Logger
 
 import scala.concurrent.Future
 
-class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
+class ContestsController @Inject()(val commons: MwBot) extends Controller with Secured {
 
   def fetchContests(contestType: Option[String], year: Option[Int], country: Option[String]): Future[Seq[Contest]] = {
     if (contestType.isEmpty) {
@@ -58,7 +58,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
           },
           formContest => {
             createContest(formContest)
-            Redirect(routes.Contests.list())
+            Redirect(routes.ContestsController.list())
           })
   }
 
@@ -95,7 +95,7 @@ class Contests @Inject()(val commons: MwBot) extends Controller with Secured {
                 )
                 createContest(contestJury)
             }
-            Redirect(routes.Contests.list())
+            Redirect(routes.ContestsController.list())
           })
   }
 

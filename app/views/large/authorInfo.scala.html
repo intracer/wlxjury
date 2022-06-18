@@ -1,0 +1,6 @@
+@(image: org.intracer.wmua.Image, user: db.scalikejdbc.User)(implicit lang: Lang, messages: Messages)
+@if(image.author.nonEmpty) {
+    <div id="author" class="well" style="margin-right: 5px; margin-top: 10px; padding: 5px;">
+        @Messages("author"): @image.parsedAuthor.getOrElse("")
+    </div>
+}

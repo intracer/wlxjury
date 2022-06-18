@@ -21,7 +21,7 @@ import scala.util.Try
 /**
   * Controller for admin views
   */
-class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secured {
+class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secured {
 
   /**
     * @param contestIdParam optional contest Id. If not set, contest of the admin user is used
@@ -35,9 +35,18 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
           val users = User.findByContest(contestId).sorted
           val withWiki = wikiAccountInfo(users)
 
-          Ok(views.html.users(user, withWiki, editUserForm.copy(data = Map("roles" -> "jury")), contest))
-        }).getOrElse(Redirect(routes.Login.index())) // TODO message
+          Ok(views.html.users(user, withWiki, editUserForm.copy(data = Map("roles" -> "jury")), Some(contest)))
+        }).getOrElse(Redirect(routes.LoginController.index())) // TODO message
   }
+
+  def allUsers() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
+    user =>
+      implicit request =>
+          val users = User.findAll()
+          val contests = ContestJuryJdbc.findAll()
+          Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), None, contests))
+  }
+
 
   /**
     * Checks if wiki accounts are valid and can be emailed via wiki acount
@@ -83,7 +92,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
     */
   def havingEditRights(currentUser: User, otherUser: User)(block: => Result): Result = {
     if (!currentUser.canEdit(otherUser)) {
-      Redirect(routes.Login.index()) // TODO message
+      Redirect(routes.LoginController.index()) // TODO message
     } else {
       block
     }
@@ -162,9 +171,9 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
                 }
 
                 val result = if (user.hasAnyRole(User.ADMIN_ROLES)) {
-                  Redirect(routes.Admin.users(formUser.currentContestId))
+                  Redirect(routes.UsersController.users(formUser.currentContestId))
                 } else {
-                  Redirect(routes.Login.index())
+                  Redirect(routes.LoginController.index())
                 }
                 val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
 
@@ -212,7 +221,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
 
             val results = parsed.map(pu => Try(createUser(user, pu.copy(roles = Set("jury")), contest)))
 
-            Redirect(routes.Admin.users(Some(contestId)))
+            Redirect(routes.UsersController.users(Some(contestId)))
           })
 
   }
@@ -243,7 +252,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
           Ok(views.html.greetingTemplate(
             user, greetingTemplateForm.fill(greeting), contestId, variables(contest, user, recipient), substitution
           ))
-        }).getOrElse(Redirect(routes.Login.index()))
+        }).getOrElse(Redirect(routes.LoginController.index()))
   }
 
   def getGreeting(contest: ContestJury): Greeting = {
@@ -286,7 +295,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
           formGreeting => {
 
             ContestJury.updateGreeting(contestId, formGreeting)
-            Redirect(routes.Admin.users(Some(contestId)))
+            Redirect(routes.UsersController.users(Some(contestId)))
           })
 
   }
@@ -366,7 +375,7 @@ class Admin @Inject()(val sendMail: SMTPOrWikiMail) extends Controller with Secu
           s"Regards, ${user.fullname}"
         // sendMail.sendMail(from = (user.fullname, user.email), to = Seq(user.email), bcc = Seq(user.email), subject = subject, message = message)
 
-        Redirect(routes.Admin.editUser(id)).flashing("password-reset" -> s"Password reset. New Password sent to ${editedUser.email}")
+        Redirect(routes.UsersController.editUser(id)).flashing("password-reset" -> s"Password reset. New Password sent to ${editedUser.email}")
 
   }
 }

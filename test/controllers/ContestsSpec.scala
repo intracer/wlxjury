@@ -17,7 +17,7 @@ class ContestsSpec extends PlaySpecification with TestDb {
         implicit val materializer = app.materializer
 
         val bot = MwBot.fromHost("commons.wikimedia.org")
-        val contestsController = new Contests(bot)
+        val contestsController = new ContestsController(bot)
 
         val user = userDao.create(
           User("fullname", email, None, Set("root"), contestIds = None)

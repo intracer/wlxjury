@@ -5,7 +5,7 @@ import db.scalikejdbc.ContestJury
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-class AdminSpec extends Specification with TestDb with Mockito {
+class UsersControllerSpec extends Specification with TestDb with Mockito {
 
   val sender = User("Admin User", "email@server.com")
 
@@ -17,10 +17,10 @@ class AdminSpec extends Specification with TestDb with Mockito {
         val template = "Organizing committee of {{ContestType}} {{ContestYear}} {{ContestCountry}} is glad to welcome you as a jury member\n" +
           "Please visit {{JuryToolLink}}\n" +
           "Regards, {{AdminName}}"
-        val admin = new Admin(mock[SMTPOrWikiMail])
+        val admin = new UsersController(mock[SMTPOrWikiMail])
         val filled = admin.fillGreeting(template, contest, sender, sender)
         filled === "Organizing committee of Wiki Loves Earth 2016 Ukraine is glad to welcome you as a jury member\n" +
-          "Please visit http://jury.wikilovesearth.org.ua/\n" +
+          "Please visit https://jury.wle.org.ua/\n" +
           "Regards, Admin User"
       }
     }

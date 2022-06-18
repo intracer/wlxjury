@@ -30,7 +30,7 @@
                 <h3>@Messages("edit.round")</h3>
             }
 
-            @b3.form(routes.Rounds.saveRound) {
+            @b3.form(routes.RoundsController.saveRound) {
                 @helper.CSRF.formField
 
                 @if(editRoundForm.hasGlobalErrors) {
@@ -173,7 +173,7 @@
                 <div class="form-actions" style="margin-top: 10px">
                     <input type="submit" class="btn btn-primary btn-default" style="width: 25%;
                         margin-right: 10px" value="@Messages("save")">
-                    <a href="@routes.Rounds.rounds(editRoundForm("contest").value.map(_.toLong))">
+                    <a href="@routes.RoundsController.rounds(editRoundForm("contest").value.map(_.toLong))">
                         <button type="button" class="btn btn-default" style="width: 25%;" >@Messages("cancel")</button>
                     </a>
                 </div>

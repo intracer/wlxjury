@@ -14,6 +14,8 @@ case class Image(pageId: Long,
                  size: Option[Int] = None
                   ) extends Ordered[Image] {
 
+  def parsedAuthor: Option[String] = author.map(org.scalawiki.dto.Image.parseUser)
+
   def compare(that: Image) = (this.pageId - that.pageId).signum
 
   def region: Option[String] = monumentId.map(_.split("-")(0))

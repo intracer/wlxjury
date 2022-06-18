@@ -10,7 +10,7 @@
 
     @mainAdmin(Messages("contest.images"), user, user.getId, contestId = contest.id) {
         <h3>@Messages("contest") @contest.fullName</h3>
-        @b3.vertical.form(routes.Contests.importImages(contest.getId), 'id -> "import-images") { implicit vfc =>
+        @b3.vertical.form(routes.ImagesController.importImages(contest.getId), 'id -> "import-images") { implicit vfc =>
             @helper.CSRF.formField
 
             <h4>@Messages("images.source")</h4>

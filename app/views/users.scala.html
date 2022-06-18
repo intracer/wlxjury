@@ -4,22 +4,31 @@
         adminUser: db.scalikejdbc.User,
         users: Seq[db.scalikejdbc.User],
         editUserForm: Form[db.scalikejdbc.User],
-        contest: ContestJury)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
+        contestOpt: Option[ContestJury],
+        contests: List[ContestJury] = Nil
+)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
     @import helper._
     @import views.html.bootstrap._
 
-    @mainAdmin(Messages("users"), adminUser, adminUser.getId, contestId = contest.id) {
-        <div class="row" >
-            <h3>@Messages("contest") @contest.fullName</h3>
+    @mainAdmin(Messages("users"), adminUser, adminUser.getId, contestId = contestOpt.flatMap(_.id)) {
+        <div class="row">
 
-            <div style="margin-bottom: 10px">
-                <a href="@routes.Admin.importUsers(contest.id)" style="margin-right: 5px">
-                    <div class="btn btn-primary">@Messages("mass.import")</div>
-                </a>
-                <a href="@routes.Admin.editGreeting(contest.id)">
-                    <div class="btn btn-primary">@Messages("edit.greeting.message")</div>
-                </a>
-            </div>
+            @if(contests.nonEmpty) {
+                @contestsTable(contests)
+            }
+
+            @for(contest <- contestOpt) {
+                <h3>@Messages("contest") @contest.fullName</h3>
+
+                <div style="margin-bottom: 10px">
+                    <a href="@routes.UsersController.importUsers(contest.id)" style="margin-right: 5px">
+                        <div class="btn btn-primary">@Messages("mass.import")</div>
+                    </a>
+                    <a href="@routes.UsersController.editGreeting(contest.id)">
+                        <div class="btn btn-primary">@Messages("edit.greeting.message")</div>
+                    </a>
+                </div>
+            }
 
 
             <table class="table table-striped table-condensed" style="background-color: #CCCCCC ;">
@@ -42,7 +51,7 @@
                             <td> @{index + 1} </td>
                             <td> @user.fullname </td>
                             <td>
-
+                                @for(contest <- contestOpt) {
                                 @if(user.accountValid) {
                                     <a href="https://commons.wikimedia.org/w/index.php?title=User_talk:@user.wikiAccount&action=edit&section=new&preload=&preloadtitle=@contest.name%20Jury">
                                         <button type="button" class="btn btn-default btn-xs">
@@ -54,15 +63,18 @@
                                         } else {
                                             "https://commons.wikimedia.org/w/index.php?title=User_talk:@user.wikiAccount&action=edit&section=new&preload=User:Ilya/enableEmailText&preloadtitle=Please%20enable%20wiki%20email"
                                         } >
+
                                         <button type="button" class="btn btn-default btn-xs">
                                             <i class="fa fa-envelope-o" @if(!user.hasWikiEmail){style="color: red"} aria-hidden="true"></i>
                                         </button>
                                     </a>
                                 }
+                                }
 
                                 <a href="https://commons.wikimedia.org/wiki/User:@user.wikiAccount" @if(!user.accountValid){style="color: red"}>
                                     @user.wikiAccount
                                 </a>
+
                             </td>
                             <td>
                                 @user.email
@@ -78,7 +90,8 @@
                         </tr>
                     }
 
-                    @form(routes.Admin.saveUser, 'class -> "form-vertical", 'id -> "add-user") {
+                    @for(contest <- contestOpt) {
+                    @form(routes.UsersController.saveUser, 'class -> "form-vertical", 'id -> "add-user") {
                         @helper.CSRF.formField
                         <tr>
                             @if(editUserForm.hasGlobalErrors) {
@@ -112,6 +125,7 @@
                                 </div>
                             </td>
                         </tr>
+                    }
                     }
                 </tbody>
 

@@ -129,11 +129,13 @@ object Round extends SkinnyCRUDMapper[Round] {
 
   lazy val r = defaultAlias
 
+  val commentsOnlyRound = new Rates(0, "Comments only", 0, 0)
+
   val binaryRound = new Rates(1, "+/-", -1, 1)
 
   val rateRounds = (3 to 20).map(i => new Rates(i, s"1-$i rating", 1, i))
 
-  val rates = Seq(binaryRound) ++ rateRounds
+  val rates = Seq(commentsOnlyRound, binaryRound) ++ rateRounds
 
   val ratesById = rates.groupBy(_.id).mapValues(_.head)
 

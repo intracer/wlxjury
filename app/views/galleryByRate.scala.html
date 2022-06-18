@@ -16,7 +16,7 @@
 
     @showRateGalery(file: ImageWithRating, index: Int) = {
     @defining(maybeRound.get) { round =>
-
+        @if(round.rates.id > 0) {
         <div style="margin-bottom: 10px;
             color: #ffffff;"> <b>@file.rankStr</b>
             <span style="margin-left: 5px;
@@ -39,6 +39,7 @@
         </div>
     }
     }
+    }
 
     @main("byrate", user, asUserId, maybeRound, rounds, true, rate, region,
         pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate"), rates, rated
@@ -50,7 +51,7 @@
                 @if(regions.nonEmpty) {
                     @regionNav(
                         (region: String) =>
-                            routes.Gallery.query("byrate", Some(asUserId), 1, region, roundId.asInstanceOf[Long], rate).url,
+                            routes.GalleryController.query("byrate", Some(asUserId), 1, region, roundId.asInstanceOf[Long], rate).url,
                         maybeRound, region, regions)
                 }
 
@@ -64,7 +65,7 @@
                             height: 1px"></h1>
 
                         <div class="thumb">
-                            <a href="@routes.LargeView.large(asUserId, file.pageId, region, round.getId, None, "byrate")" >
+                            <a href="@routes.LargeViewController.large(asUserId, file.pageId, region, round.getId, None, "byrate")" >
                                 <img class="cropped" alt="@file.title"
                                 src="@Global.resizeTo(file.image, Global.gallerySizeX, Global.gallerySizeY)"
                                 srcset="@Global.srcSet(file.image, Global.gallerySizeX, Global.gallerySizeY)">

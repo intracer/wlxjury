@@ -49,7 +49,7 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
         m.gallery,
         m.page,
         m.contest,
-        m.id.split("-").headOption
+        m.id.split("-").headOption.map(_.take(3))
       ))
       withSQL {
         insert.into(MonumentJdbc).namedValues(

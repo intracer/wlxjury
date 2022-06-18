@@ -15,7 +15,8 @@ object ImageEnricher {
       val revOpt = revisionsById(i.pageId).headOption
       revOpt.fold(i)(r => i.copy(
         monumentId = r.monumentId,
-        description = r.description))
+        description = r.description,
+        author = r.author))
     }
   }
 

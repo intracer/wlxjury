@@ -15,7 +15,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
   def contestImage(id: Long, contest: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 0, 0, Some(s"12-345-$id"))
 
-  def revision(id: Long, text: String) = new Page(Some(id), Namespace.FILE, s"File:Image$id.jpg", revisions = Seq(
+  def revision(id: Long, text: String) = new Page(Some(id), Some(Namespace.FILE), s"File:Image$id.jpg", revisions = Seq(
     new Revision(Some(id + 100), Some(id), content = Some(text))
   ))
 
@@ -30,7 +30,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val query = mock[SinglePageQuery]
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.revisionsByGenerator("categorymembers", "cm",
-          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+          Set(Namespace.FILE), Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
         val commons = mockBot()
@@ -46,13 +46,13 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val category = "Category:Category Name"
         val contestId = 13
         val imageId = 11
-        val images = Seq(contestImage(imageId, contestId).copy(description = Some("descr"), monumentId = Some(""), author = Some("")))
-        val revisions = Seq(revision(imageId, "{{Information|description=descr}}"))
+        val images = Seq(contestImage(imageId, contestId).copy(description = Some("descr"), monumentId = Some(""), author = Some("Author")))
+        val revisions = Seq(revision(imageId, "{{Information|description=descr|author=Author}}"))
 
         val query = mock[SinglePageQuery]
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.revisionsByGenerator("categorymembers", "cm",
-          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+          Set(Namespace.FILE), Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
         val commons = mockBot()
@@ -71,13 +71,13 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val contestId = 13
         val imageId = 11
         val descr = s"descr. {{$idTemplate|12-345-$imageId}}"
-        val images = Seq(contestImage(imageId, contestId).copy(description = Some(descr), author = Some("")))
-        val revisions = Seq(revision(imageId, s"{{Information|description=$descr}}"))
+        val images = Seq(contestImage(imageId, contestId).copy(description = Some(descr), author = Some("Author")))
+        val revisions = Seq(revision(imageId, s"{{Information|description=$descr|author=Author}}"))
 
         val query = mock[SinglePageQuery]
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.revisionsByGenerator("categorymembers", "cm",
-          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+          Set(Namespace.FILE), Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
         val commons = mockBot()
@@ -102,7 +102,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val query = mock[SinglePageQuery]
         query.withContext(Map("contestId" -> contestId.toString, "max" -> "0")) returns query
         query.revisionsByGenerator("images", "im",
-          Set.empty, Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
+          Set(Namespace.FILE), Set("content", "timestamp", "user", "comment"), limit = "50", titlePrefix = None
         ) returns Future.successful(revisions)
 
         val commons = mockBot()

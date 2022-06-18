@@ -24,7 +24,7 @@
                     <li>Commons:Wiki Loves Earth 2016
                 </ul>
         </div>
-        @b3.vertical.form(routes.Contests.importContests, 'id -> "import-contests") { implicit vfc =>
+        @b3.vertical.form(routes.ContestsController.importContests, 'id -> "import-contests") { implicit vfc =>
             @helper.CSRF.formField
             @b3.text(importForm("source"), 'placeholder -> Messages("source"), '_label -> Messages("source"), '_help -> "")
 
@@ -55,7 +55,7 @@
             <tbody>
 
                 @if(user.hasRole(User.ROOT_ROLE)) {
-                    @form(routes.Contests.saveContest, 'class -> "form-vertical", 'id -> "add-contest") {
+                    @form(routes.ContestsController.saveContest, 'class -> "form-vertical", 'id -> "add-contest") {
                         @helper.CSRF.formField
                         <tr>
                             @if(editContestForm.hasGlobalErrors) {
@@ -99,17 +99,17 @@
                         <td>@Messages(contest.country)</td>
                         <td>@contest.year</td>
                         <td>
-                            <a href="@routes.Contests.images(contest.getId)">@contest.images </a>
+                            <a href="@routes.ImagesController.images(contest.getId)">@contest.images </a>
                         </td>
                         <td>
-                            <a href="@routes.Admin.users(contest.id)">
+                            <a href="@routes.UsersController.users(contest.id)">
                                 <button type="button" class="btn btn-default btn-xs">
                                     <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                                 </button>
                             </a>
                         </td>
                         <td>@contest.currentRound
-                        <a href="@routes.Rounds.rounds(contest.id)">
+                        <a href="@routes.RoundsController.rounds(contest.id)">
                             <button type="button" class="btn btn-default btn-xs">
                                 <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                             </button>

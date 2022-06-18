@@ -5,6 +5,7 @@ import db.scalikejdbc.{ImageJdbc, SelectionJdbc}
 import org.intracer.wmua.{Image, ImageWithRating, Region, Selection}
 import scalikejdbc.{DBSession, _}
 import _root_.play.api.i18n.Messages
+import org.scalawiki.wlx.dto.Country.Ukraine
 
 object ImageDbNew extends SQLSyntaxSupport[Image] {
 
@@ -31,23 +32,27 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                             grouped: Boolean = false,
                             groupWithDetails: Boolean = false,
                             order: Map[String, Int] = Map.empty,
+                            subRegions: Boolean = false,
                             driver: String = "mysql") {
 
     val reader: WrappedResultSet => ImageWithRating =
       if (grouped) Readers.groupedReader else Readers.rowReader
 
+    val regionColumn = if (subRegions) "adm1" else "adm0"
+
     def query(count: Boolean = false,
               idOnly: Boolean = false,
               noLimit: Boolean = false,
-              byRegion: Boolean = false): String = {
+              byRegion: Boolean = false,
+              ranked: Boolean = false): String = {
 
       val columns: String = "select  " + (if (count || idOnly) {
-        "i.page_id as pi_on_i" + (if (grouped)
-          ",  sum(s.rate) as rate, count(s.rate) as rate_count"
-        else "")
+        "i.page_id as pi_on_i" +
+          (if (ranked) s", ROW_NUMBER() over (${orderBy()}) ranked" else "") +
+        (if (grouped) ", sum(s.rate) as rate, count(s.rate) as rate_count" else "")
       } else {
         if (byRegion)
-          "m.adm0, count(DISTINCT i.page_id)"
+          s"m.$regionColumn, count(DISTINCT i.page_id)"
         else if (!grouped)
           sqls"""${i.result.*}, ${s.result.*} """.value
         else
@@ -55,7 +60,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       })
 
       val groupBy = if (byRegion) {
-        " group by m.adm0"
+        s" group by m.$regionColumn"
       } else if (grouped) {
         " group by s.page_id"
       } else ""
@@ -81,18 +86,30 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       single(query(count = true))
     }
 
-    def imageRank(pageId: Long) = {
-      single(imageRankSql(pageId, query(idOnly = true, noLimit = true)))
+    def imageRank(pageId: Long): Int = {
+      single(imageRankSql(pageId, query(ranked = true, idOnly = true, noLimit = true)))
     }
 
     def byRegionStat()(implicit messages: Messages): Seq[Region] = {
       val map = SQL(query(byRegion = true)).map(rs => rs.string(1) -> rs.int(2)).list().apply().toMap
-      regions(map)
+      regions(map, subRegions)
     }
 
-    def regions(byRegion: Map[String, Int])(implicit messages: Messages): Seq[Region] = {
-      for ((id, name) <- KOATUU.regions.toSeq.sortBy(_._1); if byRegion.getOrElse(id, 0) > 0)
-        yield Region(id, Messages(id), byRegion(id))
+    def regions(byRegion: Map[String, Int], subRegions: Boolean = false)(implicit messages: Messages): Seq[Region] = {
+      val regions = byRegion.keys.filterNot(_ == null).map { id =>
+        val adm = Ukraine.byMonumentId(id)
+        val name = if (messages.isDefinedAt(id)) messages(id) else adm.map(_.name).getOrElse("Unknown")
+        Region(id, name, byRegion(id))
+      }.toSeq
+
+      if (subRegions) {
+        val kyivPictures = regions.filter(_.id.startsWith("80-")).map(_.count).sum
+        val withoutKyivRegions = regions.filterNot(_.id.startsWith("80-"))
+        val unsorted = withoutKyivRegions ++ Seq(Region("80", messages("80"), kyivPictures))
+        unsorted.sortBy(_.name)
+      } else {
+        regions.sortBy(_.id)
+      }
     }
 
     def single(sql: String): Int = {
@@ -118,7 +135,11 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           rate.map(r => "s.rate = " + r),
           rated.map(r => if (r) "s.rate > 0" else "s.rate = 0"),
           regions.headOption.map { _ =>
-            "m.adm0 in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
+            if (regions.headOption.exists(_.length > 2)) {
+              s"m.$regionColumn in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
+            } else {
+              s"m.adm0 in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
+            }
           }
           //          limit.flatMap(_.startPageId).filter(_ => count).map(_ => "s.rate > 0")
         )
@@ -152,13 +173,9 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
 
     def imageRankSql(pageId: Long, sql: String): String = {
       val result = if (driver == "mysql") {
-        s"""SELECT rank
-            FROM (
-                  SELECT @row_num := @row_num + 1 'rank', t.pi_on_i as page_id
-                  FROM (SELECT @row_num := 0) r,
-                  ($sql) t
-                  ) t2
-            WHERE page_id = $pageId;"""
+        s"""SELECT ranked, pi_on_i
+            FROM ($sql) t
+            WHERE pi_on_i = $pageId;"""
       } else {
         s"""SELECT rank FROM
             (SELECT rownum as rank, t.pi_on_i as page_id
@@ -236,5 +253,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         rs.string(1) -> rs.int(2)
       }
     }
+
   }
+
 }

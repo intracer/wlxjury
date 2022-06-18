@@ -1,13 +1,15 @@
 package controllers
 
 import db.scalikejdbc.MonumentJdbc
-import org.scalawiki.wlx.dto.{Contest, Monument}
+import org.scalawiki.wlx.MonumentDB
+import org.scalawiki.wlx.dto.{Contest, ContestType, Monument, SpecialNomination}
 import org.scalawiki.wlx.query.MonumentQuery
+import org.scalawiki.wlx.stat.ContestStat
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
 import play.api.mvc.{Action, Controller}
 
-object Monuments extends Controller {
+object MonumentsController extends Controller {
 
   def list = Action {
     implicit request =>
@@ -26,6 +28,13 @@ object Monuments extends Controller {
   def updateLists(contest: Contest) = {
     val monumentQuery = MonumentQuery.create(contest)
     val monuments = monumentQuery.byMonumentTemplate()
+    val monumentIds = monuments.map(_.id).toSet
+
+    val stat = ContestStat(contest, 2020, Some(new MonumentDB(contest, monuments)))
+    val specialNominationMonuments = if (contest.contestType == ContestType.WLM) {
+      SpecialNomination.getMonumentsMap(SpecialNomination.nominations, stat)
+      .values.flatten.filterNot(m => monumentIds.contains(m.id))
+    } else Nil
 
     val fromDb = MonumentJdbc.findAll()
     val inDbIds = fromDb.map(_.id).toSet
@@ -42,7 +51,7 @@ object Monuments extends Controller {
       } else monument
     }
 
-    val newMonuments = monuments.view
+    val newMonuments = (monuments ++ specialNominationMonuments).view
       .filterNot(m => inDbIds.contains(m.id))
       .map(m => truncate(m, m.name, 512, s => m.copy(name = s)))
       .map(m => truncOpt(m, m.typ, 255, s => m.copy(typ = s)))

@@ -1,4 +1,5 @@
 application.name=Жюри
+author=Автор
 
 date=Дата
 filter=Фільтрувати

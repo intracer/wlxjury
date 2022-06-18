@@ -5,7 +5,7 @@ import org.intracer.wmua._
 import play.api.test.{Helpers, PlaySpecification}
 import play.twirl.api.Html
 
-class LargeViewSpec extends PlaySpecification {
+class LargeViewControllerSpec extends PlaySpecification {
 
   import play.api.i18n._
   implicit val lang = Lang("en-US")

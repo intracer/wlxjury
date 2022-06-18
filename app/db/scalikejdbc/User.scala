@@ -195,7 +195,7 @@ object User extends SkinnyCRUDMapper[User] {
   def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
     import SelectionJdbc.s
 
-    select.from(User as u)
+    select(u.result.*).from(User as u)
       .join(SelectionJdbc as s)
       .on(u.id, s.juryId)
       .where.eq(s.roundId, roundId)
