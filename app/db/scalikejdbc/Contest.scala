@@ -67,7 +67,10 @@ object Contest extends SkinnyCRUDMapper[Contest] {
   lazy val contestUsers = hasManyThrough[User](
     through = ContestUser,
     many = User,
-    merge = (contest, users) => contest.copy(users = users)).byDefault
+    merge = (contest, users) => {
+      val usersWithContest = users.map(user => user.copy(contestId = contest.id))
+      contest.copy(users = usersWithContest)
+    }).byDefault
 
   override def extract(rs: WrappedResultSet, c: ResultName[Contest]): Contest = Contest(
     id = rs.longOpt(c.id),
