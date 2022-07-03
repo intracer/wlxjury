@@ -38,7 +38,7 @@ class ContestSpec extends Specification with TestDb {
         users.size === 1
         users.head === new ContestUser(dbC.flatMap(_.id).get, dbUser.id.get, "jury")
 
-        contestDao.findById(contest.getId).toSeq.flatMap(_.users) === Seq(dbUser)
+        userDao.findByContest(dbC.flatMap(_.id).get).flatMap(_.id) === Seq(dbUser).flatMap(_.id)
       }
     }
   }

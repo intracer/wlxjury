@@ -1,0 +1,1 @@
+ALTER TABLE contest_jury RENAME TO contest

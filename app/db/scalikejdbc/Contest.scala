@@ -58,7 +58,7 @@ object Contest extends SkinnyCRUDMapper[Contest] {
 
   var messages: Messages = _
 
-  override val tableName = "contest_jury"
+  override val tableName = "contest"
 
   implicit def session: DBSession = autoSession
 

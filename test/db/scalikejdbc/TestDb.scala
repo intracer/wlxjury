@@ -59,9 +59,6 @@ trait TestDb {
   def withDb[T](block: => T)
                (implicit additionalConfig: Map[String, String] = Map.empty): T = {
     testDbApp { _ =>
-      // init ref TODO fix somehow
-      roundDao.usersRef
-//      contestDao.contestUsers
       block
     }
   }
