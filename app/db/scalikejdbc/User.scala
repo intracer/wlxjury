@@ -1,15 +1,16 @@
 package db.scalikejdbc
 
+import db.scalikejdbc.SelectionJdbc.s
+
 import javax.mail.internet.InternetAddress
 import org.intracer.wmua.HasId
 import scalikejdbc.{DBSession, ResultName, WrappedResultSet, insert, select, sqls}
-import java.time.ZonedDateTime
 
+import java.time.ZonedDateTime
 import play.api.data.validation.{Constraints, Invalid, Valid}
 import play.api.libs.Codecs
 import scalikejdbc._
 import skinny.orm.SkinnyCRUDMapper
-
 
 import scala.util.Try
 
@@ -122,6 +123,8 @@ object User extends SkinnyCRUDMapper[User] {
   override val tableName = "users"
 
   val u = User.syntax("u")
+  val c = Contest.c
+  val cu = ContestUser.cu
 
   def isNotDeleted = sqls.isNull(u.deletedAt)
 
@@ -189,8 +192,20 @@ object User extends SkinnyCRUDMapper[User] {
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime)
   )
 
-  def findByContest(contest: Long): Seq[User] =
-    Contest.joins(Contest.contestUsers).findById(contest).toSeq.flatMap(_.users)
+  def findByContest(contestId: Long): Seq[User] = withSQL {
+     select.from(User as u)
+       .join(ContestUser as cu).on(u.id, cu.userId)
+       .join(Contest as c).on(cu.contestId, c.id)
+       .where.eq(c.id, contestId)
+  }.map{ rs =>
+    val user = User(u)(rs)
+    val contest = Contest(c)(rs)
+    val contestUser = ContestUser(cu)(rs)
+    user.copy(
+      contestId = contest.id,
+      roles = user.roles ++ Set(contestUser.role)
+    )
+  }.list().apply()
 
   def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
     import SelectionJdbc.s

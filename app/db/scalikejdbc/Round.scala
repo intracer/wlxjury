@@ -42,7 +42,7 @@ case class Round(id: Option[Long],
                 ) extends HasId {
 
   def availableJurors: Seq[User] =
-    User.findAllBy(sqls.in(User.u.roles, roles.toSeq).and.eq(User.u.contestId, contestId))
+    User.findByContest(contestId).filter(_.roles.intersect(roles).nonEmpty)
 
   lazy val numberOfActiveJurors = SelectionJdbc.activeJurors(id.get)
 

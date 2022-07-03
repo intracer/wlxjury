@@ -63,6 +63,7 @@ object Contest extends SkinnyCRUDMapper[Contest] {
   implicit def session: DBSession = autoSession
 
   override lazy val defaultAlias = createAlias("c")
+  val c = Contest.syntax("c")
 
   lazy val contestUsers = hasManyThrough[User](
     through = ContestUser,

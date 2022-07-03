@@ -30,14 +30,17 @@ class ContestSpec extends Specification with TestDb {
         val contests = contestDao.findAll()
         contests === Seq(contest)
 
-        val user = User("fullname", "email", None, Set("jury"), Some("password hash"), None, Some("en"))
+        val user = User("fullname", "email", None, Set.empty, Some("password hash"), None, Some("en"))
         val dbUser = userDao.create(user)
 
         dbC.foreach(_.addUser(dbUser, "jury"))
 
         val users = userDao.findByContest(dbC.flatMap(_.id).get)
-        users.flatMap(_.id) === Seq(dbUser).flatMap(_.id)
-        users.flatMap(_.contestId) === dbC.flatMap(_.id).toSeq
+        users.size === 1
+        val contestUser = users.head
+        contestUser.id === dbUser.id
+        contestUser.contestId === dbC.flatMap(_.id)
+        contestUser.roles should contain("jury")
       }
     }
   }
