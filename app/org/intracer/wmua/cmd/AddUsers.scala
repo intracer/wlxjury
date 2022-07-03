@@ -1,6 +1,6 @@
 package org.intracer.wmua.cmd
 
-import db.scalikejdbc.{ContestJury, User}
+import db.scalikejdbc.{Contest, User}
 
 case class AddUsers(
                      contestId: Long,
@@ -11,7 +11,7 @@ case class AddUsers(
 
 
   def apply() = {
-    val contest = ContestJury.findById(contestId).get
+    val contest = Contest.findById(contestId).get
 
     val country = contest.country.replaceAll("[ \\-\\&]", "")
 

@@ -13,7 +13,7 @@ import play.api.test.Helpers.running
 
 trait TestDb {
 
-  val contestDao = ContestJury
+  val contestDao = Contest
   val imageDao = ImageJdbc
   val roundDao = Round
   val selectionDao = SelectionJdbc
@@ -59,28 +59,30 @@ trait TestDb {
   def withDb[T](block: => T)
                (implicit additionalConfig: Map[String, String] = Map.empty): T = {
     testDbApp { _ =>
-      roundDao.usersRef // init ref TODO fix somehow
+      // init ref TODO fix somehow
+      roundDao.usersRef
+//      contestDao.contestUsers
       block
     }
   }
 
 
-  def createContests(contestIds: Long*): Seq[ContestJury] = contestIds.map { id =>
-    val contest = ContestJury.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
-    ContestJury.setImagesSource(id, Some("Images from " + contest.name))
+  def createContests(contestIds: Long*): Seq[Contest] = contestIds.map { id =>
+    val contest = Contest.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
+    Contest.setImagesSource(id, Some("Images from " + contest.name))
     contest
   }
 
-  def contestUser(i: Long, role: String = "jury")(implicit contest: ContestJury) =
+  def contestUser(i: Long, role: String = "jury")(implicit contest: Contest) =
     User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), contest.id, Some("en"), Some(now))
 
-  def createUsers(userIndexes: Seq[Int])(implicit contest: ContestJury, d: DummyImplicit): Seq[User] = createUsers(userIndexes: _*)
+  def createUsers(userIndexes: Seq[Int])(implicit contest: Contest, d: DummyImplicit): Seq[User] = createUsers(userIndexes: _*)
 
-  def createUsers(userIndexes: Int*)(implicit contest: ContestJury): Seq[User] = createUsers("jury", userIndexes: _*)
+  def createUsers(userIndexes: Int*)(implicit contest: Contest): Seq[User] = createUsers("jury", userIndexes: _*)
 
-  def createUsers(role: String, userIndexes: Seq[Int])(implicit contest: ContestJury, d: DummyImplicit): Seq[User] = createUsers(role, userIndexes: _*)
+  def createUsers(role: String, userIndexes: Seq[Int])(implicit contest: Contest, d: DummyImplicit): Seq[User] = createUsers(role, userIndexes: _*)
 
-  def createUsers(role: String, userIndexes: Int*)(implicit contest: ContestJury): Seq[User] = {
+  def createUsers(role: String, userIndexes: Int*)(implicit contest: Contest): Seq[User] = {
     userIndexes
       .map(contestUser(_, role))
       .map(userDao.create)

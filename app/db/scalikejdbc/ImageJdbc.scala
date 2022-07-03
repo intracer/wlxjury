@@ -24,7 +24,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
   val c = CriteriaRate.c
   val cl = CategoryLinkJdbc.cl
 
-  def fromPage(page: Page, contest: ContestJury): Option[Image] = {
+  def fromPage(page: Page, contest: Contest): Option[Image] = {
     try {
       for (imageInfo <- page.images.headOption)
         yield Image(
@@ -116,13 +116,13 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
   def deleteImage(pageId: Long): Unit = deleteById(pageId)
 
   def findByContestId(contestId: Long): List[Image] =
-    ContestJury.findById(contestId).map(findByContest).getOrElse(Nil)
+    Contest.findById(contestId).map(findByContest).getOrElse(Nil)
 
-  def findByContest(contest: ContestJury): List[Image] = {
+  def findByContest(contest: Contest): List[Image] = {
     contest.categoryId.map(findByCategory).getOrElse(Nil)
   }
 
-  def countByContest(contest: ContestJury): Long =
+  def countByContest(contest: Contest): Long =
     contest.categoryId.map(ImageJdbc.countByCategory).getOrElse(0L)
 
   def findByCategory(categoryId: Long): List[Image] =

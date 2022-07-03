@@ -44,7 +44,7 @@ class GlobalRefactor(val commons: MwBot) {
 
         contests.foreach {
           contest =>
-            val dbContest = ContestJury.where('country -> contest.country, 'year -> year, 'name -> contestName).apply().head
+            val dbContest = Contest.where('country -> contest.country, 'year -> year, 'name -> contestName).apply().head
             //GlobalRefactor.appendImages(contest.images.get, dbContest)
             addAdmin(dbContest)
         }
@@ -67,7 +67,7 @@ class GlobalRefactor(val commons: MwBot) {
     }
   }
 
-  def distributeByCategory(parent: String, contest: ContestJury) = {
+  def distributeByCategory(parent: String, contest: Contest) = {
 
     //    val round = Round(None, 1, Some("Round 1"), contest.getId, distribution = 0, active = true)
     //
@@ -119,7 +119,7 @@ class GlobalRefactor(val commons: MwBot) {
     }
   }
 
-  def addAdmin(contest: ContestJury): Unit = {
+  def addAdmin(contest: Contest): Unit = {
     val shortContest = contest.name.split(" ").map(_.head).mkString("")
     val shortCountry = contest.country.replaceFirst("the ", "").replaceFirst(" & Nagorno-Karabakh", "").split(" ").mkString("")
 
@@ -133,14 +133,14 @@ class GlobalRefactor(val commons: MwBot) {
     User.create(user)
   }
 
-  def categoriesToContests(contest: String, year: Int, parent: String, categories: Seq[Page]): Seq[ContestJury] = {
+  def categoriesToContests(contest: String, year: Int, parent: String, categories: Seq[Page]): Seq[Contest] = {
 
     val imageCategories = categories.filter(_.title.startsWith(parent + " in "))
     val contests = imageCategories.map {
       imageCategory =>
         val title = imageCategory.title
         val country = title.replaceFirst(parent + " in ", "")
-        ContestJury(None, contest, year, country, Some(title), None, None)
+        Contest(None, contest, year, country, Some(title), None, None)
     }
     contests
   }

@@ -1,6 +1,6 @@
 package org.intracer.wmua.cmd
 
-import db.scalikejdbc.ContestJury
+import db.scalikejdbc.Contest
 import org.intracer.wmua.{Image, JuryTestHelpers}
 import org.scalawiki.dto.{Namespace, Page}
 import org.scalawiki.query.SinglePageQuery
@@ -38,7 +38,7 @@ class FetchImageInfoSpec extends Specification with Mockito with JuryTestHelpers
         val commons = mockBot()
         commons.page(category) returns query
 
-        val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None)
+        val contest = Contest(Some(contestId), "WLE", 2015, "Ukraine", Some(category), None, None)
 
         FetchImageInfo(category, Seq.empty, contest, commons).apply() must be_==(images).await
     }
@@ -61,7 +61,7 @@ class FetchImageInfoSpec extends Specification with Mockito with JuryTestHelpers
         val commons = mockBot()
         commons.page(category) returns query
 
-        val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category))
+        val contest = Contest(Some(contestId), "WLE", 2015, "Ukraine", Some(category))
 
         FetchImageInfo(category, Seq.empty, contest, commons).apply() must be_==(images).await
     }

@@ -1,6 +1,6 @@
 package org.intracer.wmua.scripts
 
-import db.scalikejdbc.ContestJury
+import db.scalikejdbc.Contest
 import org.intracer.wmua.Tools
 import org.intracer.wmua.cmd._
 
@@ -13,7 +13,7 @@ object WikiLovesAfrica {
   def juror(country: String, n: Int) = "WLAJuror" + n
 
   def main(args: Array[String]) {
-    for (contest <- ContestJury.where('name -> contestType, 'country -> country, 'year -> year).apply().headOption) {
+    for (contest <- Contest.where('name -> contestType, 'country -> country, 'year -> year).apply().headOption) {
       val contestId = contest.getId
 
       val cmds = Seq(

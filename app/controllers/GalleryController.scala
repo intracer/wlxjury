@@ -101,7 +101,7 @@ object GalleryController extends Controller with Secured with Instrumented {
 
           val files = filesByUserId(query, pager, userDetails)
 
-          val contest = ContestJury.findById(roundContestId).get
+          val contest = Contest.findById(roundContestId).get
 
           val byReg = if (contest.monumentIdTemplate.isDefined) {
             query.copy(regions = Set.empty).byRegionStat()
@@ -274,7 +274,7 @@ object GalleryController extends Controller with Secured with Instrumented {
 
   def thumbnailUrls(contestId: Long, roundId: Option[Long]) = withAuth() { user =>
     implicit request =>
-      val contest = ContestJury.findById(contestId).get
+      val contest = Contest.findById(contestId).get
       if (user.isAdmin(Some(contestId))) {
         val urls = resizedImagesUrls(contestId, roundId)
         val name = "WLXJury_Round_Thumb_Urls" + contest.fullName.replaceAll(" ", "_")

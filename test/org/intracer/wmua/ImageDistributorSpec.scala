@@ -23,7 +23,7 @@ class ImageDistributorSpec extends Specification with TestDb with Mockito {
                     preJurors: Boolean = true,
                     orgCom: Boolean = true,
                     otherContestId: Option[Long] = Some(20),
-                    start: Int = 1)(implicit contest: ContestJury) = {
+                    start: Int = 1)(implicit contest: Contest) = {
 
     val jurors = (start until jurorsNum + start).map(contestUser(_))
     val dbJurors = jurors.map(userDao.create)
@@ -48,8 +48,8 @@ class ImageDistributorSpec extends Specification with TestDb with Mockito {
 
     imageDao.batchInsert(images1 ++ images2)
 
-    CategoryLinkJdbc.addToCategory(ContestJury.findById(contest1).flatMap(_.categoryId).get, images1)
-    CategoryLinkJdbc.addToCategory(ContestJury.findById(contest2).flatMap(_.categoryId).get, images2)
+    CategoryLinkJdbc.addToCategory(Contest.findById(contest1).flatMap(_.categoryId).get, images1)
+    CategoryLinkJdbc.addToCategory(Contest.findById(contest2).flatMap(_.categoryId).get, images2)
 
     images1
   }

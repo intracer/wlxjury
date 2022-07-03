@@ -11,7 +11,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   sequential
 
-  var contest: ContestJury = _
+  var contest: Contest = _
   var round: Round = _
   var user: User = _
   val email = "email@1.com"

@@ -1,11 +1,11 @@
 package controllers
 
-import db.scalikejdbc.{CategoryJdbc, CategoryLinkJdbc, ContestJury, ImageJdbc, User}
+import db.scalikejdbc.{CategoryJdbc, CategoryLinkJdbc, Contest, ImageJdbc, User}
 import org.intracer.wmua.Image
 import org.intracer.wmua.cmd.{FetchImageInfo, FetchImageText, ImageEnricher}
 import org.intracer.wmua.cmd.FetchImageText.defaultParam
 import org.scalawiki.MwBot
-import org.scalawiki.wlx.dto.{Contest, Country}
+import org.scalawiki.wlx.dto.{Contest => ApiContest, Country}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.Forms.tuple
@@ -26,7 +26,7 @@ class ImagesController @Inject()(val commons: MwBot)(implicit ec: ExecutionConte
   def images(contestId: Long, inProgress: Boolean = false) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
     user =>
       implicit request =>
-        val contest = ContestJury.findById(contestId).get
+        val contest = Contest.findById(contestId).get
 
         val sourceImageNum = getNumberOfImages(contest)
         val dbImagesNum = ImageJdbc.countByContest(contest)
@@ -35,7 +35,7 @@ class ImagesController @Inject()(val commons: MwBot)(implicit ec: ExecutionConte
         Ok(views.html.contest_images(filledForm, contest, user, sourceImageNum, dbImagesNum, inProgress))
   }
 
-  def getNumberOfImages(contest: ContestJury): Long = {
+  def getNumberOfImages(contest: Contest): Long = {
     contest.images.fold(0L) { images =>
         FetchImageInfo(images, Seq.empty, contest, commons).numberOfImages.await
     }
@@ -46,7 +46,7 @@ class ImagesController @Inject()(val commons: MwBot)(implicit ec: ExecutionConte
     */
   def importImages(contestId: Long) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) { user =>
     implicit request =>
-      val contest = ContestJury.findById(contestId).get
+      val contest = Contest.findById(contestId).get
       importImagesForm.bindFromRequest.fold(
         formWithErrors => BadRequest(views.html.contest_images(formWithErrors, contest, user, 0, ImageJdbc.countByContest(contest))), {
           case (source, list, action) =>
@@ -63,11 +63,11 @@ class ImagesController @Inject()(val commons: MwBot)(implicit ec: ExecutionConte
         })
   }
 
-  def updateImageMonuments(source: String, contest: ContestJury): Unit = {
+  def updateImageMonuments(source: String, contest: Contest): Unit = {
     if (contest.country == Country.Ukraine.name && contest.monumentIdTemplate.isDefined) {
       val monumentContest = Seq("earth", "monuments").filter(contest.name.toLowerCase.contains) match {
-        case Seq("earth") => Some(Contest.WLEUkraine(contest.year))
-        case Seq("monuments") => Some(Contest.WLMUkraine(contest.year))
+        case Seq("earth") => Some(ApiContest.WLEUkraine(contest.year))
+        case Seq("monuments") => Some(ApiContest.WLMUkraine(contest.year))
         case _ => None
       }
 
@@ -105,13 +105,13 @@ class ImagesController @Inject()(val commons: MwBot)(implicit ec: ExecutionConte
     } recover { case e: Exception => println(e) }
   }
 
-  def appendImages(source: String, imageList: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
-    ContestJury.setImagesSource(contest.getId, Some(source))
+  def appendImages(source: String, imageList: String, contest: Contest, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
+    Contest.setImagesSource(contest.getId, Some(source))
     val existingImages = ImageJdbc.findByContest(contest)
     initImagesFromSource(contest, source, imageList, existingImages, idsFilter, max)
   }
 
-  def initImagesFromSource(contest: ContestJury,
+  def initImagesFromSource(contest: Contest,
                            source: String,
                            titles: String,
                            existing: Seq[Image],
@@ -152,12 +152,12 @@ class ImagesController @Inject()(val commons: MwBot)(implicit ec: ExecutionConte
     Await.result(result, 500.minutes)
   }
 
-  def fetchImageDescriptions(contest: ContestJury, source: String, max: Long, imageInfos: Future[Seq[Image]]): Future[Seq[Image]] = {
+  def fetchImageDescriptions(contest: Contest, source: String, max: Long, imageInfos: Future[Seq[Image]]): Future[Seq[Image]] = {
     val revInfo = FetchImageText(source, contest, contest.monumentIdTemplate, commons, max).apply()
     ImageEnricher.zipWithRevData(imageInfos, revInfo)
   }
 
-  def saveNewImages(contest: ContestJury, imagesWithIds: Seq[Image]) = {
+  def saveNewImages(contest: Contest, imagesWithIds: Seq[Image]) = {
     println("saving images: " + imagesWithIds.size)
 
     ImageJdbc.batchInsert(imagesWithIds)

@@ -190,7 +190,7 @@ object User extends SkinnyCRUDMapper[User] {
   )
 
   def findByContest(contest: Long): Seq[User] =
-    ContestJury.findById(contest).toSeq.flatMap(_.users)
+    Contest.findById(contest).toSeq.flatMap(_.users)
 
   def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
     import SelectionJdbc.s

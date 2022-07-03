@@ -7,7 +7,7 @@ import db.scalikejdbc._
 import org.intracer.wmua.cmd.DistributeImages
 import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
-import org.scalawiki.wlx.dto.{Contest, Monument}
+import org.scalawiki.wlx.dto.{Contest => ApiContest, Monument}
 import org.scalawiki.wlx.query.MonumentQuery
 import org.scalawiki.wlx.{ImageDB, ImageFiller, MonumentDB}
 import play.api.{Logger, Play}
@@ -50,7 +50,7 @@ object Tools {
     //fillLists()
   }
 
-  def updateResolution(contest: ContestJury) = {
+  def updateResolution(contest: Contest) = {
 
     val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
 
@@ -79,7 +79,7 @@ object Tools {
     }
   }
 
-  def addUsers(contest: ContestJury, number: Int) = {
+  def addUsers(contest: Contest, number: Int) = {
     val country = contest.country.replaceAll("[ \\-\\&]", "")
     val jurors = (1 to number).map(i => country + "ESPCJuror" + i)
 
@@ -181,15 +181,15 @@ object Tools {
   }
 
   def newlyPictured() = {
-    val contestJury2017 = ContestJury.findById(64).get
-    val contestJuryAll = ContestJury.findById(66).get
+    val contestJury2017 = Contest.findById(64).get
+    val contestJuryAll = Contest.findById(66).get
 
     val allImages = ImageJdbc.findByContest(contestJuryAll)
     val images2017 = ImageJdbc.findByContest(contestJury2017)
 
     val allMonuments = MonumentJdbc.findAll()
 
-    val contest1 = Contest.WLEUkraine(2017)
+    val contest1 = ApiContest.WLEUkraine(2017)
     //    val mdb = new MonumentDB(contest1, allMonuments)
     //    val idb = new ImageDB(contest1, convertImages(allImages), Some(mdb))
 
@@ -225,13 +225,13 @@ object Tools {
 
   def fillLists() = {
 
-    val contestJury = ContestJury.findById(67).get
+    val contestJury = Contest.findById(67).get
 
     val allImages = ImageJdbc.findByContest(contestJury)
 
     val allMonuments = MonumentJdbc.findAll()
 
-    val contest1 = Contest.WLMUkraine(2016)
+    val contest1 = ApiContest.WLMUkraine(2016)
     val mdb = new MonumentDB(contest1, allMonuments)
     val idb = new ImageDB(contest1, convertImages(allImages), Some(mdb))
 
@@ -240,7 +240,7 @@ object Tools {
 
   def byCity() = {
 
-    val contest = ContestJury.findById(67).get
+    val contest = Contest.findById(67).get
 
     val codes = Map("80" -> "Київ",
       "07" -> "Волинська",

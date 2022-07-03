@@ -1,7 +1,7 @@
 @import controllers.SelectRound
 @import db.scalikejdbc.Round
 @import db.scalikejdbc.User
-@import db.scalikejdbc.ContestJury
+@import db.scalikejdbc.Contest
 @(
         adminUser: User,
         rounds: Seq[Round],
@@ -10,7 +10,7 @@
         editImagesForm: Form[Option[String]],
         selectRoundForm: Form[SelectRound],
         round: Option[Round],
-        contest: ContestJury
+        contest: Contest
 )(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
 
     @mainAdmin(Messages("rounds"), adminUser, adminUser.getId,

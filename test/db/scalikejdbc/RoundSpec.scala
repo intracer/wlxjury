@@ -49,7 +49,7 @@ class RoundSpec extends Specification with TestDb {
 
     "set new current round" in {
       withDb {
-        val contestDao = ContestJury
+        val contestDao = Contest
 
         val contest = contestDao.create(None, "WLE", 2015, "Ukraine", None, None, None)
         val contestId = contest.getId

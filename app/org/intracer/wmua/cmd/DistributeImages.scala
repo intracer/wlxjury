@@ -1,7 +1,7 @@
 package org.intracer.wmua.cmd
 
 import controllers.Global.commons
-import db.scalikejdbc.{ContestJury, ImageJdbc, Round, SelectionJdbc, User}
+import db.scalikejdbc.{Contest, ImageJdbc, Round, SelectionJdbc, User}
 import org.intracer.wmua._
 import org.scalawiki.dto.Namespace
 import play.api.Logger
@@ -117,7 +117,7 @@ object DistributeImages {
     val mpxAtLeast = round.minMpx
     val sizeAtLeast = round.minImageSize.map(_ * 1024 * 1024)
 
-    val contest = ContestJury.findById(round.contestId).get
+    val contest = Contest.findById(round.contestId).get
     val imagesAll = prevRound.fold[Seq[ImageWithRating]](
       ImageJdbc.findByContest(contest).map(i =>
         new ImageWithRating(i, Seq.empty)

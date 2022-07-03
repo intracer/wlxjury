@@ -2,7 +2,7 @@ package controllers
 
 import java.net.URLEncoder
 
-import _root_.db.scalikejdbc.ContestJury
+import _root_.db.scalikejdbc.Contest
 import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.ConfigFactory
 import org.intracer.wmua._

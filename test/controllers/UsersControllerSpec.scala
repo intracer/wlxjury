@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{ContestJury, TestDb, User}
+import db.scalikejdbc.{Contest, TestDb, User}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
@@ -12,7 +12,7 @@ class UsersControllerSpec extends Specification with TestDb with Mockito {
 
     "fill contest info" in {
       withDb {
-        val contest = ContestJury(name = "Wiki Loves Earth", year = 2016, country = "Ukraine", images = None, id = None)
+        val contest = Contest(name = "Wiki Loves Earth", year = 2016, country = "Ukraine", images = None, id = None)
         val template = "Organizing committee of {{ContestType}} {{ContestYear}} {{ContestCountry}} is glad to welcome you as a jury member\n" +
           "Please visit {{JuryToolLink}}\n" +
           "Regards, {{AdminName}}"

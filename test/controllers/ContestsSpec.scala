@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{ContestJury, TestDb, User}
+import db.scalikejdbc.{Contest, TestDb, User}
 import org.scalawiki.MwBot
 import play.api.mvc.Security
 import play.api.test.{FakeRequest, PlaySpecification}
@@ -31,7 +31,7 @@ class ContestsSpec extends PlaySpecification with TestDb {
         status(result) mustEqual SEE_OTHER
 
         val contests = contestDao.findAll()
-        contests === List(ContestJury(Some(1), "Wiki Loves Earth", 2013, "Ukraine",
+        contests === List(Contest(Some(1), "Wiki Loves Earth", 2013, "Ukraine",
           Some("Category:Images from Wiki Loves Earth 2013 in Ukraine"),
           monumentIdTemplate = Some("UkrainianNaturalHeritageSite")
         ))

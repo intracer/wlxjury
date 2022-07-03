@@ -1,5 +1,5 @@
-@import db.scalikejdbc.ContestJury
-@(contests: Seq[ContestJury])
+@import db.scalikejdbc.Contest
+@(contests: Seq[Contest])
 
 <table class="table table-striped table-condensed">
     @for(contestType <- contests.map(_.name).distinct.sorted) {

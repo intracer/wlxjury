@@ -2,7 +2,7 @@ package org.intracer.wmua.cmd
 
 import java.net.URLDecoder
 
-import db.scalikejdbc.{ContestJury, ImageJdbc}
+import db.scalikejdbc.{Contest, ImageJdbc}
 import org.intracer.wmua.Image
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
@@ -14,7 +14,7 @@ import org.scalawiki.dto.{Namespace, Page}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, contest: ContestJury, commons: MwBot, max: Long = 0L) {
+case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, contest: Contest, commons: MwBot, max: Long = 0L) {
 
   val imageInfoProps = Set("timestamp", "user", "size", "url")
 

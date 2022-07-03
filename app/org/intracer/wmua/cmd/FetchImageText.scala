@@ -1,6 +1,6 @@
 package org.intracer.wmua.cmd
 
-import org.intracer.wmua.{Image}
+import org.intracer.wmua.Image
 import org.scalawiki.MwBot
 import org.scalawiki.dto.Page
 import org.scalawiki.wikitext.TemplateParser
@@ -9,10 +9,10 @@ import org.scalawiki.dto.Namespace
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import FetchImageText._
-import db.scalikejdbc.ContestJury
+import db.scalikejdbc.Contest
 
 case class FetchImageText(source: String,
-                          contest: ContestJury,
+                          contest: Contest,
                           monumentIdTemplate: Option[String],
                           commons: MwBot,
                           max: Long = 0L) {

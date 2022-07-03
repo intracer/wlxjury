@@ -9,7 +9,7 @@ class JurorImagesSpec extends Specification with TestDb {
 
   sequential
 
-  implicit var contest: ContestJury = _
+  implicit var contest: Contest = _
   var round: Round = _
   var user: User = _
 

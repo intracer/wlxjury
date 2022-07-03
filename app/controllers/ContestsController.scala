@@ -1,10 +1,10 @@
 package controllers
 
 import db.scalikejdbc
-import db.scalikejdbc.{ContestJury, User}
+import db.scalikejdbc.{Contest, User}
 import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
-import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}
+import org.scalawiki.wlx.dto.{Contest => ApiContest, ContestType, NoAdmDivision}
 import org.scalawiki.wlx.{CampaignList, CountryParser}
 import play.api.Play.current
 import play.api.data.Form
@@ -18,14 +18,14 @@ import scala.concurrent.Future
 
 class ContestsController @Inject()(val commons: MwBot) extends Controller with Secured {
 
-  def fetchContests(contestType: Option[String], year: Option[Int], country: Option[String]): Future[Seq[Contest]] = {
+  def fetchContests(contestType: Option[String], year: Option[Int], country: Option[String]): Future[Seq[ApiContest]] = {
     if (contestType.isEmpty) {
       CampaignList.yearsContests()
     } else {
       (for (ct <- contestType; y <- year) yield {
-        val contest = Contest(ContestType.byCode(ct).get, NoAdmDivision, y)
+        val contest = ApiContest(ContestType.byCode(ct).get, NoAdmDivision, y)
         CampaignList.contestsFromCategory(contest.imagesCategory)
-      }).getOrElse(Future.successful(Seq.empty[Contest]))
+      }).getOrElse(Future.successful(Seq.empty[ApiContest]))
     }
   }
 
@@ -40,8 +40,8 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
         Ok(views.html.contests(user, contests, filtered, editContestForm, importContestsForm, contestType, year))
   }
 
-  def findContests: List[ContestJury] = {
-    ContestJury.findAll() //.map(_.copy(messages = applicationMessages))
+  def findContests: List[Contest] = {
+    Contest.findAll() //.map(_.copy(messages = applicationMessages))
   }
 
   def saveContest() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
@@ -76,12 +76,12 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
                 importCategory(formContest)
               }
 
-            val existing = ContestJury.findAll().map(c => s"${c.name}/${c.year}/${c.country}").toSet
+            val existing = Contest.findAll().map(c => s"${c.name}/${c.year}/${c.country}").toSet
             val newContests = imported.filterNot(c => existing.contains(s"${c.contestType.name}/${c.year}/${c.country.name}"))
 
             newContests.foreach {
               contest =>
-                val contestJury = ContestJury(
+                val contestJury = Contest(
                   id = None,
                   name = contest.contestType.name,
                   year = contest.year,
@@ -96,20 +96,20 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
           })
   }
 
-  def importListPage(pageName: String): Seq[Contest] = {
+  def importListPage(pageName: String): Seq[ApiContest] = {
     val wiki = commons.pageText(pageName).await
     CountryParser.parse(wiki)
   }
 
-  def importCategory(categoryName: String): Seq[Contest] = {
+  def importCategory(categoryName: String): Seq[ApiContest] = {
     val pages = commons.page(categoryName).categoryMembers(Set(Namespace.CATEGORY)).await
 
     pages.flatMap(p => CountryParser.fromCategoryName(p.title)) ++
       CountryParser.fromCategoryName(categoryName).filter(_.country.name.nonEmpty)
   }
 
-  def createContest(contest: ContestJury): ContestJury = {
-    ContestJury.create(
+  def createContest(contest: Contest): Contest = {
+    Contest.create(
       contest.id,
       contest.name,
       contest.year,
@@ -122,7 +122,7 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
   }
 
   def regions(contestId: Long): Map[String, String] = {
-    ContestJury.findById(contestId)
+    Contest.findById(contestId)
       .filter(_.country == "Ukraine")
       .map(_ => KOATUU.regions)
       .getOrElse(Map.empty)
@@ -142,8 +142,8 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
       "campaign" -> optional(text),
     )(
       (id, name, year, country, images, currentRound, monumentIdTemplate, greetingText, useGreeting, campaign) =>
-        ContestJury(id, name, year, country, images, None, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting), campaign))
-    ((c: ContestJury) =>
+        Contest(id, name, year, country, images, None, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting), campaign))
+    ((c: Contest) =>
       Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use, c.campaign))
   )
 

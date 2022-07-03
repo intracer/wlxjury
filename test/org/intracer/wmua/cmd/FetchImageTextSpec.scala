@@ -1,6 +1,6 @@
 package org.intracer.wmua.cmd
 
-import db.scalikejdbc.ContestJury
+import db.scalikejdbc.Contest
 import org.intracer.wmua.{Image, JuryTestHelpers}
 import org.scalawiki.dto.{Namespace, Page, Revision}
 import org.scalawiki.query.SinglePageQuery
@@ -36,7 +36,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val commons = mockBot()
         commons.page(category) returns query
 
-        val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category))
+        val contest = Contest(Some(contestId), "WLE", 2015, "Ukraine", Some(category))
 
         FetchImageText(category, contest, None, commons).apply() must be_==(images).await
     }
@@ -58,7 +58,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val commons = mockBot()
         commons.page(category) returns query
 
-        val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category), Some(0), None)
+        val contest = Contest(Some(contestId), "WLE", 2015, "Ukraine", Some(category), Some(0), None)
 
         FetchImageText(category, contest, None, commons).apply() must be_==(images).await
       }
@@ -83,7 +83,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val commons = mockBot()
         commons.page(category) returns query
 
-        val contest = ContestJury(Some(contestId), "WLE", 2015, "Ukraine", Some(category), Some(0), None)
+        val contest = Contest(Some(contestId), "WLE", 2015, "Ukraine", Some(category), Some(0), None)
 
         FetchImageText(category, contest, Some(idTemplate), commons).apply() must be_==(images).await
     }
@@ -108,7 +108,7 @@ class FetchImageTextSpec extends Specification with Mockito with JuryTestHelpers
         val commons = mockBot()
         commons.page(page) returns query
 
-        val contest = ContestJury(Some(contestId), "WLE", 2019, "International", Some(page), Some(0), None)
+        val contest = Contest(Some(contestId), "WLE", 2019, "International", Some(page), Some(0), None)
 
         FetchImageText(page, contest, Some(idTemplate), commons).apply() must be_==(images).await
     }

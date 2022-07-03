@@ -1,6 +1,6 @@
 package db.scalikejdbc
 
-import db.scalikejdbc.ContestJury.autoSession
+import db.scalikejdbc.Contest.autoSession
 import org.specs2.mutable.Specification
 import scalikejdbc.DBSession
 

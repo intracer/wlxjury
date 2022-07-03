@@ -6,17 +6,17 @@ import org.intracer.wmua.HasId
 import scalikejdbc._
 import skinny.orm.{SkinnyCRUDMapper, SkinnyJoinTable}
 
-case class ContestJury(id: Option[Long],
-                       name: String,
-                       year: Int,
-                       country: String,
-                       images: Option[String],
-                       categoryId: Option[Long] = None,
-                       currentRound: Option[Long] = None,
-                       monumentIdTemplate: Option[String] = None,
-                       greeting: Greeting = Greeting(None, use = true),
-                       campaign: Option[String] = None,
-                       users: Seq[User] = Nil) extends HasId {
+case class Contest(id: Option[Long],
+                   name: String,
+                   year: Int,
+                   country: String,
+                   images: Option[String],
+                   categoryId: Option[Long] = None,
+                   currentRound: Option[Long] = None,
+                   monumentIdTemplate: Option[String] = None,
+                   greeting: Greeting = Greeting(None, use = true),
+                   campaign: Option[String] = None,
+                   users: Seq[User] = Nil) extends HasId {
   //def localName = Messages("wiki.loves.earth." + country, year)(messages)
   def fullName = s"$name $year in $country"
 
@@ -54,7 +54,7 @@ case class ContestJury(id: Option[Long],
 
 }
 
-object ContestJury extends SkinnyCRUDMapper[ContestJury] {
+object Contest extends SkinnyCRUDMapper[Contest] {
 
   var messages: Messages = _
 
@@ -64,13 +64,12 @@ object ContestJury extends SkinnyCRUDMapper[ContestJury] {
 
   override lazy val defaultAlias = createAlias("c")
 
-  //  lazy val contestUser =
-  hasManyThrough[User](
+  lazy val contestUsers = hasManyThrough[User](
     through = ContestUser,
     many = User,
     merge = (contest, users) => contest.copy(users = users)).byDefault
 
-  override def extract(rs: WrappedResultSet, c: ResultName[ContestJury]): ContestJury = ContestJury(
+  override def extract(rs: WrappedResultSet, c: ResultName[Contest]): Contest = Contest(
     id = rs.longOpt(c.id),
     name = rs.string(c.name),
     year = rs.int(c.year),
@@ -113,9 +112,9 @@ object ContestJury extends SkinnyCRUDMapper[ContestJury] {
              currentRound: Option[Long] = None,
              monumentIdTemplate: Option[String] = None,
              campaign: Option[String] = None,
-            ): ContestJury = {
+            ): Contest = {
     val dbId = withSQL {
-      insert.into(ContestJury).namedValues(
+      insert.into(Contest).namedValues(
         column.id -> id,
         column.name -> name,
         column.year -> year,
@@ -128,7 +127,7 @@ object ContestJury extends SkinnyCRUDMapper[ContestJury] {
       )
     }.updateAndReturnGeneratedKey().apply()
 
-    ContestJury(id = Some(dbId),
+    Contest(id = Some(dbId),
       name = name,
       year = year,
       country = country,
@@ -140,8 +139,8 @@ object ContestJury extends SkinnyCRUDMapper[ContestJury] {
       campaign = campaign)
   }
 
-  def batchInsert(contests: Seq[ContestJury]): Seq[Int] = {
-    val column = ContestJury.column
+  def batchInsert(contests: Seq[Contest]): Seq[Int] = {
+    val column = Contest.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] = contests.map(c => Seq(
         c.id,
@@ -154,7 +153,7 @@ object ContestJury extends SkinnyCRUDMapper[ContestJury] {
         c.campaign
       ))
       withSQL {
-        insert.into(ContestJury).namedValues(
+        insert.into(Contest).namedValues(
           column.id -> sqls.?,
           column.name -> sqls.?,
           column.year -> sqls.?,
@@ -179,7 +178,7 @@ object ContestUser extends SkinnyJoinTable[ContestUser] {
   override def extract(rs: WrappedResultSet, cu: ResultName[ContestUser]): ContestUser =
     ContestUser(rs.long(cu.contestId), rs.long(cu.userId), rs.string(cu.role))
 
-  def apply(c: ContestJury, u: User): Option[ContestUser] =
+  def apply(c: Contest, u: User): Option[ContestUser] =
     for (cId <- c.id; uId <- u.id) yield ContestUser(cId, uId, u.roles.head)
 
   def availableJurors(contestId: Long): List[ContestUser] =

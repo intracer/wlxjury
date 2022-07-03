@@ -1,11 +1,11 @@
 @import scala.reflect.macros.whitebox
-@import db.scalikejdbc.ContestJury
+@import db.scalikejdbc.Contest
 @(
         adminUser: db.scalikejdbc.User,
         users: Seq[db.scalikejdbc.User],
         editUserForm: Form[db.scalikejdbc.User],
-        contestOpt: Option[ContestJury],
-        contests: List[ContestJury] = Nil
+        contestOpt: Option[Contest],
+        contests: List[Contest] = Nil
 )(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
     @import helper._
     @import views.html.bootstrap._

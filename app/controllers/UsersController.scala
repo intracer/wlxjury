@@ -1,7 +1,7 @@
 package controllers
 
 import javax.inject.Inject
-import db.scalikejdbc.{ContestJury, Round, User}
+import db.scalikejdbc.{Contest, Round, User}
 import org.intracer.wmua._
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.Query
@@ -31,7 +31,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
     user =>
       implicit request =>
         (for (contestId <- contestIdParam.orElse(user.currentContest);
-              contest <- ContestJury.findById(contestId)) yield {
+              contest <- Contest.findById(contestId)) yield {
           val users = User.findByContest(contestId).sorted
           val withWiki = wikiAccountInfo(users)
 
@@ -43,7 +43,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
     user =>
       implicit request =>
           val users = User.findAll()
-          val contests = ContestJury.findAll()
+          val contests = Contest.findAll()
           Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), None, contests))
   }
 
@@ -212,7 +212,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
           formWithErrors => // binding failure, you retrieve the form containing errors,
             BadRequest(views.html.importUsers(user, importUsersForm, contestId)),
           formUsers => {
-            val contest = ContestJury.findById(contestId)
+            val contest = Contest.findById(contestId)
             val parsed = User.parseList(formUsers)
               .map(_.copy(
                 lang = user.lang,
@@ -233,7 +233,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
       implicit request =>
 
         (for (contestId <- contestIdParam.orElse(user.currentContest);
-              contest <- ContestJury.findById(contestId)) yield {
+              contest <- Contest.findById(contestId)) yield {
 
           val greeting = getGreeting(contest)
 
@@ -255,20 +255,20 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
         }).getOrElse(Redirect(routes.LoginController.index()))
   }
 
-  def getGreeting(contest: ContestJury): Greeting = {
+  def getGreeting(contest: Contest): Greeting = {
     val defaultGreeting = appConfig.getString("wlxjury.greeting")
 
     contest.greeting.text.fold(contest.greeting.copy(text = Some(defaultGreeting)))(_ => contest.greeting)
   }
 
-  def fillGreeting(template: String, contest: ContestJury, sender: User, user: User) = {
+  def fillGreeting(template: String, contest: Contest, sender: User, user: User) = {
     variables(contest, sender, user).foldLeft(template) {
       case (s, (k, v)) =>
         s.replace(k, v)
     }
   }
 
-  def variables(contest: ContestJury, sender: User, recipient: User): Map[String, String] = {
+  def variables(contest: Contest, sender: User, recipient: User): Map[String, String] = {
     val host = appConfig.getString("wlxjury.host")
 
     ListMap(
@@ -294,18 +294,18 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
             BadRequest(views.html.importUsers(user, importUsersForm, contestId)),
           formGreeting => {
 
-            ContestJury.updateGreeting(contestId, formGreeting)
+            Contest.updateGreeting(contestId, formGreeting)
             Redirect(routes.UsersController.users(Some(contestId)))
           })
 
   }
 
   def createNewUser(user: User, formUser: User)(implicit lang: Lang): User = {
-    val contest: Option[ContestJury] = formUser.currentContest.flatMap(ContestJury.findById)
+    val contest: Option[Contest] = formUser.currentContest.flatMap(Contest.findById)
     createUser(user, formUser, contest)
   }
 
-  def createUser(creator: User, formUser: User, contestOpt: Option[ContestJury])(implicit lang: Lang): User = {
+  def createUser(creator: User, formUser: User, contestOpt: Option[Contest])(implicit lang: Lang): User = {
     val password = formUser.password.getOrElse(User.randomString(12))
     val hash = User.hash(formUser, password)
 
@@ -321,7 +321,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
     createdUser
   }
 
-  def sendMail(creator: User, recipient: User, contest: ContestJury, password: String)(implicit lang: Lang): Unit = {
+  def sendMail(creator: User, recipient: User, contest: Contest, password: String)(implicit lang: Lang): Unit = {
     val greeting = getGreeting(contest)
     val subject = Messages("welcome.subject", contest.name)
     val message = fillGreeting(greeting.text.get, contest, creator, recipient.copy(password = Some(password)))
@@ -361,7 +361,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
         val editedUser = User.findById(id).get
 
         val password = User.randomString(8)
-        val contest: Option[ContestJury] = editedUser.currentContest.flatMap(ContestJury.findById)
+        val contest: Option[Contest] = editedUser.currentContest.flatMap(Contest.findById)
         val contestName = contest.fold("")(_.name)
         val hash = User.hash(editedUser, password)
 
