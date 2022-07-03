@@ -1,7 +1,7 @@
 package controllers
 
-import db.scalikejdbc.{CategoryJdbc, CategoryLinkJdbc, ContestJuryJdbc, ImageJdbc, User}
-import org.intracer.wmua.{ContestJury, Image}
+import db.scalikejdbc.{CategoryJdbc, CategoryLinkJdbc, ContestJury, ContestJuryJdbc, ImageJdbc, User}
+import org.intracer.wmua.{Image}
 import org.intracer.wmua.cmd.{FetchImageInfo, FetchImageText, ImageEnricher}
 import org.intracer.wmua.cmd.FetchImageText.defaultParam
 import org.scalawiki.MwBot

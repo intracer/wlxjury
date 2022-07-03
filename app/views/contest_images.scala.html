@@ -1,5 +1,6 @@
+@import db.scalikejdbc.ContestJury
 @(importImagesForm: Form[(String, String, String)],
-        contest: org.intracer.wmua.ContestJury,
+        contest: ContestJury,
         user: db.scalikejdbc.User,
         sourceImages: Long,
         dbImages: Long,

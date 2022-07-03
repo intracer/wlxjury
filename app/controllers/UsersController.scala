@@ -1,7 +1,7 @@
 package controllers
 
 import javax.inject.Inject
-import db.scalikejdbc.{ContestJuryJdbc, Round, User}
+import db.scalikejdbc.{ContestJury, ContestJuryJdbc, Round, User}
 import org.intracer.wmua._
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.Query

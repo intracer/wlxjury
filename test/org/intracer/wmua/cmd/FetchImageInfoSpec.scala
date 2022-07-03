@@ -1,6 +1,7 @@
 package org.intracer.wmua.cmd
 
-import org.intracer.wmua.{ContestJury, Image, JuryTestHelpers}
+import db.scalikejdbc.ContestJury
+import org.intracer.wmua.{Image, JuryTestHelpers}
 import org.scalawiki.dto.{Namespace, Page}
 import org.scalawiki.query.SinglePageQuery
 import org.specs2.concurrent.ExecutionEnv

@@ -3,7 +3,6 @@ package db.scalikejdbc
 import _root_.play.api.i18n.Messages
 import controllers.Greeting
 import db.scalikejdbc.ContestUser.{createAlias, updateBy, where}
-import org.intracer.wmua.ContestJury
 import scalikejdbc._
 import skinny.orm.{SkinnyCRUDMapper, SkinnyJoinTable}
 
@@ -17,7 +16,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
 
   override lazy val defaultAlias = createAlias("m")
 
-  override def extract(rs: WrappedResultSet, c: ResultName[ContestJury]): ContestJury = ContestJury(
+  override def extract(rs: WrappedResultSet, c: ResultName[ContestJury]): ContestJury = db.scalikejdbc.ContestJury(
     id = rs.longOpt(c.id),
     name = rs.string(c.name),
     year = rs.int(c.year),
@@ -75,7 +74,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
       )
     }.updateAndReturnGeneratedKey().apply()
 
-    ContestJury(id = Some(dbId),
+    db.scalikejdbc.ContestJury(id = Some(dbId),
       name = name,
       year = year,
       country = country,

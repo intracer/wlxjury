@@ -1,7 +1,7 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, User}
-import org.intracer.wmua.ContestJury
+import db.scalikejdbc
+import db.scalikejdbc.{ContestJury, ContestJuryJdbc, User}
 import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}
@@ -143,7 +143,7 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
       "campaign" -> optional(text),
     )(
       (id, name, year, country, images, currentRound, monumentIdTemplate, greetingText, useGreeting, campaign) =>
-        ContestJury(id, name, year, country, images, None, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting), campaign))
+        scalikejdbc.ContestJury(id, name, year, country, images, None, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting), campaign))
     ((c: ContestJury) =>
       Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use, c.campaign))
   )

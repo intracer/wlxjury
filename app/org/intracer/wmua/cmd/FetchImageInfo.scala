@@ -2,8 +2,8 @@ package org.intracer.wmua.cmd
 
 import java.net.URLDecoder
 
-import db.scalikejdbc.ImageJdbc
-import org.intracer.wmua.{ContestJury, Image}
+import db.scalikejdbc.{ContestJury, ImageJdbc}
+import org.intracer.wmua.Image
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.prop.iiprop.{IiProp, IiPropArgs}

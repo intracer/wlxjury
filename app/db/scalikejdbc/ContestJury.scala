@@ -1,6 +1,7 @@
-package org.intracer.wmua
+package db.scalikejdbc
 
 import controllers.Greeting
+import org.intracer.wmua.HasId
 
 case class ContestJury(id: Option[Long],
                        name: String,
