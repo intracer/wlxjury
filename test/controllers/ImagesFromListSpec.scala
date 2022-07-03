@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{CategoryJdbc, ContestJuryJdbc, ImageJdbc, TestDb}
+import db.scalikejdbc.{CategoryJdbc, ContestJury, ImageJdbc, TestDb}
 import org.intracer.wmua.JuryTestHelpers
 import org.specs2.mutable.Specification
 

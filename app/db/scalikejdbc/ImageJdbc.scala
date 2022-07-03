@@ -116,7 +116,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
   def deleteImage(pageId: Long): Unit = deleteById(pageId)
 
   def findByContestId(contestId: Long): List[Image] =
-    ContestJuryJdbc.findById(contestId).map(findByContest).getOrElse(Nil)
+    ContestJury.findById(contestId).map(findByContest).getOrElse(Nil)
 
   def findByContest(contest: ContestJury): List[Image] = {
     contest.categoryId.map(findByCategory).getOrElse(Nil)

@@ -13,7 +13,7 @@ import play.api.test.Helpers.running
 
 trait TestDb {
 
-  val contestDao = ContestJuryJdbc
+  val contestDao = ContestJury
   val imageDao = ImageJdbc
   val roundDao = Round
   val selectionDao = SelectionJdbc
@@ -66,8 +66,8 @@ trait TestDb {
 
 
   def createContests(contestIds: Long*): Seq[ContestJury] = contestIds.map { id =>
-    val contest = ContestJuryJdbc.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
-    ContestJuryJdbc.setImagesSource(id, Some("Images from " + contest.name))
+    val contest = ContestJury.create(Some(id), "contest" + id, 2000 + id.toInt, "country" + id)
+    ContestJury.setImagesSource(id, Some("Images from " + contest.name))
     contest
   }
 

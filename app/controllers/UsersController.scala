@@ -1,11 +1,11 @@
 package controllers
 
 import javax.inject.Inject
-import db.scalikejdbc.{ContestJury, ContestJuryJdbc, Round, User}
+import db.scalikejdbc.{ContestJury, Round, User}
 import org.intracer.wmua._
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.Query
-import org.scalawiki.dto.cmd.query.list.{UsGender, _}
+import org.scalawiki.dto.cmd.query.list._
 import play.api.Play.current
 import play.api.data.Form
 import play.api.data.Forms._
@@ -31,7 +31,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
     user =>
       implicit request =>
         (for (contestId <- contestIdParam.orElse(user.currentContest);
-              contest <- ContestJuryJdbc.findById(contestId)) yield {
+              contest <- ContestJury.findById(contestId)) yield {
           val users = User.findByContest(contestId).sorted
           val withWiki = wikiAccountInfo(users)
 
@@ -43,7 +43,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
     user =>
       implicit request =>
           val users = User.findAll()
-          val contests = ContestJuryJdbc.findAll()
+          val contests = ContestJury.findAll()
           Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), None, contests))
   }
 
@@ -212,7 +212,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
           formWithErrors => // binding failure, you retrieve the form containing errors,
             BadRequest(views.html.importUsers(user, importUsersForm, contestId)),
           formUsers => {
-            val contest = ContestJuryJdbc.findById(contestId)
+            val contest = ContestJury.findById(contestId)
             val parsed = User.parseList(formUsers)
               .map(_.copy(
                 lang = user.lang,
@@ -233,7 +233,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
       implicit request =>
 
         (for (contestId <- contestIdParam.orElse(user.currentContest);
-              contest <- ContestJuryJdbc.findById(contestId)) yield {
+              contest <- ContestJury.findById(contestId)) yield {
 
           val greeting = getGreeting(contest)
 
@@ -294,14 +294,14 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
             BadRequest(views.html.importUsers(user, importUsersForm, contestId)),
           formGreeting => {
 
-            ContestJuryJdbc.updateGreeting(contestId, formGreeting)
+            ContestJury.updateGreeting(contestId, formGreeting)
             Redirect(routes.UsersController.users(Some(contestId)))
           })
 
   }
 
   def createNewUser(user: User, formUser: User)(implicit lang: Lang): User = {
-    val contest: Option[ContestJury] = formUser.currentContest.flatMap(ContestJuryJdbc.findById)
+    val contest: Option[ContestJury] = formUser.currentContest.flatMap(ContestJury.findById)
     createUser(user, formUser, contest)
   }
 
@@ -361,7 +361,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
         val editedUser = User.findById(id).get
 
         val password = User.randomString(8)
-        val contest: Option[ContestJury] = editedUser.currentContest.flatMap(ContestJuryJdbc.findById)
+        val contest: Option[ContestJury] = editedUser.currentContest.flatMap(ContestJury.findById)
         val contestName = contest.fold("")(_.name)
         val hash = User.hash(editedUser, password)
 

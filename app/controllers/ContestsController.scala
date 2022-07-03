@@ -1,7 +1,7 @@
 package controllers
 
 import db.scalikejdbc
-import db.scalikejdbc.{ContestJury, ContestJuryJdbc, User}
+import db.scalikejdbc.{ContestJury, User}
 import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}
@@ -41,7 +41,7 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
   }
 
   def findContests: List[ContestJury] = {
-    ContestJuryJdbc.findAll() //.map(_.copy(messages = applicationMessages))
+    ContestJury.findAll() //.map(_.copy(messages = applicationMessages))
   }
 
   def saveContest() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
@@ -76,7 +76,7 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
                 importCategory(formContest)
               }
 
-            val existing = ContestJuryJdbc.findAll().map(c => s"${c.name}/${c.year}/${c.country}").toSet
+            val existing = ContestJury.findAll().map(c => s"${c.name}/${c.year}/${c.country}").toSet
             val newContests = imported.filterNot(c => existing.contains(s"${c.contestType.name}/${c.year}/${c.country.name}"))
 
             newContests.foreach {
@@ -109,7 +109,7 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
   }
 
   def createContest(contest: ContestJury): ContestJury = {
-    ContestJuryJdbc.create(
+    ContestJury.create(
       contest.id,
       contest.name,
       contest.year,
@@ -123,7 +123,7 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
 
 
   def regions(contestId: Long): Map[String, String] = {
-    ContestJuryJdbc.findById(contestId)
+    ContestJury.findById(contestId)
       .filter(_.country == "Ukraine")
       .map(_ => KOATUU.regions)
       .getOrElse(Map.empty)
