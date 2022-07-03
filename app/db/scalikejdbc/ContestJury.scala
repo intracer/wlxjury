@@ -22,18 +22,25 @@ case class ContestJury(id: Option[Long],
 
   def getImages = images.getOrElse("Category:Images from " + name)
 
-  def addUser(cu: ContestUser)(implicit session: DBSession = RoundUser.autoSession): Unit = {
+  def addUser(user: User, role: String)(implicit session: DBSession): Unit = {
+    for (userId <- user.id; contestId <- id) yield {
+      addUser(new ContestUser(contestId, userId, role))
+    }
+  }
+
+  def addUser(cu: ContestUser)(implicit session: DBSession): Unit = {
     ContestUser.withColumns { c =>
       ContestUser.createWithNamedValues(c.contestId -> id, c.userId -> cu.userId, c.role -> cu.role)
     }
   }
 
   def addUsers(users: Seq[ContestUser]): Unit = {
-    DB localTx { implicit session => withSQL {
-      val c = ContestUser.column
-      insert.into(ContestUser)
-        .namedValues(c.contestId -> sqls.?, c.userId -> sqls.?, c.role -> sqls.?)
-    }.batch(users.map(cu => Seq(id, cu.userId, cu.role)): _*).apply()
+    DB localTx { implicit session =>
+      withSQL {
+        val c = ContestUser.column
+        insert.into(ContestUser)
+          .namedValues(c.contestId -> sqls.?, c.userId -> sqls.?, c.role -> sqls.?)
+      }.batch(users.map(cu => Seq(id, cu.userId, cu.role)): _*).apply()
     }
   }
 
@@ -57,7 +64,8 @@ object ContestJury extends SkinnyCRUDMapper[ContestJury] {
 
   override lazy val defaultAlias = createAlias("c")
 
-  lazy val contestUser = hasManyThrough[User](
+  //  lazy val contestUser =
+  hasManyThrough[User](
     through = ContestUser,
     many = User,
     merge = (contest, users) => contest.copy(users = users)).byDefault
@@ -97,14 +105,14 @@ object ContestJury extends SkinnyCRUDMapper[ContestJury] {
       .withAttributes('currentRound -> round)
 
   def create(id: Option[Long],
-                      name: String,
-                      year: Int,
-                      country: String,
-                      images: Option[String] = None,
-                      categoryId: Option[Long] = None,
-                      currentRound: Option[Long] = None,
-                      monumentIdTemplate: Option[String] = None,
-                      campaign: Option[String] = None,
+             name: String,
+             year: Int,
+             country: String,
+             images: Option[String] = None,
+             categoryId: Option[Long] = None,
+             currentRound: Option[Long] = None,
+             monumentIdTemplate: Option[String] = None,
+             campaign: Option[String] = None,
             ): ContestJury = {
     val dbId = withSQL {
       insert.into(ContestJury).namedValues(
@@ -165,6 +173,7 @@ case class ContestUser(contestId: Long, userId: Long, role: String)
 
 object ContestUser extends SkinnyJoinTable[ContestUser] {
   override def defaultAlias = createAlias("contest_user")
+
   lazy val cu = ContestUser.syntax("contest_user")
 
   override def extract(rs: WrappedResultSet, cu: ResultName[ContestUser]): ContestUser =
