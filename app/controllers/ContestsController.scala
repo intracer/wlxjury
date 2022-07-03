@@ -121,7 +121,6 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
     )
   }
 
-
   def regions(contestId: Long): Map[String, String] = {
     ContestJury.findById(contestId)
       .filter(_.country == "Ukraine")
@@ -143,7 +142,7 @@ class ContestsController @Inject()(val commons: MwBot) extends Controller with S
       "campaign" -> optional(text),
     )(
       (id, name, year, country, images, currentRound, monumentIdTemplate, greetingText, useGreeting, campaign) =>
-        scalikejdbc.ContestJury(id, name, year, country, images, None, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting), campaign))
+        ContestJury(id, name, year, country, images, None, currentRound, monumentIdTemplate, Greeting(greetingText, useGreeting), campaign))
     ((c: ContestJury) =>
       Some(c.id, c.name, c.year, c.country, c.images, c.currentRound, c.monumentIdTemplate, c.greeting.text, c.greeting.use, c.campaign))
   )
