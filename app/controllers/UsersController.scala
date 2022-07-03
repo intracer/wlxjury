@@ -43,7 +43,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
     user =>
       implicit request =>
           val users = User.findAll()
-          val contests = ContestJuryJdbc.findAll()
+          val contests = ContestJury.findAll()
           Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), None, contests))
   }
 

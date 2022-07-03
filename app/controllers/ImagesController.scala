@@ -1,7 +1,7 @@
 package controllers
 
-import db.scalikejdbc.{CategoryJdbc, CategoryLinkJdbc, ContestJuryJdbc, ImageJdbc, User}
-import org.intracer.wmua.{ContestJury, Image}
+import db.scalikejdbc.{CategoryJdbc, CategoryLinkJdbc, ContestJury, ImageJdbc, User}
+import org.intracer.wmua.Image
 import org.intracer.wmua.cmd.{FetchImageInfo, FetchImageText, ImageEnricher}
 import org.intracer.wmua.cmd.FetchImageText.defaultParam
 import org.scalawiki.MwBot
@@ -26,7 +26,7 @@ class ImagesController @Inject()(val commons: MwBot)(implicit ec: ExecutionConte
   def images(contestId: Long, inProgress: Boolean = false) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
     user =>
       implicit request =>
-        val contest = ContestJuryJdbc.findById(contestId).get
+        val contest = ContestJury.findById(contestId).get
 
         val sourceImageNum = getNumberOfImages(contest)
         val dbImagesNum = ImageJdbc.countByContest(contest)
@@ -46,7 +46,7 @@ class ImagesController @Inject()(val commons: MwBot)(implicit ec: ExecutionConte
     */
   def importImages(contestId: Long) = withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) { user =>
     implicit request =>
-      val contest = ContestJuryJdbc.findById(contestId).get
+      val contest = ContestJury.findById(contestId).get
       importImagesForm.bindFromRequest.fold(
         formWithErrors => BadRequest(views.html.contest_images(formWithErrors, contest, user, 0, ImageJdbc.countByContest(contest))), {
           case (source, list, action) =>
@@ -106,7 +106,7 @@ class ImagesController @Inject()(val commons: MwBot)(implicit ec: ExecutionConte
   }
 
   def appendImages(source: String, imageList: String, contest: ContestJury, idsFilter: Set[String] = Set.empty, max: Long = 0) = {
-    ContestJuryJdbc.setImagesSource(contest.getId, Some(source))
+    ContestJury.setImagesSource(contest.getId, Some(source))
     val existingImages = ImageJdbc.findByContest(contest)
     initImagesFromSource(contest, source, imageList, existingImages, idsFilter, max)
   }

@@ -1,15 +1,15 @@
 package db.scalikejdbc
 
+
 import javax.mail.internet.InternetAddress
 import org.intracer.wmua.HasId
 import scalikejdbc.{DBSession, ResultName, WrappedResultSet, insert, select, sqls}
-import java.time.ZonedDateTime
 
+import java.time.ZonedDateTime
 import play.api.data.validation.{Constraints, Invalid, Valid}
 import play.api.libs.Codecs
 import scalikejdbc._
 import skinny.orm.SkinnyCRUDMapper
-
 
 import scala.util.Try
 
@@ -73,6 +73,12 @@ case class User(fullname: String,
 }
 
 object User extends SkinnyCRUDMapper[User] {
+
+  val u = User.syntax("u")
+  val c = ContestJury.syntax("c")
+  val cu = ContestUser.syntax("cu")
+  override lazy val defaultAlias = createAlias("u")
+
   val JURY_ROLE = "jury"
   val JURY_ROLES = Set(JURY_ROLE)
   val ORG_COM_ROLES = Set("organizer")
@@ -80,88 +86,13 @@ object User extends SkinnyCRUDMapper[User] {
   val ROOT_ROLE = "root"
   val ADMIN_ROLES = Set(ADMIN_ROLE, ROOT_ROLE)
   val LANGS = Map("en" -> "English", "fr" -> "Français",  "ru" -> "Русский", "uk" -> "Українська")
-
-  def unapplyEdit(user: User): Option[(Long, String, Option[String], String, Option[String], Option[String], Option[Long], Option[String], Option[Int])] = {
-    Some((user.getId, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.currentContestId, user.lang, user.sort))
-  }
-
-  def applyEdit(id: Long, fullname: String, wikiAccount: Option[String], email: String, password: Option[String],
-                roles: Option[String], contest: Option[Long], lang: Option[String], sort: Option[Int]): User = {
-    new User(fullname, email.trim.toLowerCase, Some(id), roles.fold(Set.empty[String])(Set(_)), password, currentContestId = contest, lang,
-      wikiAccount = wikiAccount, sort = sort)
-  }
-
   val emailConstraint = Constraints.emailAddress
-
-  def parseList(usersText: String): Seq[User] = {
-
-    def fromUserName(str: String): Option[User] = {
-      val withoutPrefix = str.replaceFirst("User:", "")
-      Some(withoutPrefix).filter(_.trim.nonEmpty).map { _ =>
-        User(id = None, fullname = "", email = "", wikiAccount = Some(withoutPrefix))
-      }
-    }
-
-    def fromInternetAddress(internetAddress: InternetAddress): Option[User] = {
-      Constraints.emailAddress()(internetAddress.getAddress) match {
-        case Valid =>
-          Some(User(id = None,
-            fullname = Option(internetAddress.getPersonal).getOrElse(""),
-            email = internetAddress.getAddress))
-        case Invalid(_) => None
-      }
-    }
-
-    usersText.split("[,|\n|]|,[ ]*\n").flatMap { str =>
-      Try {
-        InternetAddress.parse(str, false)
-      }.toOption.flatMap(_.headOption.flatMap(fromInternetAddress)).orElse(fromUserName(str))
-    }
-  }
 
   implicit def session: DBSession = autoSession
 
   override val tableName = "users"
 
-  val u = User.syntax("u")
-
   def isNotDeleted = sqls.isNull(u.deletedAt)
-
-  def randomString(len: Int): String = {
-    val rand = new scala.util.Random(System.nanoTime)
-    val sb = new StringBuilder(len)
-    val ab = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-    for (i <- 0 until len) {
-      sb.append(ab(rand.nextInt(ab.length)))
-    }
-    sb.toString()
-  }
-
-  def login(username: String, password: String): Option[User] = {
-    byUserName(username).filter(user => {
-      val passwordTrimmed = password.trim
-      val inputHash = hash(user, passwordTrimmed)
-      val dbHash = user.password.get
-      inputHash == dbHash
-    })
-  }
-
-  def hash(user: User, password: String): String =
-    sha1(password)
-
-  def sha1(input: String): String =
-    Codecs.sha1(input.getBytes)
-
-  def byUserName(username: String): Option[User] = {
-    val unameTrimmed = username.trim.toLowerCase
-    val users = Constraints.emailAddress()(unameTrimmed) match {
-      case Valid => findByEmail(username)
-      case Invalid(errors) => findByAccount(unameTrimmed)
-    }
-    users.headOption
-  }
-
-  override lazy val defaultAlias = createAlias("u")
 
   override def extract(rs: WrappedResultSet, c: ResultName[User]): User = User(
     id = Some(rs.int(c.id)),
@@ -189,8 +120,12 @@ object User extends SkinnyCRUDMapper[User] {
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime)
   )
 
-  def findByContest(contest: Long): Seq[User] =
-    ContestUser.byContestId(contest)
+  def findByContest(contest: Long): Seq[User] = withSQL {
+    select(u.result.*).from(User as u)
+      .join(ContestUser as cu).on(u.id, cu.userId)
+      .join(ContestJury as c).on(c.id, cu.contestId)
+      .map(User(u)).list().apply()
+  }
 
   def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
     import SelectionJdbc.s
@@ -282,4 +217,75 @@ object User extends SkinnyCRUDMapper[User] {
         .eq(User.u.contestId, contestId)
     )
   }
+
+  def unapplyEdit(user: User): Option[(Long, String, Option[String], String, Option[String], Option[String], Option[Long], Option[String], Option[Int])] = {
+    Some((user.getId, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.currentContestId, user.lang, user.sort))
+  }
+
+  def applyEdit(id: Long, fullname: String, wikiAccount: Option[String], email: String, password: Option[String],
+                roles: Option[String], contest: Option[Long], lang: Option[String], sort: Option[Int]): User = {
+    new User(fullname, email.trim.toLowerCase, Some(id), roles.fold(Set.empty[String])(Set(_)), password, currentContestId = contest, lang,
+      wikiAccount = wikiAccount, sort = sort)
+  }
+
+  def parseList(usersText: String): Seq[User] = {
+
+    def fromUserName(str: String): Option[User] = {
+      val withoutPrefix = str.replaceFirst("User:", "")
+      Some(withoutPrefix).filter(_.trim.nonEmpty).map { _ =>
+        User(id = None, fullname = "", email = "", wikiAccount = Some(withoutPrefix))
+      }
+    }
+
+    def fromInternetAddress(internetAddress: InternetAddress): Option[User] = {
+      Constraints.emailAddress()(internetAddress.getAddress) match {
+        case Valid =>
+          Some(User(id = None,
+            fullname = Option(internetAddress.getPersonal).getOrElse(""),
+            email = internetAddress.getAddress))
+        case Invalid(_) => None
+      }
+    }
+
+    usersText.split("[,|\n|]|,[ ]*\n").flatMap { str =>
+      Try {
+        InternetAddress.parse(str, false)
+      }.toOption.flatMap(_.headOption.flatMap(fromInternetAddress)).orElse(fromUserName(str))
+    }
+  }
+
+  def randomString(len: Int): String = {
+    val rand = new scala.util.Random(System.nanoTime)
+    val sb = new StringBuilder(len)
+    val ab = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    for (i <- 0 until len) {
+      sb.append(ab(rand.nextInt(ab.length)))
+    }
+    sb.toString()
+  }
+
+  def login(username: String, password: String): Option[User] = {
+    byUserName(username).filter(user => {
+      val passwordTrimmed = password.trim
+      val inputHash = hash(user, passwordTrimmed)
+      val dbHash = user.password.get
+      inputHash == dbHash
+    })
+  }
+
+  def hash(user: User, password: String): String =
+    sha1(password)
+
+  def sha1(input: String): String =
+    Codecs.sha1(input.getBytes)
+
+  def byUserName(username: String): Option[User] = {
+    val unameTrimmed = username.trim.toLowerCase
+    val users = Constraints.emailAddress()(unameTrimmed) match {
+      case Valid => findByEmail(username)
+      case Invalid(errors) => findByAccount(unameTrimmed)
+    }
+    users.headOption
+  }
+
 }

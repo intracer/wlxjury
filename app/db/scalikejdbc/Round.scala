@@ -42,7 +42,7 @@ case class Round(id: Option[Long],
                 ) extends HasId {
 
   def availableJurors: Seq[User] =
-    User.findAllBy(sqls.in(User.u.roles, roles.toSeq).and.eq(User.u.contestId, contestId))
+    User.findByContest(contestId).filter(_.hasRole(roles.head, contestId))
 
   lazy val numberOfActiveJurors = SelectionJdbc.activeJurors(id.get)
 
@@ -118,8 +118,6 @@ object Round extends SkinnyCRUDMapper[Round] {
   implicit def session: DBSession = autoSession
 
   override val tableName = "rounds"
-
-  lazy val c = Round.syntax("c")
 
   lazy val s = SelectionJdbc.syntax("s")
 
