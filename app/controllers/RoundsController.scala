@@ -138,7 +138,7 @@ class RoundsController @Inject()(val contestsController: ContestsController) ext
 
     val prevRound = created.previous.flatMap(Round.findById)
 
-    val jurors = User.loadJurors(round.contestId, jurorIds)
+    val jurors = User.loadJurors(round.contestId, jurorIds.toSet)
 
     created.addUsers(jurors.map(u => RoundUser(created.getId, u.getId, u.roles.head, true)))
 

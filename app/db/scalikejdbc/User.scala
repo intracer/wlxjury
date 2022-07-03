@@ -192,21 +192,6 @@ object User extends SkinnyCRUDMapper[User] {
     deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime)
   )
 
-  def findByContest(contestId: Long): Seq[User] = withSQL {
-     select.from(User as u)
-       .join(ContestUser as cu).on(u.id, cu.userId)
-       .join(Contest as c).on(cu.contestId, c.id)
-       .where.eq(c.id, contestId)
-  }.map{ rs =>
-    val user = User(u)(rs)
-    val contest = Contest(c)(rs)
-    val contestUser = ContestUser(cu)(rs)
-    user.copy(
-      contestId = contest.id,
-      roles = user.roles ++ Set(contestUser.role)
-    )
-  }.list().apply()
-
   def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
     import SelectionJdbc.s
 
@@ -287,16 +272,26 @@ object User extends SkinnyCRUDMapper[User] {
     updateById(id)
       .withAttributes('password -> hash)
 
+  def findByContest(contestId: Long): Seq[User] = withSQL {
+    select.from(User as u)
+      .join(ContestUser as cu).on(u.id, cu.userId)
+      .join(Contest as c).on(cu.contestId, c.id)
+      .where.eq(c.id, contestId)
+  }.map{ rs =>
+    val user = User(u)(rs)
+    val contest = Contest(c)(rs)
+    val contestUser = ContestUser(cu)(rs)
+    user.copy(
+      contestId = contest.id,
+      roles = user.roles ++ Set(contestUser.role)
+    )
+  }.list().apply()
+
   def loadJurors(contestId: Long): Seq[User] = {
-    findAllBy(sqls.in(User.u.roles, Seq("jury")).and.eq(User.u.contestId, contestId))
+    findByContest(contestId).filter(_.roles.contains("jury"))
   }
 
-  def loadJurors(contestId: Long, jurorIds: Seq[Long]): Seq[User] = {
-    findAllBy(
-      sqls
-        .in(User.u.id, jurorIds).and
-        .in(User.u.roles, Seq("jury")).and
-        .eq(User.u.contestId, contestId)
-    )
+  def loadJurors(contestId: Long, jurorIds: Set[Long]): Seq[User] = {
+    loadJurors(contestId).filter(_.id.exists(jurorIds.contains))
   }
 }
