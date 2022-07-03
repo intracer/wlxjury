@@ -2,9 +2,10 @@ package db.scalikejdbc
 
 import _root_.play.api.i18n.Messages
 import controllers.Greeting
+import db.scalikejdbc.ContestUser.{createAlias, updateBy, where}
 import org.intracer.wmua.ContestJury
 import scalikejdbc._
-import skinny.orm.SkinnyCRUDMapper
+import skinny.orm.{SkinnyCRUDMapper, SkinnyJoinTable}
 
 object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
 
@@ -113,4 +114,27 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
       }.batch(batchParams: _*).apply()
     }
   }
+}
+
+case class ContestUser(contestId: Long, userId: Long, role: String)
+
+object ContestUser extends SkinnyJoinTable[ContestUser] {
+  override def defaultAlias = createAlias("contest_user")
+  lazy val cu = ContestUser.syntax("contest_user")
+
+  override def extract(rs: WrappedResultSet, cu: ResultName[ContestUser]): ContestUser =
+    ContestUser(rs.long(cu.contestId), rs.long(cu.userId), rs.string(cu.role))
+
+  def apply(c: ContestJury, u: User): Option[ContestUser] =
+    for (cId <- c.id; uId <- u.id) yield ContestUser(cId, uId, u.roles.head)
+
+  def availableJurors(contestId: Long): List[ContestUser] =
+    where('contestId -> contestId, 'role -> User.JURY_ROLE).apply()
+
+  def byContestId(contestId: Long): List[ContestUser] =
+    where('contestId -> contestId).apply()
+
+  def setRole(contestId: Long, userId: Long, role: String): Int =
+    updateBy(sqls.eq(cu.contestId, contestId).and.eq(cu.userId, userId))
+      .withAttributes('role -> role)
 }
