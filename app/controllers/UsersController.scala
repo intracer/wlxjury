@@ -1,8 +1,6 @@
 package controllers
 
-import javax.inject.Inject
-import db.scalikejdbc.{Contest, Round, User}
-import org.intracer.wmua._
+import db.scalikejdbc.{Contest, User}
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.Query
 import org.scalawiki.dto.cmd.query.list._
@@ -15,6 +13,7 @@ import play.api.mvc.Results._
 import play.api.mvc.{Controller, Result}
 import spray.util.pimpFuture
 
+import javax.inject.Inject
 import scala.collection.immutable.ListMap
 import scala.util.Try
 
@@ -126,62 +125,61 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
 
         editUserForm.bindFromRequest.fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(
-              views.html.editUser(
-                user,
-                formWithErrors,
-                contestId = Try(formWithErrors.data("contest").toLong).toOption
-              )
-            ),
+            BadRequest(views.html.editUser(user, formWithErrors, contestId = Try(formWithErrors.data("contest").toLong).toOption)),
           formUser => {
             havingEditRights(user, formUser) {
-
               val userId = formUser.getId
               val count = User.countByEmail(userId, formUser.email)
               if (count > 0) {
-                BadRequest(
-                  views.html.editUser(
-                    user,
-                    editUserForm.fill(formUser).withError("email", "email should be unique"),
-                    contestId = formUser.contestId
-                  )
-                )
+                BadRequest(views.html.editUser(user,
+                  editUserForm.fill(formUser).withError("email", "email should be unique"),
+                  contestId = formUser.contestId))
               } else {
                 if (userId == 0) {
                   createNewUser(user, formUser)
                 } else {
-
-                  // only admin can update roles
-                  val newRoles = if (user.hasAnyRole(User.ADMIN_ROLES)) {
-                    if (!user.hasRole(User.ROOT_ROLE) && formUser.roles.contains(User.ROOT_ROLE)) {
-                      userRolesFromDb(formUser)
-                    } else {
-                      formUser.roles
-                    }
-                  } else {
-                    userRolesFromDb(formUser)
-                  }
-
+                  val newRoles = allowedNewRoles(user, formUser)
                   User.updateUser(userId, formUser.fullname, formUser.wikiAccount, formUser.email, newRoles, formUser.lang, formUser.sort)
-
-                  for (password <- formUser.password) {
-                    val hash = User.hash(formUser, password)
-                    User.updateHash(userId, hash)
-                  }
+                  updatePassword(formUser)
                 }
 
-                val result = if (user.hasAnyRole(User.ADMIN_ROLES)) {
-                  Redirect(routes.UsersController.users(formUser.contestId))
-                } else {
-                  Redirect(routes.LoginController.index())
-                }
-                val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
-
-                lang.fold(result)(l => result.withLang(Lang(l)))
+                withUpdatedLanguage(user, formUser, redirectLocation(user, formUser))
               }
             }
           }
         )
+  }
+
+  private def withUpdatedLanguage(user: User, formUser: User, result: Result) = {
+    val lang = for (lang <- formUser.lang; if formUser.id == user.id) yield lang
+    lang.fold(result)(l => result.withLang(Lang(l)))
+  }
+
+  private def redirectLocation(user: User, formUser: User) = {
+    if (user.hasAnyRole(User.ADMIN_ROLES)) {
+      Redirect(routes.UsersController.users(formUser.contestId))
+    } else {
+      Redirect(routes.LoginController.index())
+    }
+  }
+
+  private def updatePassword(formUser: User) = {
+    for (password <- formUser.password) {
+      val hash = User.hash(formUser, password)
+      User.updateHash(formUser.getId, hash)
+    }
+  }
+
+  private def allowedNewRoles(user: User, formUser: User) = {
+    if (user.hasAnyRole(User.ADMIN_ROLES)) {
+      if (!user.hasRole(User.ROOT_ROLE) && formUser.roles.contains(User.ROOT_ROLE)) {
+        userRolesFromDb(formUser)
+      } else {
+        formUser.roles
+      }
+    } else {
+      userRolesFromDb(formUser)
+    }
   }
 
   /**
