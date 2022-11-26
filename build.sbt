@@ -11,12 +11,14 @@ organization := "org.intracer"
 version := "0.13"
 
 scalaVersion := "2.12.10"
+scalacOptions += "-Ypartial-unification"
 
 val ScalikejdbcVersion = "3.3.5"
 val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.3"
 val ScalawikiVersion = "0.6.6.1"
 val PlayMailerVersion = "6.0.1"
 val MockServerVersion = "5.7.0"
+val TapirVersion = "1.2.3"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -53,6 +55,8 @@ libraryDependencies ++= Seq(
   "com.github.tototoshi" %% "scala-csv" % "1.3.6",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
   "javax.xml.bind" % "jaxb-api" % "2.3.1",
+  "com.softwaremill.sttp.tapir" %% "tapir-core" % TapirVersion,
+  "com.softwaremill.sttp.tapir" %% "tapir-play-server" % TapirVersion,
   guice, filters,
   specs2 % Test,
   jdbc % Test,
