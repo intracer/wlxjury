@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, TestDb}
+import db.scalikejdbc.TestDb
 import org.intracer.wmua.{Image, JuryTestHelpers}
 import org.mockito.stubbing.OngoingStubbing
 import org.scalawiki.MwBot

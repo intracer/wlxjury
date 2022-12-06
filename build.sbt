@@ -19,6 +19,7 @@ val ScalawikiVersion = "0.6.6.1"
 val PlayMailerVersion = "6.0.1"
 val MockServerVersion = "5.7.0"
 val TapirVersion = "1.2.3"
+val AkkaHttpVersion = "10.1.14"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -56,15 +57,23 @@ libraryDependencies ++= Seq(
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
   "javax.xml.bind" % "jaxb-api" % "2.3.1",
   "com.softwaremill.sttp.tapir" %% "tapir-core" % TapirVersion,
-  "com.softwaremill.sttp.tapir" %% "tapir-play-server" % TapirVersion,
-  guice, filters,
+  "com.softwaremill.sttp.tapir" %% "tapir-akka-http-server" % TapirVersion
+    exclude("com.typesafe.akka", "akka-stream_2.12")
+    exclude("com.typesafe.akka", "akka-slf4j_2.12")
+    exclude("com.typesafe.akka", "akka-http_2.12")
+    exclude("com.typesafe.akka", "akka-http-caching_2.12"),
+  "com.softwaremill.sttp.tapir" %% "tapir-json-play" % TapirVersion,
+  guice,
+  filters,
   specs2 % Test,
   jdbc % Test,
   "com.wix" % "wix-embedded-mysql" % "4.6.1" % Test,
   "org.mock-server" % "mockserver-netty" % MockServerVersion % Test,
   "net.java.dev.jna" % "jna" % "4.5.0" % Test,
   "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test,
-  "com.h2database" % "h2" % "1.4.193" % Test
+  "com.h2database" % "h2" % "1.4.193" % Test,
+  "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
+  "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.21" % Test
 )
 
 dependencyOverrides ++= Seq(
