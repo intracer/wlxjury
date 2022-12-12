@@ -10,7 +10,7 @@ case class ContestJury(id: Option[Long],
                        categoryId: Option[Long] = None,
                        currentRound: Option[Long] = None,
                        monumentIdTemplate: Option[String] = None,
-                       greeting: Greeting = Greeting(None, use = true),
+                       greeting: Greeting = Greeting(None, use = false),
                        campaign: Option[String] = None) extends HasId {
   //def localName = Messages("wiki.loves.earth." + country, year)(messages)
   def fullName = s"$name $year in $country"
