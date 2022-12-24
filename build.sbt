@@ -63,6 +63,7 @@ libraryDependencies ++= Seq(
     exclude("com.typesafe.akka", "akka-http_2.12")
     exclude("com.typesafe.akka", "akka-http-caching_2.12"),
   "com.softwaremill.sttp.tapir" %% "tapir-json-play" % TapirVersion,
+  "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % TapirVersion,
   "de.heikoseeberger" %% "akka-http-play-json" % "1.29.1",
   guice,
   filters,
@@ -81,7 +82,7 @@ dependencyOverrides ++= Seq(
   "commons-io" % "commons-io" % "2.5"
 )
 
-routesGenerator := StaticRoutesGenerator
+// routesGenerator := StaticRoutesGenerator
 
 //doc in Compile <<= target.map(_ / "none")
 

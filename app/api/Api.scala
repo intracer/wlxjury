@@ -6,6 +6,7 @@ import play.api.libs.json._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.play._
 import sttp.tapir.server.akkahttp.AkkaHttpServerInterpreter
+import sttp.tapir.swagger.bundle.SwaggerInterpreter
 import sttp.tapir.{endpoint, path}
 
 import javax.inject.Inject
@@ -20,6 +21,14 @@ class Api @Inject()(val contestsController: ContestsController) extends JsonForm
   val getContest = contests.in(path[Long]).get.out(jsonBody[ContestJury])
   val updateContest = contests.put.in(jsonBody[ContestJury])
   val listContests = contests.get.out(jsonBody[List[ContestJury]])
+
+  val endpoints = List(createContest, getContest, updateContest, listContests)
+
+  // first interpret as swagger ui endpoints, backend by the appropriate yaml
+  val swaggerEndpoints = SwaggerInterpreter().fromEndpoints[Future](endpoints, "WLX Jury", "1.0")
+
+  // add to your akka routes
+  val swaggerRoute = AkkaHttpServerInterpreter().toRoute(swaggerEndpoints)
 
   val routes = AkkaHttpServerInterpreter().toRoute(List(
     createContest.serverLogicSuccess { contest =>
