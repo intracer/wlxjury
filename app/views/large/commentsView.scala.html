@@ -7,7 +7,7 @@
         round: Round,
         module : String = "gallery",
         comments: Seq[Comment])(
-        implicit flash: Flash, lang: Lang, request: Request[Any], messages: Messages)
+        implicit flash: Flash, request: Request[Any], messages: Messages)
 @import helper._
 
 @if(round.active || comments.nonEmpty) {

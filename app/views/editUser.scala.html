@@ -2,7 +2,7 @@
         user: db.scalikejdbc.User,
         editUserForm: Form[db.scalikejdbc.User],
         contestId: Option[Long] = None
-)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
+)(implicit flash: Flash, messages: Messages, req: RequestHeader)
 
 @import views.html.bootstrap._
 @import helper._

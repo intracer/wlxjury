@@ -70,7 +70,7 @@ dependencyOverrides ++= Seq(
   "commons-io" % "commons-io" % "2.5"
 )
 
-routesGenerator := StaticRoutesGenerator
+routesGenerator := InjectedRoutesGenerator
 
 //doc in Compile <<= target.map(_ / "none")
 

@@ -6,23 +6,29 @@ import org.scalawiki.wlx.dto.{Contest, ContestType, Monument, SpecialNomination}
 import org.scalawiki.wlx.query.MonumentQuery
 import org.scalawiki.wlx.stat.ContestStat
 import play.api.Play.current
+import play.api.i18n.I18nSupport
 import play.api.i18n.Messages.Implicits._
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{
+  AbstractController,
+  Action,
+  Controller,
+  ControllerComponents
+}
 
-object MonumentsController extends Controller {
+import javax.inject.Inject
 
-  def list = Action {
-    implicit request =>
+class MonumentsController @Inject()(cc: ControllerComponents)
+    extends AbstractController(cc)
+    with I18nSupport {
 
-      val monuments = MonumentJdbc.findAll(Some(20))
-      Ok(views.html.monuments(monuments))
+  def list = Action { implicit request =>
+    val monuments = MonumentJdbc.findAll(Some(20))
+    Ok(views.html.monuments(monuments))
   }
 
-  def byId(id: String) = Action {
-    implicit request =>
-
-      val monuments = MonumentJdbc.find(id).toSeq
-      Ok(views.html.monuments(monuments))
+  def byId(id: String) = Action { implicit request =>
+    val monuments = MonumentJdbc.find(id).toSeq
+    Ok(views.html.monuments(monuments))
   }
 
   def updateLists(contest: Contest) = {
@@ -30,22 +36,33 @@ object MonumentsController extends Controller {
     val monuments = monumentQuery.byMonumentTemplate()
     val monumentIds = monuments.map(_.id).toSet
 
-    val stat = ContestStat(contest, 2020, Some(new MonumentDB(contest, monuments)))
-    val specialNominationMonuments = if (contest.contestType == ContestType.WLM) {
-      SpecialNomination.getMonumentsMap(SpecialNomination.nominations, stat)
-      .values.flatten.filterNot(m => monumentIds.contains(m.id))
-    } else Nil
+    val stat =
+      ContestStat(contest, 2020, Some(new MonumentDB(contest, monuments)))
+    val specialNominationMonuments =
+      if (contest.contestType == ContestType.WLM) {
+        SpecialNomination
+          .getMonumentsMap(SpecialNomination.nominations, stat)
+          .values
+          .flatten
+          .filterNot(m => monumentIds.contains(m.id))
+      } else Nil
 
     val fromDb = MonumentJdbc.findAll()
     val inDbIds = fromDb.map(_.id).toSet
 
-    def truncate(monument: Monument, field: String, max: Int, copy: String => Monument): Monument = {
+    def truncate(monument: Monument,
+                 field: String,
+                 max: Int,
+                 copy: String => Monument): Monument = {
       if (field.length > max) {
         copy(field.substring(0, max))
       } else monument
     }
 
-    def truncOpt(monument: Monument, field: Option[String], max: Int, copy: Option[String] => Monument): Monument = {
+    def truncOpt(monument: Monument,
+                 field: Option[String],
+                 max: Int,
+                 copy: Option[String] => Monument): Monument = {
       if (field.exists(_.length > max)) {
         copy(field.map(_.substring(0, max)))
       } else monument

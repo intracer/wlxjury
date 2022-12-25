@@ -12,7 +12,7 @@
         regions: Map[String, String] = Map.empty,
         statOpt: Option[RoundStat] = None,
         newImages: Seq[Image] = Seq.empty
-)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
+)(implicit flash: Flash, messages: Messages, req: RequestHeader)
 
 @implicitFieldConstructor = @{
     b3.horizontal.fieldConstructor("col-md-4", "col-md-8")

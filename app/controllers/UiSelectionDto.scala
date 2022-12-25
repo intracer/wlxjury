@@ -18,7 +18,7 @@ class UiSelectionDto[T](
 
   def current = map(selectedItemId)
 
-  def toDropDown(iconOnly: Boolean = false)(implicit lang: Lang, messages: Messages) =
+  def toDropDown(iconOnly: Boolean = false)(implicit messages: Messages) =
     views.html.dropDownSelection(this.asInstanceOf[UiSelectionDto[Any]], iconOnly)
 }
 

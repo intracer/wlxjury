@@ -4,7 +4,7 @@
         contestId: Long,
         variables: Map[String, String],
         substitution: Seq[String]
-)(implicit flash: Flash, lang: Lang, messages: Messages, request: RequestHeader)
+)(implicit flash: Flash, messages: Messages, request: RequestHeader)
 @import helper._
 @implicitFieldConstructor = @{
     b3.horizontal.fieldConstructor("col-md-4", "col-md-8")

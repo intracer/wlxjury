@@ -6,7 +6,7 @@
         rate: Option[Int],
         module: String = "byrate",
         byCriteria: Map[Int, Int] = Map.empty
-)(implicit lang: Lang, messages: Messages)
+)(implicit messages: Messages)
 
 @if(!round.isBinary) {
 

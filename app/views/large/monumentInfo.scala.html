@@ -1,7 +1,7 @@
 @(
         image: org.intracer.wmua.Image,
         monument: Option[org.scalawiki.wlx.dto.Monument]
-        )(implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
+        )(implicit flash: Flash, request: play.api.mvc.Request[Any], messages: Messages)
 @import org.scalawiki.wlx.dto.Monument
 
 @for(m <- monument) {

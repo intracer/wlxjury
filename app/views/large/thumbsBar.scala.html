@@ -13,7 +13,7 @@
         region: String = "all",
         round: Round,
         module : String = "gallery")(
-        implicit flash: Flash, lang: Lang, request: Request[Any], messages: Messages)
+        implicit flash: Flash, request: Request[Any], messages: Messages)
 
 @thumbSmall(style:String) = {
     <div class="@style">

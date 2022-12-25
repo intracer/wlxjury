@@ -20,7 +20,7 @@
         comments: Seq[Comment],
         selection: Seq[(Selection, User)],
         byCriteria: Map[Int, Int] = Map.empty)(
-        implicit flash: Flash, lang: Lang, request: Request[Any], messages: Messages)
+        implicit flash: Flash, request: Request[Any], messages: Messages)
 
     @main_large(module,
     user,

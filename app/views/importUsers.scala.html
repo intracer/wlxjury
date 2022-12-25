@@ -1,7 +1,7 @@
 @(
         adminUser: db.scalikejdbc.User,
         importUserForm: Form[String],
-        contestId: Long)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
+        contestId: Long)(implicit flash: Flash, messages: Messages, req: RequestHeader)
 @import helper._
 
 @mainAdmin(Messages("users"), adminUser, adminUser.getId, contestId = Some(contestId)) {

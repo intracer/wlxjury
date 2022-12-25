@@ -6,7 +6,7 @@
         editUserForm: Form[db.scalikejdbc.User],
         contestOpt: Option[ContestJury],
         contests: List[ContestJury] = Nil
-)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
+)(implicit flash: Flash, messages: Messages, req: RequestHeader)
     @import helper._
     @import views.html.bootstrap._
 
