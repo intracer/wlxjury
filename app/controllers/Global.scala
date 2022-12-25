@@ -1,12 +1,10 @@
 package controllers
 
-import java.net.URLEncoder
-
-import _root_.db.scalikejdbc.ContestJuryJdbc
-import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.ConfigFactory
 import org.intracer.wmua._
 import org.scalawiki.MwBot
+
+import java.net.URLEncoder
 
 object Global {
   final val COMMONS_WIKIMEDIA_ORG = "commons.wikimedia.org"
@@ -24,8 +22,6 @@ object Global {
   )
 
   val sizeFactors = Seq(1.0, 1.5, 2.0)
-
-  val metrics = new MetricRegistry()
 
   lazy val commons = MwBot.fromHost(COMMONS_WIKIMEDIA_ORG)
 

@@ -5,15 +5,8 @@ import org.scalawiki.wlx.MonumentDB
 import org.scalawiki.wlx.dto.{Contest, ContestType, Monument, SpecialNomination}
 import org.scalawiki.wlx.query.MonumentQuery
 import org.scalawiki.wlx.stat.ContestStat
-import play.api.Play.current
 import play.api.i18n.I18nSupport
-import play.api.i18n.Messages.Implicits._
-import play.api.mvc.{
-  AbstractController,
-  Action,
-  Controller,
-  ControllerComponents
-}
+import play.api.mvc.{AbstractController, ControllerComponents}
 
 import javax.inject.Inject
 
@@ -37,7 +30,7 @@ class MonumentsController @Inject()(cc: ControllerComponents)
     val monumentIds = monuments.map(_.id).toSet
 
     val stat =
-      ContestStat(contest, 2020, Some(new MonumentDB(contest, monuments)))
+      ContestStat(contest, 2020, Some(new MonumentDB(contest, monuments.toSeq)))
     val specialNominationMonuments =
       if (contest.contestType == ContestType.WLM) {
         SpecialNomination
@@ -74,7 +67,7 @@ class MonumentsController @Inject()(cc: ControllerComponents)
       .map(m => truncOpt(m, m.typ, 255, s => m.copy(typ = s)))
       .map(m => truncOpt(m, m.subType, 255, s => m.copy(subType = s)))
       .map(m => truncOpt(m, m.year, 255, s => m.copy(year = s)))
-      .map(m => truncOpt(m, m.city, 255, s => m.copy(city = s)))
+      .map(m => truncOpt(m, m.city, 255, s => m.copy(city = s))).toSeq
 
     MonumentJdbc.batchInsert(newMonuments)
   }

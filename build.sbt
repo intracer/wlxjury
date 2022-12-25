@@ -10,15 +10,16 @@ organization := "org.intracer"
 
 version := "0.13"
 
-scalaVersion := "2.12.10"
+scalaVersion := "2.13.10"
 
-val ScalikejdbcVersion = "3.3.5"
-val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.3"
-val ScalawikiVersion = "0.6.6.1"
-val PlayMailerVersion = "6.0.1"
+val ScalikejdbcVersion = "3.4.2"
+val ScalikejdbcPlayVersion = "2.8.0-scalikejdbc-3.4"
+val ScalawikiVersion = "0.7.0-SNAPSHOT"
+val PlayMailerVersion = "8.0.1"
 val MockServerVersion = "5.7.0"
-val playPac4jVersion = "7.0.1"
-val pac4jVersion = "3.6.1"
+val playPac4jVersion = "11.1.0-PLAY2.8"
+val pac4jVersion = "5.2.0"
+val playVersion = "2.8.18"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -29,8 +30,8 @@ resolvers += Resolver.jcenterRepo
 resolvers += Resolver.mavenLocal
 
 libraryDependencies ++= Seq(
-  "org.webjars" %% "webjars-play" % "2.6.3",
-  "com.adrianhurt" %% "play-bootstrap" % "1.5.1-P26-B3",
+  "org.webjars" %% "webjars-play" % "2.8.18",
+  "com.adrianhurt" %% "play-bootstrap" % "1.6.1-P28-B3",
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "3.2.1",
 
@@ -40,17 +41,17 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % ScalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % ScalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % ScalikejdbcPlayVersion,
-  "org.skinny-framework" %% "skinny-orm" % "2.5.2",
-  "org.flywaydb" %% "flyway-play" % "4.0.0",
+  "org.skinny-framework" %% "skinny-orm" % "3.1.0",
+  "org.flywaydb" %% "flyway-play" % "7.25.0",
+  "org.flywaydb" % "flyway-mysql" % "9.3.1",
 
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
 
-  "com.typesafe.akka" %% "akka-stream" % "2.5.26",
+  "com.typesafe.akka" %% "akka-stream" % "2.6.20",
   "com.typesafe.akka" %% "akka-http" % "10.1.10",
 
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
-  "nl.grons" %% "metrics-scala" % "4.0.0",
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
   "com.typesafe.play" %% "play-mailer-guice" % PlayMailerVersion,
   "com.github.tototoshi" %% "scala-csv" % "1.3.6",

@@ -96,7 +96,7 @@ case class Round(id: Option[Long],
     RoundUser.withColumns { c =>
       withSQL {
         delete.from(RoundUser).where.eq(c.roundId, id).and.eq(c.userId, user.id)
-      }.update.apply()
+      }.update().apply()
     }
   }
 

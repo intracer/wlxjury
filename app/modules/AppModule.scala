@@ -6,7 +6,7 @@ import play.api.{Configuration, Environment}
 
 class AppModule(environment: Environment, configuration: Configuration) extends AbstractModule {
 
-  def configure(): Unit = {}
+  override def configure(): Unit = {}
 
   @Provides
   def bot: MwBot = {

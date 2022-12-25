@@ -7,31 +7,28 @@ import org.scalawiki.dto.Namespace
 import org.scalawiki.wlx.dto.{Contest, ContestType, NoAdmDivision}
 import org.scalawiki.wlx.{CampaignList, CountryParser}
 import play.api.data.Form
-import play.api.data.Forms.{optional, _}
-import play.api.i18n.{I18nSupport, Langs}
-import play.api.mvc.{AbstractController, ControllerComponents}
+import play.api.data.Forms._
+import play.api.i18n.I18nSupport
+import play.api.mvc.ControllerComponents
 import spray.util.pimpFuture
 
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class ContestsController @Inject()(val commons: MwBot,
-                                   cc: ControllerComponents,
-                                   langs: Langs)
-    extends AbstractController(cc)
-    with Secured
+class ContestsController @Inject()(val commons: MwBot, cc: ControllerComponents)
+    extends Secured(cc)
     with I18nSupport {
 
   def fetchContests(contestType: Option[String],
                     year: Option[Int],
-                    country: Option[String]): Future[Seq[Contest]] = {
+                    country: Option[String]): Future[Iterable[Contest]] = {
     if (contestType.isEmpty) {
       CampaignList.yearsContests()
     } else {
       (for (ct <- contestType; y <- year) yield {
         val contest = Contest(ContestType.byCode(ct).get, NoAdmDivision, y)
         CampaignList.contestsFromCategory(contest.imagesCategory)
-      }).getOrElse(Future.successful(Seq.empty[Contest]))
+      }).getOrElse(Future.successful(Nil))
     }
   }
 
@@ -60,7 +57,7 @@ class ContestsController @Inject()(val commons: MwBot,
 
   def saveContest() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
     user => implicit request =>
-      editContestForm.bindFromRequest.fold(
+      editContestForm.bindFromRequest().fold(
         formWithErrors => {
           val contests = findContests
           BadRequest(
@@ -79,7 +76,7 @@ class ContestsController @Inject()(val commons: MwBot,
 
   def importContests() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
     user => implicit request =>
-      importContestsForm.bindFromRequest.fold(
+      importContestsForm.bindFromRequest().fold(
         formWithErrors => {
           val contests = findContests
           BadRequest(
@@ -131,7 +128,7 @@ class ContestsController @Inject()(val commons: MwBot,
     CountryParser.parse(wiki)
   }
 
-  def importCategory(categoryName: String): Seq[Contest] = {
+  def importCategory(categoryName: String): Iterable[Contest] = {
     val pages =
       commons.page(categoryName).categoryMembers(Set(Namespace.CATEGORY)).await
 

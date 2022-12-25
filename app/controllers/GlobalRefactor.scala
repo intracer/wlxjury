@@ -15,7 +15,7 @@ class GlobalRefactor(val commons: MwBot) {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  def initUrls() {
+  def initUrls(): Unit = {
     KOATUU.load()
   }
 
@@ -25,7 +25,7 @@ class GlobalRefactor(val commons: MwBot) {
     val action = Action(Query(
       Generator(generatorArg)
     ))
-    new DslQuery(action, commons).run()
+    new DslQuery(action, commons).run().map(_.values.toSeq)
   }
 
   def addContestCategories(contestName: String, year: Int) = {

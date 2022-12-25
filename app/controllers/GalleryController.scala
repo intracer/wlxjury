@@ -17,13 +17,10 @@ import javax.inject.Inject
   * Backend for getting and displaying images
   */
 class GalleryController @Inject()(cc: ControllerComponents)
-    extends AbstractController(cc)
-    with Secured
-    with Instrumented
+    extends Secured(cc)
     with I18nSupport {
 
   import Pager._
-  import play.api.Play.current
 
   val Selected = "selected"
 
@@ -31,9 +28,6 @@ class GalleryController @Inject()(cc: ControllerComponents)
 
   val UrlInProgress =
     "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Icon_tools.svg/120px-Icon_tools.svg.png"
-
-  private[this] val timerList = metrics.timer("Gallery.list")
-  private[this] val timerByRate = metrics.timer("Gallery.byRate")
 
   def moduleByUserId(asUserId: Long) =
     if (asUserId == 0) "byrate" else "gallery"
@@ -134,132 +128,130 @@ class GalleryController @Inject()(cc: ControllerComponents)
                   rate: Option[Int] = None,
                   rated: Option[Boolean] = None) = withAuth() {
     user => implicit request =>
-      timerList.time {
-        val maybeRound =
-          if (roundId == 0) Round.activeRounds(user).headOption
-          else Round.findById(roundId)
+      val maybeRound =
+        if (roundId == 0) Round.activeRounds(user).headOption
+        else Round.findById(roundId)
 
-        val roundContestId = maybeRound.map(_.contestId).getOrElse(0L)
-        val round = maybeRound.get
-        val subRegions = round.specialNomination.contains("Віа Регіа")
-        val rounds = if (user.canViewOrgInfo(round)) {
-          Round.findByContest(roundContestId).filter(user.canViewOrgInfo)
+      val roundContestId = maybeRound.map(_.contestId).getOrElse(0L)
+      val round = maybeRound.get
+      val subRegions = round.specialNomination.contains("Віа Регіа")
+      val rounds = if (user.canViewOrgInfo(round)) {
+        Round.findByContest(roundContestId).filter(user.canViewOrgInfo)
+      } else {
+        Round.activeRounds(user)
+      }
+
+      if (isNotAuthorized(user, maybeRound, roundContestId, rounds)) {
+        onUnAuthorized(user)
+      } else {
+
+        lazy val asUser = getAsUser(asUserId, user)
+
+        val regions = Set(region).filter(_ != "all")
+
+        val userDetails = Set("filelist", "csv").contains(module)
+        val query = getQuery(asUserId,
+                             rate,
+                             round.id,
+                             Some(pager),
+                             userDetails,
+                             rated,
+                             regions,
+                             subRegions)
+        pager.setCount(query.count())
+
+        val files = filesByUserId(query, pager, userDetails)
+
+        val contest = ContestJuryJdbc.findById(roundContestId).get
+
+        val byReg = if (contest.monumentIdTemplate.isDefined) {
+          query.copy(regions = Set.empty).byRegionStat()
         } else {
-          Round.activeRounds(user)
+          Seq.empty
         }
 
-        if (isNotAuthorized(user, maybeRound, roundContestId, rounds)) {
-          onUnAuthorized(user)
-        } else {
+        val rates = rateDistribution(user, round)
 
-          lazy val asUser = getAsUser(asUserId, user)
+        //   val ranks = ImageWithRating.rankImages(sortedFiles, round)
+        val useTable = !round.isBinary || asUserId == 0
 
-          val regions = Set(region).filter(_ != "all")
+        module match {
+          case "gallery" =>
+            Ok(
+              views.html.gallery(user,
+                                 asUserId,
+                                 files,
+                                 pager,
+                                 maybeRound,
+                                 rounds,
+                                 rate,
+                                 region,
+                                 byReg,
+                                 rates))
+          case "csv" =>
+            val jurors = if (user.canViewOrgInfo(round) && asUserId == 0) {
+              User.findByRoundSelection(roundId)
+            } else {
+              Seq(asUser)
+            }
+            val data = Csv.exportRates(files, jurors, round)
+            val name = "WLXJury_Round_" + round.description
+            csvStream(data, name)
 
-          val userDetails = Set("filelist", "csv").contains(module)
-          val query = getQuery(asUserId,
-                               rate,
-                               round.id,
-                               Some(pager),
-                               userDetails,
-                               rated,
-                               regions,
-                               subRegions)
-          pager.setCount(query.count())
+          case "filelist" =>
+            val ranks = ImageWithRating.rankImages(files, round)
 
-          val files = filesByUserId(query, pager, userDetails)
+            val jurors = if (user.canViewOrgInfo(round) && asUserId == 0) {
+              User.findByRoundSelection(roundId)
+            } else {
+              Seq(asUser)
+            }
 
-          val contest = ContestJuryJdbc.findById(roundContestId).get
-
-          val byReg = if (contest.monumentIdTemplate.isDefined) {
-            query.copy(regions = Set.empty).byRegionStat()
-          } else {
-            Seq.empty
-          }
-
-          val rates = rateDistribution(user, round)
-
-          //   val ranks = ImageWithRating.rankImages(sortedFiles, round)
-          val useTable = !round.isBinary || asUserId == 0
-
-          module match {
-            case "gallery" =>
+            val showAuthor = maybeRound.exists(user.canViewOrgInfo) && files
+              .exists(_.image.author.nonEmpty)
+            Ok(
+              views.html.fileList(user,
+                                  asUserId,
+                                  asUser,
+                                  files,
+                                  ranks,
+                                  jurors,
+                                  pager,
+                                  maybeRound,
+                                  rounds,
+                                  rate,
+                                  region,
+                                  byReg,
+                                  "wiki",
+                                  useTable,
+                                  rates,
+                                  showAuthor))
+          case "byrate" =>
+            if (region != "grouped") {
               Ok(
-                views.html.gallery(user,
-                                   asUserId,
-                                   files,
-                                   pager,
-                                   maybeRound,
-                                   rounds,
-                                   rate,
-                                   region,
-                                   byReg,
-                                   rates))
-            case "csv" =>
-              val jurors = if (user.canViewOrgInfo(round) && asUserId == 0) {
-                User.findByRoundSelection(roundId)
-              } else {
-                Seq(asUser)
-              }
-              val data = Csv.exportRates(files, jurors, round)
-              val name = "WLXJury_Round_" + round.description
-              csvStream(data, name)
-
-            case "filelist" =>
-              val ranks = ImageWithRating.rankImages(files, round)
-
-              val jurors = if (user.canViewOrgInfo(round) && asUserId == 0) {
-                User.findByRoundSelection(roundId)
-              } else {
-                Seq(asUser)
-              }
-
-              val showAuthor = maybeRound.exists(user.canViewOrgInfo) && files
-                .exists(_.image.author.nonEmpty)
+                views.html.galleryByRate(user,
+                                         asUserId,
+                                         files,
+                                         pager,
+                                         maybeRound,
+                                         rounds,
+                                         rate,
+                                         region,
+                                         byReg,
+                                         rates,
+                                         rated))
+            } else {
               Ok(
-                views.html.fileList(user,
-                                    asUserId,
-                                    asUser,
-                                    files,
-                                    ranks,
-                                    jurors,
-                                    pager,
-                                    maybeRound,
-                                    rounds,
-                                    rate,
-                                    region,
-                                    byReg,
-                                    "wiki",
-                                    useTable,
-                                    rates,
-                                    showAuthor))
-            case "byrate" =>
-              if (region != "grouped") {
-                Ok(
-                  views.html.galleryByRate(user,
-                                           asUserId,
-                                           files,
-                                           pager,
-                                           maybeRound,
-                                           rounds,
-                                           rate,
-                                           region,
-                                           byReg,
-                                           rates,
-                                           rated))
-              } else {
-                Ok(
-                  views.html.galleryByRateRegions(user,
-                                                  asUserId,
-                                                  files,
-                                                  pager,
-                                                  maybeRound,
-                                                  rounds,
-                                                  rate,
-                                                  region,
-                                                  byReg))
-              }
-          }
+                views.html.galleryByRateRegions(user,
+                                                asUserId,
+                                                files,
+                                                pager,
+                                                maybeRound,
+                                                rounds,
+                                                rate,
+                                                region,
+                                                byReg))
+            }
         }
       }
   }

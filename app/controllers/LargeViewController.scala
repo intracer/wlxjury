@@ -6,7 +6,6 @@ import org.intracer.wmua._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{
   AbstractController,
-  Controller,
   ControllerComponents,
   EssentialAction,
   Request,
@@ -17,8 +16,7 @@ import javax.inject.Inject
 
 class LargeViewController @Inject()(cc: ControllerComponents,
                                     galleryController: GalleryController)
-    extends AbstractController(cc)
-    with Secured
+    extends Secured(cc)
     with I18nSupport {
 
   import play.api.libs.json._
@@ -95,10 +93,11 @@ class LargeViewController @Inject()(cc: ControllerComponents,
 
     val subRegions = round.specialNomination.contains("Віа Регіа")
     val query = galleryController.getQuery(asUser.getId,
-                         rate,
-                         round.id,
-                         regions = Set(region).filter(_ != "all"),
-                         subRegions = subRegions)
+                                           rate,
+                                           round.id,
+                                           regions =
+                                             Set(region).filter(_ != "all"),
+                                           subRegions = subRegions)
 
     val rank = query.imageRank(pageId)
 
@@ -153,10 +152,11 @@ class LargeViewController @Inject()(cc: ControllerComponents,
 
     val subRegions = round.specialNomination.contains("Віа Регіа")
     val query = galleryController.getQuery(asUserId,
-                         rate,
-                         round.id,
-                         regions = Set(region).filter(_ != "all"),
-                         subRegions = subRegions)
+                                           rate,
+                                           round.id,
+                                           regions =
+                                             Set(region).filter(_ != "all"),
+                                           subRegions = subRegions)
     val rank = query.imageRank(pageId)
     val offset = Math.max(0, rank - 3)
     val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()

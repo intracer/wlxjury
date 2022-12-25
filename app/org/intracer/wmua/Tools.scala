@@ -50,34 +50,34 @@ object Tools {
     //fillLists()
   }
 
-  def updateResolution(contest: ContestJury) = {
-
-    val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
-
-    import scala.concurrent.duration._
-
-    val user = Play.current.configuration.getString("db.default.user").get
-    val password = Play.current.configuration.getString("db.default.user").get
-
-
-    Await.result(commons.login(user, password), 1.minute)
-
-    val category = "Category:Images from Wiki Loves Earth 2014 in Ghana"
-    val query = commons.page(category)
-
-    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
-      filesInCategory =>
-        val newImages = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).groupBy(_.pageId)
-        val existing = ImageJdbc.findAll().toSet
-
-        for (i1 <- existing;
-             i2 <- newImages.get(i1.pageId).map(seq => seq.head)
-             if i1.width != i2.width || i1.height != i2.height) {
-          Logger.logger.trace(s"Updating image resolution metadata for ${i2.pageId} ${i1.title} from ${i1.width}x${i1.height} to ${i2.width}x${i2.height}")
-          ImageJdbc.updateResolution(i1.pageId, i2.width, i2.height)
-        }
-    }
-  }
+//  def updateResolution(contest: ContestJury) = {
+//
+//    val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
+//
+//    import scala.concurrent.duration._
+//
+//    val user = Play.current.configuration.getString("db.default.user").get
+//    val password = Play.current.configuration.getString("db.default.user").get
+//
+//
+//    Await.result(commons.login(user, password), 1.minute)
+//
+//    val category = "Category:Images from Wiki Loves Earth 2014 in Ghana"
+//    val query = commons.page(category)
+//
+//    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
+//      filesInCategory =>
+//        val newImages = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).groupBy(_.pageId)
+//        val existing = ImageJdbc.findAll().toSet
+//
+//        for (i1 <- existing;
+//             i2 <- newImages.get(i1.pageId).map(seq => seq.head)
+//             if i1.width != i2.width || i1.height != i2.height) {
+//          logger.trace(s"Updating image resolution metadata for ${i2.pageId} ${i1.title} from ${i1.width}x${i1.height} to ${i2.width}x${i2.height}")
+//          ImageJdbc.updateResolution(i1.pageId, i2.width, i2.height)
+//        }
+//    }
+//  }
 
   def addUsers(contest: ContestJury, number: Int) = {
     val country = contest.country.replaceAll("[ \\-\\&]", "")

@@ -13,7 +13,7 @@ object KOATUU {
 
 //  val regionPropertiesLocal = Map[String, Properties]
 
-  def load() {
+  def load() = {
     regionProperties.load(new FileReader(REGION_PROPERTIES))
 
     regions = regionProperties.asInstanceOf[java.util.Map[String, String]].asScala.toMap

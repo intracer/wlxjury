@@ -2,6 +2,7 @@ package org.intracer.wmua.scripts
 
 import org.intracer.wmua.Tools
 import org.intracer.wmua.cmd._
+import play.api.Configuration
 
 object GreeceESPC {
 
@@ -11,7 +12,7 @@ object GreeceESPC {
     val contestId = 78L
 
     val cmds = Seq(
-      ConnectDb(),
+      ConnectDb("", null),
       AddUsers(contestId, "organizer", 1, user("Org")),
       AddUsers(contestId, "jury", 7, user("Juror"))
     )

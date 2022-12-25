@@ -5,12 +5,12 @@ import db.scalikejdbc._
 import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import org.intracer.wmua._
 import org.intracer.wmua.cmd.{DistributeImages, SetCurrentRound}
-import play.api.Logger
+import play.api.Logging
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import play.api.i18n.I18nSupport
-import play.api.mvc.{AbstractController, ControllerComponents}
+import play.api.mvc.ControllerComponents
 
 import javax.inject.Inject
 import scala.util.Try
@@ -21,9 +21,9 @@ import scala.util.Try
   */
 class RoundsController @Inject()(cc: ControllerComponents,
                                  val contestsController: ContestsController)
-    extends AbstractController(cc)
-    with Secured
-    with I18nSupport {
+    extends Secured(cc)
+    with I18nSupport
+    with Logging {
 
   /**
     * Shows list of rounds in a contest
@@ -57,7 +57,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
                                 currentRound,
                                 contest))
           }
-        roundsView.getOrElse(Redirect(routes.LoginController.index())) // TODO message
+        roundsView.getOrElse(Redirect(routes.LoginController.index)) // TODO message
     }
 
   /**
@@ -102,7 +102,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
         val images = round.id.fold(Seq.empty[Image]) { _ =>
           Try(DistributeImages.getFilteredImages(round, jurors, prevRound))
             .fold(ta => {
-              Logger.logger.error("Error loading images", ta)
+              logger.error("Error loading images", ta)
               Nil
             }, x => x)
         }
@@ -122,7 +122,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
 
   def saveRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
     user => implicit request =>
-      editRoundForm.bindFromRequest.fold(
+      editRoundForm.bindFromRequest().fold(
         formWithErrors => {
           // binding failure, you retrieve the form containing errors,
           val contestId: Option[Long] =
@@ -182,7 +182,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
 
   def setRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
     user => implicit request =>
-      val selectRound = selectRoundForm.bindFromRequest.get
+      val selectRound = selectRoundForm.bindFromRequest().get
 
       val id = selectRound.roundId.toLong
       val round = Round.findById(id)
@@ -196,7 +196,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
 
   def setRoundUser() = withAuth(rolePermission(User.ADMIN_ROLES)) {
     user => implicit request =>
-      val setRoundUser = setRoundUserForm.bindFromRequest.get
+      val setRoundUser = setRoundUserForm.bindFromRequest().get
       RoundUser.setActive(setRoundUser.roundId.toLong,
                           setRoundUser.userId.toLong,
                           setRoundUser.active)
@@ -218,13 +218,13 @@ class RoundsController @Inject()(cc: ControllerComponents,
       Redirect(routes.RoundsController.rounds())
   }
 
-  def distributeImages(contest: ContestJury, round: Round) {
+  def distributeImages(contest: ContestJury, round: Round): Unit = {
     DistributeImages.distributeImages(round, round.availableJurors, None)
   }
 
   def setImages() = withAuth(rolePermission(User.ADMIN_ROLES)) {
     user => implicit request =>
-      val imagesSource: Option[String] = imagesForm.bindFromRequest.get
+      val imagesSource: Option[String] = imagesForm.bindFromRequest().get
       for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById)) {
         ContestJuryJdbc.setImagesSource(contest.getId, imagesSource)
 
@@ -317,13 +317,13 @@ class RoundsController @Inject()(cc: ControllerComponents,
         case (juror, rows) => rows.map(_.count).sum > 0
       }
 
-    val byUserCount = byJuror.mapValues(_.map(_.count).sum)
+    val byUserCount = byJuror.mapValues(_.map(_.count).sum).toMap
 
     val byUserRateCount = byJuror.mapValues { v =>
       v.groupBy(_.rate).mapValues {
         _.headOption.map(_.count).getOrElse(0)
-      }
-    }
+      }.toMap
+    }.toMap
 
     val totalByRate = Round.roundRateStat(roundId).toMap
 

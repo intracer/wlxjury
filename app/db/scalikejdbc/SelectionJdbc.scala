@@ -53,14 +53,14 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
     Selection(pageId = pageId, juryId = juryId, roundId = roundId, rate = rate, id = Some(id), createdAt = createdAt)
   }
 
-  def batchInsert(selections: Seq[Selection]) {
+  def batchInsert(selections: Iterable[Selection]) {
     val column = SelectionJdbc.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] = selections.map(i => Seq(
         i.pageId,
         i.rate,
         i.juryId,
-        i.roundId))
+        i.roundId)).toSeq
       withSQL {
         insert.into(SelectionJdbc).namedValues(
           column.pageId -> sqls.?,

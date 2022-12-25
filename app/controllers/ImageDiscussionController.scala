@@ -5,15 +5,14 @@ import org.intracer.wmua.CommentJdbc
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.I18nSupport
-import play.api.mvc.{AbstractController, Controller, ControllerComponents}
+import play.api.mvc.{AbstractController, ControllerComponents}
 
 import javax.inject.Inject
 
 case class CommentBody(id: Long, text: String)
 
 class ImageDiscussionController @Inject()(cc: ControllerComponents)
-    extends AbstractController(cc)
-    with Secured
+    extends Secured(cc)
       with I18nSupport {
 
   val editCommentForm = Form(
@@ -32,7 +31,7 @@ class ImageDiscussionController @Inject()(cc: ControllerComponents)
     user => implicit request =>
       val roundId = round.get
 
-      editCommentForm.bindFromRequest.fold(
+      editCommentForm.bindFromRequest().fold(
         formWithErrors => // binding failure, you retrieve the form containing errors,
           Redirect(
             routes.LargeViewController

@@ -15,10 +15,8 @@ import org.scalawiki.wlx.dto.{Contest, Country}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.Forms.tuple
-import play.api.mvc.{Controller, ControllerComponents}
-import play.api.i18n.Messages.Implicits._
+import play.api.mvc.ControllerComponents
 import spray.util.pimpFuture
-import play.api.Play.current
 import play.api.i18n.I18nSupport
 import play.api.mvc._
 
@@ -30,8 +28,7 @@ class ImagesController @Inject()(
     val commons: MwBot,
     cc: ControllerComponents,
     monumentsController: MonumentsController)(implicit ec: ExecutionContext)
-    extends AbstractController(cc)
-    with Secured
+    extends Secured(cc)
     with I18nSupport {
 
   /**
@@ -69,7 +66,7 @@ class ImagesController @Inject()(
     withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
       user => implicit request =>
         val contest = ContestJuryJdbc.findById(contestId).get
-        importImagesForm.bindFromRequest.fold(
+        importImagesForm.bindFromRequest().fold(
           formWithErrors =>
             BadRequest(
               views.html.contest_images(formWithErrors,

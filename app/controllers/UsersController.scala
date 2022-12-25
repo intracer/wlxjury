@@ -4,6 +4,7 @@ import db.scalikejdbc.{ContestJuryJdbc, User}
 import org.intracer.wmua._
 import org.scalawiki.dto.cmd.query.Query
 import org.scalawiki.dto.cmd.query.list._
+import play.api.Configuration
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Lang, Messages}
@@ -18,9 +19,9 @@ import scala.util.Try
   * Controller for admin views
   */
 class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
-                                cc: ControllerComponents)
-    extends AbstractController(cc)
-    with Secured
+                                cc: ControllerComponents,
+                                configuration: Configuration)
+    extends Secured(cc)
     with I18nSupport {
 
   /**
@@ -40,7 +41,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
                              withWiki,
                              editUserForm.copy(data = Map("roles" -> "jury")),
                              Some(contest)))
-        }).getOrElse(Redirect(routes.LoginController.index())) // TODO message
+        }).getOrElse(Redirect(routes.LoginController.index))// TODO message
     }
 
   def allUsers() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
@@ -106,7 +107,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
   def havingEditRights(currentUser: User, otherUser: User)(
       block: => Result): Result = {
     if (!currentUser.canEdit(otherUser)) {
-      Redirect(routes.LoginController.index()) // TODO message
+      Redirect(routes.LoginController.index) // TODO message
     } else {
       block
     }
@@ -136,7 +137,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
     * @return list of users
     */
   def saveUser() = withAuth() { user => implicit request =>
-    editUserForm.bindFromRequest.fold(
+    editUserForm.bindFromRequest().fold(
       formWithErrors => // binding failure, you retrieve the form containing errors,
         BadRequest(
           views.html.editUser(
@@ -194,7 +195,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
             val result = if (user.hasAnyRole(User.ADMIN_ROLES)) {
               Redirect(routes.UsersController.users(formUser.contestId))
             } else {
-              Redirect(routes.LoginController.index())
+              Redirect(routes.LoginController.index)
             }
             val lang = for (lang <- formUser.lang; if formUser.id == user.id)
               yield lang
@@ -229,7 +230,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
       user => implicit request =>
         val contestId = contestIdParam.orElse(user.currentContest).get
 
-        importUsersForm.bindFromRequest.fold(
+        importUsersForm.bindFromRequest().fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
             BadRequest(
               views.html.importUsers(user, importUsersForm, contestId)),
@@ -252,7 +253,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
 
     }
 
-  def appConfig = play.Play.application.configuration
+  def appConfig = configuration
 
   def editGreeting(contestIdParam: Option[Long],
                    substituteJurors: Boolean = true) =
@@ -288,11 +289,11 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
               variables(contest, user, recipient),
               substitution
             ))
-        }).getOrElse(Redirect(routes.LoginController.index()))
+        }).getOrElse(Redirect(routes.LoginController.index))
     }
 
   def getGreeting(contest: ContestJury): Greeting = {
-    val defaultGreeting = appConfig.getString("wlxjury.greeting")
+    val defaultGreeting = appConfig.get[String]("wlxjury.greeting")
 
     contest.greeting.text
       .fold(contest.greeting.copy(text = Some(defaultGreeting)))(_ =>
@@ -312,7 +313,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
   def variables(contest: ContestJury,
                 sender: User,
                 recipient: User): Map[String, String] = {
-    val host = appConfig.getString("wlxjury.host")
+    val host = appConfig.get[String]("wlxjury.host")
 
     ListMap(
       "{{ContestType}}" -> contest.name,
@@ -332,7 +333,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
       user => implicit request =>
         val contestId = contestIdParam.orElse(user.currentContest).get
 
-        greetingTemplateForm.bindFromRequest.fold(
+        greetingTemplateForm.bindFromRequest().fold(
           formWithErrors => // binding failure, you retrieve the form containing errors,
             BadRequest(
               views.html.importUsers(user, importUsersForm, contestId)),

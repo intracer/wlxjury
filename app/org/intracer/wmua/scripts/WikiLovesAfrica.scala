@@ -17,7 +17,7 @@ object WikiLovesAfrica {
       val contestId = contest.getId
 
       val cmds = Seq(
-        ConnectDb(),
+        ConnectDb("", null),
         AddUsers(contestId, "jury", 10, juror)
       )
 

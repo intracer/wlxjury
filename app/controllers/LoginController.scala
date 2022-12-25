@@ -9,8 +9,7 @@ import play.api.mvc._
 import javax.inject.Inject
 
 class LoginController @Inject()(cc: ControllerComponents,val admin: UsersController)
-    extends AbstractController(cc)
-    with Secured
+    extends Secured(cc)
     with I18nSupport {
 
   def index = withAuth() { user => implicit request =>
@@ -54,12 +53,12 @@ class LoginController @Inject()(cc: ControllerComponents,val admin: UsersControl
   }
 
   def auth() = Action { implicit request =>
-    loginForm.bindFromRequest.fold(
+    loginForm.bindFromRequest().fold(
       formWithErrors => BadRequest(views.html.index(formWithErrors)), {
         case (login, password) =>
           val user = User.login(login, password).get
           val result =
-            indexRedirect(user).withSession(Security.username -> login)
+            indexRedirect(user).withSession("username" -> login)
           user.lang.fold(result)(l => result.withLang(Lang(l)))
       }
     )
@@ -70,7 +69,7 @@ class LoginController @Inject()(cc: ControllerComponents,val admin: UsersControl
   }
 
   def signUp() = Action { implicit request =>
-    signUpForm.bindFromRequest.fold(
+    signUpForm.bindFromRequest().fold(
       formWithErrors => BadRequest(views.html.signUp(formWithErrors)), {
         case (login: String, password: String, _) =>
           val users = User.count()
@@ -87,7 +86,7 @@ class LoginController @Inject()(cc: ControllerComponents,val admin: UsersControl
 
           val user = admin.createNewUser(newUser, newUser)
           val result =
-            indexRedirect(user).withSession(Security.username -> password)
+            indexRedirect(user).withSession("username" -> password)
           user.lang.fold(result)(l => result.withLang(Lang(l)))
       }
     )
