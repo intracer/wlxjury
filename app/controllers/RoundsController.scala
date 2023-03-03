@@ -122,56 +122,55 @@ class RoundsController @Inject()(cc: ControllerComponents,
 
   def saveRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
     user => implicit request =>
-      editRoundForm.bindFromRequest().fold(
-        formWithErrors => {
-          // binding failure, you retrieve the form containing errors,
-          val contestId: Option[Long] =
-            formWithErrors.data.get("contest").map(_.toLong)
-          val rounds = contestId.map(Round.findByContest).getOrElse(Seq.empty)
-          val jurors = User.loadJurors(contestId.get)
-          val hasRoundId = formWithErrors.data.get("id").exists(_.nonEmpty)
+      editRoundForm
+        .bindFromRequest()
+        .fold(
+          formWithErrors => {
+            // binding failure, you retrieve the form containing errors,
+            val contestId: Option[Long] =
+              formWithErrors.data.get("contest").map(_.toLong)
+            val rounds = contestId.map(Round.findByContest).getOrElse(Seq.empty)
+            val jurors = User.loadJurors(contestId.get)
+            val hasRoundId = formWithErrors.data.get("id").exists(_.nonEmpty)
 
-          BadRequest(
-            views.html.editRound(user,
-                                 formWithErrors,
-                                 newRound = !hasRoundId,
-                                 rounds,
-                                 contestId,
-                                 jurors,
-                                 jurorsMapping))
-        },
-        editForm => {
-          val round = editForm.round.copy(active = true)
-          if (round.id.isEmpty) {
-            createNewRound(round, editForm.jurors)
-          } else {
-            round.id.foreach { roundId =>
-              Round.updateRound(roundId, round)
-              if (editForm.newImages) {
-                val prevRound = round.previous.flatMap(Round.findById)
+            BadRequest(
+              views.html.editRound(user,
+                                   formWithErrors,
+                                   newRound = !hasRoundId,
+                                   rounds,
+                                   contestId,
+                                   jurors,
+                                   jurorsMapping))
+          },
+          editForm => {
+            val round = editForm.round.copy(active = true)
+            if (round.id.isEmpty) {
+              createNewRound(round, editForm.jurors)
+            } else {
+              round.id.foreach { roundId =>
+                Round.updateRound(roundId, round)
+                if (editForm.newImages) {
+                  val prevRound = round.previous.flatMap(Round.findById)
 
-                val jurors = User.findByRoundSelection(roundId)
-                DistributeImages.distributeImages(round, jurors, prevRound)
+                  val jurors = User.findByRoundSelection(roundId)
+                  DistributeImages.distributeImages(round, jurors, prevRound)
+                }
               }
             }
+            Redirect(routes.RoundsController.rounds(Some(round.contestId)))
           }
-          Redirect(routes.RoundsController.rounds(Some(round.contestId)))
-        }
-      )
+        )
   }
 
   def createNewRound(round: Round, jurorIds: Seq[Long]): Round = {
-
-    val count = Round.countByContest(round.contestId)
-
-    val created = Round.create(round.copy(number = count + 1))
+    val numberOfRounds = Round.countByContest(round.contestId)
+    val created = Round.create(round.copy(number = numberOfRounds + 1))
 
     val prevRound = created.previous.flatMap(Round.findById)
-
     val jurors = User.loadJurors(round.contestId, jurorIds)
 
-    created.addUsers(
-      jurors.map(u => RoundUser(created.getId, u.getId, u.roles.head, true)))
+    created.addUsers(jurors.map(u =>
+      RoundUser(created.getId, u.getId, u.roles.head, active = true)))
 
     DistributeImages.distributeImages(created, jurors, prevRound)
 
@@ -320,9 +319,11 @@ class RoundsController @Inject()(cc: ControllerComponents,
     val byUserCount = byJuror.mapValues(_.map(_.count).sum).toMap
 
     val byUserRateCount = byJuror.mapValues { v =>
-      v.groupBy(_.rate).mapValues {
-        _.headOption.map(_.count).getOrElse(0)
-      }.toMap
+      v.groupBy(_.rate)
+        .mapValues {
+          _.headOption.map(_.count).getOrElse(0)
+        }
+        .toMap
     }.toMap
 
     val totalByRate = Round.roundRateStat(roundId).toMap

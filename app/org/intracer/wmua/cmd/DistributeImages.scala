@@ -89,6 +89,19 @@ object DistributeImages extends Logging {
     DistributeImages(round, images, jurors).apply()
   }
 
+  def categoryFileIds(maybeCategory: Option[String]): Iterable[Long] = {
+    maybeCategory
+      .filter(_.trim.nonEmpty)
+      .map { category =>
+        commons
+          .page(category)
+          .imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE))
+          .await(5.minutes)
+          .flatMap(_.id)
+      }
+      .getOrElse(Nil)
+  }
+
   def getFilteredImages(
       round: Round,
       jurors: Seq[User],
@@ -109,27 +122,8 @@ object DistributeImages extends Logging {
       excludeCategory: Option[String] = None
   ): Seq[Image] = {
 
-    val includeFromCats = includeCategory
-      .filter(_.trim.nonEmpty)
-      .map { category =>
-        val pages = commons
-          .page(category)
-          .imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE))
-          .await(5.minutes)
-        pages.flatMap(_.id)
-      }
-      .getOrElse(Nil)
-
-    val excludeFromCats = excludeCategory
-      .filter(_.trim.nonEmpty)
-      .map { category =>
-        val pages = commons
-          .page(category)
-          .imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE))
-          .await(5.minutes)
-        pages.flatMap(_.id)
-      }
-      .getOrElse(Nil)
+    val includeFromCats = categoryFileIds(includeCategory)
+    val excludeFromCats = categoryFileIds(excludeCategory)
 
     val currentImages = ImageJdbc
       .byRoundMerged(round.getId, rated = None)

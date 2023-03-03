@@ -1,25 +1,21 @@
 package org.intracer.wmua.cmd
 
 import db.scalikejdbc.Round
+import org.intracer.wmua.cmd.ImageWithRatingSeqFilter.ImageFilter
 import org.intracer.wmua.{Image, ImageWithRating}
 import org.scalawiki.wlx.MonumentDB
 import org.scalawiki.wlx.dto.{Contest, SpecialNomination}
 import org.scalawiki.wlx.query.MonumentQuery
 import org.scalawiki.wlx.stat.ContestStat
-import play.api.{Logger, Logging}
+import play.api.Logging
 
 import scala.runtime.ScalaRunTime
 
-trait ImageFilterGen
-    extends (() => Seq[ImageWithRating] => Seq[ImageWithRating])
-    with Product
-    with Logging {
+trait ImageFilterGen extends (() => ImageFilter) with Product with Logging {
 
-  type ImageSeqFilter = Seq[ImageWithRating] => Seq[ImageWithRating]
+  override def toString: String = ScalaRunTime._toString(this)
 
-  override def toString = ScalaRunTime._toString(this)
-
-  def imageFilter(p: Image => Boolean): ImageSeqFilter =
+  def imageFilter(p: Image => Boolean): ImageFilter =
     (images: Seq[ImageWithRating]) => {
       val result = images.filter(i => p(i.image))
       logger.debug(
@@ -27,7 +23,7 @@ trait ImageFilterGen
       result
     }
 
-  def imageRatingFilter(p: ImageWithRating => Boolean): ImageSeqFilter =
+  def imageRatingFilter(p: ImageWithRating => Boolean): ImageFilter =
     (images: Seq[ImageWithRating]) => {
       val result = images.filter(p)
       logger.debug(
@@ -38,71 +34,73 @@ trait ImageFilterGen
 }
 
 case class IncludeRegionIds(regionIds: Set[String]) extends ImageFilterGen {
-  override def apply = imageFilter(_.region.exists(regionIds.contains))
+  def apply: ImageFilter =
+    imageFilter(_.region.exists(regionIds.contains))
 }
 
 case class IncludeMonumentIds(monumentIds: Set[String]) extends ImageFilterGen {
-  override def apply = imageFilter(_.monumentId.exists(monumentIds.contains))
+  def apply: ImageFilter =
+    imageFilter(_.monumentId.exists(monumentIds.contains))
 }
 
 case class ExcludeRegionIds(regionIds: Set[String]) extends ImageFilterGen {
-  override def apply = imageFilter(!_.region.exists(regionIds.contains))
+  def apply: ImageFilter =
+    imageFilter(!_.region.exists(regionIds.contains))
 }
 
 case class IncludePageIds(pageIds: Set[Long]) extends ImageFilterGen {
-  def apply = imageFilter(i => pageIds.contains(i.pageId))
+  def apply: ImageFilter = imageFilter(i => pageIds.contains(i.pageId))
 }
 
 case class ExcludePageIds(pageIds: Set[Long]) extends ImageFilterGen {
-  def apply = imageFilter(i => !pageIds.contains(i.pageId))
+  def apply: ImageFilter = imageFilter(i => !pageIds.contains(i.pageId))
 }
 
-//  Source.fromFile("porota 2 kolo najlepsie hodnotenie 6.0.txt")(scala.io.Codec.UTF8).getLines().map(_.replace(160.asInstanceOf[Char], ' ').trim).toSet
 case class IncludeTitles(titles: Set[String]) extends ImageFilterGen {
-  def apply = imageFilter(i => titles.contains(i.title))
+  def apply: ImageFilter = imageFilter(i => titles.contains(i.title))
 }
 
 case class ExcludeTitles(titles: Set[String]) extends ImageFilterGen {
-  def apply = imageFilter(i => titles.contains(i.title))
+  def apply: ImageFilter = imageFilter(i => titles.contains(i.title))
 }
 
 case class IncludeJurorId(jurors: Set[Long]) extends ImageFilterGen {
-  def apply =
+  def apply: ImageFilter =
     imageRatingFilter(
       i => i.selection.map(_.juryId).toSet.intersect(jurors).nonEmpty)
 }
 
 case class ExcludeJurorId(jurors: Set[Long]) extends ImageFilterGen {
-  def apply =
+  def apply: ImageFilter =
     imageRatingFilter(
       i => i.selection.map(_.juryId).toSet.intersect(jurors).isEmpty)
 }
 
 case class SelectTopByRating(topN: Int, round: Round) extends ImageFilterGen {
-  def apply =
+  def apply: ImageFilter =
     (images: Seq[ImageWithRating]) =>
       images.sortBy(-_.totalRate(round)).take(topN)
 }
 
 case class SelectMinAvgRating(rate: Int, round: Round) extends ImageFilterGen {
-  def apply = imageRatingFilter(i => i.totalRate(round) >= rate)
+  def apply: ImageFilter = imageRatingFilter(i => i.totalRate(round) >= rate)
 }
 
 case class SelectedAtLeast(by: Int) extends ImageFilterGen {
-  def apply = imageRatingFilter(i => i.rateSum >= by)
+  def apply: ImageFilter = imageRatingFilter(i => i.rateSum >= by)
 }
 
 case class MegaPixelsAtLeast(mpx: Int) extends ImageFilterGen {
-  def apply = imageFilter(_.mpx >= mpx)
+  def apply: ImageFilter = imageFilter(_.mpx >= mpx)
 }
 
 case class SizeAtLeast(size: Int) extends ImageFilterGen {
-  def apply = imageFilter(_.size.exists(_ >= size))
+  def apply: ImageFilter = imageFilter(_.size.exists(_ >= size))
 }
 
 case class SpecialNominationFilter(specialNominationName: String)
     extends ImageFilterGen {
-  val specialNominationIds = SpecialNomination.nominations
+  val specialNominationIds: Set[String] = SpecialNomination.nominations
     .find(_.name == specialNominationName)
     .map { nomination =>
       val contest = Contest.WLMUkraine(2020)
@@ -117,10 +115,12 @@ case class SpecialNominationFilter(specialNominationName: String)
     }
     .getOrElse(Set.empty)
 
-  def apply = imageFilter(_.monumentId.exists(specialNominationIds.contains))
+  def apply: ImageFilter =
+    imageFilter(_.monumentId.exists(specialNominationIds.contains))
 }
 
 object ImageWithRatingSeqFilter {
+  type ImageFilter = Seq[ImageWithRating] => Seq[ImageWithRating]
   def funGenerators(
       round: Option[Round] = None,
       includeRegionIds: Set[String] = Set.empty,
