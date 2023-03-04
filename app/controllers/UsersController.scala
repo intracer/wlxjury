@@ -8,7 +8,7 @@ import play.api.Configuration
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.i18n.{I18nSupport, Lang, Messages}
-import play.api.mvc.{AbstractController, ControllerComponents, Result}
+import play.api.mvc.{ControllerComponents, Result}
 import spray.util.pimpFuture
 
 import javax.inject.Inject

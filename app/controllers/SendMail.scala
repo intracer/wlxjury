@@ -12,15 +12,21 @@ trait SendMail {
 }
 
 class SMTPOrWikiMail @Inject()(sendMailSMTP: SendMailSMTP) extends SendMail {
-  override def sendMail(from: User, to: User, subject: String, message: String): Unit = {
-    val sender = Some(sendMailSMTP).filter(_ => to.email.nonEmpty)//.orElse(SendWikiMail.sender)
+  override def sendMail(from: User,
+                        to: User,
+                        subject: String,
+                        message: String): Unit = {
+    val sender = Some(sendMailSMTP).filter(_ => to.email.nonEmpty) //.orElse(SendWikiMail.sender)
     sender.foreach(_.sendMail(from, to, subject, message))
   }
 }
 
 class SendMailSMTP @Inject()(mailerClient: MailerClient) extends SendMail {
 
-  override def sendMail(fromUser: User, toUser: User, subject: String, message: String) = {
+  override def sendMail(fromUser: User,
+                        toUser: User,
+                        subject: String,
+                        message: String): Unit = {
     val email = Email(
       from = s"${fromUser.fullname} <${fromUser.email}>",
       to = Seq(toUser.email),
@@ -33,7 +39,10 @@ class SendMailSMTP @Inject()(mailerClient: MailerClient) extends SendMail {
 
 class SendWikiMail(mwBot: MwBot) extends SendMail {
 
-  override def sendMail(fromUser: User, toUser: User, subject: String, message: String) = {
+  override def sendMail(fromUser: User,
+                        toUser: User,
+                        subject: String,
+                        message: String): Unit = {
     for (from <- fromUser.wikiAccount;
          to <- toUser.wikiAccount) {
       mwBot.run(Action(EmailUser(Target(to), Subject(subject), Text(message))))
@@ -42,7 +51,7 @@ class SendWikiMail(mwBot: MwBot) extends SendMail {
 }
 
 object SendWikiMail {
-  lazy val sender = init()
+  lazy val sender: Option[SendWikiMail] = init()
 
   def init(): Option[SendWikiMail] = {
 //    val configuration = play.api.Play.current.configuration
