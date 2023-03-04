@@ -5,7 +5,7 @@
 @(
         adminUser: User,
         rounds: Seq[Round],
-        roundsStat: Map[Long, RateDistribution],
+        roundsStat: Map[Long, Int],
         editRoundForm: Form[controllers.EditRound],
         editImagesForm: Form[Option[String]],
         selectRoundForm: Form[SelectRound],
@@ -33,7 +33,6 @@
                             <th width="10%">@Messages("Recommended selected") </th> -->
                             <th width="10%">@Messages("active")</th>
                             <th width="10%">@Messages("images")</th>
-                            <th width="10%">@Messages("selected.rated")</th>
                         </tr>
                     </thead>
 
@@ -50,8 +49,7 @@
                             <td>@round.limitMax </td>
                             <td>@round.recommended.fold("")(_.toString) </td> -->
                             <td>@snippets.startStop(round.active, round.getId, contest.getId, routes.RoundsController.setRound)</td>
-                            <td>@roundsStat.get(round.getId).map(_.all).getOrElse(0) </td>
-                            <td>@roundsStat.get(round.getId).map(_.positive).getOrElse(0) </td>
+                            <td>@roundsStat.getOrElse(round.getId, 0) </td>
                         </tr>
                     }
                     </tbody>

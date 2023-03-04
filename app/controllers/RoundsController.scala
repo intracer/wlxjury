@@ -39,13 +39,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
             val rounds = Round.findByContest(contestId)
             val currentRound = rounds.find(_.id == contest.currentRound)
 
-            val roundsStat = ImageJdbc.roundsStat(contestId).groupBy(_._1).map {
-              case (rId, s) =>
-                val rateMap = s.map {
-                  case (_, rate, count) => rate -> count
-                }.toMap
-                rId -> new RateDistribution(rateMap)
-            }
+            val roundsStat = ImageJdbc.roundsStat(contestId, rounds.size).toMap
 
             Ok(
               views.html.rounds(user,

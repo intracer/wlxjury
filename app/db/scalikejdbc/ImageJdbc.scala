@@ -165,14 +165,14 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] with Logging {
   AND s.round_id = $roundId
   GROUP BY rate""".map(rs => rs.int(1) -> rs.int(2)).list().apply().toMap
 
-  def roundsStat(contestId: Long): Seq[(Long, Int, Int)] =
-    sql"""SELECT r.id, s.rate, count(DISTINCT(s.page_id))
+  def roundsStat(contestId: Long, limit: Int): Seq[(Long, Int)] =
+    sql"""SELECT r.id, count(DISTINCT(s.page_id))
           FROM rounds r
   JOIN selection s ON r.id = s.round_id
   WHERE
   r.contest_id = $contestId
-  GROUP BY r.id, s.rate
-      """.map(rs => (rs.long(1), rs.int(2), rs.int(3))).list().apply()
+  GROUP BY r.id LIMIT $limit
+      """.map(rs => (rs.long(1), rs.int(2))).list().apply()
 
   def byUserImageWithRating(
                              userId: Long,
