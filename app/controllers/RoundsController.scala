@@ -78,21 +78,14 @@ class RoundsController @Inject()(cc: ControllerComponents,
           topImages.map(n => round.copy(topImages = Some(n))).getOrElse(round)
 
         val rounds = Round.findByContest(contestId)
-
         val regions = contestsController.regions(contestId)
-
         val jurors = round.id
           .fold(User.loadJurors(contestId))(User.findByRoundSelection)
           .sorted
-
         val editRound = EditRound(withTopImages, jurors.flatMap(_.id), None)
-
         val filledRound = editRoundForm.fill(editRound)
-
         val stat = round.id.map(id => getRoundStat(id, round))
-
         val prevRound = round.previous.flatMap(Round.findById)
-
         val images = round.id.fold(Seq.empty[Image]) { _ =>
           Try(DistributeImages.getFilteredImages(round, jurors, prevRound))
             .fold(ta => {
