@@ -116,8 +116,6 @@ object User extends SkinnyCRUDMapper[User] {
     }
   }
 
-
-
   implicit def session: DBSession = autoSession
 
   override val tableName = "users"
@@ -169,7 +167,7 @@ object User extends SkinnyCRUDMapper[User] {
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
     roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
-    contestId = rs.longOpt(c.contestId),
+    contestId = None,
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
@@ -183,7 +181,7 @@ object User extends SkinnyCRUDMapper[User] {
     fullname = rs.string(c.fullname),
     email = rs.string(c.email),
     roles = rs.string(c.roles).split(",").map(_.trim).toSet ++ Set("USER_ID_" + rs.int(c.id)),
-    contestId = rs.longOpt(c.contestId),
+    contestId = None,
     password = Some(rs.string(c.password)),
     lang = rs.stringOpt(c.lang),
     wikiAccount = rs.stringOpt(c.wikiAccount),
@@ -229,14 +227,14 @@ object User extends SkinnyCRUDMapper[User] {
         column.fullname -> fullname,
         column.email -> email.trim.toLowerCase,
         column.password -> password,
-        column.roles -> roles.headOption.getOrElse("jury"),
-        column.contestId -> contestId,
+        column.roles -> roles.headOption,
+        column.contestId -> None,
         column.lang -> lang,
         column.createdAt -> createdAt)
     }.updateAndReturnGeneratedKey().apply()
 
     User(id = Some(id), fullname = fullname, email = email, password = Some(password),
-      roles = roles ++ Set("USER_ID_" + id), contestId = contestId, createdAt = createdAt)
+      roles = roles ++ Set("USER_ID_" + id), contestId = None, createdAt = createdAt)
   }
 
   def create(user: User): User = {
@@ -247,7 +245,7 @@ object User extends SkinnyCRUDMapper[User] {
         column.wikiAccount -> user.wikiAccount,
         column.password -> user.password,
         column.roles -> user.roles.headOption.getOrElse(""),
-        column.contestId -> user.contestId,
+        column.contestId -> None,
         column.lang -> user.lang,
         column.sort -> user.sort,
         column.createdAt -> user.createdAt)

@@ -1,6 +1,7 @@
 package controllers
 
-import db.scalikejdbc.{Contest, User}
+import db.scalikejdbc.User.autoSession
+import db.scalikejdbc.{Contest, ContestUser, User}
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.query.Query
 import org.scalawiki.dto.cmd.query.list._
@@ -11,6 +12,7 @@ import play.api.i18n.Messages.Implicits._
 import play.api.i18n.{Lang, Messages}
 import play.api.mvc.Results._
 import play.api.mvc.{Controller, Result}
+import scalikejdbc.DBSession
 import spray.util.pimpFuture
 
 import javax.inject.Inject
@@ -41,9 +43,9 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
   def allUsers() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
     user =>
       implicit request =>
-          val users = User.findAll()
-          val contests = Contest.findAll()
-          Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), None, contests))
+        val users = User.findAll()
+        val contests = Contest.findAll()
+        Ok(views.html.users(user, users, editUserForm.copy(data = Map("roles" -> "jury")), None, contests))
   }
 
 
@@ -119,35 +121,35 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
     *
     * @return list of users
     */
-  def saveUser() = withAuth() {
-    user =>
-      implicit request =>
+  def saveUser() = withAuth() { user =>
+    implicit request =>
+      implicit def session: DBSession = autoSession
 
-        editUserForm.bindFromRequest.fold(
-          formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(views.html.editUser(user, formWithErrors, contestId = Try(formWithErrors.data("contest").toLong).toOption)),
-          formUser => {
-            havingEditRights(user, formUser) {
+      editUserForm.bindFromRequest.fold(
+        formWithErrors =>
+          BadRequest(views.html.editUser(user, formWithErrors, contestId = Try(formWithErrors.data("contest").toLong).toOption)),
+        formUser => {
+          havingEditRights(user, formUser) {
+            val byEmail = User.findByEmail(formUser.email)
+            if (byEmail.nonEmpty && user.hasAnyRole(User.ADMIN_ROLES)) {
+              val fromDb = byEmail.head
+              Contest.findById(formUser.contestId.get).foreach(_.addUser(fromDb, formUser.roles.head))
+              redirectLocation(user, formUser)
+            } else {
               val userId = formUser.getId
-              val count = User.countByEmail(userId, formUser.email)
-              if (count > 0) {
-                BadRequest(views.html.editUser(user,
-                  editUserForm.fill(formUser).withError("email", "email should be unique"),
-                  contestId = formUser.contestId))
+              if (userId == 0) {
+                createNewUser(user, formUser)
               } else {
-                if (userId == 0) {
-                  createNewUser(user, formUser)
-                } else {
-                  val newRoles = allowedNewRoles(user, formUser)
-                  User.updateUser(userId, formUser.fullname, formUser.wikiAccount, formUser.email, newRoles, formUser.lang, formUser.sort)
-                  updatePassword(formUser)
-                }
-
-                withUpdatedLanguage(user, formUser, redirectLocation(user, formUser))
+                val newRoles = allowedNewRoles(user, formUser)
+                User.updateUser(userId, formUser.fullname, formUser.wikiAccount, formUser.email, newRoles, formUser.lang, formUser.sort)
+                updatePassword(formUser)
               }
+
+              withUpdatedLanguage(user, formUser, redirectLocation(user, formUser))
             }
           }
-        )
+        }
+      )
   }
 
   private def withUpdatedLanguage(user: User, formUser: User, result: Result) = {
@@ -190,7 +192,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
   def userRolesFromDb(user: User): Set[String] = {
     (for (userId <- user.id;
           dbUser <- User.findById(userId))
-      yield dbUser.roles).getOrElse(Set.empty)
+    yield dbUser.roles).getOrElse(Set.empty)
   }
 
   def showImportUsers(contestIdParam: Option[Long]) = withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
@@ -337,7 +339,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail) extends Controller
       "contest" -> optional(longNumber),
       "lang" -> optional(text),
       "sort" -> optional(number)
-  )(User.applyEdit)(User.unapplyEdit)
+    )(User.applyEdit)(User.unapplyEdit)
   )
 
   val importUsersForm = Form(
