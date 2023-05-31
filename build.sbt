@@ -32,7 +32,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "3.2.1",
 
-  "mysql" % "mysql-connector-java" % "8.0.25",
+  "mysql" % "mysql-connector-java" % "8.0.33",
   "org.scalikejdbc" %% "scalikejdbc" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % ScalikejdbcPlayVersion,
