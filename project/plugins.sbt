@@ -15,7 +15,7 @@ resolvers += Classpaths.sbtPluginReleases
 // Use the Play sbt plugin for Play projects
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.24")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.8.1")
+addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.16")
 
 
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
