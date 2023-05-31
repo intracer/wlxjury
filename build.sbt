@@ -60,7 +60,7 @@ libraryDependencies ++= Seq(
   "org.mock-server" % "mockserver-netty" % MockServerVersion % Test,
   "net.java.dev.jna" % "jna" % "4.5.0" % Test,
   "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test,
-  "com.h2database" % "h2" % "1.4.193" % Test
+  "com.h2database" % "h2" % "1.4.200" % Test
 )
 
 dependencyOverrides ++= Seq(
