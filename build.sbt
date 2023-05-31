@@ -15,7 +15,7 @@ scalaVersion := "2.12.10"
 val ScalikejdbcVersion = "3.3.5"
 val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.3"
 val ScalawikiVersion = "0.6.6.1"
-val PlayMailerVersion = "6.0.1"
+val PlayMailerVersion = "8.0.1"
 val MockServerVersion = "5.7.0"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
