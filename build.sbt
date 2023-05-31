@@ -10,7 +10,7 @@ organization := "org.intracer"
 
 version := "0.13"
 
-scalaVersion := "2.12.10"
+scalaVersion := "2.12.17"
 
 val ScalikejdbcVersion = "3.3.5"
 val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.3"
