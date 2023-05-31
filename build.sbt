@@ -28,7 +28,7 @@ resolvers += Resolver.mavenLocal
 
 libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.6.3",
-  "com.adrianhurt" %% "play-bootstrap" % "1.5.1-P26-B3",
+  "com.adrianhurt" %% "play-bootstrap" % "1.5.1-P27-B4",
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "3.2.1",
 
