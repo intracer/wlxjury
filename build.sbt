@@ -58,8 +58,8 @@ libraryDependencies ++= Seq(
   jdbc % Test,
   "com.wix" % "wix-embedded-mysql" % "4.6.1" % Test,
   "org.mock-server" % "mockserver-netty" % MockServerVersion % Test,
-  "net.java.dev.jna" % "jna" % "4.5.0" % Test,
-  "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test,
+  "net.java.dev.jna" % "jna" % "4.5.2" % Test,
+  "net.java.dev.jna" % "jna-platform" % "4.5.2" % Test,
   "com.h2database" % "h2" % "1.4.193" % Test
 )
 
