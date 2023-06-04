@@ -71,8 +71,8 @@ routesGenerator := StaticRoutesGenerator
 
 //doc in Compile <<= target.map(_ / "none")
 
-javaOptions in Test += "-Dconfig.file=test/resources/application.conf"
-javaOptions in Test += "-Djna.nosys=true"
+(Test / javaOptions) += "-Dconfig.file=test/resources/application.conf"
+(Test / javaOptions) += "-Djna.nosys=true"
 
 //rpmRelease := "1"
 
@@ -101,7 +101,7 @@ packageDescription :=
 
 maintainer := "Ilya Korniiko <intracer@gmail.com>"
 
-debianPackageRecommends in Debian ++= Seq("virtual-mysql-server")
+(Debian / debianPackageRecommends) ++= Seq("virtual-mysql-server")
 
 addCommandAlias(
   "packageAll", "; clean" +
@@ -158,42 +158,42 @@ lazy val internalPackageRpmSystemd = taskKey[File]("creates rpm package with sys
 
 internalPackageDebianSystemV := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemv-${version.value}.deb"
-  val debianFile = (packageBin in Debian).value
+  val debianFile = ((Debian / packageBin)).value
   IO.move(debianFile, output)
   output
 }
 
 internalPackageDebianUpstart := {
   val output = baseDirectory.value / "package" / s"wlxjury-upstart-${version.value}.deb"
-  val debianFile = (packageBin in Debian).value
+  val debianFile = ((Debian / packageBin)).value
   IO.move(debianFile, output)
   output
 }
 
 internalPackageDebianSystemd := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemd-${version.value}.deb"
-  val debianFile = (packageBin in Debian).value
+  val debianFile = ((Debian / packageBin)).value
   IO.move(debianFile, output)
   output
 }
 
 internalPackageRpmSystemV := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemv-${version.value}.rpm"
-  val rpmFile = (packageBin in Rpm).value
+  val rpmFile = ((Rpm / packageBin)).value
   IO.move(rpmFile, output)
   output
 }
 
 internalPackageRpmUpstart := {
   val output = baseDirectory.value / "package" / s"wlxjury-upstart-${version.value}.rpm"
-  val rpmFile = (packageBin in Rpm).value
+  val rpmFile = ((Rpm / packageBin)).value
   IO.move(rpmFile, output)
   output
 }
 
 internalPackageRpmSystemd := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemd-${version.value}.rpm"
-  val rpmFile = (packageBin in Rpm).value
+  val rpmFile = ((Rpm / packageBin)).value
   IO.move(rpmFile, output)
   output
 }
