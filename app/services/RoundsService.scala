@@ -3,7 +3,7 @@ package services
 import controllers.RoundStat
 import db.scalikejdbc.Round.RoundStatRow
 import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
-import db.scalikejdbc.{Round, RoundUser, User}
+import db.scalikejdbc.{Round, RoundUser, SelectionJdbc, User}
 import org.intracer.wmua.cmd.{DistributeImages, SetCurrentRound}
 
 class RoundsService {
@@ -66,6 +66,12 @@ class RoundsService {
       byUserRateCount,
       total,
       totalByRate)
+  }
+
+  def mergeRounds(contestId: Long, targetRoundId: Long, sourceRoundId: Long): Unit = {
+    val rounds = Round.findByIds(contestId, Seq(targetRoundId, sourceRoundId))
+    assert(rounds.size == 2)
+    SelectionJdbc.mergeRounds(rounds.head.id.get, rounds.last.id.get)
   }
 
 }

@@ -1,8 +1,6 @@
 package controllers
 
-import db.scalikejdbc.Round.RoundStatRow
 import db.scalikejdbc._
-import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import org.intracer.wmua._
 import org.intracer.wmua.cmd.{DistributeImages, SetCurrentRound}
 import play.api.Logging
@@ -255,6 +253,13 @@ class RoundsController @Inject()(cc: ControllerComponents,
           }
     }
 
+  def mergeRounds() = withAuth(rolePermission(User.ADMIN_ROLES)) {
+    user => implicit request =>
+      val mergeRounds = mergeRoundsForm.bindFromRequest().get
+      roundsService.mergeRounds(user.contestId.get, mergeRounds.targetRoundId, mergeRounds.sourceRoundId)
+      Redirect(routes.RoundsController.rounds())
+  }
+
   //  def byRate(roundId: Int) = withAuth({
   //    user =>
   //      implicit request =>
@@ -290,6 +295,14 @@ class RoundsController @Inject()(cc: ControllerComponents,
       "setActive" -> boolean
     )(SetRoundUser.apply)(SetRoundUser.unapply)
   )
+
+  val mergeRoundsForm = Form(
+    mapping(
+      "targetRoundId" -> longNumber,
+      "sourceRoundId" -> longNumber
+    )(MergeRoundsForm.apply)(MergeRoundsForm.unapply)
+  )
+  case class MergeRoundsForm(targetRoundId: Long, sourceRoundId: Long)
 
   def nonEmptySeq[T]: Constraint[Seq[T]] =
     Constraint[Seq[T]]("constraint.required") { o =>
