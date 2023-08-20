@@ -11,6 +11,7 @@ import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import play.api.i18n.I18nSupport
 import play.api.mvc.ControllerComponents
+import services.RoundsService
 
 import javax.inject.Inject
 import scala.util.Try
@@ -20,7 +21,8 @@ import scala.util.Try
   * @param contestsController
   */
 class RoundsController @Inject()(cc: ControllerComponents,
-                                 val contestsController: ContestsController)
+                                 val contestsController: ContestsController,
+                                 roundsService: RoundsService)
     extends Secured(cc)
     with I18nSupport
     with Logging {
@@ -84,7 +86,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
           .sorted
         val editRound = EditRound(withTopImages, jurors.flatMap(_.id), None)
         val filledRound = editRoundForm.fill(editRound)
-        val stat = round.id.map(id => getRoundStat(id, round))
+        val stat = round.id.map(id => roundsService.getRoundStat(id, round))
         val prevRound = round.previous.flatMap(Round.findById)
         val images = round.id.fold(Seq.empty[Image]) { _ =>
           Try(DistributeImages.getFilteredImages(round, jurors, prevRound))
@@ -132,7 +134,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
           editForm => {
             val round = editForm.round.copy(active = true)
             if (round.id.isEmpty) {
-              createNewRound(round, editForm.jurors)
+              roundsService.createNewRound(round, editForm.jurors)
             } else {
               round.id.foreach { roundId =>
                 Round.updateRound(roundId, round)
@@ -147,23 +149,6 @@ class RoundsController @Inject()(cc: ControllerComponents,
             Redirect(routes.RoundsController.rounds(Some(round.contestId)))
           }
         )
-  }
-
-  def createNewRound(round: Round, jurorIds: Seq[Long]): Round = {
-    val numberOfRounds = Round.countByContest(round.contestId)
-    val created = Round.create(round.copy(number = numberOfRounds + 1))
-
-    val prevRound = created.previous.flatMap(Round.findById)
-    val jurors = User.loadJurors(round.contestId, jurorIds)
-
-    created.addUsers(jurors.map(u =>
-      RoundUser(created.getId, u.getId, u.roles.head, active = true)))
-
-    DistributeImages.distributeImages(created, jurors, prevRound)
-
-    SetCurrentRound(round.contestId, prevRound, created).apply()
-
-    created
   }
 
   def setRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
@@ -202,10 +187,6 @@ class RoundsController @Inject()(cc: ControllerComponents,
       }
 
       Redirect(routes.RoundsController.rounds())
-  }
-
-  def distributeImages(contest: ContestJury, round: Round): Unit = {
-    DistributeImages.distributeImages(round, round.availableJurors, None)
   }
 
   def setImages() = withAuth(rolePermission(User.ADMIN_ROLES)) {
@@ -264,7 +245,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
             if (!user.canViewOrgInfo(round)) {
               onUnAuthorized(user)
             } else {
-              val stat = getRoundStat(roundId, round)
+              val stat = roundsService.getRoundStat(roundId, round)
 
               Ok(views.html.roundStat(user, round, stat))
             }
@@ -292,49 +273,6 @@ class RoundsController @Inject()(cc: ControllerComponents,
   //
   ////        Ok(views.html.galleryByRate(user, round, imagesByRate))
   //  })
-
-  def getRoundStat(roundId: Long, round: Round): RoundStat = {
-    val rounds = Round.findByContest(round.contestId)
-
-    val statRows: Seq[RoundStatRow] = Round.roundUserStat(roundId)
-
-    val byJuror: Map[Long, Seq[RoundStatRow]] =
-      statRows.groupBy(_.juror).filter {
-        case (juror, rows) => rows.map(_.count).sum > 0
-      }
-
-    val byUserCount = byJuror.mapValues(_.map(_.count).sum).toMap
-
-    val byUserRateCount = byJuror.mapValues { v =>
-      v.groupBy(_.rate)
-        .mapValues {
-          _.headOption.map(_.count).getOrElse(0)
-        }
-        .toMap
-    }.toMap
-
-    val totalByRate = Round.roundRateStat(roundId).toMap
-
-    val total = SelectionQuery(roundId = Some(roundId), grouped = true).count()
-
-    val roundUsers = RoundUser.byRoundId(roundId).groupBy(_.userId)
-    val jurors = User
-      .findByContest(round.contestId)
-      .filter { u =>
-        u.id.exists(byUserCount.contains)
-      }
-      .map(u =>
-        u.copy(
-          active = roundUsers.get(u.getId).flatMap(_.headOption.map(_.active))))
-
-    RoundStat(jurors,
-              round,
-              rounds,
-              byUserCount,
-              byUserRateCount,
-              total,
-              totalByRate)
-  }
 
   val imagesForm = Form("images" -> optional(text))
 
