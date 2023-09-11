@@ -211,15 +211,26 @@ class RoundsController @Inject()(cc: ControllerComponents,
       rolePermission(
         Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) {
       user => implicit request =>
-        val activeRound = Round.activeRounds(user).headOption.orElse {
-          val currentContestId = contestId.orElse(user.currentContest)
-          currentContestId.flatMap(
-            contestId =>
+        val currentContestId = contestId.orElse(user.currentContest)
+        val activeRound = Round
+          .activeRounds(user)
+          .headOption
+          .orElse {
+            currentContestId.flatMap { contestId =>
               Round
                 .activeRounds(contestId)
                 .filter(r => user.canViewOrgInfo(r))
-                .lastOption)
-        }
+                .lastOption
+            }
+          }
+          .orElse {
+            currentContestId.flatMap { contestId =>
+              Round
+                .findByContest(contestId)
+                .filter(r => user.canViewOrgInfo(r))
+                .lastOption
+            }
+          }
 
         activeRound
           .map { round =>
@@ -256,7 +267,9 @@ class RoundsController @Inject()(cc: ControllerComponents,
   def mergeRounds() = withAuth(rolePermission(User.ADMIN_ROLES)) {
     user => implicit request =>
       val mergeRounds = mergeRoundsForm.bindFromRequest().get
-      roundsService.mergeRounds(user.contestId.get, mergeRounds.targetRoundId, mergeRounds.sourceRoundId)
+      roundsService.mergeRounds(user.contestId.get,
+                                mergeRounds.targetRoundId,
+                                mergeRounds.sourceRoundId)
       Redirect(routes.RoundsController.rounds())
   }
 
