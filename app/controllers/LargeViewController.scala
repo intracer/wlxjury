@@ -4,40 +4,35 @@ import db.scalikejdbc.rewrite.ImageDbNew.Limit
 import db.scalikejdbc.{MonumentJdbc, Round, SelectionJdbc, User}
 import org.intracer.wmua._
 import play.api.i18n.I18nSupport
-import play.api.mvc.{
-  AbstractController,
-  ControllerComponents,
-  EssentialAction,
-  Request,
-  Result
-}
+import play.api.mvc.{ControllerComponents, EssentialAction, Request, Result}
+import services.GalleryService
 
 import javax.inject.Inject
 
 class LargeViewController @Inject()(cc: ControllerComponents,
-                                    galleryController: GalleryController)
+                                    galleryService: GalleryService)
     extends Secured(cc)
     with I18nSupport {
 
   import play.api.libs.json._
 
-  implicit val selectionWrites = Json.writes[Selection]
-  implicit val imageWrites = Json.writes[Image]
-  implicit val iwrWrites = Json.writes[ImageWithRating]
+  implicit val selectionWrites: OWrites[Selection] = Json.writes[Selection]
+  implicit val imageWrites: OWrites[Image] = Json.writes[Image]
+  implicit val iwrWrites: OWrites[ImageWithRating] = Json.writes[ImageWithRating]
 
   def large(asUserId: Long,
             pageId: Long,
             region: String = "all",
             roundId: Long,
             rate: Option[Int],
-            module: String) = withAuth() { user => implicit request =>
+            module: String): EssentialAction = withAuth() { user =>implicit request =>
     show(pageId, user, asUserId, rate, region, roundId, module)
   }
 
   def largeCurrentUser(pageId: Long,
                        region: String = "all",
                        rate: Option[Int],
-                       module: String) = withAuth() {
+                       module: String): EssentialAction = withAuth() {
     user => implicit request =>
       show(pageId, user, user.getId, rate, region, 0, module)
   }
@@ -76,7 +71,7 @@ class LargeViewController @Inject()(cc: ControllerComponents,
                   roundId: Long,
                   region: String = "all",
                   rate: Option[Int],
-                  module: String) =
+                  module: String): EssentialAction =
     withAuth(roundPermission(User.ADMIN_ROLES, roundId)) {
       user => implicit request =>
         SelectionJdbc.removeImage(pageId, roundId)
@@ -92,7 +87,7 @@ class LargeViewController @Inject()(cc: ControllerComponents,
                       module: String): Result = {
 
     val subRegions = round.specialNomination.contains("Віа Регіа")
-    val query = galleryController.getQuery(asUser.getId,
+    val query = galleryService.getQuery(asUser.getId,
                                            rate,
                                            round.id,
                                            regions =
@@ -151,7 +146,7 @@ class LargeViewController @Inject()(cc: ControllerComponents,
     val round = maybeRound.get
 
     val subRegions = round.specialNomination.contains("Віа Регіа")
-    val query = galleryController.getQuery(asUserId,
+    val query = galleryService.getQuery(asUserId,
                                            rate,
                                            round.id,
                                            regions =

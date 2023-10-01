@@ -1,92 +1,26 @@
-package controllers
+package services
 
 import db.scalikejdbc.{
   CategoryJdbc,
   CategoryLinkJdbc,
   ContestJuryJdbc,
-  ImageJdbc,
-  User
+  ImageJdbc
 }
-import org.intracer.wmua.{ContestJury, Image}
-import org.intracer.wmua.cmd.{FetchImageInfo, FetchImageText, ImageEnricher}
 import org.intracer.wmua.cmd.FetchImageText.defaultParam
+import org.intracer.wmua.cmd.{FetchImageInfo, FetchImageText, ImageEnricher}
+import org.intracer.wmua.{ContestJury, Image}
 import org.scalawiki.MwBot
 import org.scalawiki.wlx.dto.{Contest, Country}
-import play.api.data.Form
-import play.api.data.Forms._
-import play.api.data.Forms.tuple
-import play.api.mvc.ControllerComponents
-import spray.util.pimpFuture
-import play.api.i18n.I18nSupport
-import play.api.mvc._
+import play.api.Logging
 
 import javax.inject.Inject
+import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration._
 
-class ImagesController @Inject()(
+class ImageService @Inject()(
     val commons: MwBot,
-    cc: ControllerComponents,
-    monumentsController: MonumentsController)(implicit ec: ExecutionContext)
-    extends Secured(cc)
-    with I18nSupport {
-
-  /**
-    * Shows contest images view
-    */
-  def images(contestId: Long, inProgress: Boolean = false) =
-    withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
-      user => implicit request =>
-        val contest = ContestJuryJdbc.findById(contestId).get
-
-        val sourceImageNum = getNumberOfImages(contest)
-        val dbImagesNum = ImageJdbc.countByContest(contest)
-
-        val filledForm =
-          importImagesForm.fill((contest.images.getOrElse(""), "", ""))
-        Ok(
-          views.html.contest_images(filledForm,
-                                    contest,
-                                    user,
-                                    sourceImageNum,
-                                    dbImagesNum,
-                                    inProgress))
-    }
-
-  def getNumberOfImages(contest: ContestJury): Long = {
-    contest.images.fold(0L) { images =>
-      FetchImageInfo(images, Seq.empty, contest, commons).numberOfImages.await
-    }
-  }
-
-  /**
-    * Imports images from commons
-    */
-  def importImages(contestId: Long) =
-    withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
-      user => implicit request =>
-        val contest = ContestJuryJdbc.findById(contestId).get
-        importImagesForm.bindFromRequest().fold(
-          formWithErrors =>
-            BadRequest(
-              views.html.contest_images(formWithErrors,
-                                        contest,
-                                        user,
-                                        0,
-                                        ImageJdbc.countByContest(contest))), {
-            case (source, list, action) =>
-              val withNewImages = contest.copy(images = Some(source))
-
-              if (action == "import.images") {
-                appendImages(source, list, withNewImages)
-              } else if (action == "update.monuments") {
-                updateImageMonuments(source, withNewImages)
-              }
-
-              Redirect(routes.ImagesController.images(contestId))
-          }
-        )
-    }
+    monumentService: MonumentService)(implicit ec: ExecutionContext)
+    extends Logging {
 
   def updateImageMonuments(source: String, contest: ContestJury): Unit = {
     if (contest.country == Country.Ukraine.name && contest.monumentIdTemplate.isDefined) {
@@ -97,7 +31,7 @@ class ImagesController @Inject()(
         case _                => None
       }
 
-      monumentContest.foreach(monumentsController.updateLists)
+      monumentContest.foreach(monumentService.updateLists)
     }
 
     def generatorParams: (String, String) = {
@@ -139,7 +73,7 @@ class ImagesController @Inject()(
                    imageList: String,
                    contest: ContestJury,
                    idsFilter: Set[String] = Set.empty,
-                   max: Long = 0) = {
+                   max: Long = 0): Unit = {
     ContestJuryJdbc.setImagesSource(contest.getId, Some(source))
     val existingImages = ImageJdbc.findByContest(contest)
     initImagesFromSource(contest,
@@ -155,7 +89,7 @@ class ImagesController @Inject()(
                            titles: String,
                            existing: Seq[Image],
                            idsFilter: Set[String] = Set.empty,
-                           max: Long) = {
+                           max: Long): Unit = {
     val existingByPageId = existing.groupBy(_.pageId)
     val withImageDescriptions = contest.monumentIdTemplate.isDefined
     val titlesSeq: Seq[String] = if (titles.trim.isEmpty) {
@@ -184,7 +118,7 @@ class ImagesController @Inject()(
         newImages.filterNot(image => existingIds.contains(image.pageId))
 
       val categoryId = CategoryJdbc.findOrInsert(source)
-      saveNewImages(contest, notInOtherContests)
+      saveNewImages(notInOtherContests)
       CategoryLinkJdbc.addToCategory(categoryId, newImages)
 
       val updatedImages = images.filter(
@@ -208,20 +142,11 @@ class ImagesController @Inject()(
     ImageEnricher.zipWithRevData(imageInfos, revInfo)
   }
 
-  def saveNewImages(contest: ContestJury, imagesWithIds: Seq[Image]) = {
-    println("saving images: " + imagesWithIds.size)
+  def saveNewImages(imagesWithIds: Seq[Image]): Unit = {
+    logger.info("saving images: " + imagesWithIds.size)
 
     ImageJdbc.batchInsert(imagesWithIds)
-    println("saved images")
-    //createJury()
-    //    initContestFiles(contest, imagesWithIds)
+    logger.info("saved images")
   }
 
-  val importImagesForm = Form(
-    tuple(
-      "source" -> text,
-      "list" -> text,
-      "action" -> text
-    )
-  )
 }

@@ -18,19 +18,19 @@
         <div class="bs-callout bs-callout-info">
             <h4>@Messages("examples.of.inputs")</h4>
             <p>
-                <ul>
-                    <li>Category:Images from Wiki Loves Earth 2016
-                    <li>Commons:Wiki Loves Monuments 2016/Participating countries
-                    <li>Commons:Wiki Loves Earth 2016
-                </ul>
+        <ul>
+            <li>Category:Images from Wiki Loves Earth 2016
+        <li>Commons:Wiki Loves Monuments 2016/Participating countries
+            <li>Commons:Wiki Loves Earth 2016
+        </ul>
         </div>
-        @b3.vertical.form(routes.ContestsController.importContests, 'id -> "import-contests") { implicit vfc =>
+        @b3.vertical.form(routes.ContestController.importContests(), Symbol("id") -> "import-contests") { implicit vfc =>
             @helper.CSRF.formField
-            @b3.text(importForm("source"), 'placeholder -> Messages("source"), '_label -> Messages("source"), '_help -> "")
+            @b3.text(importForm("source"), Symbol("placeholder") -> Messages("source"), Symbol("_label") -> Messages("source"), Symbol("_help") -> "")
 
             <div class="btn btn-primary" onClick="document.forms['import-contests'].submit();">
             @Messages("import")
-            </div>
+        </div>
         }
     </div>
     <div class="row" >
@@ -55,7 +55,7 @@
             <tbody>
 
                 @if(user.hasRole(User.ROOT_ROLE)) {
-                    @form(routes.ContestsController.saveContest, 'class -> "form-vertical", 'id -> "add-contest") {
+                    @form(routes.ContestController.saveContest(), Symbol("class") -> "form-vertical", Symbol("id") -> "add-contest") {
                         @helper.CSRF.formField
                         <tr>
                             @if(editContestForm.hasGlobalErrors) {
@@ -66,23 +66,23 @@
 
                             <td>
                                 <input type="hidden" name="id" id="id" value="0" />
-                                @inputText(editContestForm("name"), 'placeholder -> Messages("Name"), '_label -> "", '_help -> "")
+                                @inputText(editContestForm("name"), Symbol("placeholder") -> Messages("Name"), Symbol("_label") -> "", Symbol("_help") -> "")
                             </td>
                             <td>
-                            @inputText(editContestForm("country"), 'placeholder -> Messages("country"), '_label -> "", '_help -> "")
+                            @inputText(editContestForm("country"), Symbol("placeholder") -> Messages("country"), Symbol("_label") -> "", Symbol("_help") -> "")
                             </td>
                             <td>
-                            @inputText(editContestForm("year"), 'placeholder -> Messages("year"), '_label -> "", '_help -> "")
+                            @inputText(editContestForm("year"), Symbol("placeholder") -> Messages("year"), Symbol("_label") -> "", Symbol("_help") -> "")
                             </td>
                             <td>
-                            @inputText(editContestForm("images"), 'placeholder -> Messages("images"), '_label -> "", '_help -> "")
+                            @inputText(editContestForm("images"), Symbol("placeholder") -> Messages("images"), Symbol("_label") -> "", Symbol("_help") -> "")
                             </td>
                             <td>
                             </td>
                             <td>
                             </td>
                             <td>
-                            @inputText(editContestForm("monumentIdTemplate"), 'placeholder -> Messages("id.template"), '_label -> "", '_help -> "")
+                            @inputText(editContestForm("monumentIdTemplate"), Symbol("placeholder") -> Messages("id.template"), Symbol("_label") -> "", Symbol("_help") -> "")
                             </td>
                             <td>
                                 <div class="btn btn-primary" onClick="document.forms['add-contest'].submit();">
@@ -99,17 +99,17 @@
                         <td>@Messages(contest.country)</td>
                         <td>@contest.year</td>
                         <td>
-                            <a href="@routes.ImagesController.images(contest.getId)">@contest.images </a>
+                            <a href="@routes.ImageController.images(contest.getId)">@contest.images </a>
                         </td>
                         <td>
-                            <a href="@routes.UsersController.users(contest.id)">
+                            <a href="@routes.UserController.users(contest.id)">
                                 <button type="button" class="btn btn-default btn-xs">
                                     <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                                 </button>
                             </a>
                         </td>
                         <td>@contest.currentRound
-                        <a href="@routes.RoundsController.rounds(contest.id)">
+                        <a href="@routes.RoundController.rounds(contest.id)">
                             <button type="button" class="btn btn-default btn-xs">
                                 <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
                             </button>

@@ -4,8 +4,9 @@ import db.scalikejdbc.{TestDb, User}
 import org.intracer.wmua.ContestJury
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import services.UserService
 
-class UsersControllerSpec extends Specification with TestDb with Mockito {
+class UserControllerSpec extends Specification with TestDb with Mockito {
 
   val sender = User("Admin User", "email@server.com", None, contestId = None)
 
@@ -17,7 +18,7 @@ class UsersControllerSpec extends Specification with TestDb with Mockito {
         val template = "Organizing committee of {{ContestType}} {{ContestYear}} {{ContestCountry}} is glad to welcome you as a jury member\n" +
           "Please visit {{JuryToolLink}}\n" +
           "Regards, {{AdminName}}"
-        val admin = new UsersController(mock[SMTPOrWikiMail])
+        val admin = new UserService(mock[SMTPOrWikiMail])
         val filled = admin.fillGreeting(template, contest, sender, sender)
         filled === "Organizing committee of Wiki Loves Earth 2016 Ukraine is glad to welcome you as a jury member\n" +
           "Please visit https://jury.wle.org.ua/\n" +

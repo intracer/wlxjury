@@ -7,20 +7,19 @@ import org.scalawiki.dto.cmd.query.list._
 import play.api.Configuration
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.i18n.{I18nSupport, Lang, Messages}
-import play.api.mvc.{ControllerComponents, Result}
+import play.api.i18n.{I18nSupport, Lang}
+import play.api.mvc.{ControllerComponents, EssentialAction, Result}
+import services.UserService
 import spray.util.pimpFuture
 
 import javax.inject.Inject
-import scala.collection.immutable.ListMap
 import scala.util.Try
 
 /**
   * Controller for admin views
   */
-class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
-                                cc: ControllerComponents,
-                                configuration: Configuration)
+class UserController @Inject()(cc: ControllerComponents,
+                               userService: UserService)
     extends Secured(cc)
     with I18nSupport {
 
@@ -28,7 +27,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
     * @param contestIdParam optional contest Id. If not set, contest of the admin user is used
     * @return List of users in admin view
     */
-  def users(contestIdParam: Option[Long] = None) =
+  def users(contestIdParam: Option[Long] = None): EssentialAction =
     withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
       user => implicit request =>
         (for (contestId <- contestIdParam.orElse(user.currentContest);
@@ -41,11 +40,11 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
                              withWiki,
                              editUserForm.copy(data = Map("roles" -> "jury")),
                              Some(contest)))
-        }).getOrElse(Redirect(routes.LoginController.index))// TODO message
+        }).getOrElse(Redirect(routes.LoginController.index)) // TODO message
     }
 
-  def allUsers() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
-    user => implicit request =>
+  def allUsers(): EssentialAction =
+    withAuth(rolePermission(Set(User.ROOT_ROLE))) { user => implicit request =>
       val users = User.findAll()
       val contests = ContestJuryJdbc.findAll()
       Ok(
@@ -54,7 +53,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
                          editUserForm.copy(data = Map("roles" -> "jury")),
                          None,
                          contests))
-  }
+    }
 
   /**
     * Checks if wiki accounts are valid and can be emailed via wiki acount
@@ -119,7 +118,7 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
     * @param userId userId of the user to edit
     * @return edit user form view
     */
-  def editUser(userId: Long) =
+  def editUser(userId: Long): EssentialAction =
     withAuth(rolePermission(
       Set(User.ADMIN_ROLE, User.ROOT_ROLE, s"USER_ID_$userId"))) {
       user => implicit request =>
@@ -136,75 +135,77 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
     *
     * @return list of users
     */
-  def saveUser() = withAuth() { user => implicit request =>
-    editUserForm.bindFromRequest().fold(
-      formWithErrors => // binding failure, you retrieve the form containing errors,
-        BadRequest(
-          views.html.editUser(
-            user,
-            formWithErrors,
-            contestId = Try(formWithErrors.data("contest").toLong).toOption
-          )
-      ),
-      formUser => {
-        havingEditRights(user, formUser) {
-
-          val userId = formUser.getId
-          val count = User.countByEmail(userId, formUser.email)
-          if (count > 0) {
-            BadRequest(
-              views.html.editUser(
-                user,
-                editUserForm
-                  .fill(formUser)
-                  .withError("email", "email should be unique"),
-                contestId = formUser.contestId
-              )
+  def saveUser(): EssentialAction = withAuth() { user => implicit request =>
+    editUserForm
+      .bindFromRequest()
+      .fold(
+        formWithErrors => // binding failure, you retrieve the form containing errors,
+          BadRequest(
+            views.html.editUser(
+              user,
+              formWithErrors,
+              contestId = Try(formWithErrors.data("contest").toLong).toOption
             )
-          } else {
-            if (userId == 0) {
-              createNewUser(user, formUser)
-            } else {
+        ),
+        formUser => {
+          havingEditRights(user, formUser) {
 
-              // only admin can update roles
-              val newRoles = if (user.hasAnyRole(User.ADMIN_ROLES)) {
-                if (!user.hasRole(User.ROOT_ROLE) && formUser.roles.contains(
-                      User.ROOT_ROLE)) {
-                  userRolesFromDb(formUser)
-                } else {
-                  formUser.roles
-                }
+            val userId = formUser.getId
+            val count = User.countByEmail(userId, formUser.email)
+            if (count > 0) {
+              BadRequest(
+                views.html.editUser(
+                  user,
+                  editUserForm
+                    .fill(formUser)
+                    .withError("email", "email should be unique"),
+                  contestId = formUser.contestId
+                )
+              )
+            } else {
+              if (userId == 0) {
+                userService.createNewUser(user, formUser)
               } else {
-                userRolesFromDb(formUser)
+
+                // only admin can update roles
+                val newRoles = if (user.hasAnyRole(User.ADMIN_ROLES)) {
+                  if (!user.hasRole(User.ROOT_ROLE) && formUser.roles.contains(
+                        User.ROOT_ROLE)) {
+                    userRolesFromDb(formUser)
+                  } else {
+                    formUser.roles
+                  }
+                } else {
+                  userRolesFromDb(formUser)
+                }
+
+                User.updateUser(userId,
+                                formUser.fullname,
+                                formUser.wikiAccount,
+                                formUser.email,
+                                newRoles,
+                                formUser.lang,
+                                formUser.sort)
+
+                for (password <- formUser.password) {
+                  val hash = User.hash(formUser, password)
+                  User.updateHash(userId, hash)
+                }
               }
 
-              User.updateUser(userId,
-                              formUser.fullname,
-                              formUser.wikiAccount,
-                              formUser.email,
-                              newRoles,
-                              formUser.lang,
-                              formUser.sort)
-
-              for (password <- formUser.password) {
-                val hash = User.hash(formUser, password)
-                User.updateHash(userId, hash)
+              val result = if (user.hasAnyRole(User.ADMIN_ROLES)) {
+                Redirect(routes.UserController.users(formUser.contestId))
+              } else {
+                Redirect(routes.LoginController.index)
               }
-            }
+              val lang = for (lang <- formUser.lang; if formUser.id == user.id)
+                yield lang
 
-            val result = if (user.hasAnyRole(User.ADMIN_ROLES)) {
-              Redirect(routes.UsersController.users(formUser.contestId))
-            } else {
-              Redirect(routes.LoginController.index)
+              lang.fold(result)(l => result.withLang(Lang(l)))
             }
-            val lang = for (lang <- formUser.lang; if formUser.id == user.id)
-              yield lang
-
-            lang.fold(result)(l => result.withLang(Lang(l)))
           }
         }
-      }
-    )
+      )
   }
 
   /**
@@ -218,51 +219,53 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
       yield dbUser.roles).getOrElse(Set.empty)
   }
 
-  def showImportUsers(contestIdParam: Option[Long]) =
+  def showImportUsers(contestIdParam: Option[Long]): EssentialAction =
     withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
       user => implicit request =>
         val contestId = contestIdParam.orElse(user.currentContest).get
         Ok(views.html.importUsers(user, importUsersForm, contestId))
     }
 
-  def importUsers(contestIdParam: Option[Long] = None) =
+  def importUsers(contestIdParam: Option[Long] = None): EssentialAction =
     withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
       user => implicit request =>
         val contestId = contestIdParam.orElse(user.currentContest).get
 
-        importUsersForm.bindFromRequest().fold(
-          formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(
-              views.html.importUsers(user, importUsersForm, contestId)),
-          formUsers => {
-            val contest = ContestJuryJdbc.findById(contestId)
-            val parsed = User
-              .parseList(formUsers)
-              .map(
-                _.copy(
-                  lang = user.lang,
-                  contestId = Some(contestId)
-                ))
+        importUsersForm
+          .bindFromRequest()
+          .fold(
+            formWithErrors => // binding failure, you retrieve the form containing errors,
+              BadRequest(
+                views.html.importUsers(user, importUsersForm, contestId)),
+            formUsers => {
+              val contest = ContestJuryJdbc.findById(contestId)
+              val parsed = User
+                .parseList(formUsers)
+                .map(
+                  _.copy(
+                    lang = user.lang,
+                    contestId = Some(contestId)
+                  ))
 
-            val results = parsed.map(pu =>
-              Try(createUser(user, pu.copy(roles = Set("jury")), contest)))
+              val results = parsed.map(
+                pu =>
+                  Try(userService
+                    .createUser(user, pu.copy(roles = Set("jury")), contest)))
 
-            Redirect(routes.UsersController.users(Some(contestId)))
-          }
-        )
+              Redirect(routes.UserController.users(Some(contestId)))
+            }
+          )
 
     }
 
-  def appConfig = configuration
-
   def editGreeting(contestIdParam: Option[Long],
-                   substituteJurors: Boolean = true) =
+                   substituteJurors: Boolean = true): EssentialAction =
     withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
       user => implicit request =>
         (for (contestId <- contestIdParam.orElse(user.currentContest);
               contest <- ContestJuryJdbc.findById(contestId)) yield {
 
-          val greeting = getGreeting(contest)
+          val greeting = userService.getGreeting(contest)
 
           val recipient = new User(fullname = "Recipient Full Name",
                                    email = "Recipient email",
@@ -272,10 +275,11 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
           val substitution = if (substituteJurors) {
             val users = User.findByContest(contestId)
             users.map { recipient =>
-              fillGreeting(greeting.text.get,
-                           contest,
-                           user,
-                           recipient.copy(password = Some("***PASSWORD***")))
+              userService.fillGreeting(
+                greeting.text.get,
+                contest,
+                user,
+                recipient.copy(password = Some("***PASSWORD***")))
             }
           } else {
             Seq.empty
@@ -286,106 +290,31 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
               user,
               greetingTemplateForm.fill(greeting),
               contestId,
-              variables(contest, user, recipient),
+              userService.variables(contest, user, recipient),
               substitution
             ))
         }).getOrElse(Redirect(routes.LoginController.index))
     }
 
-  def getGreeting(contest: ContestJury): Greeting = {
-    val defaultGreeting = appConfig.get[String]("wlxjury.greeting")
-
-    contest.greeting.text
-      .fold(contest.greeting.copy(text = Some(defaultGreeting)))(_ =>
-        contest.greeting)
-  }
-
-  def fillGreeting(template: String,
-                   contest: ContestJury,
-                   sender: User,
-                   user: User) = {
-    variables(contest, sender, user).foldLeft(template) {
-      case (s, (k, v)) =>
-        s.replace(k, v)
-    }
-  }
-
-  def variables(contest: ContestJury,
-                sender: User,
-                recipient: User): Map[String, String] = {
-    val host = appConfig.get[String]("wlxjury.host")
-
-    ListMap(
-      "{{ContestType}}" -> contest.name,
-      "{{ContestYear}}" -> contest.year.toString,
-      "{{ContestCountry}}" -> contest.country,
-      "{{ContestCountry}}" -> contest.country,
-      "{{JuryToolLink}}" -> host,
-      "{{AdminName}}" -> sender.fullname,
-      "{{RecipientName}}" -> recipient.fullname,
-      "{{Login}}" -> recipient.email,
-      "{{Password}}" -> recipient.password.getOrElse("")
-    )
-  }
-
-  def saveGreeting(contestIdParam: Option[Long] = None) =
+  def saveGreeting(contestIdParam: Option[Long] = None): EssentialAction =
     withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
       user => implicit request =>
         val contestId = contestIdParam.orElse(user.currentContest).get
 
-        greetingTemplateForm.bindFromRequest().fold(
-          formWithErrors => // binding failure, you retrieve the form containing errors,
-            BadRequest(
-              views.html.importUsers(user, importUsersForm, contestId)),
-          formGreeting => {
+        greetingTemplateForm
+          .bindFromRequest()
+          .fold(
+            formWithErrors => // binding failure, you retrieve the form containing errors,
+              BadRequest(
+                views.html.importUsers(user, importUsersForm, contestId)),
+            formGreeting => {
 
-            ContestJuryJdbc.updateGreeting(contestId, formGreeting)
-            Redirect(routes.UsersController.users(Some(contestId)))
-          }
-        )
+              ContestJuryJdbc.updateGreeting(contestId, formGreeting)
+              Redirect(routes.UserController.users(Some(contestId)))
+            }
+          )
 
     }
-
-  def createNewUser(user: User, formUser: User)(
-      implicit messages: Messages): User = {
-    val contest: Option[ContestJury] =
-      formUser.currentContest.flatMap(ContestJuryJdbc.findById)
-    createUser(user, formUser, contest)
-  }
-
-  def createUser(
-      creator: User,
-      formUser: User,
-      contestOpt: Option[ContestJury])(implicit messages: Messages): User = {
-    val password = formUser.password.getOrElse(User.randomString(12))
-    val hash = User.hash(formUser, password)
-
-    val toCreate = formUser.copy(
-      password = Some(hash),
-      contestId = contestOpt.flatMap(_.id).orElse(creator.contestId))
-
-    val createdUser = User.create(toCreate)
-
-    contestOpt.foreach { contest =>
-      if (contest.greeting.use) {
-        sendMail(creator, createdUser, contest, password)
-      }
-    }
-    createdUser
-  }
-
-  def sendMail(creator: User,
-               recipient: User,
-               contest: ContestJury,
-               password: String)(implicit messages: Messages): Unit = {
-    val greeting = getGreeting(contest)
-    val subject = messages("welcome.subject", contest.name)
-    val message = fillGreeting(greeting.text.get,
-                               contest,
-                               creator,
-                               recipient.copy(password = Some(password)))
-    sendMail.sendMail(creator, recipient, subject, message)
-  }
 
   val editUserForm = Form(
     mapping(
@@ -414,8 +343,8 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
     )(Greeting.apply)(Greeting.unapply)
   )
 
-  def resetPassword(id: Long) = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
-    user => implicit request =>
+  def resetPassword(id: Long): EssentialAction =
+    withAuth(rolePermission(Set(User.ROOT_ROLE))) { user => implicit request =>
       val editedUser = User.findById(id).get
 
       val password = User.randomString(8)
@@ -434,10 +363,10 @@ class UsersController @Inject()(val sendMail: SMTPOrWikiMail,
         s"Regards, ${user.fullname}"
       // sendMail.sendMail(from = (user.fullname, user.email), to = Seq(user.email), bcc = Seq(user.email), subject = subject, message = message)
 
-      Redirect(routes.UsersController.editUser(id)).flashing(
+      Redirect(routes.UserController.editUser(id)).flashing(
         "password-reset" -> s"Password reset. New Password sent to ${editedUser.email}")
 
-  }
+    }
 }
 
 case class Greeting(text: Option[String], use: Boolean)

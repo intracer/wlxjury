@@ -10,7 +10,7 @@ import play.api.Logging
 
 import javax.inject.Inject
 
-class RoundsService @Inject()(dao: RoundDao) extends Logging {
+class RoundService @Inject()(dao: RoundDao) extends Logging {
 
   def createNewRound(round: Round, jurorIds: Seq[Long]): Round = {
     val numberOfRounds = dao.countByContest(round.contestId)
@@ -39,10 +39,11 @@ class RoundsService @Inject()(dao: RoundDao) extends Logging {
         case (juror, rows) => rows.map(_.count).sum > 0
       }
 
-    val byUserCount = byJuror.mapValues(_.map(_.count).sum).toMap
+    val byUserCount = byJuror.view.mapValues(_.map(_.count).sum).toMap
 
-    val byUserRateCount = byJuror.mapValues { v =>
+    val byUserRateCount = byJuror.view.mapValues { v =>
       v.groupBy(_.rate)
+        .view
         .mapValues {
           _.headOption.map(_.count).getOrElse(0)
         }

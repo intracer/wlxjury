@@ -5,24 +5,27 @@
         rate: Option[Int],
         region: String = "all",
         round: Round,
-        module : String = "gallery",
+        module: String = "gallery",
         comments: Seq[Comment])(
         implicit flash: Flash, request: Request[Any], messages: Messages)
 @import helper._
 
 @if(round.active || comments.nonEmpty) {
-    <div style="margin-right: 5px; margin-top: 10px; padding: 5px;">
+    <div style="margin-right: 5px;
+        margin-top: 10px;
+        padding: 5px;">
         <div id="comments" name="comments" class="comment-header msg">
             <strong>@Messages("comments")</strong>
         </div>
         @for(msg <- comments) {
             <div class="msg">
-                <strong>@msg.username: </strong> @msg.body <br/>
+                <strong>@msg.username: </strong>
+                @msg.body <br/>
             </div>
         }
         @if(round.active) {
             <div>
-            @form(routes.ImageDiscussionController.addComment(objectId, region, rate, module, Some(round.getId)), 'class -> "form-vertical", 'id -> "addComment") {
+            @form(routes.ImageDiscussionController.addComment(objectId, region, rate, module, Some(round.getId)), Symbol("class") -> "form-vertical", Symbol("id") -> "addComment") {
                 @helper.CSRF.formField
                 <input type="hidden" name="id" id="id" value="0" />
                 <textarea class="imageComment" id="text" name="text" rows="3" placeholder="@Messages("your.comment.here")"></textarea>

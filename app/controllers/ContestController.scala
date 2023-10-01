@@ -15,7 +15,7 @@ import spray.util.pimpFuture
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class ContestsController @Inject()(val commons: MwBot, cc: ControllerComponents)
+class ContestController @Inject()(val commons: MwBot, cc: ControllerComponents)
     extends Secured(cc)
     with I18nSupport {
 
@@ -71,7 +71,7 @@ class ContestsController @Inject()(val commons: MwBot, cc: ControllerComponents)
           },
           formContest => {
             createContest(formContest)
-            Redirect(routes.ContestsController.list())
+            Redirect(routes.ContestController.list())
           }
         )
   }
@@ -122,7 +122,7 @@ class ContestsController @Inject()(val commons: MwBot, cc: ControllerComponents)
                 )
                 createContest(contestJury)
             }
-            Redirect(routes.ContestsController.list())
+            Redirect(routes.ContestController.list())
           }
         )
   }

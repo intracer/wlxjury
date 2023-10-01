@@ -10,14 +10,14 @@
 
     @mainAdmin(Messages("contest.images"), user, user.getId, contestId = contest.id) {
         <h3>@Messages("contest") @contest.fullName</h3>
-        @b3.vertical.form(routes.ImagesController.importImages(contest.getId), 'id -> "import-images") { implicit vfc =>
+        @b3.vertical.form(routes.ImageController.importImages(contest.getId), Symbol("id") -> "import-images") { implicit vfc =>
             @helper.CSRF.formField
 
             <h4>@Messages("images.source")</h4>
 
-            @b3.text(importImagesForm("source"), '_label -> "commons.category.or.page.with.images")
+            @b3.text(importImagesForm("source"), Symbol("_label") -> "commons.category.or.page.with.images")
 
-            @b3.textarea(importImagesForm("list"), '_label -> "or.image.list", 'rows -> 10 )
+            @b3.textarea(importImagesForm("list"), Symbol("_label") -> "or.image.list", Symbol("rows") -> 10 )
 
             @if(contest.images.isDefined) {
                 @Messages("images.on.commons"): <a id="commonscat" href="https://commons.wikimedia.org/wiki/@contest.images.get">@sourceImages</a>

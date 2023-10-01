@@ -1,25 +1,29 @@
 package controllers
 
+import akka.stream.Materializer
 import db.scalikejdbc._
 import org.intracer.wmua._
 import play.api.libs.json.Json
-import play.api.mvc.Security
+import play.api.mvc.RequestHeader
 import play.api.test.CSRFTokenHelper._
-import play.api.test.{FakeRequest, PlaySpecification}
+import play.api.test.{FakeRequest, Helpers, PlaySpecification}
+import services.GalleryService
 
 class LargeImageSpec extends PlaySpecification with TestDb {
 
   sequential
 
-  var contest: ContestJury = _
-  var round: Round = _
-  var user: User = _
-  val email = "email@1.com"
+  private var contest: ContestJury = _
+  private var round: Round = _
+  private var user: User = _
+  private val email = "email@1.com"
+  private lazy val galleryService = new GalleryService
+  private def controller = new LargeViewController(Helpers.stubControllerComponents(), galleryService)
 
-  def contestImage(id: Long, contestId: Long) =
+  private def contestImage(id: Long): Image =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
-  def setUp(rates: Rates = Round.binaryRound) = {
+  private def setUp(rates: Rates = Round.binaryRound): Unit = {
     contest = contestDao.create(None, "WLE", 2015, "Ukraine")
     round = roundDao.create(
       Round(None, 1, contestId = contest.getId, rates = rates, active = true)
@@ -29,13 +33,13 @@ class LargeImageSpec extends PlaySpecification with TestDb {
     )
   }
 
-  def createImages(number: Int, contestId: Long = contest.getId, startId: Int = 0) = {
-    val images = (startId until number + startId).map(id => contestImage(id, contestId))
+  private def createImages(number: Long, startId: Long = 0): Seq[Image] = {
+    val images = (startId until number + startId).map(contestImage)
     imageDao.batchInsert(images)
     images
   }
 
-  def createSelection(images: Seq[Image],
+  private def createSelection(images: Seq[Image],
                       rate: Int = 0,
                       user: User = user,
                       round: Round = round) = {
@@ -46,31 +50,31 @@ class LargeImageSpec extends PlaySpecification with TestDb {
     selections
   }
 
-  def request(url: String) = {
+  private def request(url: String): RequestHeader = {
     FakeRequest(GET, url)
-      .withSession(Security.username -> email)
+      .withSession(Secured.UserName -> email)
       .withHeaders("Accept" -> "application/json")
       .withCSRFToken
   }
 
-  def imageJson(id: Int, rate: Int = 0) = {
+  private def imageJson(id: Int, rate: Int = 0) = {
     s"""{"image":{"pageId":$id,"title":"File:Image$id.jpg","width":640,"height":480,"monumentId":"12-345-$id"},
        |"selection":[{"pageId":$id,"juryId":1,"roundId":1,"rate":$rate,"id":${id + 1}}],
        |"countFromDb":0}""".stripMargin
   }
 
-  def mkJson(elems: String*) = Json.parse(elems.mkString("[", ",", "]"))
+  private def mkJson(elems: String*) = Json.parse(elems.mkString("[", ",", "]"))
 
   "get 1 unrated image" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
       val images = createImages(1)
       createSelection(images)
 
-      val result = LargeViewController.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = Some(0), module = "gallery")
+      val result = controller.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = Some(0), module = "gallery")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0"))
 
       status(result) mustEqual OK
@@ -80,14 +84,14 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "get 1 rated image" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
       val images = createImages(1)
       createSelection(images, rate = 5)
 
-      val result = LargeViewController.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "byrate")
+      val result = controller.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "byrate")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?module=byrate"))
 
       status(result) mustEqual OK
@@ -97,14 +101,14 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "get 2 unrated images" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
       val images = createImages(2)
       createSelection(images)
 
-      val result = LargeViewController.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "gallery")
+      val result = controller.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "gallery")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0"))
         .run()
 
@@ -115,7 +119,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "get 2 rated images" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
@@ -123,7 +127,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
       createSelection(images.init, 3)
       createSelection(images.tail, 5)
 
-      val result = LargeViewController.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = None, module = "byrate")
+      val result = controller.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = None, module = "byrate")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?module=byrate"))
         .run()
 
@@ -134,7 +138,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "get first unrated image from 2" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
@@ -142,7 +146,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
       createSelection(images.init, 0)
       createSelection(images.tail, 5)
 
-      val result = LargeViewController.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = Some(0), module = "gallery")
+      val result = controller.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = Some(0), module = "gallery")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?rate=0"))
         .run()
 
@@ -153,7 +157,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "get last unrated image from 2" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
@@ -161,7 +165,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
       createSelection(images.init, 5)
       createSelection(images.tail, 0)
 
-      val result = LargeViewController.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = Some(0), module = "gallery")
+      val result = controller.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = Some(0), module = "gallery")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?rate=0"))
         .run()
 
@@ -172,7 +176,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "get first rated image from 2" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
@@ -180,7 +184,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
       createSelection(images.init, 5)
       createSelection(images.tail, 0)
 
-      val result = LargeViewController.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "byrate")
+      val result = controller.large(user.id.get, images.head.pageId, roundId = round.id.get, rate = None, module = "byrate")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}?module=byrate"))
         .run()
 
@@ -191,7 +195,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "get last rated image from 2" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
@@ -199,7 +203,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
       createSelection(images.init, 0)
       createSelection(images.tail, 5)
 
-      val result = LargeViewController.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = None, module = "byrate")
+      val result = controller.large(user.id.get, images.last.pageId, roundId = round.id.get, rate = None, module = "byrate")
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}?module=byrate"))
         .run()
 
@@ -210,14 +214,14 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "rate 1 unrated image" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
       val images = createImages(1)
       createSelection(images)
 
-      val result = LargeViewController.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
+      val result = controller.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/5?rate=0"))
         .run()
 
@@ -228,14 +232,14 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "unrate 1 rated image" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
       val images = createImages(1)
       createSelection(images, rate = 5)
 
-      val result = LargeViewController.rateByPageId(round.id.get, images.head.pageId, select = 0, module = "gallery", rate = None)
+      val result = controller.rateByPageId(round.id.get, images.head.pageId, select = 0, module = "gallery", rate = None)
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/0?module=byrate"))
         .run()
 
@@ -246,14 +250,14 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "rerate 1 rated image" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
       val images = createImages(1)
       createSelection(images, rate = 5)
 
-      val result = LargeViewController.rateByPageId(round.id.get, images.head.pageId, select = 3, module = "byrate", rate = None)
+      val result = controller.rateByPageId(round.id.get, images.head.pageId, select = 3, module = "byrate", rate = None)
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/0?module=byrate"))
         .run()
 
@@ -264,7 +268,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "rerate 1st rated image from two rated" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
@@ -272,7 +276,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
       createSelection(images.init, rate = 5)
       createSelection(images.tail, rate = 3)
 
-      val result = LargeViewController.rateByPageId(round.id.get, images.head.pageId, select = 2, module = "byrate", rate = None)
+      val result = controller.rateByPageId(round.id.get, images.head.pageId, select = 2, module = "byrate", rate = None)
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/0?module=byrate"))
         .run()
 
@@ -283,7 +287,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "rerate 2nd rated image from two rated" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
@@ -291,7 +295,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
       createSelection(images.init, rate = 3)
       createSelection(images.tail, rate = 2)
 
-      val result = LargeViewController.rateByPageId(round.id.get, images.last.pageId, select = 4, module = "byrate", rate = None)
+      val result = controller.rateByPageId(round.id.get, images.last.pageId, select = 4, module = "byrate", rate = None)
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}/select/0?module=byrate"))
         .run()
 
@@ -302,7 +306,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "rate 1st unrated image from two" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
@@ -310,7 +314,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
       createSelection(images.init, 0)
       createSelection(images.tail, 5)
 
-      val result = LargeViewController.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
+      val result = controller.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/5?rate=0"))
         .run()
 
@@ -321,7 +325,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "rate 2nd unrated image from two" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
@@ -329,7 +333,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
       createSelection(images.init, 5)
       createSelection(images.tail, 0)
 
-      val result = LargeViewController.rateByPageId(round.id.get, images.last.pageId, select = 5, module = "gallery", rate = Some(0))
+      val result = controller.rateByPageId(round.id.get, images.last.pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}/select/5?rate=0"))
         .run()
 
@@ -340,14 +344,14 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "rate 1st unrated image from two unrated" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
       val images = createImages(2)
       createSelection(images)
 
-      val result = LargeViewController.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
+      val result = controller.rateByPageId(round.id.get, images.head.pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.head.pageId}/select/5?rate=0"))
         .run()
 
@@ -358,14 +362,14 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "rate 2nd unrated image from two unrated" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
       val images = createImages(2)
       createSelection(images)
 
-      val result = LargeViewController.rateByPageId(round.id.get, images.last.pageId, select = 5, module = "gallery", rate = Some(0))
+      val result = controller.rateByPageId(round.id.get, images.last.pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/${images.last.pageId}/select/5?rate=0"))
         .run()
 
@@ -376,7 +380,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
 
   "rate unrated image from the middle of many" in {
     testDbApp { app =>
-      implicit val materializer = app.materializer
+      implicit val materializer: Materializer = app.materializer
 
       setUp(rates = Round.ratesById(5))
 
@@ -386,7 +390,7 @@ class LargeImageSpec extends PlaySpecification with TestDb {
       val pageId = images(7).pageId
       val nextPageId = images(8).pageId
 
-      val result = LargeViewController.rateByPageId(round.id.get, pageId, select = 5, module = "gallery", rate = Some(0))
+      val result = controller.rateByPageId(round.id.get, pageId, select = 5, module = "gallery", rate = Some(0))
         .apply(request(s"/large/round/${round.id.get}/user/${user.id.get}/pageid/$pageId/select/5?rate=0"))
         .run()
 

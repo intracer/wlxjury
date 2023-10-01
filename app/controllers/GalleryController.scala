@@ -10,13 +10,15 @@ import org.intracer.wmua._
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
 import play.api.mvc._
+import services.GalleryService
 
 import javax.inject.Inject
 
 /**
   * Backend for getting and displaying images
   */
-class GalleryController @Inject()(cc: ControllerComponents)
+class GalleryController @Inject()(galleryService: GalleryService,
+                                  cc: ControllerComponents)
     extends Secured(cc)
     with I18nSupport {
 
@@ -29,7 +31,7 @@ class GalleryController @Inject()(cc: ControllerComponents)
   val UrlInProgress =
     "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Icon_tools.svg/120px-Icon_tools.svg.png"
 
-  def moduleByUserId(asUserId: Long) =
+  private def moduleByUserId(asUserId: Long): String =
     if (asUserId == 0) "byrate" else "gallery"
 
   /**
@@ -49,7 +51,7 @@ class GalleryController @Inject()(cc: ControllerComponents)
             region: String = "all",
             roundId: Long = 0,
             rate: Option[Int],
-            rated: Option[Boolean] = None) =
+            rated: Option[Boolean] = None): EssentialAction =
     listGeneric(module,
                 asUserId.getOrElse(0),
                 pageOffset(page),
@@ -62,7 +64,7 @@ class GalleryController @Inject()(cc: ControllerComponents)
            page: Int = 1,
            region: String = "all",
            roundId: Long = 0,
-           rate: Option[Int]) =
+           rate: Option[Int]): EssentialAction =
     listGeneric(moduleByUserId(asUserId),
                 asUserId,
                 pageOffset(page),
@@ -74,7 +76,7 @@ class GalleryController @Inject()(cc: ControllerComponents)
                pageId: Long,
                region: String = "all",
                roundId: Long = 0,
-               rate: Option[Int]) =
+               rate: Option[Int]): EssentialAction =
     listGeneric(moduleByUserId(asUserId),
                 asUserId,
                 startPageId(pageId),
@@ -86,7 +88,7 @@ class GalleryController @Inject()(cc: ControllerComponents)
              page: Int = 1,
              region: String = "all",
              roundId: Long = 0,
-             rated: Option[Boolean] = None) =
+             rated: Option[Boolean] = None): EssentialAction =
     listGeneric("byrate",
                 asUserId,
                 pageOffset(page),
@@ -98,7 +100,7 @@ class GalleryController @Inject()(cc: ControllerComponents)
                pageId: Long,
                region: String = "all",
                roundId: Long = 0,
-               rated: Option[Boolean] = None) =
+               rated: Option[Boolean] = None): EssentialAction =
     listGeneric("byrate",
                 asUserId,
                 startPageId(pageId),
@@ -112,10 +114,10 @@ class GalleryController @Inject()(cc: ControllerComponents)
                region: String = "all",
                roundId: Long = 0,
                format: String = "wiki",
-               rate: Option[Int]) =
+               rate: Option[Int]): EssentialAction =
     listGeneric("filelist", asUserId, pageOffset(page), region, roundId, rate)
 
-  def listCurrent(page: Int = 1, region: String = "all", rate: Option[Int]) =
+  def listCurrent(page: Int = 1, region: String = "all", rate: Option[Int]): EssentialAction =
     withAuth() { user => implicit request =>
       Redirect(routes.GalleryController.list(user.getId, page, region, 0, rate))
     }
@@ -126,7 +128,7 @@ class GalleryController @Inject()(cc: ControllerComponents)
                   region: String = "all",
                   roundId: Long = 0,
                   rate: Option[Int] = None,
-                  rated: Option[Boolean] = None) = withAuth() {
+                  rated: Option[Boolean] = None): EssentialAction = withAuth() {
     user => implicit request =>
       val maybeRound =
         if (roundId == 0) Round.activeRounds(user).headOption
@@ -141,16 +143,16 @@ class GalleryController @Inject()(cc: ControllerComponents)
         Round.activeRounds(user)
       }
 
-      if (isNotAuthorized(user, maybeRound, roundContestId, rounds)) {
+      if (galleryService.isNotAuthorized(user, maybeRound, roundContestId, rounds)) {
         onUnAuthorized(user)
       } else {
 
-        lazy val asUser = getAsUser(asUserId, user)
+        lazy val asUser = galleryService.getAsUser(asUserId, user)
 
         val regions = Set(region).filter(_ != "all")
 
         val userDetails = Set("filelist", "csv").contains(module)
-        val query = getQuery(asUserId,
+        val query = galleryService.getQuery(asUserId,
                              rate,
                              round.id,
                              Some(pager),
@@ -160,7 +162,7 @@ class GalleryController @Inject()(cc: ControllerComponents)
                              subRegions)
         pager.setCount(query.count())
 
-        val files = filesByUserId(query, pager, userDetails)
+        val files = galleryService.filesByUserId(query, pager, userDetails)
 
         val contest = ContestJuryJdbc.findById(roundContestId).get
 
@@ -170,7 +172,7 @@ class GalleryController @Inject()(cc: ControllerComponents)
           Seq.empty
         }
 
-        val rates = rateDistribution(user, round)
+        val rates = galleryService.rateDistribution(user, round)
 
         //   val ranks = ImageWithRating.rankImages(sortedFiles, round)
         val useTable = !round.isBinary || asUserId == 0
@@ -256,83 +258,6 @@ class GalleryController @Inject()(cc: ControllerComponents)
       }
   }
 
-  def getSortedImages(
-      asUserId: Long,
-      rate: Option[Int],
-      roundId: Option[Long],
-      module: String,
-      pager: Pager = Pager.pageOffset(1)): Seq[ImageWithRating] = {
-    val userDetails = module == "filelist"
-    filesByUserId(getQuery(asUserId, rate, roundId, Some(pager), userDetails),
-                  pager,
-                  userDetails)
-  }
-
-  def isNotAuthorized(user: User,
-                      maybeRound: Option[Round],
-                      roundContest: Long,
-                      rounds: Seq[Round]): Boolean = {
-    val userContest = user.currentContest.getOrElse(0L)
-    val notAuthorized = maybeRound.isEmpty ||
-      (!user.hasRole("root") && userContest != roundContest) ||
-      (user.roles.intersect(Set("admin", "organizer", "root")).isEmpty
-        && !rounds.exists(_.id == maybeRound.flatMap(_.id))
-        && !maybeRound.exists(_.juryOrgView))
-    notAuthorized
-  }
-
-  def getAsUser(asUserId: Long, user: User): User = {
-    if (asUserId == 0) {
-      null
-    } else if (asUserId != user.getId) {
-      User.findById(asUserId).get
-    } else {
-      user
-    }
-  }
-
-  def filesByUserId(query: SelectionQuery,
-                    pager: Pager,
-                    userDetails: Boolean = false): Seq[ImageWithRating] = {
-
-    val withPageIdOffset = pager.startPageId
-      .fold(query) { pageId =>
-        val rank = query.imageRank(pageId)
-        val pageSize = pager.pageSize
-        val page = rank / pageSize
-        val offset = page * pageSize
-        pager.page = page + 1
-        query.copy(limit = Some(Limit(Some(pageSize), Some(offset))))
-      }
-      .copy(limit = query.limit.filter(_ => !userDetails))
-
-    withPageIdOffset.list()
-  }
-
-  def getQuery(userId: Long,
-               rate: Option[Int],
-               roundId: Option[Long],
-               pager: Option[Pager] = None,
-               userDetails: Boolean = false,
-               rated: Option[Boolean] = None,
-               regions: Set[String] = Set.empty,
-               subRegions: Boolean = false): SelectionQuery = {
-    val userIdOpt = Some(userId).filter(_ != 0)
-
-    ImageDbNew.SelectionQuery(
-      userId = userIdOpt,
-      rate = rate,
-      rated = rated,
-      roundId = roundId,
-      regions = regions,
-      order = Map("rate" -> -1, "i.monument_id" -> 1, "s.page_id" -> 1),
-      grouped = userIdOpt.isEmpty && !userDetails,
-      groupWithDetails = userDetails,
-      limit = pager.map(p => Limit(Some(p.pageSize), p.offset, p.startPageId)),
-      subRegions = subRegions
-    )
-  }
-
   def selectWS(roundId: Long,
                pageId: Long,
                select: Int,
@@ -346,11 +271,6 @@ class GalleryController @Inject()(cc: ControllerComponents)
                          roundId = roundId,
                          rate = select)
       Ok("success")
-  }
-
-  def rateDistribution(user: User, round: Round) = {
-    val rateMap = ImageJdbc.rateDistribution(user.getId, round.getId)
-    new RateDistribution(rateMap)
   }
 
   def csvStream(lines: Seq[Seq[String]], filename: String): Result = {
@@ -401,7 +321,7 @@ class GalleryController @Inject()(cc: ControllerComponents)
     )
   }
 
-  def thumbnailUrls(contestId: Long, roundId: Option[Long]) = withAuth() {
+  def thumbnailUrls(contestId: Long, roundId: Option[Long]): EssentialAction = withAuth() {
     user => implicit request =>
       val contest = ContestJuryJdbc.findById(contestId).get
       if (user.isAdmin(Some(contestId))) {
@@ -417,16 +337,16 @@ class GalleryController @Inject()(cc: ControllerComponents)
 
 class RateDistribution(rateMap: Map[Int, Int]) {
 
-  def unrated = rateMap.getOrElse(0, 0)
+  def unrated: Int = rateMap.getOrElse(0, 0)
 
-  def selected = rateMap.getOrElse(1, 0)
+  def selected: Int = rateMap.getOrElse(1, 0)
 
-  def rejected = rateMap.getOrElse(-1, 0)
+  def rejected: Int = rateMap.getOrElse(-1, 0)
 
-  def all = rateMap.values.sum
+  def all: Int = rateMap.values.sum
 
-  def positive = all - unrated - rejected
+  def positive: Int = all - unrated - rejected
 
-  def rated = all - unrated
+  def rated: Int = all - unrated
 
 }

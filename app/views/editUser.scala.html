@@ -20,7 +20,7 @@
                 <h3>@Messages("create.user")</h3>
             }
 
-            @form(routes.UsersController.saveUser, 'class -> "form-vertical") {
+            @form(routes.UserController.saveUser(), Symbol("class") -> "form-vertical") {
                 @helper.CSRF.formField
 
                 @if(editUserForm.hasGlobalErrors) {
@@ -44,12 +44,12 @@
                             (Seq("no", "jury", "organizer", "admin") ++ (
                                     if(user.hasRole("root")) Seq("root") else Seq.empty)
                                     ).map(x => (x, Messages(x))),
-                            Seq('_label -> Messages("role"), '_help -> "", 'class -> "form-control") ++
-                                    (if(!user.hasAnyRole(User.ADMIN_ROLES)) Seq('disabled -> "true") else Seq.empty): _*)
+                            Seq(Symbol("_label") -> Messages("role"), Symbol("_help") -> "", Symbol("class") -> "form-control") ++
+                                    (if(!user.hasAnyRole(User.ADMIN_ROLES)) Seq(Symbol("disabled") -> "true") else Seq.empty): _*)
                     }
 
                     @select(editUserForm("lang"), Seq("en", "fr", "ru", "uk").map(x => (x, User.LANGS(x))),
-                        '_label -> Messages("language"), '_help -> "", 'class -> "form-control")
+                        Symbol("_label") -> Messages("language"), Symbol("_help") -> "", Symbol("class") -> "form-control")
 
                     @if(true || editUserForm("id").value.contains(user.id.toString)) {
                         <div class="form-group">
@@ -75,7 +75,7 @@
                 <div class="form-actions">
                     <input type="submit" class="btn btn-default btn-primary" value="@Messages("save")">
                     @if(user.hasAnyRole(User.ADMIN_ROLES)) {
-                        <a href="@routes.UsersController.users(contestId)" class="btn btn-default">@Messages("cancel")</a>
+                        <a href="@routes.UserController.users(contestId)" class="btn btn-default">@Messages("cancel")</a>
                     } else {
                         <a href="@routes.LoginController.index" class="btn btn-default">@Messages("cancel")</a>
                     }
@@ -83,7 +83,8 @@
             }
 
             <div style="display: none;">
-            @form(routes.UsersController.resetPassword(editUserForm("id").value.map(_.toLong).get), 'class -> "form-vertical", 'id -> "reset-password") {
+            @form(routes.UserController.resetPassword(editUserForm("id").value.map(_.toLong).get),
+                Symbol("class") -> "form-vertical", Symbol("id") -> "reset-password") {
                 <input type="submit" class="btn" value="@Messages("Reset password")">
                 }
             </div>

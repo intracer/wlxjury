@@ -1,10 +1,10 @@
 package org.intracer.wmua.cmd
 
 import controllers.Global.commons
-import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, Round, SelectionJdbc, User}
+import db.scalikejdbc._
 import org.intracer.wmua._
 import org.scalawiki.dto.Namespace
-import play.api.{Logger, Logging}
+import play.api.Logging
 import spray.util.pimpFuture
 
 import scala.concurrent.duration._
@@ -14,7 +14,7 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
 
   val sortedJurors = jurors.sorted
 
-  def apply() = {
+  def apply(): Unit = {
     val selection: Seq[Selection] = newSelection
 
     logger.debug("saving selection: " + selection.size)
@@ -24,7 +24,7 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
     addCriteriaRates(selection)
   }
 
-  def newSelection = {
+  def newSelection: Seq[Selection] = {
     val selection: Seq[Selection] = round.distribution match {
       case 0 =>
         sortedJurors.flatMap { juror =>

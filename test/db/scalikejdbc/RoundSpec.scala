@@ -1,7 +1,7 @@
 package db.scalikejdbc
 
 import org.specs2.mutable.Specification
-import services.RoundsService
+import services.RoundService
 
 class RoundSpec extends Specification with TestDb {
 
@@ -50,7 +50,7 @@ class RoundSpec extends Specification with TestDb {
     "set new current round" in {
       withDb {
         val contestDao = ContestJuryJdbc
-        val roundService = new RoundsService(roundDao)
+        val roundService = new RoundService(roundDao)
 
         val contest = contestDao.create(None, "WLE", 2015, "Ukraine", None, None, None)
         val contestId = contest.getId

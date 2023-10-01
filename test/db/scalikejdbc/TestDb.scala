@@ -20,7 +20,7 @@ trait TestDb {
   val selectionDao = SelectionJdbc
   val userDao = User
 
-  def now = ZonedDateTime.now.withNano(0)
+  def now: ZonedDateTime = ZonedDateTime.now.withNano(0)
 
   def testDbApp[T](block: Application => T)
                   (implicit additionalConfig: Map[String, String] = Map.empty): T = {
@@ -47,7 +47,7 @@ trait TestDb {
       new GuiceApplicationBuilder()
         .configure(dbConfiguration ++ additionalConfig)
         .bindings(new scalikejdbc.PlayModule)
-        .build
+        .build()
     }
 
     try {

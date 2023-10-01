@@ -9,7 +9,7 @@ import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ControllerComponents, EssentialAction}
-import services.RoundsService
+import services.RoundService
 
 import javax.inject.Inject
 import scala.util.Try
@@ -18,9 +18,9 @@ import scala.util.Try
   * Controller for displaying pages related to contest rounds
   * @param contestsController
   */
-class RoundsController @Inject()(cc: ControllerComponents,
-                                 val contestsController: ContestsController,
-                                 roundsService: RoundsService)
+class RoundController @Inject()(cc: ControllerComponents,
+                                val contestsController: ContestController,
+                                roundsService: RoundService)
     extends Secured(cc)
     with I18nSupport
     with Logging {
@@ -144,7 +144,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
                 }
               }
             }
-            Redirect(routes.RoundsController.rounds(Some(round.contestId)))
+            Redirect(routes.RoundController.rounds(Some(round.contestId)))
           }
         )
     }
@@ -159,7 +159,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
         roundsService.setCurrentRound(None, r.copy(active = selectRound.active))
       }
 
-      Redirect(routes.RoundsController.rounds(round.map(_.contestId)))
+      Redirect(routes.RoundController.rounds(round.map(_.contestId)))
   }
 
   def setRoundUser(): EssentialAction =
@@ -168,7 +168,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
       RoundUser.setActive(setRoundUser.roundId.toLong,
                           setRoundUser.userId.toLong,
                           setRoundUser.active)
-      Redirect(routes.RoundsController.roundStat(setRoundUser.roundId.toLong))
+      Redirect(routes.RoundController.roundStat(setRoundUser.roundId.toLong))
     }
 
   def startRound(): EssentialAction =
@@ -183,7 +183,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
         }
       }
 
-      Redirect(routes.RoundsController.rounds())
+      Redirect(routes.RoundController.rounds())
     }
 
   def setImages(): EssentialAction =
@@ -201,7 +201,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
         //          }
       }
 
-      Redirect(routes.RoundsController.rounds())
+      Redirect(routes.RoundController.rounds())
 
     }
 
@@ -233,7 +233,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
 
         activeRound
           .map { round =>
-            Redirect(routes.RoundsController.roundStat(round.getId))
+            Redirect(routes.RoundController.roundStat(round.getId))
           }
           .getOrElse {
             Redirect(
@@ -269,7 +269,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
       roundsService.mergeRounds(user.contestId.get,
                                 mergeRounds.targetRoundId,
                                 mergeRounds.sourceRoundId)
-      Redirect(routes.RoundsController.rounds())
+      Redirect(routes.RoundController.rounds())
     }
 
   //  def byRate(roundId: Int) = withAuth({

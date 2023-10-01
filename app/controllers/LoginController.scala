@@ -5,20 +5,22 @@ import play.api.data.Forms._
 import play.api.data._
 import play.api.i18n.{I18nSupport, Lang}
 import play.api.mvc._
+import services.UserService
 
 import javax.inject.Inject
 
-class LoginController @Inject()(cc: ControllerComponents,val admin: UsersController)
+class LoginController @Inject()(cc: ControllerComponents,
+                                val admin: UserService)
     extends Secured(cc)
     with I18nSupport {
 
-  def index = withAuth() { user => implicit request =>
+  def index: EssentialAction = withAuth() { user => implicit request =>
     indexRedirect(user)
   }
 
   def indexRedirect(user: User): Result = {
     if (user.hasAnyRole(User.ORG_COM_ROLES)) {
-      Redirect(routes.RoundsController.currentRoundStat())
+      Redirect(routes.RoundController.currentRoundStat())
     } else if (user.hasAnyRole(User.JURY_ROLES)) {
       val maybeRound = Round.activeRounds(user).headOption
       maybeRound.fold {
@@ -33,9 +35,9 @@ class LoginController @Inject()(cc: ControllerComponents,val admin: UsersControl
         }
       }
     } else if (user.hasRole(User.ROOT_ROLE)) {
-      Redirect(routes.ContestsController.list())
+      Redirect(routes.ContestController.list())
     } else if (user.hasAnyRole(User.ADMIN_ROLES)) {
-      Redirect(routes.UsersController.users(user.contestId))
+      Redirect(routes.UserController.users(user.contestId))
     } else {
       Redirect(
         routes.LoginController.error(
@@ -43,7 +45,7 @@ class LoginController @Inject()(cc: ControllerComponents,val admin: UsersControl
     }
   }
 
-  def login = Action { implicit request =>
+  def login: Action[AnyContent] = Action { implicit request =>
     val users = User.count()
     if (users > 0) {
       Ok(views.html.index(loginForm))
@@ -52,44 +54,48 @@ class LoginController @Inject()(cc: ControllerComponents,val admin: UsersControl
     }
   }
 
-  def auth() = Action { implicit request =>
-    loginForm.bindFromRequest().fold(
-      formWithErrors => BadRequest(views.html.index(formWithErrors)), {
-        case (login, password) =>
-          val user = User.login(login, password).get
-          val result =
-            indexRedirect(user).withSession("username" -> login)
-          user.lang.fold(result)(l => result.withLang(Lang(l)))
-      }
-    )
+  def auth(): Action[AnyContent] = Action { implicit request =>
+    loginForm
+      .bindFromRequest()
+      .fold(
+        formWithErrors => BadRequest(views.html.index(formWithErrors)), {
+          case (login, password) =>
+            val user = User.login(login, password).get
+            val result =
+              indexRedirect(user).withSession(Secured.UserName -> login)
+            user.lang.fold(result)(l => result.withLang(Lang(l)))
+        }
+      )
   }
 
-  def signUpView() = Action { implicit request =>
+  def signUpView(): Action[AnyContent] = Action { implicit request =>
     Ok(views.html.signUp(signUpForm))
   }
 
-  def signUp() = Action { implicit request =>
-    signUpForm.bindFromRequest().fold(
-      formWithErrors => BadRequest(views.html.signUp(formWithErrors)), {
-        case (login: String, password: String, _) =>
-          val users = User.count()
-          val roles =
-            if (users > 0)
-              Set.empty[String]
-            else
-              Set(User.ROOT_ROLE)
+  def signUp(): Action[AnyContent] = Action { implicit request =>
+    signUpForm
+      .bindFromRequest()
+      .fold(
+        formWithErrors => BadRequest(views.html.signUp(formWithErrors)), {
+          case (login: String, password: String, _) =>
+            val users = User.count()
+            val roles =
+              if (users > 0)
+                Set.empty[String]
+              else
+                Set(User.ROOT_ROLE)
 
-          val newUser = new User(fullname = "",
-                                 email = login,
-                                 password = Some(password),
-                                 roles = roles)
+            val newUser = new User(fullname = "",
+                                   email = login,
+                                   password = Some(password),
+                                   roles = roles)
 
-          val user = admin.createNewUser(newUser, newUser)
-          val result =
-            indexRedirect(user).withSession("username" -> password)
-          user.lang.fold(result)(l => result.withLang(Lang(l)))
-      }
-    )
+            val user = admin.createNewUser(newUser, newUser)
+            val result =
+              indexRedirect(user).withSession("username" -> password)
+            user.lang.fold(result)(l => result.withLang(Lang(l)))
+        }
+      )
   }
 
   /**
@@ -97,12 +103,13 @@ class LoginController @Inject()(cc: ControllerComponents,val admin: UsersControl
     *
     * @return Index page
     */
-  def logout = Action {
+  def logout: Action[AnyContent] = Action {
     Redirect(routes.LoginController.login()).withNewSession
   }
 
-  def error(message: String) = withAuth() { user => implicit request =>
-    Ok(views.html.error(message, user, user.getId))
+  def error(message: String): EssentialAction = withAuth() {
+    user => implicit request =>
+      Ok(views.html.error(message, user, user.getId))
   }
 
   val loginForm = Form(
