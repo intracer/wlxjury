@@ -57,70 +57,74 @@ class ContestsController @Inject()(val commons: MwBot, cc: ControllerComponents)
 
   def saveContest() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
     user => implicit request =>
-      editContestForm.bindFromRequest().fold(
-        formWithErrors => {
-          val contests = findContests
-          BadRequest(
-            views.html.contests(user,
-                                contests,
-                                Seq.empty,
-                                formWithErrors,
-                                importContestsForm))
-        },
-        formContest => {
-          createContest(formContest)
-          Redirect(routes.ContestsController.list())
-        }
-      )
+      editContestForm
+        .bindFromRequest()
+        .fold(
+          formWithErrors => {
+            val contests = findContests
+            BadRequest(
+              views.html.contests(user,
+                                  contests,
+                                  Seq.empty,
+                                  formWithErrors,
+                                  importContestsForm))
+          },
+          formContest => {
+            createContest(formContest)
+            Redirect(routes.ContestsController.list())
+          }
+        )
   }
 
   def importContests() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
     user => implicit request =>
-      importContestsForm.bindFromRequest().fold(
-        formWithErrors => {
-          val contests = findContests
-          BadRequest(
-            views.html.contests(user,
-                                contests,
-                                Seq.empty,
-                                editContestForm,
-                                formWithErrors))
-        },
-        formContest => {
-          val imported =
-            if (formContest.startsWith("Commons:")) {
-              importListPage(formContest)
-            } else {
-              importCategory(formContest)
+      importContestsForm
+        .bindFromRequest()
+        .fold(
+          formWithErrors => {
+            val contests = findContests
+            BadRequest(
+              views.html.contests(user,
+                                  contests,
+                                  Seq.empty,
+                                  editContestForm,
+                                  formWithErrors))
+          },
+          formContest => {
+            val imported =
+              if (formContest.startsWith("Commons:")) {
+                importListPage(formContest)
+              } else {
+                importCategory(formContest)
+              }
+
+            val existing = ContestJuryJdbc
+              .findAll()
+              .map(c => s"${c.name}/${c.year}/${c.country}")
+              .toSet
+            val newContests = imported.filterNot(
+              c =>
+                existing.contains(
+                  s"${c.contestType.name}/${c.year}/${c.country.name}"))
+
+            newContests.foreach {
+              contest =>
+                val contestJury = ContestJury(
+                  id = None,
+                  name = contest.contestType.name,
+                  year = contest.year,
+                  country = contest.country.name,
+                  images = Some(
+                    s"Category:Images from ${contest.contestType.name} ${contest.year} in ${contest.country.name}"),
+                  monumentIdTemplate =
+                    contest.uploadConfigs.headOption.map(_.fileTemplate),
+                  campaign = Some(contest.campaign)
+                )
+                createContest(contestJury)
             }
-
-          val existing = ContestJuryJdbc
-            .findAll()
-            .map(c => s"${c.name}/${c.year}/${c.country}")
-            .toSet
-          val newContests = imported.filterNot(
-            c =>
-              existing.contains(
-                s"${c.contestType.name}/${c.year}/${c.country.name}"))
-
-          newContests.foreach {
-            contest =>
-              val contestJury = ContestJury(
-                id = None,
-                name = contest.contestType.name,
-                year = contest.year,
-                country = contest.country.name,
-                images = Some(
-                  s"Category:Images from ${contest.contestType.name} ${contest.year} in ${contest.country.name}"),
-                monumentIdTemplate =
-                  contest.uploadConfigs.headOption.map(_.fileTemplate),
-                campaign = Some(contest.campaign)
-              )
-              createContest(contestJury)
+            Redirect(routes.ContestsController.list())
           }
-          Redirect(routes.ContestsController.list())
-        }
-      )
+        )
   }
 
   def importListPage(pageName: String): Seq[Contest] = {

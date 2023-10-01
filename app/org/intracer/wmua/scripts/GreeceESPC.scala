@@ -1,8 +1,10 @@
 package org.intracer.wmua.scripts
 
+import db.scalikejdbc.Round
 import org.intracer.wmua.Tools
 import org.intracer.wmua.cmd._
 import play.api.Configuration
+import services.RoundsService
 
 object GreeceESPC {
 
@@ -23,6 +25,6 @@ object GreeceESPC {
 
     DistributeImages.distributeImages(round, round.availableJurors, None)
 
-    SetCurrentRound(contestId, None, round).apply()
+    new RoundsService(Round).setCurrentRound(None, round)
   }
 }

@@ -1,7 +1,7 @@
 package db.scalikejdbc
 
-import org.intracer.wmua.cmd.SetCurrentRound
 import org.specs2.mutable.Specification
+import services.RoundsService
 
 class RoundSpec extends Specification with TestDb {
 
@@ -50,6 +50,7 @@ class RoundSpec extends Specification with TestDb {
     "set new current round" in {
       withDb {
         val contestDao = ContestJuryJdbc
+        val roundService = new RoundsService(roundDao)
 
         val contest = contestDao.create(None, "WLE", 2015, "Ukraine", None, None, None)
         val contestId = contest.getId
@@ -63,7 +64,7 @@ class RoundSpec extends Specification with TestDb {
 
         val activeRound = round.copy(active = true)
 
-        SetCurrentRound(contestId, None, activeRound).apply()
+        roundService.setCurrentRound(None, activeRound)
 
         // TODO fix time issues
         roundDao.findById(round.getId).map(_.copy(createdAt = createdAt)) === Some(activeRound.copy(createdAt = createdAt))

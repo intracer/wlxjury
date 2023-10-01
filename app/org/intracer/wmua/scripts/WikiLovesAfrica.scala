@@ -1,8 +1,9 @@
 package org.intracer.wmua.scripts
 
-import db.scalikejdbc.ContestJuryJdbc
+import db.scalikejdbc.{ContestJuryJdbc, Round}
 import org.intracer.wmua.Tools
 import org.intracer.wmua.cmd._
+import services.RoundsService
 
 object WikiLovesAfrica {
 
@@ -28,7 +29,7 @@ object WikiLovesAfrica {
       val images = DistributeImages.getFilteredImages(round, round.availableJurors, Some(prevRound), selectedAtLeast = Some(1))
       DistributeImages.distributeImages(round, round.availableJurors, images)
 
-      SetCurrentRound(contestId, Some(prevRound), round).apply()
+      new RoundsService(Round).setCurrentRound(prevRound.id, round)
     }
   }
 }

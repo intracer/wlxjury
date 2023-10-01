@@ -1,7 +1,8 @@
 package db.scalikejdbc
 
-import java.time.ZonedDateTime
+import db.RoundDao
 
+import java.time.ZonedDateTime
 import org.intracer.wmua.{HasId, ImageWithRating}
 import org.scalawiki.dto.Page
 import scalikejdbc._
@@ -130,7 +131,7 @@ object Rates {
 
 }
 
-object Round extends SkinnyCRUDMapper[Round] {
+object Round extends RoundDao with SkinnyCRUDMapper[Round] {
 
   implicit def session: DBSession = autoSession
 
@@ -270,8 +271,8 @@ object Round extends SkinnyCRUDMapper[Round] {
       .orderBy(r.id)
       .apply()
 
-  def findByIds(contestId: Long, sourceRoundIds: Seq[Long]): Seq[Round] = {
-    where(sqls.eq(r.contestId, contestId).and.in(r.id, sourceRoundIds))
+  def findByIds(contestId: Long, roundIds: Seq[Long]): Seq[Round] = {
+    where(sqls.eq(r.contestId, contestId).and.in(r.id, roundIds))
       .orderBy(r.id)
       .apply()
   }

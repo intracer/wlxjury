@@ -1,18 +1,22 @@
 package services
 
 import controllers.RoundStat
+import db.RoundDao
 import db.scalikejdbc.Round.RoundStatRow
 import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import db.scalikejdbc.{Round, RoundUser, SelectionJdbc, User}
-import org.intracer.wmua.cmd.{DistributeImages, SetCurrentRound}
+import org.intracer.wmua.cmd.DistributeImages
+import play.api.Logging
 
-class RoundsService {
+import javax.inject.Inject
+
+class RoundsService @Inject()(dao: RoundDao) extends Logging {
 
   def createNewRound(round: Round, jurorIds: Seq[Long]): Round = {
-    val numberOfRounds = Round.countByContest(round.contestId)
-    val created = Round.create(round.copy(number = numberOfRounds + 1))
+    val numberOfRounds = dao.countByContest(round.contestId)
+    val created = dao.create(round.copy(number = numberOfRounds + 1))
 
-    val prevRound = created.previous.flatMap(Round.findById)
+    val prevRound = created.previous.flatMap(dao.findById)
     val jurors = User.loadJurors(round.contestId, jurorIds)
 
     created.addUsers(jurors.map(u =>
@@ -20,15 +24,15 @@ class RoundsService {
 
     DistributeImages.distributeImages(created, jurors, prevRound)
 
-    SetCurrentRound(round.contestId, prevRound, created).apply()
+    setCurrentRound(created.previous, created)
 
     created
   }
 
   def getRoundStat(roundId: Long, round: Round): RoundStat = {
-    val rounds = Round.findByContest(round.contestId)
+    val rounds = dao.findByContest(round.contestId)
 
-    val statRows: Seq[RoundStatRow] = Round.roundUserStat(roundId)
+    val statRows: Seq[RoundStatRow] = dao.roundUserStat(roundId)
 
     val byJuror: Map[Long, Seq[RoundStatRow]] =
       statRows.groupBy(_.juror).filter {
@@ -45,33 +49,40 @@ class RoundsService {
         .toMap
     }.toMap
 
-    val totalByRate = Round.roundRateStat(roundId).toMap
-
+    val totalByRate = dao.roundRateStat(roundId).toMap
     val total = SelectionQuery(roundId = Some(roundId), grouped = true).count()
 
     val roundUsers = RoundUser.byRoundId(roundId).groupBy(_.userId)
     val jurors = User
       .findByContest(round.contestId)
-      .filter { u =>
-        u.id.exists(byUserCount.contains)
-      }
+      .filter(_.id.exists(byUserCount.contains))
       .map(u =>
         u.copy(
           active = roundUsers.get(u.getId).flatMap(_.headOption.map(_.active))))
 
     RoundStat(jurors,
-      round,
-      rounds,
-      byUserCount,
-      byUserRateCount,
-      total,
-      totalByRate)
+              round,
+              rounds,
+              byUserCount,
+              byUserRateCount,
+              total,
+              totalByRate)
   }
 
-  def mergeRounds(contestId: Long, targetRoundId: Long, sourceRoundId: Long): Unit = {
-    val rounds = Round.findByIds(contestId, Seq(targetRoundId, sourceRoundId))
+  def mergeRounds(contestId: Long,
+                  targetRoundId: Long,
+                  sourceRoundId: Long): Unit = {
+    val rounds = dao.findByIds(contestId, Seq(targetRoundId, sourceRoundId))
     assert(rounds.size == 2)
     SelectionJdbc.mergeRounds(rounds.head.id.get, rounds.last.id.get)
+  }
+
+  def setCurrentRound(prevRoundId: Option[Long], round: Round): Unit = {
+    logger.info(
+      s"Setting current round ${prevRoundId.fold("")(rId => s"from $rId")} to ${round.getId}")
+
+    prevRoundId.foreach(rId => Round.setActive(rId, active = false))
+    Round.setActive(round.getId, active = round.active)
   }
 
 }

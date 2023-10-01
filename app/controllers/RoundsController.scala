@@ -2,13 +2,13 @@ package controllers
 
 import db.scalikejdbc._
 import org.intracer.wmua._
-import org.intracer.wmua.cmd.{DistributeImages, SetCurrentRound}
+import org.intracer.wmua.cmd.DistributeImages
 import play.api.Logging
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import play.api.i18n.I18nSupport
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{ControllerComponents, EssentialAction}
 import services.RoundsService
 
 import javax.inject.Inject
@@ -30,7 +30,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
     * @param contestIdParam
     * @return
     */
-  def rounds(contestIdParam: Option[Long] = None) =
+  def rounds(contestIdParam: Option[Long] = None): EssentialAction =
     withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
       user => implicit request =>
         val roundsView =
@@ -63,7 +63,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
     */
   def editRound(roundId: Option[Long],
                 contestId: Long,
-                topImages: Option[Int]) =
+                topImages: Option[Int]): EssentialAction =
     withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
       user => implicit request =>
         val number = Round.findByContest(contestId).size + 1
@@ -107,8 +107,8 @@ class RoundsController @Inject()(cc: ControllerComponents,
                                images))
     }
 
-  def saveRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
-    user => implicit request =>
+  def saveRound(): EssentialAction =
+    withAuth(rolePermission(User.ADMIN_ROLES)) { user => implicit request =>
       editRoundForm
         .bindFromRequest()
         .fold(
@@ -147,33 +147,32 @@ class RoundsController @Inject()(cc: ControllerComponents,
             Redirect(routes.RoundsController.rounds(Some(round.contestId)))
           }
         )
-  }
+    }
 
-  def setRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
+  def setRound(): EssentialAction = withAuth(rolePermission(User.ADMIN_ROLES)) {
     user => implicit request =>
       val selectRound = selectRoundForm.bindFromRequest().get
 
       val id = selectRound.roundId.toLong
       val round = Round.findById(id)
       round.foreach { r =>
-        SetCurrentRound(r.contestId, None, r.copy(active = selectRound.active))
-          .apply()
+        roundsService.setCurrentRound(None, r.copy(active = selectRound.active))
       }
 
       Redirect(routes.RoundsController.rounds(round.map(_.contestId)))
   }
 
-  def setRoundUser() = withAuth(rolePermission(User.ADMIN_ROLES)) {
-    user => implicit request =>
+  def setRoundUser(): EssentialAction =
+    withAuth(rolePermission(User.ADMIN_ROLES)) { user => implicit request =>
       val setRoundUser = setRoundUserForm.bindFromRequest().get
       RoundUser.setActive(setRoundUser.roundId.toLong,
                           setRoundUser.userId.toLong,
                           setRoundUser.active)
       Redirect(routes.RoundsController.roundStat(setRoundUser.roundId.toLong))
-  }
+    }
 
-  def startRound() = withAuth(rolePermission(User.ADMIN_ROLES)) {
-    user => implicit request =>
+  def startRound(): EssentialAction =
+    withAuth(rolePermission(User.ADMIN_ROLES)) { user => implicit request =>
       for (contestId <- user.currentContest;
            contest <- ContestJuryJdbc.findById(contestId)) {
         val rounds = Round.findByContest(contestId)
@@ -185,10 +184,10 @@ class RoundsController @Inject()(cc: ControllerComponents,
       }
 
       Redirect(routes.RoundsController.rounds())
-  }
+    }
 
-  def setImages() = withAuth(rolePermission(User.ADMIN_ROLES)) {
-    user => implicit request =>
+  def setImages(): EssentialAction =
+    withAuth(rolePermission(User.ADMIN_ROLES)) { user => implicit request =>
       val imagesSource: Option[String] = imagesForm.bindFromRequest().get
       for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById)) {
         ContestJuryJdbc.setImagesSource(contest.getId, imagesSource)
@@ -204,9 +203,9 @@ class RoundsController @Inject()(cc: ControllerComponents,
 
       Redirect(routes.RoundsController.rounds())
 
-  }
+    }
 
-  def currentRoundStat(contestId: Option[Long] = None) =
+  def currentRoundStat(contestId: Option[Long] = None): EssentialAction =
     withAuth(
       rolePermission(
         Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) {
@@ -243,7 +242,7 @@ class RoundsController @Inject()(cc: ControllerComponents,
           }
     }
 
-  def roundStat(roundId: Long) =
+  def roundStat(roundId: Long): EssentialAction =
     withAuth(
       rolePermission(
         Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) {
@@ -264,14 +263,14 @@ class RoundsController @Inject()(cc: ControllerComponents,
           }
     }
 
-  def mergeRounds() = withAuth(rolePermission(User.ADMIN_ROLES)) {
-    user => implicit request =>
+  def mergeRounds(): EssentialAction =
+    withAuth(rolePermission(User.ADMIN_ROLES)) { user => implicit request =>
       val mergeRounds = mergeRoundsForm.bindFromRequest().get
       roundsService.mergeRounds(user.contestId.get,
                                 mergeRounds.targetRoundId,
                                 mergeRounds.sourceRoundId)
       Redirect(routes.RoundsController.rounds())
-  }
+    }
 
   //  def byRate(roundId: Int) = withAuth({
   //    user =>
