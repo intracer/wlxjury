@@ -151,11 +151,13 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
 
   val binaryRound = new Rates(1, "+/-", -1, 1)
 
-  val rateRounds = (3 to 20).map(i => new Rates(i, s"1-$i rating", 1, i))
+  val rateRounds: Seq[Rates] =
+    (3 to 20).map(i => new Rates(i, s"1-$i rating", 1, i))
 
-  val rates = Seq(commentsOnlyRound, binaryRound) ++ rateRounds
+  val rates: Seq[Rates] = Seq(commentsOnlyRound, binaryRound) ++ rateRounds
 
-  val ratesById = rates.groupBy(_.id).mapValues(_.head)
+  val ratesById: Map[Int, Rates] =
+    rates.groupBy(_.id).view.mapValues(_.head).toMap
 
   lazy val usersRef = hasManyThrough[User](
     through = RoundUser,
@@ -228,15 +230,15 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
     round.copy(id = Some(id))
   }
 
-  def updateRound(id: Long, round: Round) =
+  def updateRound(id: Long, round: Round): Int =
     updateById(id)
       .withAttributes(
-        'name -> round.name,
-        'active -> round.active
+        Symbol("name") -> round.name,
+        Symbol("active") -> round.active
       )
 
   def activeRounds(contestId: Long): Seq[Round] =
-    where('contestId -> contestId, 'active -> true)
+    where(Symbol("contestId") -> contestId, Symbol("active") -> true)
       .orderBy(r.id)
       .apply()
 
@@ -267,7 +269,7 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
   }
 
   def findByContest(contest: Long): Seq[Round] =
-    where('contestId -> contest)
+    where(Symbol("contestId") -> contest)
       .orderBy(r.id)
       .apply()
 
@@ -279,7 +281,7 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
 
   def setActive(id: Long, active: Boolean): Unit =
     updateById(id)
-      .withAttributes('active -> active)
+      .withAttributes(Symbol("active") -> active)
 
   def setInactiveAllInContest(contestId: Long): Unit =
     withSQL {
@@ -331,12 +333,12 @@ object RoundUser extends SkinnyJoinTable[RoundUser] {
     for (rId <- r.id; uId <- u.id) yield RoundUser(rId, uId, u.roles.head, true)
 
   def activeJurors(roundId: Long): List[RoundUser] =
-    where('roundId -> roundId, 'active -> true).apply()
+    where(Symbol("roundId") -> roundId, Symbol("active") -> true).apply()
 
   def byRoundId(roundId: Long): List[RoundUser] =
-    where('roundId -> roundId).apply()
+    where(Symbol("roundId") -> roundId).apply()
 
   def setActive(roundId: Long, userId: Long, active: Boolean): Int =
     updateBy(sqls.eq(ru.roundId, roundId).and.eq(ru.userId, userId))
-      .withAttributes('active -> active)
+      .withAttributes(Symbol("active") -> active)
 }

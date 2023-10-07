@@ -4,7 +4,7 @@ import db.scalikejdbc._
 import org.intracer.wmua._
 import org.intracer.wmua.cmd.DistributeImages
 import play.api.Logging
-import play.api.data.Form
+import play.api.data.{Form, Mapping}
 import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid, ValidationError}
 import play.api.i18n.I18nSupport
@@ -130,18 +130,24 @@ class RoundController @Inject()(cc: ControllerComponents,
                                    jurorsMapping))
           },
           editForm => {
+
             val round = editForm.round.copy(active = true)
+
             if (round.id.isEmpty) {
               roundsService.createNewRound(round, editForm.jurors)
             } else {
-              round.id.foreach { roundId =>
-                Round.updateRound(roundId, round)
-                if (editForm.newImages) {
-                  val prevRound = round.previous.flatMap(Round.findById)
-
-                  val jurors = User.findByRoundSelection(roundId)
-                  DistributeImages.distributeImages(round, jurors, prevRound)
-                }
+              round.id.foreach {
+                roundId =>
+                  Round.updateRound(roundId, round)
+                  if (editForm.newImages) {
+                    val prevRound = round.previous.flatMap(Round.findById)
+                    val jurors = User.findByRoundSelection(roundId)
+                    Round.findById(roundId).foreach { currentRound =>
+                      DistributeImages.distributeImages(currentRound,
+                                                        jurors,
+                                                        prevRound)
+                    }
+                  }
               }
             }
             Redirect(routes.RoundController.rounds(Some(round.contestId)))
@@ -322,9 +328,9 @@ class RoundController @Inject()(cc: ControllerComponents,
     }
 
   private val jurorsMappingKV = "jurors" -> seq(text).verifying(nonEmptySeq)
-  val jurorsMapping = single(jurorsMappingKV)
+  val jurorsMapping: Mapping[Seq[String]] = single(jurorsMappingKV)
 
-  val editRoundForm = Form(
+  val editRoundForm: Form[EditRound] = Form(
     mapping(
       "id" -> optional(longNumber),
       "number" -> longNumber,
