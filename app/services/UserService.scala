@@ -1,6 +1,6 @@
 package services
 
-import controllers.{Greeting, SMTPOrWikiMail}
+import controllers.Greeting
 import db.scalikejdbc.{ContestJuryJdbc, User}
 import org.intracer.wmua.ContestJury
 import play.api.Configuration

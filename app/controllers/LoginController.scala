@@ -9,8 +9,8 @@ import services.UserService
 
 import javax.inject.Inject
 
-class LoginController @Inject()(cc: ControllerComponents,
-                                val admin: UserService)
+class LoginController @Inject()(val admin: UserService,
+                                cc: ControllerComponents)
     extends Secured(cc)
     with I18nSupport {
 

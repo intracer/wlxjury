@@ -1,11 +1,12 @@
-package controllers
+package services
 
 import db.scalikejdbc.User
-import javax.inject.Inject
 import org.scalawiki.MwBot
 import org.scalawiki.dto.cmd.Action
 import org.scalawiki.dto.cmd.email.{EmailUser, Subject, Target, Text}
 import play.api.libs.mailer.{Email, MailerClient}
+
+import javax.inject.Inject
 
 trait SendMail {
   def sendMail(from: User, to: User, subject: String, message: String): Unit

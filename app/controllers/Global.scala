@@ -60,16 +60,16 @@ object Global {
     }
   }
 
-  def srcSet(image: Image, resizeToWidth: Int, resizeToHeight: Int) = {
+  def srcSet(image: Image, resizeToWidth: Int, resizeToHeight: Int): String = {
     s"${resizeTo(image, (resizeToWidth * 1.5).toInt, (resizeToHeight * 1.5).toInt)} 1.5x, ${resizeTo(image, resizeToWidth * 2, resizeToHeight * 2)} 2x"
   }
 
-  def thumbPhpUrl(info: Image, px: Int, resizeToHeight: Int) = {
+  def thumbPhpUrl(info: Image, px: Int, resizeToHeight: Int): String = {
     val file = URLEncoder.encode(info.title.replaceFirst("File:", "").replace(" ", "_"), "UTF-8")
     s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
   }
 
-  def legacyThumbUlr(info: Image, px: Int, resizeToHeight: Int) = {
+  def legacyThumbUlr(info: Image, px: Int, resizeToHeight: Int): String = {
     val isPdf = info.title.toLowerCase.endsWith(".pdf")
     val isTif = info.title.toLowerCase.endsWith(".tif")
 
