@@ -11,10 +11,10 @@ object WikiLovesAfrica {
   val country = "Africa"
   val year = 2015
 
-  def juror(country: String, n: Int) = "WLAJuror" + n
+  def juror(country: String, n: Int): String = "WLAJuror" + n
 
-  def main(args: Array[String]) {
-    for (contest <- ContestJuryJdbc.where('name -> contestType, 'country -> country, 'year -> year).apply().headOption) {
+  def main(args: Array[String]): Unit = {
+    for (contest <- ContestJuryJdbc.where(Symbol("name") -> contestType, Symbol("country") -> country, Symbol("year") -> year).apply().headOption) {
       val contestId = contest.getId
 
       val cmds = Seq(

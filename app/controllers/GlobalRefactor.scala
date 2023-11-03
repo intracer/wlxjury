@@ -32,7 +32,7 @@ class GlobalRefactor(val commons: MwBot) {
       Query(
         Generator(generatorArg)
       ))
-    new DslQuery(action, commons).run().map(_.values.toSeq)
+    new DslQuery(action, commons).run().map(_.allPages.toSeq)
   }
 
   def addContestCategories(contestName: String, year: Int): Future[Unit] = {

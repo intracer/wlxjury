@@ -43,29 +43,29 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
     )
 
   def create(
-      pageId: Long,
-      rate: Int,
-      juryId: Long,
-      roundId: Long,
-      createdAt: Option[ZonedDateTime] = Some(ZonedDateTime.now)): Selection = {
+              pageId: Long,
+              rate: Int,
+              juryId: Long,
+              roundId: Long,
+              createdAt: Option[ZonedDateTime] = Some(ZonedDateTime.now)): Selection = {
     val id = withSQL {
       insert
         .into(SelectionJdbc)
         .namedValues(column.pageId -> pageId,
-                     column.rate -> rate,
-                     column.juryId -> juryId,
-                     column.roundId -> roundId)
+          column.rate -> rate,
+          column.juryId -> juryId,
+          column.roundId -> roundId)
     }.updateAndReturnGeneratedKey().apply()
 
     Selection(pageId = pageId,
-              juryId = juryId,
-              roundId = roundId,
-              rate = rate,
-              id = Some(id),
-              createdAt = createdAt)
+      juryId = juryId,
+      roundId = roundId,
+      rate = rate,
+      id = Some(id),
+      createdAt = createdAt)
   }
 
-  def batchInsert(selections: Iterable[Selection]) {
+  def batchInsert(selections: Iterable[Selection]): Unit = {
     val column = SelectionJdbc.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] =
@@ -84,23 +84,23 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
   }
 
   def byRound(roundId: Long): Seq[Selection] =
-    where('roundId -> roundId).apply()
+    where(Symbol("roundId") -> roundId).apply()
 
   def byRoundSelected(roundId: Long): Seq[Selection] =
-    where('roundId -> roundId)
+    where(Symbol("roundId") -> roundId)
       .where(sqls.ne(s.rate, 0))
       .apply()
 
   def byUser(user: User, roundId: Long): Seq[Selection] =
-    where('juryId -> user.id, 'roundId -> roundId).apply()
+    where(Symbol("juryId") -> user.id, Symbol("roundId") -> roundId).apply()
 
   def byUserSelected(user: User, roundId: Long): Seq[Selection] =
-    where('juryId -> user.id, 'roundId -> roundId)
+    where(Symbol("juryId") -> user.id, Symbol("roundId") -> roundId)
       .where(sqls.ne(s.rate, 0))
       .apply()
 
   def byUserNotSelected(user: User, roundId: Long): Seq[Selection] =
-    where('juryId -> user.id, 'roundId -> roundId, 'rate -> 0).apply()
+    where(Symbol("juryId") -> user.id, Symbol("roundId") -> roundId, Symbol("rate") -> 0).apply()
 
   def byRoundAndImageWithJury(roundId: Long,
                               imageId: Long): Seq[(Selection, User)] =
@@ -122,7 +122,7 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
     }.map(rs => (SelectionJdbc(s)(rs), User(u)(rs))).list().apply()
 
   def findBy(pageId: Long, juryId: Long, roundId: Long): Option[Selection] =
-    where('pageId -> pageId, 'juryId -> juryId, 'roundId -> roundId)
+    where(Symbol("pageId") -> pageId, Symbol("juryId") -> juryId, Symbol("roundId") -> roundId)
       .apply()
       .headOption
 
@@ -138,9 +138,9 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
         .append(isNotDeleted)
         .groupBy(s.id)
     }.map(rs =>
-        (SelectionJdbc(s)(rs),
-         rs.intOpt(1).getOrElse(0),
-         rs.intOpt(2).getOrElse(0)))
+      (SelectionJdbc(s)(rs),
+        rs.intOpt(1).getOrElse(0),
+        rs.intOpt(2).getOrElse(0)))
       .list()
       .apply()
       .map {
@@ -196,12 +196,12 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
       .get
 
   def allJurors(roundId: Long): Long =
-    where('roundId -> roundId)
-      .distinctCount('juryId)
+    where(Symbol("roundId") -> roundId)
+      .distinctCount(Symbol("juryId"))
 
   def destroyAll(pageId: Long): Unit =
     updateBy(sqls.eq(s.pageId, pageId))
-      .withAttributes('deletedAt -> ZonedDateTime.now)
+      .withAttributes(Symbol("deletedAt") -> ZonedDateTime.now)
 
   def removeImage(pageId: Long, roundId: Long): Unit =
     deleteBy(

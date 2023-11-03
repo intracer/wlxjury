@@ -94,24 +94,29 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] with Logging {
 
   def update(image: Image): Unit =
     updateById(image.pageId).withAttributes(
-      'title -> image.title,
-      'url -> image.url,
-      'pageUrl -> image.pageUrl,
-      'width -> image.width,
-      'height -> image.height,
-      'monumentId -> image.monumentId,
-      'description -> image.description,
-      'size -> image.size,
+      Symbol("title") -> image.title,
+      Symbol("url") -> image.url,
+      Symbol("pageUrl") -> image.pageUrl,
+      Symbol("width") -> image.width,
+      Symbol("height") -> image.height,
+      Symbol("monumentId") -> image.monumentId,
+      Symbol("description") -> image.description,
+      Symbol("size") -> image.size,
     )
 
+  /**
+    * @param pageId
+    * @param width
+    * @param height
+    */
   def updateResolution(pageId: Long, width: Int, height: Int): Unit =
     updateById(pageId).withAttributes(
-      'width -> width,
-      'height -> height
+      Symbol("width") -> width,
+      Symbol("height") -> height
     )
 
   def updateMonumentId(pageId: Long, monumentId: String): Unit =
-    updateById(pageId).withAttributes('monumentId -> monumentId)
+    updateById(pageId).withAttributes(Symbol("monumentId") -> monumentId)
 
   def deleteImage(pageId: Long): Unit = deleteById(pageId)
 
@@ -145,7 +150,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] with Logging {
   }
 
   def findByMonumentId(monumentId: String): List[Image] =
-    where('monumentId -> monumentId)
+    where(Symbol("monumentId") -> monumentId)
       .orderBy(i.pageId).apply()
 
   def existingIds(ids: Set[Long]): List[Long] = {
@@ -263,7 +268,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] with Logging {
       case (rank1, rank2, i, s) => ImageWithRating(i, Seq(s), rank = Some(rank1), rank2 = Some(rank2))
     }
 
-  def findImageWithRating = withSQL {
+  def findImageWithRating: Seq[ImageWithRating] = withSQL {
     select.from(ImageJdbc as i)
       .innerJoin(SelectionJdbc as s)
       .on(i.pageId, s.pageId)

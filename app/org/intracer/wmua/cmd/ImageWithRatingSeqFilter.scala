@@ -34,68 +34,68 @@ trait ImageFilterGen extends (() => ImageFilter) with Product with Logging {
 }
 
 case class IncludeRegionIds(regionIds: Set[String]) extends ImageFilterGen {
-  def apply: ImageFilter =
+  def apply(): ImageFilter =
     imageFilter(_.region.exists(regionIds.contains))
 }
 
 case class IncludeMonumentIds(monumentIds: Set[String]) extends ImageFilterGen {
-  def apply: ImageFilter =
+  def apply(): ImageFilter =
     imageFilter(_.monumentId.exists(monumentIds.contains))
 }
 
 case class ExcludeRegionIds(regionIds: Set[String]) extends ImageFilterGen {
-  def apply: ImageFilter =
+  def apply(): ImageFilter =
     imageFilter(!_.region.exists(regionIds.contains))
 }
 
 case class IncludePageIds(pageIds: Set[Long]) extends ImageFilterGen {
-  def apply: ImageFilter = imageFilter(i => pageIds.contains(i.pageId))
+  def apply(): ImageFilter = imageFilter(i => pageIds.contains(i.pageId))
 }
 
 case class ExcludePageIds(pageIds: Set[Long]) extends ImageFilterGen {
-  def apply: ImageFilter = imageFilter(i => !pageIds.contains(i.pageId))
+  def apply(): ImageFilter = imageFilter(i => !pageIds.contains(i.pageId))
 }
 
 case class IncludeTitles(titles: Set[String]) extends ImageFilterGen {
-  def apply: ImageFilter = imageFilter(i => titles.contains(i.title))
+  def apply(): ImageFilter = imageFilter(i => titles.contains(i.title))
 }
 
 case class ExcludeTitles(titles: Set[String]) extends ImageFilterGen {
-  def apply: ImageFilter = imageFilter(i => titles.contains(i.title))
+  def apply(): ImageFilter = imageFilter(i => titles.contains(i.title))
 }
 
 case class IncludeJurorId(jurors: Set[Long]) extends ImageFilterGen {
-  def apply: ImageFilter =
+  def apply(): ImageFilter =
     imageRatingFilter(
       i => i.selection.map(_.juryId).toSet.intersect(jurors).nonEmpty)
 }
 
 case class ExcludeJurorId(jurors: Set[Long]) extends ImageFilterGen {
-  def apply: ImageFilter =
+  def apply(): ImageFilter =
     imageRatingFilter(
       i => i.selection.map(_.juryId).toSet.intersect(jurors).isEmpty)
 }
 
 case class SelectTopByRating(topN: Int, round: Round) extends ImageFilterGen {
-  def apply: ImageFilter =
+  def apply(): ImageFilter =
     (images: Seq[ImageWithRating]) =>
       images.sortBy(-_.totalRate(round)).take(topN)
 }
 
 case class SelectMinAvgRating(rate: Int, round: Round) extends ImageFilterGen {
-  def apply: ImageFilter = imageRatingFilter(i => i.totalRate(round) >= rate)
+  def apply(): ImageFilter = imageRatingFilter(i => i.totalRate(round) >= rate)
 }
 
 case class SelectedAtLeast(by: Int) extends ImageFilterGen {
-  def apply: ImageFilter = imageRatingFilter(i => i.rateSum >= by)
+  def apply(): ImageFilter = imageRatingFilter(i => i.rateSum >= by)
 }
 
 case class MegaPixelsAtLeast(mpx: Int) extends ImageFilterGen {
-  def apply: ImageFilter = imageFilter(_.mpx >= mpx)
+  def apply(): ImageFilter = imageFilter(_.mpx >= mpx)
 }
 
 case class SizeAtLeast(size: Int) extends ImageFilterGen {
-  def apply: ImageFilter = imageFilter(_.size.exists(_ >= size))
+  def apply(): ImageFilter = imageFilter(_.size.exists(_ >= size))
 }
 
 case class SpecialNominationFilter(specialNominationName: String)
@@ -115,7 +115,7 @@ case class SpecialNominationFilter(specialNominationName: String)
     }
     .getOrElse(Set.empty)
 
-  def apply: ImageFilter =
+  def apply(): ImageFilter =
     imageFilter(_.monumentId.exists(specialNominationIds.contains))
 }
 

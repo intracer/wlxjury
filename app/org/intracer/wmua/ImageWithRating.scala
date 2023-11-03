@@ -11,7 +11,8 @@ case class ImageWithRating(
                             selection: Seq[Selection],
                             countFromDb: Int = 0,
                             rank: Option[Int] = None,
-                            rank2: Option[Int] = None) extends Ordered[ImageWithRating] {
+                            rank2: Option[Int] = None
+                          ) extends Ordered[ImageWithRating] {
 
   val ownJuryRating = new OwnRating(selection.headOption.getOrElse(Selection(image.pageId, 0, 0, 0)))
 
@@ -27,13 +28,13 @@ case class ImageWithRating(
 
   def isUnrated: Boolean = ownJuryRating.isUnrated
 
-  def rate = ownJuryRating.rate
+  def rate: Int = ownJuryRating.rate
 
-  def rate_=(rate: Int) {
+  def rate_=(rate: Int): Unit = {
     ownJuryRating.rate = rate
   }
 
-  def rankStr = (
+  def rankStr: String = (
     for (r1 <- rank; r2 <- rank2)
       yield if (r1 != r2) s"$r1-$r2." else r1 + "."
     ).orElse(
@@ -49,9 +50,9 @@ case class ImageWithRating(
     else
       rateSum.toDouble / ratedJurors(round)
 
-  def rateSum = selection.foldLeft(0)((acc, s) => acc + Math.max(s.rate, 0))
+  def rateSum: Int = selection.foldLeft(0)((acc, s) => acc + Math.max(s.rate, 0))
 
-  def jurors = selection.map(s => s.juryId).toSet
+  def jurors: Set[Long] = selection.map(s => s.juryId).toSet
 
   def jurorRate(juror: User): Option[Int] = selection.find(_.juryId == juror.getId).map(_.rate)
 
@@ -77,11 +78,11 @@ case class ImageWithRating(
     }
   }
 
-  def pageId = image.pageId
+  def pageId: Long = image.pageId
 
-  def title = image.title
+  def title: String = image.title
 
-  def compare(that: ImageWithRating) = (this.pageId - that.pageId).signum
+  def compare(that: ImageWithRating): Int = (this.pageId - that.pageId).signum
 }
 
 object ImageWithRating {
@@ -115,20 +116,20 @@ class OneJuryRating(val selection: Selection) extends Rating {
 
   def isUnrated: Boolean = selection.rate == 0
 
-  def rate = selection.rate
+  def rate: Int = selection.rate
 }
 
 class OwnRating(selection: Selection) extends OneJuryRating(selection) {
 
-  def unSelect() {
+  def unSelect(): Unit = {
     selection.rate = -1
   }
 
-  def select() {
+  def select(): Unit = {
     selection.rate = 1
   }
 
-  def rate_=(rate: Int) {
+  def rate_=(rate: Int): Unit = {
     selection.rate = rate
   }
 
@@ -139,10 +140,11 @@ class TotalRating extends Rating
 
 object Formatter {
 
-  def getFormatter = {
+  def getFormatter: DecimalFormat = {
     val df = NumberFormat.getNumberInstance(Locale.US).asInstanceOf[DecimalFormat]
     df.applyPattern("0.00")
     df
   }
+
   val fmt = getFormatter
 }

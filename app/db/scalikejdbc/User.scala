@@ -29,13 +29,13 @@ case class User(fullname: String,
                 active: Option[Boolean] = Some(true),
                ) extends HasId with Ordered[User] {
 
-  def emailLo = email.trim.toLowerCase
+  def emailLo: String = email.trim.toLowerCase
 
-  def currentContest = contestId
+  def currentContest: Option[Long] = contestId
 
-  def hasRole(role: String) = roles.contains(role)
+  def hasRole(role: String): Boolean = roles.contains(role)
 
-  def hasAnyRole(otherRoles: Set[String]) = roles.intersect(otherRoles).nonEmpty
+  def hasAnyRole(otherRoles: Set[String]): Boolean = roles.intersect(otherRoles).nonEmpty
 
   def sameContest(other: User): Boolean = isInContest(other.contestId)
 
@@ -43,15 +43,15 @@ case class User(fullname: String,
     (for (c <- contestId; oc <- refContestId) yield c == oc)
       .getOrElse(false)
 
-  def isAdmin(refContestId: Option[Long]) =
+  def isAdmin(refContestId: Option[Long]): Boolean =
     hasRole(User.ADMIN_ROLE) && isInContest(refContestId) ||
       hasRole(User.ROOT_ROLE)
 
-  def canEdit(otherUser: User) =
+  def canEdit(otherUser: User): Boolean =
     isAdmin(otherUser.contestId) ||
       id == otherUser.id
 
-  def canViewOrgInfo(round: Round) =
+  def canViewOrgInfo(round: Round): Boolean =
     hasRole("root") ||
       (contestId.contains(round.contestId) &&
         hasAnyRole(Set("organizer", "admin", "root")) ||
@@ -190,7 +190,7 @@ object User extends SkinnyCRUDMapper[User] {
   )
 
   def findByContest(contest: Long): Seq[User] =
-    where('contestId -> contest).orderBy(u.id).apply()
+    where(Symbol("contestId") -> contest).orderBy(u.id).apply()
 
   def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
     import SelectionJdbc.s
@@ -209,11 +209,11 @@ object User extends SkinnyCRUDMapper[User] {
       .ne(column.id, id))
 
   def findByEmail(email: String): Seq[User] =
-    where('email -> email)
+    where(Symbol("email") -> email)
       .orderBy(u.id).apply()
 
   def findByAccount(account: String): Seq[User] =
-    where('wikiAccount -> account)
+    where(Symbol("wikiAccount") -> account)
       .orderBy(u.id).apply()
 
   def create(fullname: String,
@@ -260,17 +260,17 @@ object User extends SkinnyCRUDMapper[User] {
                  email: String, roles: Set[String], lang: Option[String], sort: Option[Int]): Unit =
     updateById(id)
       .withAttributes(
-        'fullname -> fullname,
-        'email -> email,
-        'wikiAccount -> wikiAccount,
-        'roles -> roles.head,
-        'lang -> lang,
-        'sort -> sort
+        Symbol("fullname") -> fullname,
+        Symbol("email") -> email,
+        Symbol("wikiAccount") -> wikiAccount,
+        Symbol("roles") -> roles.head,
+        Symbol("lang") -> lang,
+        Symbol("sort") -> sort
       )
 
   def updateHash(id: Long, hash: String): Unit =
     updateById(id)
-      .withAttributes('password -> hash)
+      .withAttributes(Symbol("password") -> hash)
 
   def loadJurors(contestId: Long): Seq[User] = {
     findAllBy(sqls.in(User.u.roles, Seq("jury")).and.eq(User.u.contestId, contestId))

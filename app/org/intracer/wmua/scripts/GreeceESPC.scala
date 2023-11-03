@@ -10,7 +10,7 @@ object GreeceESPC {
 
   def user(role: String)(country: String, n: Int) = s"${country}ESPC$role$n"
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val contestId = 78L
 
     val cmds = Seq(

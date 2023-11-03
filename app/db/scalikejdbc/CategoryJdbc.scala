@@ -22,8 +22,8 @@ object CategoryJdbc extends SkinnyCRUDMapper[Category] {
   )
 
   def findOrInsert(title: String): Long = {
-    where('title -> title).apply().headOption.map(_.id).getOrElse {
-      createWithAttributes('title -> title)
+    where(Symbol("title") -> title).apply().headOption.map(_.id).getOrElse {
+      createWithAttributes(Symbol("title") -> title)
     }
   }
 }
@@ -32,13 +32,13 @@ object CategoryLinkJdbc extends SQLSyntaxSupport[CategoryLink] {
   val cl = CategoryLinkJdbc.syntax("cl")
   override val tableName = "category_members"
 
-  def addToCategory(categoryId: Long, images: Seq[Image]) = {
+  def addToCategory(categoryId: Long, images: Seq[Image]): Unit = {
     val categoryLinks = images.map { image => CategoryLink(categoryId, image.pageId) }
 
     batchInsert(categoryLinks)
   }
 
-  def batchInsert(links: Seq[CategoryLink]) {
+  def batchInsert(links: Seq[CategoryLink]): Unit = {
     val column = CategoryLinkJdbc.column
 
     DB localTx { implicit session =>
