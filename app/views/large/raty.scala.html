@@ -45,9 +45,9 @@
             });
 
     @if(round.hasCriteria) {
-
-        $('#rate-image1').raty({
-            score: @{byCriteria.getOrElse(1, 0)/k},
+        @for((rateId, index) <- byCriteria.keys.toSeq.sorted.zipWithIndex) {
+        $('#rate-image@(index+1)').raty({
+            score: @{byCriteria.getOrElse(rateId, 0)/k},
             half: @(k == 2),
             cancel: true,
             starHalf: 'star-half@sizeSuffix ',
@@ -63,80 +63,12 @@
             readOnly : 'true'
             } else {
             click : function(score, evt) {
-                document.location.href = '@url' + Math.round(score*@k) + '?module=@module@rateParam(rate, "", "&", Some(6))';
+                document.location.href = '@url' + Math.round(score*@k) + '?module=@module@rateParam(rate, "", "&", Some(rateId))';
                 return false;
             }
             }
         });
-
-        $('#rate-image2').raty({
-            score: @{byCriteria.getOrElse(2, 0)/k},
-            half: @(k == 2),
-            cancel: true,
-            starHalf: 'star-half@sizeSuffix ',
-            starOff: 'star-off@sizeSuffix ',
-            starOn: 'star-on@sizeSuffix ',
-            cancelOff: 'cancel-off@sizeSuffix ',
-            cancelOn: 'cancel-on@sizeSuffix ',
-            number: @(round.rates.id / k),
-            precision: false,
-            space: false,
-            hints:[ '', '', '', '', '', '', '', '', '', '' ],
-            @if(readOnly) {
-            readOnly : 'true'
-            } else {
-            click : function(score, evt) {
-                document.location.href = '@url' + Math.round(score*@k) + '?module=@module@rateParam(rate, "", "&", Some(7))';
-                return false;
-            }
-            }
-        });
-
-        $('#rate-image3').raty({
-            score: @{byCriteria.getOrElse(3, 0)/k},
-            half: @(k == 2),
-            cancel: true,
-            starHalf: 'star-half@sizeSuffix ',
-            starOff: 'star-off@sizeSuffix ',
-            starOn: 'star-on@sizeSuffix ',
-            cancelOff: 'cancel-off@sizeSuffix ',
-            cancelOn: 'cancel-on@sizeSuffix ',
-            number: @(round.rates.id / k),
-            precision: false,
-            space: false,
-            hints:[ '', '', '', '', '', '', '', '', '', '' ],
-            @if(readOnly) {
-            readOnly : 'true'
-            } else {
-            click : function(score, evt) {
-                document.location.href = '@url' + Math.round(score*@k) + '?module=@module@rateParam(rate, "", "&", Some(8))';
-                return false;
-            }
-            }
-        });
-
-        $('#rate-image4').raty({
-            score: @{byCriteria.getOrElse(4, 0)/k},
-            half: @(k == 2),
-            cancel: true,
-            starHalf: 'star-half@sizeSuffix ',
-            starOff: 'star-off@sizeSuffix ',
-            starOn: 'star-on@sizeSuffix ',
-            cancelOff: 'cancel-off@sizeSuffix ',
-            cancelOn: 'cancel-on@sizeSuffix ',
-            number: @(round.rates.id / k),
-            precision: false,
-            space: false,
-            hints:[ '', '', '', '', '', '', '', '', '', '' ],
-            @if(readOnly) {
-            readOnly : 'true'
-            } else {
-            click : function(score, evt) {
-                document.location.href = '@url' + Math.round(score*@k) + '?module=@module@rateParam(rate, "", "&", Some(9))';
-                return false;
-            }
-            }
-        });
+        }
         }
 
 
