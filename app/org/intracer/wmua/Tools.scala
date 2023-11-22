@@ -19,10 +19,10 @@ import scala.io.Source
 
 object Tools {
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     Class.forName("com.mysql.jdbc.Driver")
-    val url: String = "jdbc:mysql://localhost/wlxjury?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8"
-    //"jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
+    val url: String = //"jdbc:mysql://localhost/wlxjury?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8"
+    "jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
     println(s"URL:" + url)
 
     val config = ConfigFactory.load()
@@ -36,17 +36,17 @@ object Tools {
       singleLineMode = false,
       printUnprocessedStackTrace = false,
       stackTraceDepth = 15,
-      logLevel = 'info,
+      logLevel = Symbol("info"),
       warningEnabled = false,
       warningThresholdMillis = 3000L,
-      warningLogLevel = 'warn
+      warningLogLevel = Symbol("warn")
     )
 
 //    addMonuments()
 //    newlyPictured()
-    //    addCriteria()
+        addCriteria()
     //    fetchMonumentDb()
-    byCity()
+    //byCity()
     //fillLists()
   }
 
@@ -152,7 +152,7 @@ object Tools {
   }
 
   def addCriteria() = {
-    val roundId = 315
+    val roundId = 1284
     val round = Round.findById(roundId).get
     val images = Seq.empty
     val jurors = User.findByRoundSelection(roundId)

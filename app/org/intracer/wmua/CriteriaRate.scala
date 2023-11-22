@@ -38,7 +38,7 @@ object CriteriaRate extends SQLSyntaxSupport[CriteriaRate] {
       eq(column.selection, selection)
   }.map(CriteriaRate(c)).list().apply()
 
-  def batchInsert(rates: Seq[CriteriaRate]) {
+  def batchInsert(rates: Seq[CriteriaRate]): Unit = {
     val column = CriteriaRate.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] = rates.map(i => Seq(

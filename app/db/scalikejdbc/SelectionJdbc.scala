@@ -156,7 +156,7 @@ object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
         .and
         .eq(s.juryId, juryId)
         .and
-        .eq(s.roundId, roundId)).withAttributes('rate -> -1)
+        .eq(s.roundId, roundId)).withAttributes(Symbol("rate") -> -1)
 
   def rate(pageId: Long, juryId: Long, roundId: Long, rate: Int = 1): Unit =
     withSQL {
