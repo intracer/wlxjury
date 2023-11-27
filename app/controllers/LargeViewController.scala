@@ -9,69 +9,81 @@ import services.GalleryService
 
 import javax.inject.Inject
 
-class LargeViewController @Inject()(cc: ControllerComponents,
-                                    galleryService: GalleryService)
-    extends Secured(cc)
+class LargeViewController @Inject() (
+    cc: ControllerComponents,
+    galleryService: GalleryService
+) extends Secured(cc)
     with I18nSupport {
 
   import play.api.libs.json._
 
   implicit val selectionWrites: OWrites[Selection] = Json.writes[Selection]
   implicit val imageWrites: OWrites[Image] = Json.writes[Image]
-  implicit val iwrWrites: OWrites[ImageWithRating] = Json.writes[ImageWithRating]
+  implicit val iwrWrites: OWrites[ImageWithRating] =
+    Json.writes[ImageWithRating]
 
-  def large(asUserId: Long,
-            pageId: Long,
-            region: String = "all",
-            roundId: Long,
-            rate: Option[Int],
-            module: String): EssentialAction = withAuth() { user =>implicit request =>
+  def large(
+      asUserId: Long,
+      pageId: Long,
+      region: String = "all",
+      roundId: Long,
+      rate: Option[Int],
+      module: String
+  ): EssentialAction = withAuth() { user => implicit request =>
     show(pageId, user, asUserId, rate, region, roundId, module)
   }
 
-  def largeCurrentUser(pageId: Long,
-                       region: String = "all",
-                       rate: Option[Int],
-                       module: String): EssentialAction = withAuth() {
-    user => implicit request =>
-      show(pageId, user, user.getId, rate, region, 0, module)
+  def largeCurrentUser(
+      pageId: Long,
+      region: String = "all",
+      rate: Option[Int],
+      module: String
+  ): EssentialAction = withAuth() { user => implicit request =>
+    show(pageId, user, user.getId, rate, region, 0, module)
   }
 
-  def rateByPageId(roundId: Long,
-                   pageId: Long,
-                   select: Int,
-                   region: String = "all",
-                   rate: Option[Int] = None,
-                   module: String,
-                   criteria: Option[Int] = None): EssentialAction = withAuth() {
-    user => implicit request =>
-      val roundOption = Round.findById(roundId).filter(_.active)
+  def rateByPageId(
+      roundId: Long,
+      pageId: Long,
+      select: Int,
+      region: String = "all",
+      rate: Option[Int] = None,
+      module: String,
+      criteria: Option[Int] = None
+  ): EssentialAction = withAuth() { user => implicit request =>
+    val roundOption = Round.findById(roundId).filter(_.active)
 
-      roundOption.fold(Redirect(
-        routes.GalleryController.list(user.getId, 1, region, roundId, rate))) {
-        round =>
-          val result =
-            checkLargeIndex(user, rate, pageId, region, round, module)
+    roundOption.fold(
+      Redirect(
+        routes.GalleryController.list(user.getId, 1, region, roundId, rate)
+      )
+    ) { round =>
+      val result =
+        checkLargeIndex(user, rate, pageId, region, round, module)
 
-          if (criteria.isEmpty) {
-            SelectionJdbc.rate(pageId = pageId,
-                               juryId = user.getId,
-                               roundId = round.getId,
-                               rate = select)
-          } else {
-            val selection =
-              SelectionJdbc.findBy(pageId, user.getId, roundId).get
-            CriteriaRate.updateRate(selection.getId, criteria.get, select)
-          }
-          result
+      if (criteria.isEmpty) {
+        SelectionJdbc.rate(
+          pageId = pageId,
+          juryId = user.getId,
+          roundId = round.getId,
+          rate = select
+        )
+      } else {
+        val selection =
+          SelectionJdbc.findBy(pageId, user.getId, roundId).get
+        CriteriaRate.updateRate(selection.getId, criteria.get, select)
       }
+      result
+    }
   }
 
-  def removeImage(pageId: Long,
-                  roundId: Long,
-                  region: String = "all",
-                  rate: Option[Int],
-                  module: String): EssentialAction =
+  def removeImage(
+      pageId: Long,
+      roundId: Long,
+      region: String = "all",
+      rate: Option[Int],
+      module: String
+  ): EssentialAction =
     withAuth(roundPermission(User.ADMIN_ROLES, roundId)) {
       user => implicit request =>
         SelectionJdbc.removeImage(pageId, roundId)
@@ -79,20 +91,23 @@ class LargeViewController @Inject()(cc: ControllerComponents,
         checkLargeIndex(user, rate, pageId, region, round, module)
     }
 
-  def checkLargeIndex(asUser: User,
-                      rate: Option[Int],
-                      pageId: Long,
-                      region: String,
-                      round: Round,
-                      module: String): Result = {
+  def checkLargeIndex(
+      asUser: User,
+      rate: Option[Int],
+      pageId: Long,
+      region: String,
+      round: Round,
+      module: String
+  ): Result = {
 
     val subRegions = round.specialNomination.contains("Віа Регіа")
-    val query = galleryService.getQuery(asUser.getId,
-                                           rate,
-                                           round.id,
-                                           regions =
-                                             Set(region).filter(_ != "all"),
-                                           subRegions = subRegions)
+    val query = galleryService.getQuery(
+      asUser.getId,
+      rate,
+      round.id,
+      regions = Set(region).filter(_ != "all"),
+      subRegions = subRegions
+    )
 
     val rank = query.imageRank(pageId)
 
@@ -120,38 +135,44 @@ class LargeViewController @Inject()(cc: ControllerComponents,
     if (newIndex >= 0) {
       Redirect(
         routes.LargeViewController
-          .large(asUser.getId, newPageId, region, roundId, rate, module))
+          .large(asUser.getId, newPageId, region, roundId, rate, module)
+      )
     } else {
 
       if (module == "gallery") {
         Redirect(
-          routes.GalleryController.list(asUser.getId, 1, region, roundId, rate))
+          routes.GalleryController.list(asUser.getId, 1, region, roundId, rate)
+        )
       } else {
         Redirect(
-          routes.GalleryController.byRate(asUser.getId, 1, region, roundId))
+          routes.GalleryController.byRate(asUser.getId, 1, region, roundId)
+        )
       }
     }
   }
 
-  def show(pageId: Long,
-           user: User,
-           asUserId: Long,
-           rate: Option[Int],
-           region: String,
-           roundId: Long,
-           module: String)(implicit request: Request[Any]): Result = {
+  def show(
+      pageId: Long,
+      user: User,
+      asUserId: Long,
+      rate: Option[Int],
+      region: String,
+      roundId: Long,
+      module: String
+  )(implicit request: Request[Any]): Result = {
     val maybeRound =
       if (roundId == 0) Round.activeRounds(user).headOption
       else Round.findById(roundId)
     val round = maybeRound.get
 
     val subRegions = round.specialNomination.contains("Віа Регіа")
-    val query = galleryService.getQuery(asUserId,
-                                           rate,
-                                           round.id,
-                                           regions =
-                                             Set(region).filter(_ != "all"),
-                                           subRegions = subRegions)
+    val query = galleryService.getQuery(
+      asUserId,
+      rate,
+      round.id,
+      regions = Set(region).filter(_ != "all"),
+      subRegions = subRegions
+    )
     val rank = query.imageRank(pageId)
     val offset = Math.max(0, rank - 3)
     val files = query.copy(limit = Some(Limit(Some(5), Some(offset)))).list()
@@ -159,12 +180,8 @@ class LargeViewController @Inject()(cc: ControllerComponents,
     val index = files.indexWhere(_.pageId == pageId)
     if (index < 0) {
       return Redirect(if (files.nonEmpty) {
-        routes.LargeViewController.large(asUserId,
-                                         files.head.pageId,
-                                         region,
-                                         round.getId,
-                                         rate,
-                                         module)
+        routes.LargeViewController
+          .large(asUserId, files.head.pageId, region, round.getId, rate, module)
       } else {
         routes.GalleryController.list(asUserId, 1, region, round.getId, rate)
       })
@@ -187,31 +204,34 @@ class LargeViewController @Inject()(cc: ControllerComponents,
       }.toMap
     } else Map.empty[Int, Int]
 
-    show2(index,
-          files,
-          user,
-          asUserId,
-          rate,
-          page,
-          round,
-          region,
-          module,
-          selection,
-          byCriteria)
+    show2(
+      index,
+      files,
+      user,
+      asUserId,
+      rate,
+      page,
+      round,
+      region,
+      module,
+      selection,
+      byCriteria
+    )
   }
 
-  def show2(index: Int,
-            files: Seq[ImageWithRating],
-            user: User,
-            asUserId: Long,
-            rate: Option[Int],
-            page: Int,
-            round: Round,
-            region: String,
-            module: String,
-            selection: Seq[(Selection, User)],
-            byCriteria: Map[Int, Int] = Map.empty)(
-      implicit request: Request[Any]): Result = {
+  def show2(
+      index: Int,
+      files: Seq[ImageWithRating],
+      user: User,
+      asUserId: Long,
+      rate: Option[Int],
+      page: Int,
+      round: Round,
+      region: String,
+      module: String,
+      selection: Seq[(Selection, User)],
+      byCriteria: Map[Int, Int] = Map.empty
+  )(implicit request: Request[Any]): Result = {
     val extraRight = if (index - 2 < 0) 2 - index else 0
     val extraLeft = if (files.size < index + 3) index + 3 - files.size else 0
 
@@ -220,7 +240,8 @@ class LargeViewController @Inject()(cc: ControllerComponents,
     val start = Math.max(0, left - extraLeft)
     val end = Math.min(files.size, right + extraRight)
     val monument = files(index).image.monumentId.flatMap(id =>
-      if (id.trim.nonEmpty) MonumentJdbc.find(id) else None)
+      if (id.trim.nonEmpty) MonumentJdbc.find(id) else None
+    )
 
     val comments =
       CommentJdbc.findBySubjectAndContest(files(index).pageId, round.contestId)
@@ -247,10 +268,15 @@ class LargeViewController @Inject()(cc: ControllerComponents,
           )
         )
       case Accepts.Json() =>
-        Ok(Json.toJson(
-          files.map(file =>
-            file.copy(selection = file.selection.map(_.copy(createdAt = None))))
-        ))
+        Ok(
+          Json.toJson(
+            files.map(file =>
+              file.copy(selection =
+                file.selection.map(_.copy(createdAt = None))
+              )
+            )
+          )
+        )
     }
   }
 }
