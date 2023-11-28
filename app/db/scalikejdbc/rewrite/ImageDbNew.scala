@@ -33,6 +33,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                             groupWithDetails: Boolean = false,
                             order: Map[String, Int] = Map.empty,
                             subRegions: Boolean = false,
+                            withPageId: Option[Long] = None,
                             driver: String = "mysql") {
 
     val reader: WrappedResultSet => ImageWithRating =

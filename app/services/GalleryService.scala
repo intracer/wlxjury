@@ -9,21 +9,26 @@ import org.intracer.wmua.ImageWithRating
 class GalleryService {
 
   def getSortedImages(
-                       asUserId: Long,
-                       rate: Option[Int],
-                       roundId: Option[Long],
-                       module: String,
-                       pager: Pager = Pager.pageOffset(1)): Seq[ImageWithRating] = {
+      asUserId: Long,
+      rate: Option[Int],
+      roundId: Option[Long],
+      module: String,
+      pager: Pager = Pager.pageOffset(1)
+  ): Seq[ImageWithRating] = {
     val userDetails = module == "filelist"
-    filesByUserId(getQuery(asUserId, rate, roundId, Some(pager), userDetails),
+    filesByUserId(
+      getQuery(asUserId, rate, roundId, Some(pager), userDetails),
       pager,
-      userDetails)
+      userDetails
+    )
   }
 
-  def isNotAuthorized(user: User,
-                      maybeRound: Option[Round],
-                      roundContest: Long,
-                      rounds: Seq[Round]): Boolean = {
+  def isNotAuthorized(
+      user: User,
+      maybeRound: Option[Round],
+      roundContest: Long,
+      rounds: Seq[Round]
+  ): Boolean = {
     val userContest = user.currentContest.getOrElse(0L)
     val notAuthorized = maybeRound.isEmpty ||
       (!user.hasRole("root") && userContest != roundContest) ||
@@ -43,9 +48,11 @@ class GalleryService {
     }
   }
 
-  def filesByUserId(query: SelectionQuery,
-                    pager: Pager,
-                    userDetails: Boolean = false): Seq[ImageWithRating] = {
+  def filesByUserId(
+      query: SelectionQuery,
+      pager: Pager,
+      userDetails: Boolean = false
+  ): Seq[ImageWithRating] = {
 
     val withPageIdOffset = pager.startPageId
       .fold(query) { pageId =>
@@ -61,14 +68,17 @@ class GalleryService {
     withPageIdOffset.list()
   }
 
-  def getQuery(userId: Long,
-               rate: Option[Int],
-               roundId: Option[Long],
-               pager: Option[Pager] = None,
-               userDetails: Boolean = false,
-               rated: Option[Boolean] = None,
-               regions: Set[String] = Set.empty,
-               subRegions: Boolean = false): SelectionQuery = {
+  def getQuery(
+      userId: Long,
+      rate: Option[Int],
+      roundId: Option[Long],
+      pager: Option[Pager] = None,
+      userDetails: Boolean = false,
+      rated: Option[Boolean] = None,
+      regions: Set[String] = Set.empty,
+      subRegions: Boolean = false,
+      withPageId: Option[Long] = None
+  ): SelectionQuery = {
     val userIdOpt = Some(userId).filter(_ != 0)
 
     ImageDbNew.SelectionQuery(
@@ -81,7 +91,8 @@ class GalleryService {
       grouped = userIdOpt.isEmpty && !userDetails,
       groupWithDetails = userDetails,
       limit = pager.map(p => Limit(Some(p.pageSize), p.offset, p.startPageId)),
-      subRegions = subRegions
+      subRegions = subRegions,
+      withPageId = withPageId
     )
   }
 

@@ -11,13 +11,14 @@ import play.i18n
 
 class ImageDbNewSpec extends Specification with Mockito with BeforeAll {
 
-  override def beforeAll() = {
+  override def beforeAll(): Unit = {
     KOATUU.load()
   }
 
   "regions" should {
 
-    def regions(map: Map[String, Int])(messages: Messages) = ImageDbNew.SelectionQuery().regions(map)(messages)
+    def regions(map: Map[String, Int])(messages: Messages) =
+      ImageDbNew.SelectionQuery().regions(map)(messages)
 
     "be empty" in {
       val messages = mock[Messages]
