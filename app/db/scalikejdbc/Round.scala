@@ -8,43 +8,45 @@ import org.scalawiki.dto.Page
 import scalikejdbc._
 import skinny.orm.{SkinnyCRUDMapper, SkinnyJoinTable}
 
-case class Round(id: Option[Long],
-                 number: Long,
-                 name: Option[String] = None,
-                 contestId: Long,
-                 roles: Set[String] = Set("jury"),
-                 distribution: Int = 0,
-                 rates: Rates = Round.binaryRound,
-                 limitMin: Option[Int] = None,
-                 limitMax: Option[Int] = None,
-                 recommended: Option[Int] = None,
-                 images: Seq[Page] = Seq.empty,
-                 selected: Seq[Page] = Seq.empty,
-                 createdAt: ZonedDateTime = ZonedDateTime.now,
-                 deletedAt: Option[ZonedDateTime] = None,
-                 active: Boolean = false,
-                 optionalRate: Boolean = false,
-                 juryOrgView: Boolean = false,
-                 minMpx: Option[Int] = None,
-                 previous: Option[Long] = None,
-                 prevSelectedBy: Option[Int] = None,
-                 prevMinAvgRate: Option[Int] = None,
-                 category: Option[String] = None,
-                 excludeCategory: Option[String] = None,
-                 categoryClause: Option[Int] = None,
-                 regions: Option[String] = None,
-                 minImageSize: Option[Int] = None,
-                 hasCriteria: Boolean = false,
-                 halfStar: Option[Boolean] = None,
-                 monuments: Option[String] = None,
-                 topImages: Option[Int] = None,
-                 specialNomination: Option[String] = None,
-                 users: Seq[User] = Nil)
-    extends HasId {
+case class Round(
+    id: Option[Long],
+    number: Long,
+    name: Option[String] = None,
+    contestId: Long,
+    roles: Set[String] = Set("jury"),
+    distribution: Int = 0,
+    rates: Rates = Round.binaryRound,
+    limitMin: Option[Int] = None,
+    limitMax: Option[Int] = None,
+    recommended: Option[Int] = None,
+    images: Seq[Page] = Seq.empty,
+    selected: Seq[Page] = Seq.empty,
+    createdAt: ZonedDateTime = ZonedDateTime.now,
+    deletedAt: Option[ZonedDateTime] = None,
+    active: Boolean = false,
+    optionalRate: Boolean = false,
+    juryOrgView: Boolean = false,
+    minMpx: Option[Int] = None,
+    previous: Option[Long] = None,
+    prevSelectedBy: Option[Int] = None,
+    prevMinAvgRate: Option[Int] = None,
+    category: Option[String] = None,
+    excludeCategory: Option[String] = None,
+    categoryClause: Option[Int] = None,
+    regions: Option[String] = None,
+    minImageSize: Option[Int] = None,
+    hasCriteria: Boolean = false,
+    halfStar: Option[Boolean] = None,
+    monuments: Option[String] = None,
+    topImages: Option[Int] = None,
+    specialNomination: Option[String] = None,
+    users: Seq[User] = Nil
+) extends HasId {
 
   def availableJurors: Seq[User] =
     User.findAllBy(
-      sqls.in(User.u.roles, roles.toSeq).and.eq(User.u.contestId, contestId))
+      sqls.in(User.u.roles, roles.toSeq).and.eq(User.u.contestId, contestId)
+    )
 
   lazy val numberOfActiveJurors = SelectionJdbc.activeJurors(id.get)
 
@@ -61,6 +63,10 @@ case class Round(id: Option[Long],
       .getOrElse(number.toString)
 
   def isBinary: Boolean = rates.id == Round.binaryRound.id
+
+  def numberOfStars: Int =
+    (if (rates.id <= 5 || halfStar.contains(false)) rates.id
+     else rates.id / 2) * (if (hasCriteria) 4 else 1)
 
   def regionIds: Seq[String] = regions.map(_.split(",").toSeq).getOrElse(Nil)
 
@@ -82,13 +88,16 @@ case class Round(id: Option[Long],
     )
   }
 
-  def addUser(ru: RoundUser)(
-      implicit session: DBSession = RoundUser.autoSession): Unit = {
+  def addUser(
+      ru: RoundUser
+  )(implicit session: DBSession = RoundUser.autoSession): Unit = {
     RoundUser.withColumns { c =>
-      RoundUser.createWithNamedValues(c.roundId -> id,
-                                      c.userId -> ru.userId,
-                                      c.role -> ru.role,
-                                      c.active -> ru.active)
+      RoundUser.createWithNamedValues(
+        c.roundId -> id,
+        c.userId -> ru.userId,
+        c.role -> ru.role,
+        c.active -> ru.active
+      )
     }
   }
 
@@ -98,17 +107,20 @@ case class Round(id: Option[Long],
         val c = RoundUser.column
         insert
           .into(RoundUser)
-          .namedValues(c.roundId -> sqls.?,
-                       c.userId -> sqls.?,
-                       c.role -> sqls.?,
-                       c.active -> sqls.?)
+          .namedValues(
+            c.roundId -> sqls.?,
+            c.userId -> sqls.?,
+            c.role -> sqls.?,
+            c.active -> sqls.?
+          )
       }.batch(users.map(ru => Seq(id, ru.userId, ru.role, ru.active)): _*)
         .apply()
     }
   }
 
-  def deleteUser(user: User)(
-      implicit session: DBSession = RoundUser.autoSession): Unit = {
+  def deleteUser(
+      user: User
+  )(implicit session: DBSession = RoundUser.autoSession): Unit = {
     RoundUser.withColumns { c =>
       withSQL {
         delete.from(RoundUser).where.eq(c.roundId, id).and.eq(c.userId, user.id)
@@ -162,7 +174,8 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
   lazy val usersRef = hasManyThrough[User](
     through = RoundUser,
     many = User,
-    merge = (round, users) => round.copy(users = users)).byDefault
+    merge = (round, users) => round.copy(users = users)
+  ).byDefault
 
   override def extract(rs: WrappedResultSet, c: ResultName[Round]): Round =
     new Round(
@@ -261,7 +274,8 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
                 .and
                 .eq(ru.active, true)
                 .sql
-            ))
+            )
+        )
           .orderBy(r.id)
           .apply()
       }
@@ -322,12 +336,16 @@ object RoundUser extends SkinnyJoinTable[RoundUser] {
   override def defaultAlias = createAlias("round_user")
   lazy val ru = RoundUser.syntax("round_user")
 
-  override def extract(rs: WrappedResultSet,
-                       ru: ResultName[RoundUser]): RoundUser =
-    RoundUser(rs.long(ru.roundId),
-              rs.long(ru.userId),
-              rs.string(ru.role),
-              rs.boolean(ru.active))
+  override def extract(
+      rs: WrappedResultSet,
+      ru: ResultName[RoundUser]
+  ): RoundUser =
+    RoundUser(
+      rs.long(ru.roundId),
+      rs.long(ru.userId),
+      rs.string(ru.role),
+      rs.boolean(ru.active)
+    )
 
   def apply(r: Round, u: User): Option[RoundUser] =
     for (rId <- r.id; uId <- u.id) yield RoundUser(rId, uId, u.roles.head, true)
