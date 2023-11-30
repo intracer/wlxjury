@@ -38,10 +38,10 @@ case class ImageWithRating(
 
   def rankStr: String = (
     for (r1 <- rank; r2 <- rank2)
-      yield if (r1 != r2) s"$r1-$r2." else r1 + "."
+      yield if (r1 != r2) s"$r1-$r2." else s"$r1."
   ).orElse(
     for (r1 <- rank)
-      yield r1 + "."
+      yield s"$r1."
   ).getOrElse("")
 
   def totalRate(round: Round): Double =
@@ -89,7 +89,7 @@ case class ImageWithRating(
 
   def title: String = image.title
 
-  def compare(that: ImageWithRating): Int = (this.pageId - that.pageId).signum
+  def compare(that: ImageWithRating): Int = (this.pageId - that.pageId).sign.toInt
 }
 
 object ImageWithRating {
@@ -103,7 +103,7 @@ object ImageWithRating {
 
   def rank(orderedRates: Seq[Int]): Seq[String] = {
 
-    val sizeByRate = orderedRates.groupBy(identity).mapValues(_.size)
+    val sizeByRate = orderedRates.groupBy(identity).view.mapValues(_.size)
     val startByRate = sizeByRate.keys.map { rate =>
       rate -> (orderedRates.indexOf(rate) + 1)
     }.toMap
