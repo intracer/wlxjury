@@ -144,7 +144,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       SQL(sql).map(_.int(1)).single().apply().getOrElse(0)
     }
 
-    val imagesJoinSelection: String =
+    private val imagesJoinSelection =
       """ from images i
         |join selection s
         |on i.page_id = s.page_id""".stripMargin
@@ -161,7 +161,12 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           userId.map(id => "s.jury_id = " + id),
           roundId.map(id => "s.round_id = " + id),
           rate.map(r => "s.rate = " + r),
-          rated.map(r => if (r) "s.rate > 0" else "s.rate = 0"),
+          rated.map { r =>
+            val rated = if (r) "s.rate > 0" else "s.rate = 0"
+            withPageId.fold(rated) { pageId =>
+              s"($rated or s.page_id = $pageId)"
+            }
+          },
           regions.headOption.map { _ =>
             if (regions.headOption.exists(_.length > 2)) {
               s"m.$regionColumn in (" + regions
@@ -172,14 +177,14 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
             }
           }
           //          limit.flatMap(_.startPageId).filter(_ => count).map(_ => "s.rate > 0")
-        )
+        ).flatten
 
-      val flatten = conditions.flatten
-
-      flatten.headOption.fold("")(_ => " where ") + flatten.mkString(" and ")
+      conditions.headOption.fold("") { _ =>
+        " where " + conditions.mkString(" and ")
+      }
     }
 
-    def orderBy(fields: Map[String, Int] = order) = {
+    def orderBy(fields: Map[String, Int] = order): String = {
       val dirMap = Map(1 -> "asc", -1 -> "desc")
 
       fields.headOption

@@ -171,7 +171,8 @@ class LargeViewController @Inject() (
       rate,
       round.id,
       regions = Set(region).filter(_ != "all"),
-      subRegions = subRegions
+      subRegions = subRegions,
+      withPageId = Some(pageId).filter(_ => round.hasCriteria)
     )
     val rank = query.imageRank(pageId)
     val offset = Math.max(0, rank - 3)
