@@ -16,7 +16,7 @@ object Global {
   val largeSizeX = 1280
   val largeSizeY = 1100
 
-  val smallSizes  = Seq(
+  val smallSizes = Seq(
     (gallerySizeX, gallerySizeY),
     (thumbSizeX, thumbSizeY)
   )
@@ -28,32 +28,25 @@ object Global {
   lazy val thumbsHost = ConfigFactory.load().getString("wlxjury.thumbs.host")
 
   val useLegacyThumbUrl = true
-  val thumbUrl: (Image, Int, Int) => String = if (useLegacyThumbUrl) legacyThumbUlr else thumbPhpUrl
+  val thumbUrl: (Image, Int, Int) => String =
+    if (useLegacyThumbUrl) legacyThumbUlr else thumbPhpUrl
 
   def resizeTo(info: Image, resizeToWidth: Int, resizeToHeight: Int): String = {
-
     val px = info.resizeTo(resizeToWidth, resizeToHeight)
-
-    val isPdf = info.title.toLowerCase.endsWith(".pdf")
-    val isTif = info.title.toLowerCase.endsWith(".tif")
-    val isSvg = info.title.toLowerCase.endsWith(".svg")
-
-    if (px < info.width || isPdf || isTif || isSvg) {
-      thumbUrl(info, px, resizeToHeight)
-    } else {
-      info.url.getOrElse("")
-    }
+    resizeToPx(info, resizeToHeight, px)
   }
 
   def resizeTo(info: Image, resizeToHeight: Int): String = {
-
     val px = info.resizeTo(resizeToHeight)
+    resizeToPx(info, resizeToHeight, px)
+  }
 
-    val isPdf = info.title.toLowerCase.endsWith(".pdf")
-    val isTif = info.title.toLowerCase.endsWith(".tif")
-    val isSvg = info.title.toLowerCase.endsWith(".svg")
+  private def resizeToPx(info: Image, resizeToHeight: Int, px: Int) = {
+    val resizeExtensions = List(".pdf", ".tif", ".tiff", ".svg")
+    val lowerCaseTitle = info.title.toLowerCase
+    val isResizeExtension = resizeExtensions.exists(lowerCaseTitle.endsWith)
 
-    if (px < info.width || isPdf || isTif || isSvg) {
+    if (px < info.width || isResizeExtension) {
       thumbUrl(info, px, resizeToHeight)
     } else {
       info.url.getOrElse("")
@@ -65,13 +58,17 @@ object Global {
   }
 
   def thumbPhpUrl(info: Image, px: Int, resizeToHeight: Int): String = {
-    val file = URLEncoder.encode(info.title.replaceFirst("File:", "").replace(" ", "_"), "UTF-8")
+    val file = URLEncoder.encode(
+      info.title.replaceFirst("File:", "").replace(" ", "_"),
+      "UTF-8"
+    )
     s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
   }
 
   def legacyThumbUlr(info: Image, px: Int, resizeToHeight: Int): String = {
-    val isPdf = info.title.toLowerCase.endsWith(".pdf")
-    val isTif = info.title.toLowerCase.endsWith(".tif")
+    val lowerCaseTitle = info.title.toLowerCase
+    val isPdf = lowerCaseTitle.endsWith(".pdf")
+    val isTif = List(".tif", ".tiff").exists(lowerCaseTitle.endsWith)
 
     val url = info.url.getOrElse("")
     val lastSlash = url.lastIndexOf("/")
@@ -82,12 +79,18 @@ object Global {
       url.substring(lastSlash + 1)
     }
 
-    val imageHost = if (resizeToHeight <= gallerySizeY * 2) thumbsHost else "upload.wikimedia.org"
+    val imageHost =
+      if (resizeToHeight <= gallerySizeY * 2) thumbsHost
+      else "upload.wikimedia.org"
 
-    url.replace("//upload.wikimedia.org/wikipedia/commons/", s"//$imageHost/wikipedia/commons/thumb/") + "/" +
-      (if (isPdf) "page1-" else
-      if (isTif) "lossy-page1-" else
-        "") +
+    url.replace(
+      "//upload.wikimedia.org/wikipedia/commons/",
+      s"//$imageHost/wikipedia/commons/thumb/"
+    ) + "/" +
+      (if (isPdf) "page1-"
+       else if (isTif) "lossy-page1-"
+       else
+         "") +
       px + "px-" + thumbStr + (if (isPdf || isTif) ".jpg" else "")
   }
 }
