@@ -23,7 +23,7 @@
                 margin-right: 10px;">
             @if(round.rates.id != 2) {
                 @for(i <- 1 to round.numberOfStars) {
-                    <img alt="@i" src="@showStar(i, file.totalRate(round).toInt, round.numberOfStars <= 10, round.rates.id > 5 && !round.halfStar.contains(false))">
+                    <img alt="@i" src="@showStar(i, file.totalRate(round).toInt, round.numberOfStars <= 10, round.rates.id > 5 && round.halfStar)">
                 }
                 @file.rateString(round)
             } else {

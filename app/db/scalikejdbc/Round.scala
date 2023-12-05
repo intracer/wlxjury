@@ -36,7 +36,7 @@ case class Round(
     regions: Option[String] = None,
     minImageSize: Option[Int] = None,
     hasCriteria: Boolean = false,
-    halfStar: Option[Boolean] = None,
+    halfStar: Boolean = false,
     monuments: Option[String] = None,
     topImages: Option[Int] = None,
     specialNomination: Option[String] = None,
@@ -65,7 +65,7 @@ case class Round(
   def isBinary: Boolean = rates.id == Round.binaryRound.id
 
   def numberOfStars: Int =
-    (if (rates.id <= 5 || halfStar.contains(false)) rates.id
+    (if (rates.id <= 5 || !halfStar) rates.id
      else rates.id / 2) * (if (hasCriteria) 4 else 1)
 
   def regionIds: Seq[String] = regions.map(_.split(",").toSeq).getOrElse(Nil)
@@ -202,7 +202,7 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
       regions = rs.stringOpt(c.regions),
       minImageSize = rs.intOpt(c.minImageSize),
       hasCriteria = rs.booleanOpt(c.hasCriteria).getOrElse(false),
-      halfStar = rs.booleanOpt(c.halfStar),
+      halfStar = rs.booleanOpt(c.halfStar).getOrElse(false),
       monuments = rs.stringOpt(c.monuments),
       topImages = rs.intOpt(c.topImages),
       specialNomination = rs.stringOpt(c.specialNomination)

@@ -19,7 +19,7 @@
 
         @defining(if(round.rates.id <= 10) "-big.png" else ".png"){ sizeSuffix =>
 
-        @defining(if(round.rates.id <= 5 || round.halfStar.contains(false)) 1 else 2) { k =>
+        @defining(if(round.rates.id > 5 && round.halfStar) 2 else 1) { k =>
 
             $('#rate-image').raty({
                 score: @score,

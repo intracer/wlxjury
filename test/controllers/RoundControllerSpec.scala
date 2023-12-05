@@ -39,7 +39,7 @@ class RoundControllerSpec extends PlaySpecification {
         regions = None,
         minImageSize = Some(1),
         hasCriteria = true,
-        halfStar = Some(true),
+        halfStar = false,
         monuments = None,
         topImages = None,
         specialNomination = Some("special nomination"),
