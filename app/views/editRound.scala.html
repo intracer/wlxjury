@@ -74,10 +74,11 @@
                                             </div>
 
                                             <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
-                                            @b3.select(
-                                                editRoundForm("minAvgRate"),
-                                                Seq("" -> Messages("no")) ++ (0 to 20).map(x => (x.toString, x.toString)),
-                                                Symbol("_label") -> Messages("average.image.rating.is.at.least"), Symbol("readonly") -> noEdit)
+                                                @b3.text(
+                                                    editRoundForm("minAvgRate"),
+                                                    Symbol("_label") -> Messages("average.image.rating.is.at.least"),
+                                                    Symbol("readonly") -> noEdit
+                                                )
                                             </div>
 
                                             @for(topImages <- editRoundForm("topImages").value) {

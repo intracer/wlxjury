@@ -82,7 +82,7 @@ case class SelectTopByRating(topN: Int, round: Round) extends ImageFilterGen {
       images.sortBy(-_.totalRate(round)).take(topN)
 }
 
-case class SelectMinAvgRating(rate: Int, round: Round) extends ImageFilterGen {
+case class SelectMinAvgRating(rate: BigDecimal, round: Round) extends ImageFilterGen {
   def apply(): ImageFilter = imageRatingFilter(i => i.totalRate(round) >= rate)
 }
 
@@ -132,7 +132,7 @@ object ImageWithRatingSeqFilter {
       excludeTitles: Set[String] = Set.empty,
       includeJurorId: Set[Long] = Set.empty,
       excludeJurorId: Set[Long] = Set.empty,
-      selectMinAvgRating: Option[Int] = None,
+      selectMinAvgRating: Option[BigDecimal] = None,
       selectTopByRating: Option[Int] = None,
       selectedAtLeast: Option[Int] = None,
       mpxAtLeast: Option[Int] = None,

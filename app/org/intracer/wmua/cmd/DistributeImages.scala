@@ -113,7 +113,7 @@ object DistributeImages extends Logging {
       excludePageIds: Set[Long] = Set.empty,
       includeTitles: Set[String] = Set.empty,
       excludeTitles: Set[String] = Set.empty,
-      selectMinAvgRating: Option[Int] = None,
+      selectMinAvgRating: Option[BigDecimal] = None,
       selectTopByRating: Option[Int] = None,
       selectedAtLeast: Option[Int] = None,
       includeJurorId: Set[Long] = Set.empty,
@@ -154,7 +154,7 @@ object DistributeImages extends Logging {
       includeJurorId = includeJurorId,
       excludeJurorId = excludeJurorId /*++ existingJurorIds*/,
       selectMinAvgRating = prevRound.flatMap(_ =>
-        selectMinAvgRating.filter(x => !prevRound.exists(_.isBinary))),
+        selectMinAvgRating.filter(_ => !prevRound.exists(_.isBinary))),
       selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
       selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
       mpxAtLeast = mpxAtLeast,
