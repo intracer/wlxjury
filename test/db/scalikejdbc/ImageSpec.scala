@@ -7,18 +7,20 @@ class ImageSpec extends Specification with TestDb {
 
   sequential
 
-  def image(id: Long) =
+  private def image(id: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
-  def addToContest(contestId: Long, images: Seq[Image]) =
-    CategoryLinkJdbc.addToCategory(ContestJuryJdbc.findById(contestId).flatMap(_.categoryId).get, images)
+  private def addToContest(contestId: Long, images: Seq[Image]): Unit =
+    CategoryLinkJdbc.addToCategory(
+      ContestJuryJdbc.findById(contestId).flatMap(_.categoryId).get,
+      images
+    )
 
   "fresh database" should {
 
     "be empty" in {
       withDb {
-        val images = imageDao.findAll()
-        images.size === 0
+        imageDao.findAll() === Nil
       }
     }
 
@@ -28,15 +30,13 @@ class ImageSpec extends Specification with TestDb {
         val contestId = 20
         createContests(contestId)
 
-        val image = Image(id, "File:Image.jpg", None, None, 640, 480, Some("12-345-6789"))
+        val image =
+          Image(id, "File:Image.jpg", None, None, 640, 480, Some("12-345-6789"))
         imageDao.batchInsert(Seq(image))
         addToContest(contestId, Seq(image))
 
-        val dbi = imageDao.findById(id)
-        dbi === Some(image)
-
-        val images = imageDao.findAll()
-        images === Seq(image)
+        imageDao.findById(id) === Some(image)
+        imageDao.findAll() === Seq(image)
       }
     }
 
