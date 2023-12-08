@@ -20,7 +20,7 @@ trait TestDb {
   val selectionDao = SelectionJdbc
   val userDao = User
 
-  def now: ZonedDateTime = ZonedDateTime.now.withNano(0)
+  def now: ZonedDateTime = TestDb.now
 
   def testDbApp[T](block: Application => T)
                   (implicit additionalConfig: Map[String, String] = Map.empty): T = {
@@ -73,7 +73,7 @@ trait TestDb {
   }
 
   def contestUser(i: Long, role: String = "jury")(implicit contest: ContestJury) =
-    User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), contest.id, Some("en"), Some(now))
+    User("fullname" + i, "email" + i, None, Set(role), Some("password hash"), contest.id, Some("en"), Some(TestDb.now))
 
   def createUsers(userIndexes: Seq[Int])(implicit contest: ContestJury, d: DummyImplicit): Seq[User] = createUsers(userIndexes: _*)
 
@@ -86,4 +86,10 @@ trait TestDb {
       .map(contestUser(_, role))
       .map(userDao.create)
   }
+}
+
+object TestDb {
+
+  def now: ZonedDateTime = ZonedDateTime.now.withNano(0)
+
 }
