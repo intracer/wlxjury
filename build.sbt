@@ -39,7 +39,7 @@ libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % ScalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % ScalikejdbcPlayVersion,
   "org.skinny-framework" %% "skinny-orm" % "2.5.2",
-  "org.flywaydb" %% "flyway-play" % "4.0.0",
+  "org.flywaydb" %% "flyway-play" % "7.41.0",
 
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
