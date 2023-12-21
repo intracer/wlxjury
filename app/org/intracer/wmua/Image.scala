@@ -34,6 +34,10 @@ case class Image(
 
   def mpx: Double = width * height / 1_000_000.0
 
+  def isImage: Boolean = !isVideo
+
+  def isVideo: Boolean = Seq(".ogv", ".webm").exists(title.toLowerCase.endsWith)
+
 }
 
 object ImageUtil {
