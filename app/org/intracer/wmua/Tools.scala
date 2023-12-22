@@ -19,7 +19,7 @@ import scala.io.Source
 
 object Tools {
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     Class.forName("com.mysql.jdbc.Driver")
     val url: String = "jdbc:mysql://localhost/wlxjury?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8"
     //"jdbc:mysql://jury.wikilovesearth.org.ua/wlxjury"
@@ -36,48 +36,48 @@ object Tools {
       singleLineMode = false,
       printUnprocessedStackTrace = false,
       stackTraceDepth = 15,
-      logLevel = 'info,
+      logLevel = Symbol("info"),
       warningEnabled = false,
       warningThresholdMillis = 3000L,
-      warningLogLevel = 'warn
+      warningLogLevel = Symbol("warn")
     )
 
 //    addMonuments()
 //    newlyPictured()
-    //    addCriteria()
+        addCriteria()
     //    fetchMonumentDb()
-    byCity()
+    //byCity()
     //fillLists()
   }
 
-  def updateResolution(contest: ContestJury) = {
-
-    val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
-
-    import scala.concurrent.duration._
-
-    val user = Play.current.configuration.getString("db.default.user").get
-    val password = Play.current.configuration.getString("db.default.user").get
-
-
-    Await.result(commons.login(user, password), 1.minute)
-
-    val category = "Category:Images from Wiki Loves Earth 2014 in Ghana"
-    val query = commons.page(category)
-
-    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
-      filesInCategory =>
-        val newImages = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).groupBy(_.pageId)
-        val existing = ImageJdbc.findAll().toSet
-
-        for (i1 <- existing;
-             i2 <- newImages.get(i1.pageId).map(seq => seq.head)
-             if i1.width != i2.width || i1.height != i2.height) {
-          Logger.logger.trace(s"Updating image resolution metadata for ${i2.pageId} ${i1.title} from ${i1.width}x${i1.height} to ${i2.width}x${i2.height}")
-          ImageJdbc.updateResolution(i1.pageId, i2.width, i2.height)
-        }
-    }
-  }
+//  def updateResolution(contest: ContestJury) = {
+//
+//    val commons = MwBot.fromHost(controllers.Global.COMMONS_WIKIMEDIA_ORG)
+//
+//    import scala.concurrent.duration._
+//
+//    val user = Play.current.configuration.getString("db.default.user").get
+//    val password = Play.current.configuration.getString("db.default.user").get
+//
+//
+//    Await.result(commons.login(user, password), 1.minute)
+//
+//    val category = "Category:Images from Wiki Loves Earth 2014 in Ghana"
+//    val query = commons.page(category)
+//
+//    query.imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).map {
+//      filesInCategory =>
+//        val newImages = filesInCategory.flatMap(page => ImageJdbc.fromPage(page, contest)).groupBy(_.pageId)
+//        val existing = ImageJdbc.findAll().toSet
+//
+//        for (i1 <- existing;
+//             i2 <- newImages.get(i1.pageId).map(seq => seq.head)
+//             if i1.width != i2.width || i1.height != i2.height) {
+//          logger.trace(s"Updating image resolution metadata for ${i2.pageId} ${i1.title} from ${i1.width}x${i1.height} to ${i2.width}x${i2.height}")
+//          ImageJdbc.updateResolution(i1.pageId, i2.width, i2.height)
+//        }
+//    }
+//  }
 
   def addUsers(contest: ContestJury, number: Int) = {
     val country = contest.country.replaceAll("[ \\-\\&]", "")
@@ -152,7 +152,7 @@ object Tools {
   }
 
   def addCriteria() = {
-    val roundId = 315
+    val roundId = 1304
     val round = Round.findById(roundId).get
     val images = Seq.empty
     val jurors = User.findByRoundSelection(roundId)
