@@ -1,10 +1,11 @@
 package org.intracer.wmua
 
-import controllers.{ContestsController, RoundsController}
+import controllers.{ContestController, RoundController}
 import db.scalikejdbc._
 import org.intracer.wmua.cmd.DistributeImages
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import services.RoundService
 
 class ImageDistributorSpec extends Specification with TestDb with Mockito {
 
@@ -12,13 +13,12 @@ class ImageDistributorSpec extends Specification with TestDb with Mockito {
 
   val (contest1, contest2) = (10, 20)
 
+  lazy val roundService = new RoundService(Round)
 
-  val roundsController = new RoundsController(mock[ContestsController])
-
-  def image(id: Long) =
+  private def image(id: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
-  def createJurors(
+  private def createJurors(
                     jurorsNum: Int,
                     preJurors: Boolean = true,
                     orgCom: Boolean = true,
@@ -42,7 +42,7 @@ class ImageDistributorSpec extends Specification with TestDb with Mockito {
     dbJurors
   }
 
-  def createImages(number: Int, contest1: Long, contest2: Long) = {
+  private def createImages(number: Int, contest1: Long, contest2: Long) = {
     val images1 = (101 to 100 + number).map(id => image(id))
     val images2 = (100 + number + 1 to 100 + number * 2).map(id => image(id))
 
@@ -68,7 +68,7 @@ class ImageDistributorSpec extends Specification with TestDb with Mockito {
         val juryIds = oneJuror.map(_.getId)
 
         val round = Round(None, 1, Some("Round 1"), contest1, Set("jury"), distribution, Round.ratesById(10), active = true)
-        val dbRound = roundsController.createNewRound(round, juryIds)
+        val dbRound = roundService.createNewRound(round, juryIds)
 
         val selection1 = selectionDao.findAll()
         selection1.size === 9

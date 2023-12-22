@@ -83,6 +83,6 @@ case class FetchImageInfo(source: String, titles: Seq[String] = Seq.empty, conte
       namespaces = Set(Namespace.FILE),
       props = imageInfoProps,
       titlePrefix = None
-    )
+    ).map(_.toSeq)
   }
 }

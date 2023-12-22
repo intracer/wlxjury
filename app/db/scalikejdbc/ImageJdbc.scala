@@ -1,14 +1,14 @@
 package db.scalikejdbc
 
-import play.api.Logger
 import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import org.scalawiki.dto.Page
 import scalikejdbc._
 import scalikejdbc.interpolation.SQLSyntax.distinct
+import skinny.logging.Logging
 import skinny.orm.SkinnyCRUDMapper
 
-object ImageJdbc extends SkinnyCRUDMapper[Image] {
+object ImageJdbc extends SkinnyCRUDMapper[Image] with Logging {
 
   implicit def session: DBSession = autoSession
 
@@ -38,7 +38,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
         )
     } catch {
       case e: Throwable =>
-        Logger.logger.error(s"Error getting image info for contest ${contest.id},  page id: ${page.id}, page title: ${page.title}", e)
+        logger.error(s"Error getting image info for contest ${contest.id},  page id: ${page.id}, page title: ${page.title}", e)
         throw e
     }
   }
@@ -60,7 +60,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
 
   def apply(c: ResultName[Image])(rs: WrappedResultSet): Image = extract(rs, c)
 
-  def batchInsert(images: Seq[Image]) {
+  def batchInsert(images: Seq[Image]): Unit = {
     val column = ImageJdbc.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] = images.map(i => Seq(
@@ -94,24 +94,29 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
 
   def update(image: Image): Unit =
     updateById(image.pageId).withAttributes(
-      'title -> image.title,
-      'url -> image.url,
-      'pageUrl -> image.pageUrl,
-      'width -> image.width,
-      'height -> image.height,
-      'monumentId -> image.monumentId,
-      'description -> image.description,
-      'size -> image.size,
+      Symbol("title") -> image.title,
+      Symbol("url") -> image.url,
+      Symbol("pageUrl") -> image.pageUrl,
+      Symbol("width") -> image.width,
+      Symbol("height") -> image.height,
+      Symbol("monumentId") -> image.monumentId,
+      Symbol("description") -> image.description,
+      Symbol("size") -> image.size,
     )
 
+  /**
+    * @param pageId
+    * @param width
+    * @param height
+    */
   def updateResolution(pageId: Long, width: Int, height: Int): Unit =
     updateById(pageId).withAttributes(
-      'width -> width,
-      'height -> height
+      Symbol("width") -> width,
+      Symbol("height") -> height
     )
 
   def updateMonumentId(pageId: Long, monumentId: String): Unit =
-    updateById(pageId).withAttributes('monumentId -> monumentId)
+    updateById(pageId).withAttributes(Symbol("monumentId") -> monumentId)
 
   def deleteImage(pageId: Long): Unit = deleteById(pageId)
 
@@ -141,11 +146,11 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
         .innerJoin(CategoryLinkJdbc as cl)
         .on(i.pageId, cl.pageId)
         .where.eq(cl.categoryId, categoryId)
-    }.map(_.int(1)).single.apply().get
+    }.map(_.int(1)).single().apply().get
   }
 
   def findByMonumentId(monumentId: String): List[Image] =
-    where('monumentId -> monumentId)
+    where(Symbol("monumentId") -> monumentId)
       .orderBy(i.pageId).apply()
 
   def existingIds(ids: Set[Long]): List[Long] = {
@@ -153,7 +158,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
     withSQL {
       select(distinct(i.pageId)).from(ImageJdbc as i)
         .where.in(i.pageId, ids.toSeq)
-    }.map(_.long(1)).list.apply()
+    }.map(_.long(1)).list().apply()
   }
 
   def rateDistribution(userId: Long, roundId: Long): Map[Int, Int] =
@@ -165,14 +170,14 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
   AND s.round_id = $roundId
   GROUP BY rate""".map(rs => rs.int(1) -> rs.int(2)).list().apply().toMap
 
-  def roundsStat(contestId: Long): Seq[(Long, Int, Int)] =
-    sql"""SELECT r.id, s.rate, count(DISTINCT(s.page_id))
+  def roundsStat(contestId: Long, limit: Int): Seq[(Long, Int)] =
+    sql"""SELECT r.id, count(DISTINCT(s.page_id))
           FROM rounds r
   JOIN selection s ON r.id = s.round_id
   WHERE
   r.contest_id = $contestId
-  GROUP BY r.id, s.rate
-      """.map(rs => (rs.long(1), rs.int(2), rs.int(3))).list().apply()
+  GROUP BY r.id LIMIT $limit
+      """.map(rs => (rs.long(1), rs.int(2))).list().apply()
 
   def byUserImageWithRating(
                              userId: Long,
@@ -263,7 +268,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] {
       case (rank1, rank2, i, s) => ImageWithRating(i, Seq(s), rank = Some(rank1), rank2 = Some(rank2))
     }
 
-  def findImageWithRating = withSQL {
+  def findImageWithRating: Seq[ImageWithRating] = withSQL {
     select.from(ImageJdbc as i)
       .innerJoin(SelectionJdbc as s)
       .on(i.pageId, s.pageId)

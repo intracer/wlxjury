@@ -7,7 +7,7 @@ case class SelectionItem(text: String,
                          icon: Option[String] = None,
                          localized: Boolean = true) {
 
-  def localizedText(implicit lang: Lang, messages: Messages) = {
+  def localizedText(implicit messages: Messages): String = {
     if (localized) {
       Messages(text)
     } else {

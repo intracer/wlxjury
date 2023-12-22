@@ -1,7 +1,7 @@
 @(
         image: org.intracer.wmua.Image,
         monument: Option[org.scalawiki.wlx.dto.Monument]
-        )(implicit flash: Flash, lang: Lang, request: play.api.mvc.Request[Any], messages: Messages)
+        )(implicit flash: Flash, request: play.api.mvc.Request[Any], messages: Messages)
 @import org.scalawiki.wlx.dto.Monument
 
 @for(m <- monument) {
@@ -11,7 +11,7 @@
         @Html(Monument.wikiLinkToUrl(m.name, "uk.wikipedia.org")) <br>
         @Html(Monument.wikiLinkToUrl(m.place.getOrElse(""), "uk.wikipedia.org"))
 
-        @if(false){  <a href="@routes.MonumentsController.byId(m.id)"><i class="icon-forward"></i></a> }
+        @if(false){  <a href="@routes.MonumentController.byId(m.id)"><i class="icon-forward"></i></a> }
 
     </div>
 

@@ -1,11 +1,11 @@
 package controllers
 
 import db.scalikejdbc._
-import org.intracer.wmua.{Selection, _}
+import org.intracer.wmua._
 import org.specs2.mutable.Specification
-import play.api.Application
+import services.GalleryService
 
-class GalleryControllerSpec extends Specification with TestDb {
+class GalleryServiceSpec extends Specification with TestDb {
 
   sequential
 
@@ -13,10 +13,10 @@ class GalleryControllerSpec extends Specification with TestDb {
   var round: Round = _
   var user: User = _
 
-  def contestImage(id: Long, contestId: Long) =
+  private def contestImage(id: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
-  def setUp(rates: Rates = Round.binaryRound) = {
+  private def setUp(rates: Rates = Round.binaryRound): Unit = {
     contest = contestDao.create(None, "WLE", 2015, "Ukraine")
     round = roundDao.create(
       Round(None, 1, contestId = contest.getId, rates = rates, active = true)
@@ -26,17 +26,17 @@ class GalleryControllerSpec extends Specification with TestDb {
     )
   }
 
-  def createImages(number: Int, contestId: Long = contest.getId, startId: Int = 0) = {
-    val images = (startId until number + startId).map(id => contestImage(id, contestId))
+  private def createImages(number: Long, startId: Long = 0) = {
+    val images = (startId until number + startId).map(contestImage)
     imageDao.batchInsert(images)
     images
   }
 
-  def createSelection(images: Seq[Image],
+  private def createSelection(images: Seq[Image],
                       rate: Int = 0,
                       user: User = user,
-                      round: Round = round) = {
-    val selections = images.zipWithIndex.map { case (image, i) =>
+                      round: Round = round): Seq[Selection] = {
+    val selections = images.zipWithIndex.map { case (image, _) =>
       Selection(image, user, round, rate)
     }
     selectionDao.batchInsert(selections)
@@ -49,10 +49,10 @@ class GalleryControllerSpec extends Specification with TestDb {
         /// prepare
         setUp(rates = Round.binaryRound)
         val images = createImages(6)
-        createSelection(images.slice(0, 3), rate = 0)
+        createSelection(images.slice(0, 3))
 
         /// test
-        val result = GalleryController.getSortedImages(user.getId, None, round.id, "gallery")
+        val result = new GalleryService().getSortedImages(user.getId, None, round.id, "gallery")
 
         /// check
         result.size === 3
@@ -78,7 +78,7 @@ class GalleryControllerSpec extends Specification with TestDb {
 
         for (rate <- -1 to 1) yield {
           /// test
-          val result = GalleryController.getSortedImages(user.getId, Some(rate), round.id, "gallery")
+          val result = new GalleryService().getSortedImages(user.getId, Some(rate), round.id, "gallery")
 
           /// check
           result.size === 2
@@ -104,7 +104,7 @@ class GalleryControllerSpec extends Specification with TestDb {
         }
 
         /// test
-        val result = GalleryController.getSortedImages(user.getId, None, round.id, "gallery")
+        val result = new GalleryService().getSortedImages(user.getId, None, round.id, "gallery")
 
         /// check
         result.size === 6
@@ -127,7 +127,7 @@ class GalleryControllerSpec extends Specification with TestDb {
         selectionDao.batchInsert(selections)
 
         /// test
-        val result = GalleryController.getSortedImages(user.getId, None, round.id, "gallery")
+        val result = new GalleryService().getSortedImages(user.getId, None, round.id, "gallery")
 
         /// check
         result.size === 6
@@ -161,7 +161,7 @@ class GalleryControllerSpec extends Specification with TestDb {
         selectionDao.batchInsert(selectedByX)
 
         /// test
-        val result = GalleryController.getSortedImages(0, None, round.id, "gallery")
+        val result = new GalleryService().getSortedImages(0, None, round.id, "gallery")
 
         /// check
         result.size === 4
@@ -200,7 +200,7 @@ class GalleryControllerSpec extends Specification with TestDb {
         selectionDao.batchInsert(selections)
 
         /// test
-        val result = GalleryController.getSortedImages(0, None, round.id, "filelist")
+        val result = new GalleryService().getSortedImages(0, None, round.id, "filelist")
 
         /// check
         result.size === 2
@@ -233,7 +233,7 @@ class GalleryControllerSpec extends Specification with TestDb {
         selectionDao.batchInsert(selectedByX)
 
         /// test
-        val result = GalleryController.getSortedImages(0, None, round.id, "filelist")
+        val result = new GalleryService().getSortedImages(0, None, round.id, "filelist")
 
         /// check
         result.size === 4

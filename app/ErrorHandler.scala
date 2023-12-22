@@ -1,31 +1,45 @@
-import javax.inject.Inject
-
-import play.api.{Logger, mvc}
-import play.api.http.HttpErrorHandler
-import play.api.mvc._
-import play.api.mvc.Results._
-
-import scala.concurrent._
-import play.api.Play.current
-import play.api.i18n.Messages.Implicits._
+import akka.event.Logging
+import play.api.{Configuration, Environment, Logger, Logging}
+import play.api.http.{DefaultHttpErrorHandler, HttpErrorHandler}
 import play.api.i18n._
+import play.api.mvc.Results._
+import play.api.mvc._
 
-class ErrorHandler @Inject()(val langs: Langs, val messagesApi: MessagesApi) extends HttpErrorHandler with I18nSupport {
+import javax.inject.Inject
+import scala.concurrent._
 
-  def onClientError(request: RequestHeader, statusCode: Int, message: String) = {
-    implicit val lang = request.messages.lang
-    val fullMessage = "An error occurred: " + statusCode + (if (message.nonEmpty) ", " + message else "")
-    Logger.logger.error(fullMessage)
+class ErrorHandler @Inject()(environment: Environment,
+                             configuration: Configuration,
+                             val langs: Langs,
+                             val messagesApi: MessagesApi)
+    extends DefaultHttpErrorHandler(environment,
+                                    configuration,
+                                    sourceMapper = None,
+                                    router = None)
+    with I18nSupport
+    with Logging {
+
+  override def onClientError(request: RequestHeader,
+                             statusCode: Int,
+                             message: String): Future[Result] = {
+    implicit val impReq: RequestHeader = request
+    val fullMessage = "An error occurred: " + statusCode + (if (message.nonEmpty)
+                                                              ", " + message
+                                                            else "")
+    logger.error(fullMessage)
     Future.successful(
       Status(statusCode)(views.html.error(fullMessage))
     )
   }
 
-  def onServerError(request: RequestHeader, exception: Throwable) = {
-    implicit val lang = request.messages.lang
-    Logger.logger.error("A server error occurred: " + exception.getMessage, exception)
+  override def onServerError(request: RequestHeader,
+                             exception: Throwable): Future[Result] = {
+    implicit val impReq: RequestHeader = request
+    logger
+      .error("A server error occurred: " + exception.getMessage, exception)
     Future.successful(
-      InternalServerError(views.html.error("A server error occurred: " + exception.getMessage))
+      InternalServerError(
+        views.html.error("A server error occurred: " + exception.getMessage))
     )
   }
 }

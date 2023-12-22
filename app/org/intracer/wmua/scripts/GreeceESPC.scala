@@ -1,17 +1,20 @@
 package org.intracer.wmua.scripts
 
+import db.scalikejdbc.Round
 import org.intracer.wmua.Tools
 import org.intracer.wmua.cmd._
+import play.api.Configuration
+import services.RoundService
 
 object GreeceESPC {
 
   def user(role: String)(country: String, n: Int) = s"${country}ESPC$role$n"
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val contestId = 78L
 
     val cmds = Seq(
-      ConnectDb(),
+      ConnectDb("", null),
       AddUsers(contestId, "organizer", 1, user("Org")),
       AddUsers(contestId, "jury", 7, user("Juror"))
     )
@@ -22,6 +25,6 @@ object GreeceESPC {
 
     DistributeImages.distributeImages(round, round.availableJurors, None)
 
-    SetCurrentRound(contestId, None, round).apply()
+    new RoundService(Round).setCurrentRound(None, round)
   }
 }

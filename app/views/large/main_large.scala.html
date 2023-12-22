@@ -16,11 +16,11 @@
         round: Round,
         module: String = "byrate",
         preload: Iterable[ImageWithRating] = Seq.empty,
-        byCriteria: Map[Int, Int] = Map.empty)(content: Html)(implicit lang: Lang, request: Request[Any], messages: Messages)
+        byCriteria: Map[Int, Int] = Map.empty)(content: Html)(implicit request: Request[Any], messages: Messages)
 
 <!DOCTYPE html>
 
-<html lang="@lang.language" style="height: 100%;">
+<html lang="@messages.lang.language" style="height: 100%;">
     <head>
         <title>@Messages(title)</title>
         <meta charset="UTF-8">

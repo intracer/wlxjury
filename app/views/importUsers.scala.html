@@ -1,15 +1,13 @@
 @(
         adminUser: db.scalikejdbc.User,
         importUserForm: Form[String],
-        contestId: Long)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
+        contestId: Long)(implicit flash: Flash, messages: Messages, req: RequestHeader)
 @import helper._
 
 @mainAdmin(Messages("users"), adminUser, adminUser.getId, contestId = Some(contestId)) {
     <div class="row" >
 
-
         <h3>@Messages("import")</h3>
-
         <div>
             @Messages("separate.entries.with.commas.newline.or.both")
             @Messages("entries.can.be.either.wikimedia.projects.accounts.or.emails")
@@ -18,20 +16,23 @@
             <pre>Wiki Account 1, Wiki Account 2</pre>
             <pre>mail1@@server.com, mail2@@server.com</pre>
             <pre>Name1 Surname1 &lt;mail1@@server.com&gt;,
-Name2 Surname2 &lt;mail2@@server.com&gt;</pre>
+                Name2 Surname2 &lt;mail2@@server.com&gt;</pre>
         </div>
 
-        @form(routes.UsersController.importUsers(Some(contestId)), 'id -> "import-users") {
+        @form(routes.UserController.importUsers(Some(contestId)), Symbol("id") -> "import-users") {
             <div class="form-group">
                 @helper.CSRF.formField
 
                 @textarea(field = importUserForm("userstoimport"),
-                    args = 'rows -> 7, 'cols -> 50, 'class -> "form-control", 'id -> "userstoimport", '_label -> Messages("mails.to.import")
+                    args = Symbol("rows") -> 7, Symbol("cols") -> 50,
+                    Symbol("class") -> "form-control",
+                    Symbol("id") -> "userstoimport",
+                    Symbol("_label") -> Messages("mails.to.import")
                 )
 
                 <div class="form-actions">
                     <input type="submit" class="btn btn-default btn-primary" value="@Messages("import")">
-                    <a href="@routes.UsersController.users(Some(contestId))" class="btn btn-default">@Messages("cancel")</a>
+                    <a href="@routes.UserController.users(Some(contestId))" class="btn btn-default">@Messages("cancel")</a>
                 </div>
 
             </div>

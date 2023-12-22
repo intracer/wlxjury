@@ -1,8 +1,9 @@
 package org.intracer.wmua.scripts
 
-import db.scalikejdbc.ContestJuryJdbc
+import db.scalikejdbc.{ContestJuryJdbc, Round}
 import org.intracer.wmua.Tools
 import org.intracer.wmua.cmd._
+import services.RoundService
 
 object WikiLovesAfrica {
 
@@ -10,14 +11,14 @@ object WikiLovesAfrica {
   val country = "Africa"
   val year = 2015
 
-  def juror(country: String, n: Int) = "WLAJuror" + n
+  def juror(country: String, n: Int): String = "WLAJuror" + n
 
-  def main(args: Array[String]) {
-    for (contest <- ContestJuryJdbc.where('name -> contestType, 'country -> country, 'year -> year).apply().headOption) {
+  def main(args: Array[String]): Unit = {
+    for (contest <- ContestJuryJdbc.where(Symbol("name") -> contestType, Symbol("country") -> country, Symbol("year") -> year).apply().headOption) {
       val contestId = contest.getId
 
       val cmds = Seq(
-        ConnectDb(),
+        ConnectDb("", null),
         AddUsers(contestId, "jury", 10, juror)
       )
 
@@ -28,7 +29,7 @@ object WikiLovesAfrica {
       val images = DistributeImages.getFilteredImages(round, round.availableJurors, Some(prevRound), selectedAtLeast = Some(1))
       DistributeImages.distributeImages(round, round.availableJurors, images)
 
-      SetCurrentRound(contestId, Some(prevRound), round).apply()
+      new RoundService(Round).setCurrentRound(prevRound.id, round)
     }
   }
 }

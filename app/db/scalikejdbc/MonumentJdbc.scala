@@ -32,7 +32,7 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     contest = rs.longOpt(c.contest)
   )
 
-  def batchInsert(monuments: Seq[Monument]) {
+  def batchInsert(monuments: Seq[Monument]) = {
     val column = MonumentJdbc.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] = monuments.map(m => Seq(

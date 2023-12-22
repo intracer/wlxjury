@@ -4,7 +4,7 @@ import _root_.play.api.i18n.Messages
 import controllers.Greeting
 import org.intracer.wmua.ContestJury
 import scalikejdbc._
-import skinny.orm.SkinnyCRUDMapper
+import skinny.orm.{Alias, SkinnyCRUDMapper}
 
 object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
 
@@ -14,9 +14,10 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
 
   implicit def session: DBSession = autoSession
 
-  override lazy val defaultAlias = createAlias("m")
+  override lazy val defaultAlias: Alias[ContestJury] = createAlias("m")
 
-  override def extract(rs: WrappedResultSet, c: ResultName[ContestJury]): ContestJury = ContestJury(
+  override def extract(rs: WrappedResultSet,
+                       c: ResultName[ContestJury]): ContestJury = ContestJury(
     id = rs.longOpt(c.id),
     name = rs.string(c.name),
     year = rs.int(c.year),
@@ -36,45 +37,49 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
     val categoryId = images.map(CategoryJdbc.findOrInsert)
 
     updateById(id)
-      .withAttributes('images -> images, 'categoryId -> categoryId)
+      .withAttributes(Symbol("images") -> images,
+                      Symbol("categoryId") -> categoryId)
   }
 
   def updateGreeting(id: Long, greeting: Greeting): Int =
     updateById(id)
       .withAttributes(
-        'greeting -> greeting.text,
-        'use_greeting -> greeting.use
+        Symbol("greeting") -> greeting.text,
+        Symbol("use_greeting") -> greeting.use
       )
 
   def setCurrentRound(id: Long, round: Option[Long]): Int =
     updateById(id)
-      .withAttributes('currentRound -> round)
+      .withAttributes(Symbol("currentRound") -> round)
 
   def create(id: Option[Long],
-                      name: String,
-                      year: Int,
-                      country: String,
-                      images: Option[String] = None,
-                      categoryId: Option[Long] = None,
-                      currentRound: Option[Long] = None,
-                      monumentIdTemplate: Option[String] = None,
-                      campaign: Option[String] = None,
-            ): ContestJury = {
+             name: String,
+             year: Int,
+             country: String,
+             images: Option[String] = None,
+             categoryId: Option[Long] = None,
+             currentRound: Option[Long] = None,
+             monumentIdTemplate: Option[String] = None,
+             campaign: Option[String] = None,
+  ): ContestJury = {
     val dbId = withSQL {
-      insert.into(ContestJuryJdbc).namedValues(
-        column.id -> id,
-        column.name -> name,
-        column.year -> year,
-        column.country -> country,
-        column.images -> images,
-        column.categoryId -> categoryId,
-        column.currentRound -> currentRound,
-        column.monumentIdTemplate -> monumentIdTemplate,
-        column.campaign -> campaign
-      )
+      insert
+        .into(ContestJuryJdbc)
+        .namedValues(
+          column.id -> id,
+          column.name -> name,
+          column.year -> year,
+          column.country -> country,
+          column.images -> images,
+          column.categoryId -> categoryId,
+          column.currentRound -> currentRound,
+          column.monumentIdTemplate -> monumentIdTemplate,
+          column.campaign -> campaign
+        )
     }.updateAndReturnGeneratedKey().apply()
 
-    ContestJury(id = Some(dbId),
+    ContestJury(
+      id = Some(dbId),
       name = name,
       year = year,
       country = country,
@@ -82,34 +87,39 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
       categoryId = categoryId,
       currentRound = currentRound,
       monumentIdTemplate = monumentIdTemplate,
-      greeting = Greeting(None, true),
-      campaign = campaign)
+      greeting = Greeting(None, use = true),
+      campaign = campaign
+    )
   }
 
   def batchInsert(contests: Seq[ContestJury]): Seq[Int] = {
     val column = ContestJuryJdbc.column
     DB localTx { implicit session =>
-      val batchParams: Seq[Seq[Any]] = contests.map(c => Seq(
-        c.id,
-        c.name,
-        c.year,
-        c.country,
-        c.images,
-        c.currentRound,
-        c.monumentIdTemplate,
-        c.campaign
-      ))
+      val batchParams: Seq[Seq[Any]] = contests.map(
+        c =>
+          Seq(
+            c.id,
+            c.name,
+            c.year,
+            c.country,
+            c.images,
+            c.currentRound,
+            c.monumentIdTemplate,
+            c.campaign
+        ))
       withSQL {
-        insert.into(ContestJuryJdbc).namedValues(
-          column.id -> sqls.?,
-          column.name -> sqls.?,
-          column.year -> sqls.?,
-          column.country -> sqls.?,
-          column.images -> sqls.?,
-          column.currentRound -> sqls.?,
-          column.monumentIdTemplate -> sqls.?,
-          column.campaign -> sqls.?,
-        )
+        insert
+          .into(ContestJuryJdbc)
+          .namedValues(
+            column.id -> sqls.?,
+            column.name -> sqls.?,
+            column.year -> sqls.?,
+            column.country -> sqls.?,
+            column.images -> sqls.?,
+            column.currentRound -> sqls.?,
+            column.monumentIdTemplate -> sqls.?,
+            column.campaign -> sqls.?,
+          )
       }.batch(batchParams: _*).apply()
     }
   }

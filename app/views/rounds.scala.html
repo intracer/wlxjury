@@ -5,13 +5,13 @@
 @(
         adminUser: User,
         rounds: Seq[Round],
-        roundsStat: Map[Long, RateDistribution],
+        roundsStat: Map[Long, Int],
         editRoundForm: Form[controllers.EditRound],
         editImagesForm: Form[Option[String]],
         selectRoundForm: Form[SelectRound],
         round: Option[Round],
         contest: ContestJury
-)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
+)(implicit flash: Flash, messages: Messages, req: RequestHeader)
 
     @mainAdmin(Messages("rounds"), adminUser, adminUser.getId,
         rounds = rounds, selectedRound = round, contestId = contest.id) {
@@ -33,7 +33,6 @@
                             <th width="10%">@Messages("Recommended selected") </th> -->
                             <th width="10%">@Messages("active")</th>
                             <th width="10%">@Messages("images")</th>
-                            <th width="10%">@Messages("selected.rated")</th>
                         </tr>
                     </thead>
 
@@ -41,7 +40,7 @@
 
                     @for(round <- rounds) {
                         <tr>
-                            <td> <a href="@routes.RoundsController.editRound(id = round.id, contestId = contest.getId)">@round.number</a> </td>
+                            <td> <a href="@routes.RoundController.editRound(id = round.id, contestId = contest.getId)">@round.number</a> </td>
                             <td> @round.name </td>
                                 <!--                            <td>              @round.roles.mkString(",") </td> -->
                             <td>@Option(round.distribution).filter(_ != 0).fold(Messages("each.image.to.all.jurors"))(i => Messages("each.image.to.i.juror.s", i))</td>
@@ -49,9 +48,8 @@
                                 <!--                            <td>              @round.limitMin </td>
                             <td>@round.limitMax </td>
                             <td>@round.recommended.fold("")(_.toString) </td> -->
-                            <td>@snippets.startStop(round.active, round.getId, contest.getId, routes.RoundsController.setRound)</td>
-                            <td>@roundsStat.get(round.getId).map(_.all).getOrElse(0) </td>
-                            <td>@roundsStat.get(round.getId).map(_.positive).getOrElse(0) </td>
+                            <td>@snippets.startStop(round.active, round.getId, contest.getId, routes.RoundController.setRound)</td>
+                            <td>@roundsStat.getOrElse(round.getId, 0) </td>
                         </tr>
                     }
                     </tbody>
@@ -62,7 +60,7 @@
 
         <div class="row" >
             <div class="control-group">
-                <a href="@routes.RoundsController.editRound(id = None, contestId = contest.getId)">
+                <a href="@routes.RoundController.editRound(id = None, contestId = contest.getId)">
                     <div class="btn btn-primary" onClick="document.forms['add-user'].submit();">@Messages("add.round")</div>
                 </a>
 

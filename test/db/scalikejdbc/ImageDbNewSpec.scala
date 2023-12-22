@@ -7,16 +7,18 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.BeforeAll
 import play.api.i18n.{Lang, Messages}
+import play.i18n
 
 class ImageDbNewSpec extends Specification with Mockito with BeforeAll {
 
-  override def beforeAll() = {
+  override def beforeAll(): Unit = {
     KOATUU.load()
   }
 
   "regions" should {
 
-    def regions(map: Map[String, Int])(messages: Messages) = ImageDbNew.SelectionQuery().regions(map)(messages)
+    def regions(map: Map[String, Int])(messages: Messages) =
+      ImageDbNew.SelectionQuery().regions(map)(messages)
 
     "be empty" in {
       val messages = mock[Messages]
@@ -49,4 +51,6 @@ case class MessageStub(dict: Map[String, String]) extends Messages {
   override def translate(key: String, args: Seq[Any]): Option[String] = ???
 
   override def isDefinedAt(key: String): Boolean = dict.contains(key)
+
+  override def asJava: i18n.Messages = ???
 }

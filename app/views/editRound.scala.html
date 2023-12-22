@@ -12,7 +12,7 @@
         regions: Map[String, String] = Map.empty,
         statOpt: Option[RoundStat] = None,
         newImages: Seq[Image] = Seq.empty
-)(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
+)(implicit flash: Flash, messages: Messages, req: RequestHeader)
 
 @implicitFieldConstructor = @{
     b3.horizontal.fieldConstructor("col-md-4", "col-md-8")
@@ -30,7 +30,7 @@
                 <h3>@Messages("edit.round")</h3>
             }
 
-            @b3.form(routes.RoundsController.saveRound) {
+            @b3.form(routes.RoundController.saveRound()) {
                 @helper.CSRF.formField
 
                 @if(editRoundForm.hasGlobalErrors) {
@@ -45,7 +45,7 @@
                     <input type="hidden" name="number" id="number" value='@editRoundForm("number").value' />
                     <input type="hidden" name="roles" id="roles" value='jury' />
 
-                    @b3.text(editRoundForm("name"), '_label -> Messages("round.name.optional"))
+                    @b3.text(editRoundForm("name"), Symbol("_label") -> Messages("round.name.optional"))
 
                     @defining(!newRound) { noEdit =>
 
@@ -60,63 +60,72 @@
                                 <div class="panel-body">
                                     @if(rounds.nonEmpty) {
                                         @b3.select(editRoundForm("previousRound"), ("" -> Messages("no")) +: rounds.map(r => (r.id.map(_.toString).get, r.description)),
-                                            '_label -> Messages("previous.round"), '_help -> "", 'class -> "form-control", 'readonly -> noEdit)
+                                            Symbol("_label") -> Messages("previous.round"), Symbol("_help") -> "", Symbol("class") -> "form-control", Symbol("readonly") -> noEdit)
 
                                         <div id="prevRoundFilters" @if(editRoundForm("previousRound").value.isEmpty) {
                                             style="display: none"}>
                                             <div id="selectFilters" class="@rounds.filter(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
                                             @b3.select(
                                                 editRoundForm("minJurors"),
-                                                Seq("0", "1", "2", "3", "4", "5", "6").map(x => (x, x)),
-                                                'value -> "1",
-                                                '_label -> Messages("selected.by.at.least.x.jurors"),
-                                                'readonly -> noEdit)
+                                                Seq("", "0", "1", "2", "3", "4", "5", "6").map(x => (x, x)),
+                                                Symbol("value") -> "",
+                                                Symbol("_label") -> Messages("selected.by.at.least.x.jurors"),
+                                                Symbol("readonly") -> noEdit)
                                             </div>
 
                                             <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
-                                            @b3.select(
-                                                editRoundForm("minAvgRate"),
-                                                Seq("" -> Messages("no")) ++ (0 to 20).map(x => (x.toString, x.toString)),
-                                                '_label -> Messages("average.image.rating.is.at.least"), 'readonly -> noEdit)
+                                                @b3.text(
+                                                    editRoundForm("minAvgRate"),
+                                                    Symbol("_label") -> Messages("average.image.rating.is.at.least"),
+                                                    Symbol("readonly") -> noEdit
+                                                )
                                             </div>
 
                                             @for(topImages <- editRoundForm("topImages").value) {
-                                                @b3.text(editRoundForm("topImages"), '_label -> Messages("top.images"))
+                                                @b3.text(editRoundForm("topImages"), Symbol("_label") -> Messages("top.images"))
                                             }
                                         </div>
                                     }
 
                                     <div id="categoryDiv">
-                                    @b3.text(editRoundForm("source"), '_label -> Messages("images.should.be.IN.the.category"), 'readonly -> noEdit)
+                                    @b3.text(
+                                        editRoundForm("source"),
+                                        Symbol("_label") -> Messages("images.should.be.IN.the.category"),
+                                        Symbol("readonly") -> noEdit
+                                    )
                                     </div>
 
                                     <div id="categoryDiv">
-                                    @b3.text(editRoundForm("excludeCategory"), '_label -> Messages("images.should.be.NOT.IN.the.category"), 'readonly -> noEdit)
+                                    @b3.text(
+                                        editRoundForm("excludeCategory"),
+                                        Symbol("_label") -> Messages("images.should.be.NOT.IN.the.category"),
+                                        Symbol("readonly") -> noEdit
+                                    )
                                     </div>
 
                                     @if(regions.nonEmpty) {
                                         @b3.select(
                                             editRoundForm("regions"),
                                             regions.map { case (k, v) => (k, Messages(k)) }.toSeq.sortBy(_._1),
-                                            '_label -> Messages("regions"), 'multiple -> true, 'readonly -> noEdit)
+                                            Symbol("_label") -> Messages("regions"), Symbol("multiple") -> true, Symbol("readonly") -> noEdit)
 
                                         @b3.text(
                                             editRoundForm("monumentIds"),
-                                            '_label -> Messages("monument.ids.comma.separated"), 'readonly -> noEdit)
+                                            Symbol("_label") -> Messages("monument.ids.comma.separated"), Symbol("readonly") -> noEdit)
                                     }
 
                                     @b3.select(
                                         editRoundForm("minMpx"),
                                         Seq("No", "1", "2", "3", "4").map(x => (x, Messages(x.toLowerCase))),
-                                        '_label -> Messages("minimum.megapixels"), 'readonly -> noEdit)
+                                        Symbol("_label") -> Messages("minimum.megapixels"), Symbol("readonly") -> noEdit)
 
                                     @b3.select(
                                         editRoundForm("minSize"),
                                         Seq("No", "1", "2").map(x => (x, Messages(x.toLowerCase))),
-                                        '_label -> Messages("minimum.megabytes"), 'readonly -> noEdit)
+                                        Symbol("_label") -> Messages("minimum.megabytes"), Symbol("readonly") -> noEdit)
 
                                     @if(user.hasRole(User.ROOT_ROLE)) {
-                                        @b3.text(editRoundForm("specialNomination"), '_label -> Messages("specialNomination"))
+                                        @b3.text(editRoundForm("specialNomination"), Symbol("_label") -> Messages("specialNomination"))
                                     }
                                 </div>
                             </div>
@@ -127,7 +136,7 @@
                         @b3.select(
                             editRoundForm("jurors"),
                             jurors.map(u => (u.getId.toString, u.description)),
-                            '_label -> Messages("jurors"), 'multiple -> true, 'readonly -> noEdit)
+                            Symbol("_label") -> Messages("jurors"), Symbol("multiple") -> true, Symbol("readonly") -> noEdit)
                         </div>
                     @if(!newRound) {
 
@@ -149,22 +158,22 @@
                         </div>
                     }
 
-                    @defining(jurorsMapping.bind(editRoundForm.data).right.getOrElse(Seq.empty).size) { numJurors =>
+                    @defining(jurorsMapping.bind(editRoundForm.data).getOrElse(Seq.empty).size) { numJurors =>
                         @b3.select(editRoundForm("distribution"),
                             Seq(("0", Messages("each.image.to.all.jurors"))) ++
                                     (1 until numJurors).map(x => (x.toString, Messages("each.image.to.i.juror.s", x))),
-                            '_label -> Messages("image.distribution"),
-                            'readonly -> (noEdit || numJurors == 0))
+                            Symbol("_label") -> Messages("image.distribution"),
+                            Symbol("readonly") -> (noEdit || numJurors == 0))
 
                         @b3.select(
                             editRoundForm("rates"),
                             Round.rates.map(x => (x.id.toString, if(x.id == 1) x.name else Messages("1-x.rating", x.id))),
-                            '_label -> Messages("rating.type"), 'readonly -> noEdit)
+                            Symbol("_label") -> Messages("rating.type"), Symbol("readonly") -> noEdit)
 
                         @if(!newRound) {
                             @b3.checkbox(field = editRoundForm("newImages"),
-                                '_label -> Messages("distribute.x.new.images", newImages.size),
-                                'readonly -> (numJurors == 0 || newImages.isEmpty))
+                                Symbol("_label") -> Messages("distribute.x.new.images", newImages.size),
+                                Symbol("readonly") -> (numJurors == 0 || newImages.isEmpty))
                         }
                     }
                     }
@@ -173,7 +182,7 @@
                 <div class="form-actions" style="margin-top: 10px">
                     <input type="submit" class="btn btn-primary btn-default" style="width: 25%;
                         margin-right: 10px" value="@Messages("save")">
-                    <a href="@routes.RoundsController.rounds(editRoundForm("contest").value.map(_.toLong))">
+                    <a href="@routes.RoundController.rounds(editRoundForm("contest").value.map(_.toLong))">
                         <button type="button" class="btn btn-default" style="width: 25%;" >@Messages("cancel")</button>
                     </a>
                 </div>

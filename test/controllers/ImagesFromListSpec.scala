@@ -3,6 +3,7 @@ package controllers
 import db.scalikejdbc.{CategoryJdbc, ContestJuryJdbc, ImageJdbc, TestDb}
 import org.intracer.wmua.JuryTestHelpers
 import org.specs2.mutable.Specification
+import services.{ImageService, MonumentService}
 
 import scala.concurrent.ExecutionContext
 
@@ -24,7 +25,7 @@ class ImagesFromListSpec extends Specification with JuryTestHelpers with TestDb 
 
         val contest = contestDao.create(Some(contestId), "WLE", 2020, "Armenia", Some(categoryName))
 
-        val ic = new ImagesController(Global.commons)
+        val ic = new ImageService(Global.commons, mock[MonumentService])
         ic.appendImages(categoryName, list, contest)
 
         val dbCategories = categoryDao.findAll()

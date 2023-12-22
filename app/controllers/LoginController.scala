@@ -1,92 +1,101 @@
 package controllers
 
-import javax.inject.Inject
 import db.scalikejdbc.{Round, User}
-import play.api.Play.current
 import play.api.data.Forms._
 import play.api.data._
-import play.api.i18n.Lang
-import play.api.i18n.Messages.Implicits._
-import play.api.mvc.Results._
+import play.api.i18n.{I18nSupport, Lang}
 import play.api.mvc._
+import services.UserService
 
-class LoginController @Inject()(val admin: UsersController) extends Controller with Secured {
+import javax.inject.Inject
 
-  def index = withAuth() { user => implicit request =>
-        indexRedirect(user)
+class LoginController @Inject()(val admin: UserService,
+                                cc: ControllerComponents)
+    extends Secured(cc)
+    with I18nSupport {
+
+  def index: EssentialAction = withAuth() { user => implicit request =>
+    indexRedirect(user)
   }
 
   def indexRedirect(user: User): Result = {
     if (user.hasAnyRole(User.ORG_COM_ROLES)) {
-      Redirect(routes.RoundsController.currentRoundStat())
+      Redirect(routes.RoundController.currentRoundStat())
     } else if (user.hasAnyRole(User.JURY_ROLES)) {
       val maybeRound = Round.activeRounds(user).headOption
       maybeRound.fold {
         Redirect(routes.LoginController.error("no.round.yet"))
-      } {
-        round =>
-          if (round.isBinary) {
-            Redirect(routes.GalleryController.list(user.getId, 1, "all", round.getId, rate = Some(0)))
-          } else {
-            Redirect(routes.GalleryController.byRate(user.getId, 0, "all", 0))
-          }
+      } { round =>
+        if (round.isBinary) {
+          Redirect(
+            routes.GalleryController
+              .list(user.getId, 1, "all", round.getId, rate = Some(0)))
+        } else {
+          Redirect(routes.GalleryController.byRate(user.getId, 0, "all", 0))
+        }
       }
     } else if (user.hasRole(User.ROOT_ROLE)) {
-      Redirect(routes.ContestsController.list())
+      Redirect(routes.ContestController.list())
     } else if (user.hasAnyRole(User.ADMIN_ROLES)) {
-      Redirect(routes.UsersController.users(user.contestId))
+      Redirect(routes.UserController.users(user.contestId))
     } else {
-      Redirect(routes.LoginController.error("You don't have permission to access this page"))
+      Redirect(
+        routes.LoginController.error(
+          "You don't have permission to access this page"))
     }
   }
 
-  def login = Action {
-    implicit request =>
-      val users = User.count()
-      if (users > 0) {
-        Ok(views.html.index(loginForm))
-      } else {
-        Ok(views.html.signUp(signUpForm))
-      }
+  def login: Action[AnyContent] = Action { implicit request =>
+    val users = User.count()
+    if (users > 0) {
+      Ok(views.html.index(loginForm))
+    } else {
+      Ok(views.html.signUp(signUpForm))
+    }
   }
 
-  def auth() = Action { implicit request =>
-
-    loginForm.bindFromRequest.fold(
-      formWithErrors =>
-        BadRequest(views.html.index(formWithErrors)), {
-        case (login, password) =>
-          val user = User.login(login, password).get
-          val result = indexRedirect(user).withSession(Security.username -> login)
-          user.lang.fold(result)(l => result.withLang(Lang(l)))
-      }
-    )
+  def auth(): Action[AnyContent] = Action { implicit request =>
+    loginForm
+      .bindFromRequest()
+      .fold(
+        formWithErrors => BadRequest(views.html.index(formWithErrors)), {
+          case (login, password) =>
+            val user = User.login(login, password).get
+            val result =
+              indexRedirect(user).withSession(Secured.UserName -> login)
+            user.lang.fold(result)(l => result.withLang(Lang(l)))
+        }
+      )
   }
 
-  def signUpView() = Action { implicit request =>
+  def signUpView(): Action[AnyContent] = Action { implicit request =>
     Ok(views.html.signUp(signUpForm))
   }
 
-  def signUp() = Action { implicit request =>
+  def signUp(): Action[AnyContent] = Action { implicit request =>
+    signUpForm
+      .bindFromRequest()
+      .fold(
+        formWithErrors => BadRequest(views.html.signUp(formWithErrors)), {
+          case (login: String, password: String, _) =>
+            val users = User.count()
+            val roles =
+              if (users > 0)
+                Set.empty[String]
+              else
+                Set(User.ROOT_ROLE)
 
-    signUpForm.bindFromRequest.fold(
-      formWithErrors =>
-        BadRequest(views.html.signUp(formWithErrors)), {
-        case (login: String, password: String, _) =>
+            val newUser = new User(fullname = "",
+                                   email = login,
+                                   password = Some(password),
+                                   roles = roles)
 
-          val users = User.count()
-          val roles = if (users > 0)
-            Set.empty[String]
-          else
-            Set(User.ROOT_ROLE)
-
-          val newUser = new User(fullname = "", email = login, password = Some(password), roles = roles)
-
-          val user = admin.createNewUser(newUser, newUser)
-          val result = indexRedirect(user).withSession(Security.username -> password)
-          user.lang.fold(result)(l => result.withLang(Lang(l)))
-      }
-    )
+            val user = admin.createNewUser(newUser, newUser)
+            val result =
+              indexRedirect(user).withSession("username" -> password)
+            user.lang.fold(result)(l => result.withLang(Lang(l)))
+        }
+      )
   }
 
   /**
@@ -94,22 +103,22 @@ class LoginController @Inject()(val admin: UsersController) extends Controller w
     *
     * @return Index page
     */
-  def logout = Action {
+  def logout: Action[AnyContent] = Action {
     Redirect(routes.LoginController.login()).withNewSession
   }
 
-  def error(message: String) = withAuth() {
-    user =>
-      implicit request =>
-        Ok(views.html.error(message, user, user.getId))
+  def error(message: String): EssentialAction = withAuth() {
+    user => implicit request =>
+      Ok(views.html.error(message, user, user.getId))
   }
 
   val loginForm = Form(
     tuple(
       "login" -> nonEmptyText(),
       "password" -> nonEmptyText()
-    ) verifying("invalid.user.or.password", fields => fields match {
-      case (l, p) => User.login(l, p).isDefined
+    ) verifying ("invalid.user.or.password", fields =>
+      fields match {
+        case (l, p) => User.login(l, p).isDefined
     })
   )
 
@@ -118,12 +127,10 @@ class LoginController @Inject()(val admin: UsersController) extends Controller w
       "login" -> nonEmptyText(),
       "password" -> nonEmptyText(),
       "repeat.password" -> nonEmptyText()
-    ) verifying("invalid.user.or.password", fields => fields match {
-      case (_, p1, p2) => p1 == p2
+    ) verifying ("invalid.user.or.password", fields =>
+      fields match {
+        case (_, p1, p2) => p1 == p2
     })
   )
 
 }
-
-
-
