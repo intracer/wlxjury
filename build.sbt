@@ -53,7 +53,7 @@ libraryDependencies ++= Seq(
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
   "com.typesafe.play" %% "play-mailer-guice" % PlayMailerVersion,
-  "com.github.tototoshi" %% "scala-csv" % "1.3.6",
+  "com.github.tototoshi" %% "scala-csv" % "1.3.10",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
   "javax.xml.bind" % "jaxb-api" % "2.3.1",
   guice, filters,
