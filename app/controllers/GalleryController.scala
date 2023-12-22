@@ -3,6 +3,7 @@ package controllers
 import akka.http.scaladsl.model.ContentTypes
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import db.scalikejdbc.Round.binaryRound
 import db.scalikejdbc._
 import db.scalikejdbc.rewrite.ImageDbNew
 import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
@@ -215,7 +216,7 @@ class GalleryController @Inject() (
       val useTable = !round.isBinary || asUserId == 0
 
       module match {
-        case "gallery" =>
+        case "gallery" if round.rates == binaryRound =>
           Ok(
             views.html.gallery(
               user,
@@ -271,7 +272,7 @@ class GalleryController @Inject() (
               showAuthor
             )
           )
-        case "byrate" =>
+        case "byrate" | "gallery" if round.rates != binaryRound =>
           if (region != "grouped") {
             Ok(
               views.html.galleryByRate(
