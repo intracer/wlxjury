@@ -26,9 +26,17 @@
     @thumbSmall(if(i == index) "thumb_small current" else "thumb_small")
         <div style="margin:5px auto;">
             <a href="@routes.LargeViewController.large(asUserId, file.pageId, region, round.getId, rate, module)">
-                <img class="cropped" alt="@file.title"
-                src="@Global.resizeTo(file.image, Global.thumbSizeX, Global.thumbSizeY)"
-                srcset="@Global.srcSet(file.image, Global.thumbSizeX, Global.thumbSizeY)">
+                @if(file.image.isImage) {
+                    <img class="cropped" alt="@file.title"
+                    src="@Global.resizeTo(file.image, Global.thumbSizeX, Global.thumbSizeY)"
+                    srcset="@Global.srcSet(file.image, Global.thumbSizeX, Global.thumbSizeY)">
+                }
+                @if(file.image.isVideo) {
+                    <video width="100%" height="100%" muted>
+                        <source src="@file.image.url" type="video/webm">
+                        Your browser does not support the video tag.
+                    </video>
+                }
             </a>
         </div>
     </div>
