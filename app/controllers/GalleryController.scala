@@ -48,8 +48,7 @@ class GalleryController @Inject() (
     * @param roundId
     *   round id
     * @param rate
-    *   filter by rate. For select/reject rounds it is selected: 1, rejected:
-    *   -1, unrated: 0
+    *   filter by rate. For select/reject rounds it is selected: 1, rejected: -1, unrated: 0
     * @return
     */
   def query(
@@ -177,9 +176,7 @@ class GalleryController @Inject() (
       Round.activeRounds(user)
     }
 
-    if (
-      galleryService.isNotAuthorized(user, maybeRound, roundContestId, rounds)
-    ) {
+    if (galleryService.isNotAuthorized(user, maybeRound, roundContestId, rounds)) {
       onUnAuthorized(user)
     } else {
 
