@@ -3,7 +3,7 @@ package db.scalikejdbc
 import db.RoundDao
 
 import java.time.ZonedDateTime
-import org.intracer.wmua.{HasId, ImageWithRating}
+import org.intracer.wmua.{CriteriaRate, HasId, ImageWithRating}
 import org.scalawiki.dto.Page
 import scalikejdbc._
 import skinny.orm.{SkinnyCRUDMapper, SkinnyJoinTable}
@@ -40,7 +40,8 @@ case class Round(
     monuments: Option[String] = None,
     topImages: Option[Int] = None,
     specialNomination: Option[String] = None,
-    users: Seq[User] = Nil
+    users: Seq[User] = Nil,
+    criteriaNames: Seq[String] = Nil
 ) extends HasId {
 
   def availableJurors: Seq[User] =

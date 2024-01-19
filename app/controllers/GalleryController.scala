@@ -204,7 +204,7 @@ class GalleryController @Inject() (
       val byReg = if (contest.monumentIdTemplate.isDefined) {
         query.copy(regions = Set.empty).byRegionStat()
       } else {
-        Seq.empty
+        Nil
       }
 
       val rates = galleryService.rateDistribution(user, round)

@@ -91,17 +91,10 @@
     } else {
         </div>
     @if(round.hasCriteria) {
-        <div style="color: white">Технічна якість</div>
-        <div id="rate-image1" style="margin-top:10px ;"></div>
-
-        <div style="color: white">Корисність для Вікіпедії</div>
-        <div id="rate-image2" style="margin-top:10px ;"></div>
-
-        <div style="color: white">Оригінальність фото</div>
-        <div id="rate-image3" style="margin-top:10px ;"></div>
-
-        <div style="color: white">Додаткові бали</div>
-        <div id="rate-image4" style="margin-top:10px ;"></div>
+       @round.criteriaNames.zipWithIndex.map { case (criteriaName, index) =>
+           <div style="color: white">@criteriaName</div>
+           <div id="rate-image@(index + 1)" style="margin-top:10px;"> </div>
+       }
     } else if (round.rates.id > 0)  {
         <div id="rate-image" style="margin-top:10px ;"></div>
             <!-- <input type="text" id="scoretarget"/> -->

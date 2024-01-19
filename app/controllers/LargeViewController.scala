@@ -1,7 +1,7 @@
 package controllers
 
 import db.scalikejdbc.rewrite.ImageDbNew.Limit
-import db.scalikejdbc.{MonumentJdbc, Round, SelectionJdbc, User}
+import db.scalikejdbc.{ContestJuryJdbc, MonumentJdbc, Round, SelectionJdbc, User}
 import org.intracer.wmua._
 import play.api.i18n.I18nSupport
 import play.api.mvc.{ControllerComponents, EssentialAction, Request, Result}
@@ -84,11 +84,10 @@ class LargeViewController @Inject() (
       rate: Option[Int],
       module: String
   ): EssentialAction =
-    withAuth(roundPermission(User.ADMIN_ROLES, roundId)) {
-      user => implicit request =>
-        SelectionJdbc.removeImage(pageId, roundId)
-        val round = Round.findById(roundId).get
-        checkLargeIndex(user, rate, pageId, region, round, module)
+    withAuth(roundPermission(User.ADMIN_ROLES, roundId)) { user => implicit request =>
+      SelectionJdbc.removeImage(pageId, roundId)
+      val round = Round.findById(roundId).get
+      checkLargeIndex(user, rate, pageId, region, round, module)
     }
 
   def checkLargeIndex(
@@ -205,6 +204,16 @@ class LargeViewController @Inject() (
       }.toMap
     } else Map.empty[Int, Int]
 
+    val criteriaNames = if (round.hasCriteria) {
+      val contest = ContestJuryJdbc.findById(round.contestId).get
+      contest.name match {
+        case "Wiki Science Competition" =>
+          List("Науковість", "Підпис", "Корисність", "Естетика")
+        case "Wiki Loves Monuments" =>
+          List("Технічна якість", "Корисність для Вікіпедії", "Оригінальність фото", "Додаткові бали")
+      }
+    } else Nil
+
     show2(
       index,
       files,
@@ -212,7 +221,7 @@ class LargeViewController @Inject() (
       asUserId,
       rate,
       page,
-      round,
+      round.copy(criteriaNames = criteriaNames),
       region,
       module,
       selection,
@@ -240,9 +249,7 @@ class LargeViewController @Inject() (
     val right = Math.min(index + 3, files.size)
     val start = Math.max(0, left - extraLeft)
     val end = Math.min(files.size, right + extraRight)
-    val monument = files(index).image.monumentId.flatMap(id =>
-      if (id.trim.nonEmpty) MonumentJdbc.find(id) else None
-    )
+    val monument = files(index).image.monumentId.flatMap(id => if (id.trim.nonEmpty) MonumentJdbc.find(id) else None)
 
     val comments =
       CommentJdbc.findBySubjectAndContest(files(index).pageId, round.contestId)
@@ -271,11 +278,7 @@ class LargeViewController @Inject() (
       case Accepts.Json() =>
         Ok(
           Json.toJson(
-            files.map(file =>
-              file.copy(selection =
-                file.selection.map(_.copy(createdAt = None))
-              )
-            )
+            files.map(file => file.copy(selection = file.selection.map(_.copy(createdAt = None))))
           )
         )
     }
