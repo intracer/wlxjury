@@ -67,7 +67,7 @@ case class Round(
 
   def numberOfStars: Int =
     (if (rates.id <= 5 || !halfStar) rates.id
-     else rates.id / 2) * (if (hasCriteria) 4 else 1)
+     else rates.id / 2) * (if (hasCriteria) (if (!id.contains(1327)) 4 else 2) else 1)
 
   def regionIds: Seq[String] = regions.map(_.split(",").toSeq).getOrElse(Nil)
 

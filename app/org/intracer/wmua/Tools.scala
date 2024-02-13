@@ -152,7 +152,7 @@ object Tools {
   }
 
   def addCriteria() = {
-    val roundId = 1304
+    val roundId = 1327
     val round = Round.findById(roundId).get
     val images = Seq.empty
     val jurors = User.findByRoundSelection(roundId)
