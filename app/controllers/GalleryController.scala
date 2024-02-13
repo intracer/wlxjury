@@ -269,7 +269,7 @@ class GalleryController @Inject() (
               showAuthor
             )
           )
-        case "byrate" | "gallery" if round.rates != binaryRound =>
+        case "byrate" | "gallery" =>
           if (region != "grouped") {
             Ok(
               views.html.galleryByRate(
