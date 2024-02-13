@@ -42,7 +42,7 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
 
   def addCriteriaRates(selection: Seq[Selection]): Unit = {
     if (round.hasCriteria) {
-      val criteriaIds = Seq(6, 7, 8, 9) // TODO load form DB
+      val criteriaIds = Seq(6, 7/*, 8, 9*/) // TODO load form DB
       val rates = selection.flatMap { s =>
         criteriaIds.map(id => new CriteriaRate(0, s.getId, id, 0))
       }
