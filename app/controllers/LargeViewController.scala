@@ -205,13 +205,18 @@ class LargeViewController @Inject() (
     } else Map.empty[Int, Int]
 
     val criteriaNames = if (round.hasCriteria) {
-      val contest = ContestJuryJdbc.findById(round.contestId).get
-      contest.name match {
-        case "Wiki Science Competition" =>
-          List("Науковість", "Підпис", "Корисність", "Естетика")
-        case "Wiki Loves Monuments" =>
-          List("Технічна якість", "Корисність для Вікіпедії", "Оригінальність фото", "Додаткові бали")
-      }
+      Map(
+        1 -> "Науковість",
+        2 -> "Підпис",
+        3 -> "Корисність",
+        4 -> "Естетика",
+        5 -> "Унікальність",
+        6 -> "Технічна якість",
+        7 -> "Корисність для Вікіпедії",
+        8 -> "Оригінальність фото",
+        9 -> "Додаткові бали"
+      ).collect { case (k, v) if byCriteria.keySet.contains(k) => v }.toSeq
+
     } else Nil
 
     show2(
