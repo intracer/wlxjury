@@ -61,7 +61,7 @@
                             }
                         }
 
-                    @defining(jurorsMapping.bind(editRoundForm.data).getOrElse(Seq.empty).size) { numJurors =>
+                    @defining(jurorsMapping.bind(editRoundForm.data).getOrElse(Nil).size) { numJurors =>
                         @b3.select(editRoundForm("distribution"),
                             Seq(("0", Messages("each.image.to.all.jurors"))) ++
                                     (1 until numJurors).map(x => (x.toString, Messages("each.image.to.i.juror.s", x))),
