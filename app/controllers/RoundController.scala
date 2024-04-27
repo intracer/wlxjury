@@ -37,19 +37,15 @@ class RoundController @Inject() (
           contest <- ContestJuryJdbc.findById(contestId)
         ) yield {
           val rounds = Round.findByContest(contestId)
-          val currentRound = rounds.find(_.id == contest.currentRound)
-
-          val roundsStat = ImageJdbc.roundsStat(contestId, rounds.size).toMap
-
           Ok(
             views.html.rounds(
               user,
               rounds,
-              roundsStat,
+              ImageJdbc.roundsStat(contestId, rounds.size).toMap,
               editRoundForm,
               imagesForm.fill(contest.images),
               selectRoundForm,
-              currentRound,
+              rounds.find(_.id == contest.currentRound),
               contest
             )
           )
@@ -65,37 +61,23 @@ class RoundController @Inject() (
     */
   def editRound(roundId: Option[Long], contestId: Long, topImages: Option[Int]): EssentialAction =
     withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) { user => implicit request =>
-      val number = Round.findByContest(contestId).size + 1
+      val rounds = Round.findByContest(contestId)
 
       val round: Round = roundId
         .flatMap(Round.findById)
         .getOrElse(
-          new Round(id = None, contestId = contestId, number = number)
+          new Round(id = None, contestId = contestId, number = rounds.size + 1)
         )
 
-      val withTopImages =
-        topImages.map(n => round.copy(topImages = Some(n))).getOrElse(round)
+      val withTopImages = topImages.map(n => round.copy(topImages = Some(n))).getOrElse(round)
 
-      val rounds = Round.findByContest(contestId)
       val regions = contestsController.regions(contestId)
-      val jurors = round.id
-        .fold(User.loadJurors(contestId))(User.findByRoundSelection)
-        .sorted
+      val jurors = round.id.fold(User.loadJurors(contestId))(User.findByRoundSelection).sorted
       val editRound = EditRound(withTopImages, jurors.flatMap(_.id), None)
       val filledRound = editRoundForm.fill(editRound)
       val stat = round.id.map(id => roundsService.getRoundStat(id, round))
       val prevRound = round.previous.flatMap(Round.findById)
-      val images = round.id.fold(Seq.empty[Image]) { _ =>
-        Try(DistributeImages.getFilteredImages(round, jurors, prevRound))
-          .fold(
-            ta => {
-              logger.error("Error loading images", ta)
-              Nil
-            },
-            x => x
-          )
-      }
-
+      val images = round.id.map(_ => DistributeImages.getFilteredImages(round, jurors, prevRound)).getOrElse(Nil)
       Ok(
         views.html.editRound(
           user,
@@ -118,33 +100,34 @@ class RoundController @Inject() (
         .bindFromRequest()
         .fold(
           formWithErrors => {
-            // binding failure, you retrieve the form containing errors,
-            val contestId: Option[Long] =
-              formWithErrors.data.get("contest").map(_.toLong)
-            val rounds = contestId.map(Round.findByContest).getOrElse(Seq.empty)
-            val jurors = User.loadJurors(contestId.get)
-            val hasRoundId = formWithErrors.data.get("id").exists(_.nonEmpty)
-
+            val contestId: Option[Long] = formWithErrors.data.get("contest").map(_.toLong)
             BadRequest(
-              views.html
-                .editRound(user, formWithErrors, newRound = !hasRoundId, rounds, contestId, jurors, jurorsMapping)
+              views.html.editRound(
+                user,
+                formWithErrors,
+                newRound = !formWithErrors.data.get("id").exists(_.nonEmpty),
+                rounds = contestId.map(Round.findByContest).getOrElse(Nil),
+                contestId = contestId,
+                jurors = User.loadJurors(contestId.get),
+                jurorsMapping = jurorsMapping
+              )
             )
           },
           editForm => {
-
             val round = editForm.round.copy(active = true)
 
             if (round.id.isEmpty) {
               roundsService.createNewRound(round, editForm.jurors)
             } else {
-              round.id.foreach { roundId =>
+              for {
+                roundId <- round.id
+                currentRound <- Round.findById(roundId)
+              } yield {
                 Round.updateRound(roundId, round)
                 if (editForm.newImages) {
                   val prevRound = round.previous.flatMap(Round.findById)
                   val jurors = User.findByRoundSelection(roundId)
-                  Round.findById(roundId).foreach { currentRound =>
-                    DistributeImages.distributeImages(currentRound, jurors, prevRound)
-                  }
+                  DistributeImages.distributeImages(currentRound, jurors, prevRound)
                 }
               }
             }
@@ -170,25 +153,6 @@ class RoundController @Inject() (
       val setRoundUser = setRoundUserForm.bindFromRequest().get
       RoundUser.setActive(setRoundUser.roundId.toLong, setRoundUser.userId.toLong, setRoundUser.active)
       Redirect(routes.RoundController.roundStat(setRoundUser.roundId.toLong))
-    }
-
-  def startRound(): EssentialAction =
-    withAuth(rolePermission(User.ADMIN_ROLES)) { user => implicit request =>
-      for (
-        contestId <- user.currentContest;
-        contest <- ContestJuryJdbc.findById(contestId)
-      ) {
-        val rounds = Round.findByContest(contestId)
-
-        for (
-          currentRound <- rounds.find(_.id == contest.currentRound);
-          nextRound <- rounds.find(_.number == currentRound.number + 1)
-        ) {
-          ContestJuryJdbc.setCurrentRound(contestId, nextRound.id)
-        }
-      }
-
-      Redirect(routes.RoundController.rounds())
     }
 
   def setImages(): EssentialAction =

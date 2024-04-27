@@ -9,8 +9,7 @@ import spray.util.pimpFuture
 
 import scala.concurrent.duration._
 
-case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
-    extends Logging {
+case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) extends Logging {
 
   val sortedJurors = jurors.sorted
 
@@ -31,10 +30,8 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
           images.map(img => Selection(img, juror, round))
         }
       case x if x > 0 =>
-        images.zipWithIndex.flatMap {
-          case (img, i) =>
-            (0 until x).map(j =>
-              Selection(img, sortedJurors((i + j) % sortedJurors.size), round))
+        images.zipWithIndex.flatMap { case (img, i) =>
+          (0 until x).map(j => Selection(img, sortedJurors((i + j) % sortedJurors.size), round))
         }
     }
     selection
@@ -53,10 +50,12 @@ case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User])
 }
 
 object DistributeImages extends Logging {
-  def distributeImages(round: Round,
-                       jurors: Seq[User],
-                       prevRound: Option[Round],
-                       removeUnrated: Boolean = false): Unit = {
+  def distributeImages(
+      round: Round,
+      jurors: Seq[User],
+      prevRound: Option[Round],
+      removeUnrated: Boolean = false
+  ): Unit = {
     if (removeUnrated) {
       SelectionJdbc.removeUnrated(round.getId)
     }
@@ -66,9 +65,7 @@ object DistributeImages extends Logging {
     distributeImages(round, jurors, images)
   }
 
-  def getFilteredImages(round: Round,
-                        jurors: Seq[User],
-                        prevRound: Option[Round]): Seq[Image] = {
+  def getFilteredImages(round: Round, jurors: Seq[User], prevRound: Option[Round]): Seq[Image] = {
     getFilteredImages(
       round,
       jurors,
@@ -83,9 +80,7 @@ object DistributeImages extends Logging {
     )
   }
 
-  def distributeImages(round: Round,
-                       jurors: Seq[User],
-                       images: Seq[Image]): Unit = {
+  def distributeImages(round: Round, jurors: Seq[User], images: Seq[Image]): Unit = {
     DistributeImages(round, images, jurors).apply()
   }
 
@@ -170,15 +165,16 @@ object DistributeImages extends Logging {
     images
   }
 
-  case class Rebalance(newSelections: Seq[Selection],
-                       removedSelections: Seq[Selection])
+  case class Rebalance(newSelections: Seq[Selection], removedSelections: Seq[Selection])
 
   val NoRebalance = Rebalance(Nil, Nil)
 
-  def rebalanceImages(round: Round,
-                      jurors: Seq[User],
-                      images: Seq[Image],
-                      currentSelection: Seq[Selection]): Rebalance = {
+  def rebalanceImages(
+      round: Round,
+      jurors: Seq[User],
+      images: Seq[Image],
+      currentSelection: Seq[Selection]
+  ): Rebalance = {
 
     if (currentSelection == Nil) {
       Rebalance(DistributeImages(round, images, jurors).newSelection, Nil)
