@@ -14,97 +14,102 @@ import services.RoundService
 import javax.inject.Inject
 import scala.util.Try
 
-/**
-  * Controller for displaying pages related to contest rounds
+/** Controller for displaying pages related to contest rounds
   * @param contestsController
   */
-class RoundController @Inject()(cc: ControllerComponents,
-                                val contestsController: ContestController,
-                                roundsService: RoundService)
-    extends Secured(cc)
+class RoundController @Inject() (
+    cc: ControllerComponents,
+    val contestsController: ContestController,
+    roundsService: RoundService
+) extends Secured(cc)
     with I18nSupport
     with Logging {
 
-  /**
-    * Shows list of rounds in a contest
+  /** Shows list of rounds in a contest
     * @param contestIdParam
     * @return
     */
   def rounds(contestIdParam: Option[Long] = None): EssentialAction =
-    withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) {
-      user => implicit request =>
-        val roundsView =
-          for (contestId <- contestIdParam.orElse(user.currentContest);
-               contest <- ContestJuryJdbc.findById(contestId)) yield {
-            val rounds = Round.findByContest(contestId)
-            val currentRound = rounds.find(_.id == contest.currentRound)
+    withAuth(contestPermission(User.ADMIN_ROLES, contestIdParam)) { user => implicit request =>
+      val roundsView =
+        for (
+          contestId <- contestIdParam.orElse(user.currentContest);
+          contest <- ContestJuryJdbc.findById(contestId)
+        ) yield {
+          val rounds = Round.findByContest(contestId)
+          val currentRound = rounds.find(_.id == contest.currentRound)
 
-            val roundsStat = ImageJdbc.roundsStat(contestId, rounds.size).toMap
+          val roundsStat = ImageJdbc.roundsStat(contestId, rounds.size).toMap
 
-            Ok(
-              views.html.rounds(user,
-                                rounds,
-                                roundsStat,
-                                editRoundForm,
-                                imagesForm.fill(contest.images),
-                                selectRoundForm,
-                                currentRound,
-                                contest))
-          }
-        roundsView.getOrElse(Redirect(routes.LoginController.index)) // TODO message
+          Ok(
+            views.html.rounds(
+              user,
+              rounds,
+              roundsStat,
+              editRoundForm,
+              imagesForm.fill(contest.images),
+              selectRoundForm,
+              currentRound,
+              contest
+            )
+          )
+        }
+      roundsView.getOrElse(Redirect(routes.LoginController.index)) // TODO message
     }
 
-  /**
-    * Shows round editing page
+  /** Shows round editing page
     * @param roundId
     * @param contestId
     * @param topImages
     * @return
     */
-  def editRound(roundId: Option[Long],
-                contestId: Long,
-                topImages: Option[Int]): EssentialAction =
-    withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) {
-      user => implicit request =>
-        val number = Round.findByContest(contestId).size + 1
+  def editRound(roundId: Option[Long], contestId: Long, topImages: Option[Int]): EssentialAction =
+    withAuth(contestPermission(User.ADMIN_ROLES, Some(contestId))) { user => implicit request =>
+      val number = Round.findByContest(contestId).size + 1
 
-        val round: Round = roundId
-          .flatMap(Round.findById)
-          .getOrElse(
-            new Round(id = None, contestId = contestId, number = number)
-          )
+      val round: Round = roundId
+        .flatMap(Round.findById)
+        .getOrElse(
+          new Round(id = None, contestId = contestId, number = number)
+        )
 
-        val withTopImages =
-          topImages.map(n => round.copy(topImages = Some(n))).getOrElse(round)
+      val withTopImages =
+        topImages.map(n => round.copy(topImages = Some(n))).getOrElse(round)
 
-        val rounds = Round.findByContest(contestId)
-        val regions = contestsController.regions(contestId)
-        val jurors = round.id
-          .fold(User.loadJurors(contestId))(User.findByRoundSelection)
-          .sorted
-        val editRound = EditRound(withTopImages, jurors.flatMap(_.id), None)
-        val filledRound = editRoundForm.fill(editRound)
-        val stat = round.id.map(id => roundsService.getRoundStat(id, round))
-        val prevRound = round.previous.flatMap(Round.findById)
-        val images = round.id.fold(Seq.empty[Image]) { _ =>
-          Try(DistributeImages.getFilteredImages(round, jurors, prevRound))
-            .fold(ta => {
+      val rounds = Round.findByContest(contestId)
+      val regions = contestsController.regions(contestId)
+      val jurors = round.id
+        .fold(User.loadJurors(contestId))(User.findByRoundSelection)
+        .sorted
+      val editRound = EditRound(withTopImages, jurors.flatMap(_.id), None)
+      val filledRound = editRoundForm.fill(editRound)
+      val stat = round.id.map(id => roundsService.getRoundStat(id, round))
+      val prevRound = round.previous.flatMap(Round.findById)
+      val images = round.id.fold(Seq.empty[Image]) { _ =>
+        Try(DistributeImages.getFilteredImages(round, jurors, prevRound))
+          .fold(
+            ta => {
               logger.error("Error loading images", ta)
               Nil
-            }, x => x)
-        }
+            },
+            x => x
+          )
+      }
 
-        Ok(
-          views.html.editRound(user,
-                               filledRound,
-                               round.id.isEmpty,
-                               rounds,
-                               Some(round.contestId),
-                               jurors,
-                               jurorsMapping,
-                               regions,
-                               stat,
-                               images))
+      Ok(
+        views.html.editRound(
+          user,
+          filledRound,
+          round.id.isEmpty,
+          rounds,
+          Some(round.contestId),
+          jurors,
+          jurorsMapping,
+          regions,
+          stat,
+          images
+        )
+      )
     }
 
   def saveRound(): EssentialAction =
@@ -121,13 +126,9 @@ class RoundController @Inject()(cc: ControllerComponents,
             val hasRoundId = formWithErrors.data.get("id").exists(_.nonEmpty)
 
             BadRequest(
-              views.html.editRound(user,
-                                   formWithErrors,
-                                   newRound = !hasRoundId,
-                                   rounds,
-                                   contestId,
-                                   jurors,
-                                   jurorsMapping))
+              views.html
+                .editRound(user, formWithErrors, newRound = !hasRoundId, rounds, contestId, jurors, jurorsMapping)
+            )
           },
           editForm => {
 
@@ -136,18 +137,15 @@ class RoundController @Inject()(cc: ControllerComponents,
             if (round.id.isEmpty) {
               roundsService.createNewRound(round, editForm.jurors)
             } else {
-              round.id.foreach {
-                roundId =>
-                  Round.updateRound(roundId, round)
-                  if (editForm.newImages) {
-                    val prevRound = round.previous.flatMap(Round.findById)
-                    val jurors = User.findByRoundSelection(roundId)
-                    Round.findById(roundId).foreach { currentRound =>
-                      DistributeImages.distributeImages(currentRound,
-                                                        jurors,
-                                                        prevRound)
-                    }
+              round.id.foreach { roundId =>
+                Round.updateRound(roundId, round)
+                if (editForm.newImages) {
+                  val prevRound = round.previous.flatMap(Round.findById)
+                  val jurors = User.findByRoundSelection(roundId)
+                  Round.findById(roundId).foreach { currentRound =>
+                    DistributeImages.distributeImages(currentRound, jurors, prevRound)
                   }
+                }
               }
             }
             Redirect(routes.RoundController.rounds(Some(round.contestId)))
@@ -155,36 +153,37 @@ class RoundController @Inject()(cc: ControllerComponents,
         )
     }
 
-  def setRound(): EssentialAction = withAuth(rolePermission(User.ADMIN_ROLES)) {
-    user => implicit request =>
-      val selectRound = selectRoundForm.bindFromRequest().get
+  def setRound(): EssentialAction = withAuth(rolePermission(User.ADMIN_ROLES)) { user => implicit request =>
+    val selectRound = selectRoundForm.bindFromRequest().get
 
-      val id = selectRound.roundId.toLong
-      val round = Round.findById(id)
-      round.foreach { r =>
-        roundsService.setCurrentRound(None, r.copy(active = selectRound.active))
-      }
+    val id = selectRound.roundId.toLong
+    val round = Round.findById(id)
+    round.foreach { r =>
+      roundsService.setCurrentRound(None, r.copy(active = selectRound.active))
+    }
 
-      Redirect(routes.RoundController.rounds(round.map(_.contestId)))
+    Redirect(routes.RoundController.rounds(round.map(_.contestId)))
   }
 
   def setRoundUser(): EssentialAction =
     withAuth(rolePermission(User.ADMIN_ROLES)) { user => implicit request =>
       val setRoundUser = setRoundUserForm.bindFromRequest().get
-      RoundUser.setActive(setRoundUser.roundId.toLong,
-                          setRoundUser.userId.toLong,
-                          setRoundUser.active)
+      RoundUser.setActive(setRoundUser.roundId.toLong, setRoundUser.userId.toLong, setRoundUser.active)
       Redirect(routes.RoundController.roundStat(setRoundUser.roundId.toLong))
     }
 
   def startRound(): EssentialAction =
     withAuth(rolePermission(User.ADMIN_ROLES)) { user => implicit request =>
-      for (contestId <- user.currentContest;
-           contest <- ContestJuryJdbc.findById(contestId)) {
+      for (
+        contestId <- user.currentContest;
+        contest <- ContestJuryJdbc.findById(contestId)
+      ) {
         val rounds = Round.findByContest(contestId)
 
-        for (currentRound <- rounds.find(_.id == contest.currentRound);
-             nextRound <- rounds.find(_.number == currentRound.number + 1)) {
+        for (
+          currentRound <- rounds.find(_.id == contest.currentRound);
+          nextRound <- rounds.find(_.number == currentRound.number + 1)
+        ) {
           ContestJuryJdbc.setCurrentRound(contestId, nextRound.id)
         }
       }
@@ -198,7 +197,7 @@ class RoundController @Inject()(cc: ControllerComponents,
       for (contest <- user.currentContest.flatMap(ContestJuryJdbc.findById)) {
         ContestJuryJdbc.setImagesSource(contest.getId, imagesSource)
 
-        //val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
+        // val images: Seq[Page] = Await.result(Global.commons.categoryMembers(PageQuery.byTitle(imagesSource.get)), 1.minute)
 
         //          for (contestId <- contest.id;
         //               currentRoundId <- ContestJuryJdbc.currentRound(contestId);
@@ -212,69 +211,59 @@ class RoundController @Inject()(cc: ControllerComponents,
     }
 
   def currentRoundStat(contestId: Option[Long] = None): EssentialAction =
-    withAuth(
-      rolePermission(
-        Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) {
-      user => implicit request =>
-        val currentContestId = contestId.orElse(user.currentContest)
-        val activeRound = Round
-          .activeRounds(user)
-          .headOption
-          .orElse {
-            currentContestId.flatMap { contestId =>
-              Round
-                .activeRounds(contestId)
-                .filter(r => user.canViewOrgInfo(r))
-                .lastOption
-            }
+    withAuth(rolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) { user => implicit request =>
+      val currentContestId = contestId.orElse(user.currentContest)
+      val activeRound = Round
+        .activeRounds(user)
+        .headOption
+        .orElse {
+          currentContestId.flatMap { contestId =>
+            Round
+              .activeRounds(contestId)
+              .filter(r => user.canViewOrgInfo(r))
+              .lastOption
           }
-          .orElse {
-            currentContestId.flatMap { contestId =>
-              Round
-                .findByContest(contestId)
-                .filter(r => user.canViewOrgInfo(r))
-                .lastOption
-            }
+        }
+        .orElse {
+          currentContestId.flatMap { contestId =>
+            Round
+              .findByContest(contestId)
+              .filter(r => user.canViewOrgInfo(r))
+              .lastOption
           }
+        }
 
-        activeRound
-          .map { round =>
-            Redirect(routes.RoundController.roundStat(round.getId))
-          }
-          .getOrElse {
-            Redirect(
-              routes.LoginController.error(
-                "There is no active rounds in your contest"))
-          }
+      activeRound
+        .map { round =>
+          Redirect(routes.RoundController.roundStat(round.getId))
+        }
+        .getOrElse {
+          Redirect(routes.LoginController.error("There is no active rounds in your contest"))
+        }
     }
 
   def roundStat(roundId: Long): EssentialAction =
-    withAuth(
-      rolePermission(
-        Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) {
-      user => implicit request =>
-        Round
-          .findById(roundId)
-          .map { round =>
-            if (!user.canViewOrgInfo(round)) {
-              onUnAuthorized(user)
-            } else {
-              val stat = roundsService.getRoundStat(roundId, round)
+    withAuth(rolePermission(Set(User.ADMIN_ROLE, "jury", "root") ++ User.ORG_COM_ROLES)) { user => implicit request =>
+      Round
+        .findById(roundId)
+        .map { round =>
+          if (!user.canViewOrgInfo(round)) {
+            onUnAuthorized(user)
+          } else {
+            val stat = roundsService.getRoundStat(roundId, round)
 
-              Ok(views.html.roundStat(user, round, stat))
-            }
+            Ok(views.html.roundStat(user, round, stat))
           }
-          .getOrElse {
-            Redirect(routes.LoginController.error("Round not found"))
-          }
+        }
+        .getOrElse {
+          Redirect(routes.LoginController.error("Round not found"))
+        }
     }
 
   def mergeRounds(): EssentialAction =
     withAuth(rolePermission(User.ADMIN_ROLES)) { user => implicit request =>
       val mergeRounds = mergeRoundsForm.bindFromRequest().get
-      roundsService.mergeRounds(user.contestId.get,
-                                mergeRounds.targetRoundId,
-                                mergeRounds.sourceRoundId)
+      roundsService.mergeRounds(user.contestId.get, mergeRounds.targetRoundId, mergeRounds.sourceRoundId)
       Redirect(routes.RoundController.rounds())
     }
 
@@ -357,28 +346,30 @@ class RoundController @Inject()(cc: ControllerComponents,
     )(applyEdit)(unapplyEdit)
   )
 
-  def applyEdit(id: Option[Long],
-                num: Long,
-                name: Option[String],
-                contest: Long,
-                roles: String,
-                distribution: Int,
-                rates: Int,
-                returnTo: Option[String],
-                minMpx: String,
-                previousRound: Option[Long],
-                prevSelectedBy: Option[String],
-                prevMinAvgRate: Option[String],
-                categoryClause: Option[String],
-                category: Option[String],
-                excludeCategory: Option[String],
-                regions: Seq[String],
-                minImageSize: String,
-                jurors: Seq[String],
-                newImages: Boolean,
-                monumentIds: Option[String],
-                topImages: Option[Int],
-                specialNomination: Option[String]): EditRound = {
+  def applyEdit(
+      id: Option[Long],
+      num: Long,
+      name: Option[String],
+      contest: Long,
+      roles: String,
+      distribution: Int,
+      rates: Int,
+      returnTo: Option[String],
+      minMpx: String,
+      previousRound: Option[Long],
+      prevSelectedBy: Option[String],
+      prevMinAvgRate: Option[String],
+      categoryClause: Option[String],
+      category: Option[String],
+      excludeCategory: Option[String],
+      regions: Seq[String],
+      minImageSize: String,
+      jurors: Seq[String],
+      newImages: Boolean,
+      monumentIds: Option[String],
+      topImages: Option[Int],
+      specialNomination: Option[String]
+  ): EditRound = {
     val round = new Round(
       id,
       num,
@@ -403,35 +394,35 @@ class RoundController @Inject()(cc: ControllerComponents,
       topImages = topImages,
       specialNomination = specialNomination
     ).withFixedCategories
-    EditRound(round,
-              jurors.flatMap(s => Try(s.toLong).toOption),
-              returnTo,
-              newImages)
+    EditRound(round, jurors.flatMap(s => Try(s.toLong).toOption), returnTo, newImages)
   }
 
   def unapplyEdit(editRound: EditRound): Option[
-    (Option[Long],
-     Long,
-     Option[String],
-     Long,
-     String,
-     Int,
-     Int,
-     Option[String],
-     String,
-     Option[Long],
-     Option[String],
-     Option[String],
-     Option[String],
-     Option[String],
-     Option[String],
-     Seq[String],
-     String,
-     Seq[String],
-     Boolean,
-     Option[String],
-     Option[Int],
-     Option[String])] = {
+    (
+        Option[Long],
+        Long,
+        Option[String],
+        Long,
+        String,
+        Int,
+        Int,
+        Option[String],
+        String,
+        Option[Long],
+        Option[String],
+        Option[String],
+        Option[String],
+        Option[String],
+        Option[String],
+        Seq[String],
+        String,
+        Seq[String],
+        Boolean,
+        Option[String],
+        Option[Int],
+        Option[String]
+    )
+  ] = {
     val round = editRound.round.withFixedCategories
     Some(
       (
@@ -457,7 +448,8 @@ class RoundController @Inject()(cc: ControllerComponents,
         round.monuments,
         round.topImages,
         round.specialNomination
-      ))
+      )
+    )
   }
 }
 
@@ -465,15 +457,14 @@ case class SelectRound(roundId: String, active: Boolean)
 
 case class SetRoundUser(roundId: String, userId: String, active: Boolean)
 
-case class RoundStat(jurors: Seq[User],
-                     round: Round,
-                     rounds: Seq[Round],
-                     byUserCount: Map[Long, Int],
-                     byUserRateCount: Map[Long, Map[Int, Int]],
-                     total: Int,
-                     totalByRate: Map[Int, Int])
+case class RoundStat(
+    jurors: Seq[User],
+    round: Round,
+    rounds: Seq[Round],
+    byUserCount: Map[Long, Int],
+    byUserRateCount: Map[Long, Map[Int, Int]],
+    total: Int,
+    totalByRate: Map[Int, Int]
+)
 
-case class EditRound(round: Round,
-                     jurors: Seq[Long],
-                     returnTo: Option[String],
-                     newImages: Boolean = false)
+case class EditRound(round: Round, jurors: Seq[Long], returnTo: Option[String], newImages: Boolean = false)
