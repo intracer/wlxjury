@@ -31,7 +31,6 @@ class RoundControllerSpec extends PlaySpecification {
         prevMinAvgRate = None,
         category = Some("Category:include"),
         excludeCategory = Some("Category:exclude"),
-        categoryClause = None,
         regions = None,
         minImageSize = Some(1),
         hasCriteria = true,
