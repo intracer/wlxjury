@@ -1,12 +1,13 @@
 package db.scalikejdbc
 
 import db.RoundDao
-
-import java.time.ZonedDateTime
-import org.intracer.wmua.{CriteriaRate, HasId, ImageWithRating}
-import org.scalawiki.dto.Page
+import org.intracer.wmua.{HasId, ImageWithRating}
 import scalikejdbc._
 import skinny.orm.{SkinnyCRUDMapper, SkinnyJoinTable}
+
+import java.time.ZonedDateTime
+
+case class RoundLimits(min: Option[Int] = None, max: Option[Int] = None, recommended: Option[Int] = None)
 
 case class Round(
     id: Option[Long],
@@ -16,11 +17,7 @@ case class Round(
     roles: Set[String] = Set("jury"),
     distribution: Int = 0,
     rates: Rates = Round.binaryRound,
-    limitMin: Option[Int] = None,
-    limitMax: Option[Int] = None,
-    recommended: Option[Int] = None,
-    images: Seq[Page] = Seq.empty,
-    selected: Seq[Page] = Seq.empty,
+    limits: RoundLimits = RoundLimits(),
     createdAt: ZonedDateTime = ZonedDateTime.now,
     deletedAt: Option[ZonedDateTime] = None,
     active: Boolean = false,
@@ -186,9 +183,12 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
       distribution = rs.int(c.distribution),
       contestId = rs.long(c.contestId),
       rates = Round.ratesById(rs.int(c.rates)),
-      limitMin = rs.intOpt(c.limitMin),
-      limitMax = rs.intOpt(c.limitMax),
-      recommended = rs.intOpt(c.recommended),
+      limits = RoundLimits(),
+//        RoundLimits(
+//        min = rs.intOpt(c.limitMin),
+//        max = rs.intOpt(c.limitMax),
+//        recommended = rs.intOpt(c.recommended)
+//      ),
       createdAt = rs.timestamp(c.createdAt).toZonedDateTime,
       deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime),
       active = rs.booleanOpt(c.active).getOrElse(false),
@@ -220,9 +220,9 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
           column.roles -> round.roles.head,
           column.distribution -> round.distribution,
           column.rates -> round.rates.id,
-          column.limitMin -> round.limitMin,
-          column.limitMax -> round.limitMax,
-          column.recommended -> round.recommended,
+//          column.limitMin -> round.limits.min,
+//          column.limitMax -> round.limits.max,
+//          column.recommended -> round.limits.recommended,
           column.createdAt -> round.createdAt,
           column.active -> round.active,
           column.optionalRate -> round.optionalRate,

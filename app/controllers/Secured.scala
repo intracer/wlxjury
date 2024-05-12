@@ -4,17 +4,16 @@ import controllers.Secured.UserName
 import db.scalikejdbc.{Round, User}
 import play.api.mvc._
 
-/**
-  * Base trait for secured controllers
+/** Base trait for secured controllers
   */
-abstract class Secured(cc: ControllerComponents) extends AbstractController(cc){
+abstract class Secured(cc: ControllerComponents) extends AbstractController(cc) {
 
   type Permission = User => Boolean
 
-
-  /**
-    * @param request HTTP request with username set in session
-    * @return optional user from database
+  /** @param request
+    *   HTTP request with username set in session
+    * @return
+    *   optional user from database
     */
   def userFromRequest(request: RequestHeader): Option[User] = {
     request.session
@@ -27,13 +26,11 @@ abstract class Secured(cc: ControllerComponents) extends AbstractController(cc){
     Results.Redirect(routes.LoginController.login())
 
   def onUnAuthorized(user: User): Result =
-    Results.Redirect(
-      routes.LoginController.error(
-        "You don't have permission to access this page"))
+    Results.Redirect(routes.LoginController.error("You don't have permission to access this page"))
 
-  def withAuth(permission: Permission = rolePermission(
-                 User.ADMIN_ROLES ++ Set("jury", "organizer")))(
-      f: => User => Request[AnyContent] => Result): EssentialAction = {
+  def withAuth(
+      permission: Permission = rolePermission(User.ADMIN_ROLES ++ Set("jury", "organizer"))
+  )(f: => User => Request[AnyContent] => Result): EssentialAction = {
     Security.Authenticated(userFromRequest, onUnAuthenticated) { user =>
       Action { request =>
         if (permission(user))
@@ -48,8 +45,7 @@ abstract class Secured(cc: ControllerComponents) extends AbstractController(cc){
 
   def isRoot(user: User): Boolean = rolePermission(Set(User.ROOT_ROLE))(user)
 
-  def contestPermission(roles: Set[String], contestId: Option[Long])(
-      user: User): Boolean = {
+  def contestPermission(roles: Set[String], contestId: Option[Long])(user: User): Boolean = {
     isRoot(user) ||
     (user.hasAnyRole(roles) && user.isInContest(contestId))
   }

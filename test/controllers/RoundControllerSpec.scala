@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.Round
+import db.scalikejdbc.{Round, RoundLimits}
 import org.specs2.mock.Mockito.mock
 import play.api.test.{Helpers, PlaySpecification}
 import services.RoundService
@@ -19,11 +19,7 @@ class RoundControllerSpec extends PlaySpecification {
         roles = Set("jury"),
         distribution = 2,
         rates = Round.ratesById(10),
-        limitMin = None,
-        limitMax = None,
-        recommended = None,
-        images = Nil,
-        selected = Nil,
+        limits = RoundLimits(),
         createdAt = ZonedDateTime.now,
         deletedAt = None,
         active = true,
