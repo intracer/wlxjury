@@ -67,7 +67,7 @@ class ImageController @Inject()(
             case (source, list, action) =>
               val withNewImages = contest.copy(images = Some(source))
 
-              if (action == "import.images") {
+              if (action == "import.files") {
                 imageService.appendImages(source, list, withNewImages)
               } else if (action == "update.monuments") {
                 imageService.updateImageMonuments(source, withNewImages)

@@ -84,10 +84,10 @@
 
                             var opts = distribution[0].options;
                             opts.length = 0;
-                            opts.add(new Option('@Messages("each.image.to.all.jurors")', "0", false, false));
+                            opts.add(new Option('@Messages("each.file.to.all.jurors")', "0", false, false));
 
                             for (var i = 1; i <= jurors.length - 1; i++) {
-                                opts[i] = new Option('@Messages("each.image.to.i.juror.s", "$X")'.replace('$X', i), i, false, false)
+                                opts[i] = new Option('@Messages("each.file.to.i.juror.s", "$X")'.replace('$X', i), i, false, false)
                             }
 
                             if (selected <= jurors.length - 1) {
@@ -96,7 +96,7 @@
                         } else {
                             distribution.prop("disabled", true);
                             distribution[0].options.length = 0;
-                            distribution[0].options.add(new Option('@Messages("each.image.to.all.jurors")', "0", false, false));
+                            distribution[0].options.add(new Option('@Messages("each.file.to.all.jurors")', "0", false, false));
                         }
                     });
                 });

@@ -55,7 +55,7 @@ class GlobalRefactor(val commons: MwBot) {
                  Symbol("name") -> contestName)
           .apply()
           .head
-        //GlobalRefactor.appendImages(contest.images.get, dbContest)
+        //GlobalRefactor.appendImages(contest.files.get, dbContest)
         addAdmin(dbContest)
       }
     }

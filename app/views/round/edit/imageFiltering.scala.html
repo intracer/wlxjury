@@ -10,7 +10,7 @@
 @implicitFieldConstructor = @{
     b3.horizontal.fieldConstructor("col-md-4", "col-md-8")
 }
-@snippets.collapsible("image.filtering", "headingImageFiltering", "collapseImageFiltering") {
+@snippets.collapsible("media.filtering", "headingImageFiltering", "collapseImageFiltering") {
     @if(rounds.nonEmpty) {
         @b3.select(editRoundForm("previousRound"), ("" -> Messages("no")) +: rounds.map(r => (r.id.map(_.toString).get, r.description)),
             Symbol("_label") -> Messages("previous.round"), Symbol("_help") -> "", Symbol("class") -> "form-control", Symbol("readonly") -> noEdit)
@@ -28,7 +28,7 @@
             <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
             @b3.text(
                 editRoundForm("minAvgRate"),
-                Symbol("_label") -> Messages("average.image.rating.is.at.least"),
+                Symbol("_label") -> Messages("average.file.rating.is.at.least"),
                 Symbol("readonly") -> noEdit
             )
             </div>
@@ -42,7 +42,7 @@
     <div id="categoryDiv">
     @b3.text(
         editRoundForm("source"),
-        Symbol("_label") -> Messages("images.should.be.IN.the.category"),
+        Symbol("_label") -> Messages("files.should.be.IN.the.category"),
         Symbol("readonly") -> noEdit
     )
     </div>
@@ -50,7 +50,7 @@
     <div id="categoryDiv">
     @b3.text(
         editRoundForm("excludeCategory"),
-        Symbol("_label") -> Messages("images.should.be.NOT.IN.the.category"),
+        Symbol("_label") -> Messages("files.should.be.NOT.IN.the.category"),
         Symbol("readonly") -> noEdit
     )
     </div>

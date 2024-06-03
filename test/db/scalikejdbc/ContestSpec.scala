@@ -33,7 +33,7 @@ class ContestSpec extends Specification with TestDb {
         contest.name === "WLE"
         contest.year === 2015
         contest.country === "Ukraine"
-        contest.images === images
+        contest.files === images
 
         contestDao.findById(contest.getId) === Some(contest)
 
