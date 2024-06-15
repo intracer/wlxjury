@@ -305,7 +305,8 @@ class RoundController @Inject() (
       "newImages" -> boolean,
       "monumentIds" -> optional(text),
       "topImages" -> optional(number),
-      "specialNomination" -> optional(text)
+      "specialNomination" -> optional(text),
+      "mediaType" -> text
     )(applyEdit)(unapplyEdit)
   )
 
@@ -330,7 +331,8 @@ class RoundController @Inject() (
       newImages: Boolean,
       monumentIds: Option[String],
       topImages: Option[Int],
-      specialNomination: Option[String]
+      specialNomination: Option[String],
+      mediaType: String
   ): EditRound = {
     val round = new Round(
       id,
@@ -351,7 +353,8 @@ class RoundController @Inject() (
       minImageSize = Try(minImageSize.toInt).toOption,
       monuments = monumentIds,
       topImages = topImages,
-      specialNomination = specialNomination
+      specialNomination = specialNomination,
+      mediaType = mediaType
     ).withFixedCategories
     EditRound(round, jurors.flatMap(s => Try(s.toLong).toOption), returnTo, newImages)
   }
@@ -378,7 +381,8 @@ class RoundController @Inject() (
         Boolean,
         Option[String],
         Option[Int],
-        Option[String]
+        Option[String],
+        String
     )
   ] = {
     val round = editRound.round.withFixedCategories
@@ -404,7 +408,8 @@ class RoundController @Inject() (
         editRound.newImages,
         round.monuments,
         round.topImages,
-        round.specialNomination
+        round.specialNomination,
+        round.mediaType
       )
     )
   }

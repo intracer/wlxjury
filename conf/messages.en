@@ -197,6 +197,7 @@ comments = Comments
 submit.comment = Submit comment
 
 images = Files
+videos = Videos
 contest.files = Contest files
 files.source = Files source
 commons.category.or.page.with.files = Commons category or page with files

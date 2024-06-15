@@ -38,7 +38,8 @@ case class Round(
     topImages: Option[Int] = None,
     specialNomination: Option[String] = None,
     users: Seq[User] = Nil,
-    criteriaNames: Seq[String] = Nil
+    criteriaNames: Seq[String] = Nil,
+    mediaType: String
 ) extends HasId {
 
   def availableJurors: Seq[User] =

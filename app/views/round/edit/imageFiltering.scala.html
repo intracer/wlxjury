@@ -39,6 +39,11 @@
         </div>
     }
 
+    @b3.select(
+        editRoundForm("mediaType"),
+        Seq("All", "Images", "Videos").map(x => (x, Messages(x.toLowerCase))),
+        Symbol("_label") -> Messages("media.type"), Symbol("readonly") -> noEdit)
+
     <div id="categoryDiv">
     @b3.text(
         editRoundForm("source"),
