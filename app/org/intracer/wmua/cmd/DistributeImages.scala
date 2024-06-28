@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 
 case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) extends Logging {
 
-  val sortedJurors = jurors.sorted
+  private val sortedJurors = jurors.sorted
 
   def apply(): Unit = {
     val selection: Seq[Selection] = newSelection
@@ -148,8 +148,8 @@ object DistributeImages extends Logging {
       excludeTitles = excludeTitles,
       includeJurorId = includeJurorId,
       excludeJurorId = excludeJurorId /*++ existingJurorIds*/,
-      selectMinAvgRating = prevRound.flatMap(_ =>
-        selectMinAvgRating.filter(_ => !prevRound.exists(_.isBinary))),
+      selectMinAvgRating =
+        prevRound.flatMap(_ => selectMinAvgRating.filter(_ => !prevRound.exists(_.isBinary))),
       selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
       selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
       mpxAtLeast = mpxAtLeast,

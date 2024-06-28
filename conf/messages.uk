@@ -162,7 +162,10 @@ your.comment.here = Ваш коментар
 comments = Коментарі
 submit.comment = Додати коментар
 
-images = Файли
+media.type = Тип файлів
+files = Файли
+images = Зображення
+videos = Відео
 contest.files = Файли зі
 files.source = Джерело файлів
 commons.category.or.page.with.files = Категорія чи сторінка зі зображеннями на ВікіСховищі

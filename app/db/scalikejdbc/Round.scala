@@ -9,6 +9,13 @@ import java.time.ZonedDateTime
 
 case class RoundLimits(min: Option[Int] = None, max: Option[Int] = None, recommended: Option[Int] = None)
 
+object MediaType {
+  val All: String = "all"
+  val Videos: String = "videos"
+  val Images: String = "images"
+  val mediaTypes: Seq[String] = Seq(All, Videos, Images)
+}
+
 case class Round(
     id: Option[Long],
     number: Long,
@@ -39,7 +46,7 @@ case class Round(
     specialNomination: Option[String] = None,
     users: Seq[User] = Nil,
     criteriaNames: Seq[String] = Nil,
-    mediaType: String
+    mediaType: String = MediaType.All
 ) extends HasId {
 
   def availableJurors: Seq[User] =
@@ -207,7 +214,8 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
       halfStar = rs.booleanOpt(c.halfStar).getOrElse(false),
       monuments = rs.stringOpt(c.monuments),
       topImages = rs.intOpt(c.topImages),
-      specialNomination = rs.stringOpt(c.specialNomination)
+      specialNomination = rs.stringOpt(c.specialNomination),
+      mediaType = rs.stringOpt(c.mediaType).getOrElse(MediaType.All)
     ).withFixedCategories
 
   def create(round: Round): Round = {
@@ -238,7 +246,8 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
           column.halfStar -> round.halfStar,
           column.monuments -> round.monuments,
           column.topImages -> round.topImages,
-          column.specialNomination -> round.specialNomination
+          column.specialNomination -> round.specialNomination,
+          column.mediaType -> round.mediaType
         )
     }.updateAndReturnGeneratedKey().apply()
 
@@ -350,7 +359,7 @@ object RoundUser extends SkinnyJoinTable[RoundUser] {
     )
 
   def apply(r: Round, u: User): Option[RoundUser] =
-    for (rId <- r.id; uId <- u.id) yield RoundUser(rId, uId, u.roles.head, true)
+    for (rId <- r.id; uId <- u.id) yield RoundUser(rId, uId, u.roles.head, active = true)
 
   def activeJurors(roundId: Long): List[RoundUser] =
     where(Symbol("roundId") -> roundId, Symbol("active") -> true).apply()

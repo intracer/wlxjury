@@ -196,7 +196,9 @@ your.comment.here = Your comment here
 comments = Comments
 submit.comment = Submit comment
 
-images = Files
+media.type = Media Type
+files = Files
+images = Images
 videos = Videos
 contest.files = Contest files
 files.source = Files source

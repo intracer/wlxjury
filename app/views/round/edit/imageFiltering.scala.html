@@ -1,5 +1,6 @@
 @import db.scalikejdbc.Round
 @import db.scalikejdbc.User
+@import db.scalikejdbc.MediaType
 @(
         editRoundForm: Form[controllers.EditRound],
         rounds: Seq[Round],
@@ -12,11 +13,18 @@
 }
 @snippets.collapsible("media.filtering", "headingImageFiltering", "collapseImageFiltering") {
     @if(rounds.nonEmpty) {
-        @b3.select(editRoundForm("previousRound"), ("" -> Messages("no")) +: rounds.map(r => (r.id.map(_.toString).get, r.description)),
-            Symbol("_label") -> Messages("previous.round"), Symbol("_help") -> "", Symbol("class") -> "form-control", Symbol("readonly") -> noEdit)
+        @b3.select(
+            editRoundForm("previousRound"),
+            ("" -> Messages("no")) +: rounds.map(r => (r.id.map(_.toString).get, r.description)),
+            Symbol("_label") -> Messages("previous.round"),
+            Symbol("_help") -> "",
+            Symbol("class") -> "form-control",
+            Symbol("readonly") -> noEdit
+        )
 
         <div id="prevRoundFilters" @if(editRoundForm("previousRound").value.isEmpty) {style="display: none"}>
-            <div id="selectFilters" class="@rounds.filter(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
+            <div id="selectFilters"
+            class="@rounds.filter(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
             @b3.select(
                 editRoundForm("minJurors"),
                 Seq("", "0", "1", "2", "3", "4", "5", "6").map(x => (x, x)),
@@ -25,7 +33,8 @@
                 Symbol("readonly") -> noEdit)
             </div>
 
-            <div id="rateFilters" class="@rounds.filterNot(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
+            <div id="rateFilters"
+            class="@rounds.filterNot(_.isBinary).map(r => "round" + r.getId).mkString(" ")">
             @b3.text(
                 editRoundForm("minAvgRate"),
                 Symbol("_label") -> Messages("average.file.rating.is.at.least"),
@@ -34,15 +43,20 @@
             </div>
 
             @for(topImages <- editRoundForm("topImages").value) {
-                @b3.text(editRoundForm("topImages"), Symbol("_label") -> Messages("top.images"))
+                @b3.text(
+                    editRoundForm("topImages"),
+                    Symbol("_label") -> Messages("top.images")
+                )
             }
         </div>
     }
 
     @b3.select(
         editRoundForm("mediaType"),
-        Seq("All", "Images", "Videos").map(x => (x, Messages(x.toLowerCase))),
-        Symbol("_label") -> Messages("media.type"), Symbol("readonly") -> noEdit)
+        MediaType.mediaTypes.map(x => (x, Messages(x))),
+        Symbol("_label") -> Messages("media.type"),
+        Symbol("readonly") -> noEdit
+    )
 
     <div id="categoryDiv">
     @b3.text(
@@ -64,24 +78,36 @@
         @b3.select(
             editRoundForm("regions"),
             regions.map { case (k, v) => (k, Messages(k)) }.toSeq.sortBy(_._1),
-            Symbol("_label") -> Messages("regions"), Symbol("multiple") -> true, Symbol("readonly") -> noEdit)
+            Symbol("_label") -> Messages("regions"),
+            Symbol("multiple") -> true,
+            Symbol("readonly") -> noEdit
+        )
 
         @b3.text(
             editRoundForm("monumentIds"),
-            Symbol("_label") -> Messages("monument.ids.comma.separated"), Symbol("readonly") -> noEdit)
+            Symbol("_label") -> Messages("monument.ids.comma.separated"),
+            Symbol("readonly") -> noEdit
+        )
     }
 
     @b3.select(
         editRoundForm("minMpx"),
         Seq("No", "1", "2", "3", "4").map(x => (x, Messages(x.toLowerCase))),
-        Symbol("_label") -> Messages("minimum.megapixels"), Symbol("readonly") -> noEdit)
+        Symbol("_label") -> Messages("minimum.megapixels"),
+        Symbol("readonly") -> noEdit
+    )
 
     @b3.select(
         editRoundForm("minSize"),
         Seq("No", "1", "2").map(x => (x, Messages(x.toLowerCase))),
-        Symbol("_label") -> Messages("minimum.megabytes"), Symbol("readonly") -> noEdit)
+        Symbol("_label") -> Messages("minimum.megabytes"),
+        Symbol("readonly") -> noEdit
+    )
 
     @if(user.hasRole(User.ROOT_ROLE)) {
-        @b3.text(editRoundForm("specialNomination"), Symbol("_label") -> Messages("specialNomination"))
+        @b3.text(
+            editRoundForm("specialNomination"),
+            Symbol("_label") -> Messages("specialNomination")
+        )
     }
 }
