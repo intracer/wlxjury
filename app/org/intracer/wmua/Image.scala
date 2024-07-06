@@ -12,7 +12,8 @@ case class Image(
     monumentId: Option[String] = None,
     description: Option[String] = None,
     author: Option[String] = None,
-    size: Option[Int] = None
+    size: Option[Int] = None,
+    mime: Option[String] = None
 ) extends Ordered[Image] {
 
   def parsedAuthor: Option[String] =

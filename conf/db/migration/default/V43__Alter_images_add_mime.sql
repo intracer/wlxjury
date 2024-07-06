@@ -1,0 +1,1 @@
+alter table images add COLUMN mime varchar(128);
