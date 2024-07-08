@@ -14,7 +14,12 @@ object WikiLovesAfrica {
   def juror(country: String, n: Int): String = "WLAJuror" + n
 
   def main(args: Array[String]): Unit = {
-    for (contest <- ContestJuryJdbc.where(Symbol("name") -> contestType, Symbol("country") -> country, Symbol("year") -> year).apply().headOption) {
+    for (
+      contest <- ContestJuryJdbc
+        .where("name" -> contestType, "country" -> country, "year" -> year)
+        .apply()
+        .headOption
+    ) {
       val contestId = contest.getId
 
       val cmds = Seq(
@@ -24,9 +29,15 @@ object WikiLovesAfrica {
 
       cmds.foreach(_.apply())
 
-      val (prevRound, round) = AddNextRound(contestId, roundNumber = 2, distribution = 0, rates = 10).apply()
+      val (prevRound, round) =
+        AddNextRound(contestId, roundNumber = 2, distribution = 0, rates = 10).apply()
 
-      val images = DistributeImages.getFilteredImages(round, round.availableJurors, Some(prevRound), selectedAtLeast = Some(1))
+      val images = DistributeImages.getFilteredImages(
+        round,
+        round.availableJurors,
+        Some(prevRound),
+        selectedAtLeast = Some(1)
+      )
       DistributeImages.distributeImages(round, round.availableJurors, images)
 
       new RoundService(Round).setCurrentRound(prevRound.id, round)

@@ -50,9 +50,9 @@ class GlobalRefactor(val commons: MwBot) {
 
       contests.foreach { contest =>
         val dbContest = ContestJuryJdbc
-          .where(Symbol("country") -> contest.country,
-                 Symbol("year") -> year,
-                 Symbol("name") -> contestName)
+          .where("country" -> contest.country,
+                 "year" -> year,
+                 "name" -> contestName)
           .apply()
           .head
         //GlobalRefactor.appendImages(contest.files.get, dbContest)

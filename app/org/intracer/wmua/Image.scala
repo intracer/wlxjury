@@ -1,5 +1,7 @@
 package org.intracer.wmua
 
+import db.scalikejdbc.MediaType
+
 import java.text.DecimalFormat
 
 case class Image(
@@ -35,9 +37,13 @@ case class Image(
 
   def mpx: Double = width * height / 1_000_000.0
 
+  def majorMime: Option[String] = mime.map(_.split("/").head)
+
   def isImage: Boolean = !isVideo
 
-  def isVideo: Boolean = Seq(".ogv", ".webm").exists(title.toLowerCase.endsWith)
+  def isVideo: Boolean = majorMime
+    .map(_ == MediaType.Video)
+    .getOrElse(Seq(".ogv", ".webm").exists(title.toLowerCase.endsWith))
 
 }
 

@@ -89,7 +89,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def list(): Seq[ImageWithRating] = {
-      postProcessor(SQL(query()).map(reader).list().apply())
+      postProcessor(SQL(query()).map(reader).list())
     }
 
     def count(): Int = {
@@ -109,7 +109,6 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       val map = SQL(query(byRegion = true))
         .map(rs => rs.string(1) -> rs.int(2))
         .list()
-        .apply()
         .toMap
       regions(map, subRegions)
     }
@@ -141,7 +140,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def single(sql: String): Int = {
-      SQL(sql).map(_.int(1)).single().apply().getOrElse(0)
+      SQL(sql).map(_.int(1)).single().getOrElse(0)
     }
 
     private val imagesJoinSelection =
@@ -246,7 +245,6 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     $limit"""
       ).map(rs => (rs.int(1), ImageJdbc(i)(rs), SelectionJdbc(s1)(rs)))
         .list()
-        .apply()
         .map { case (rank, img, sel) =>
           ImageWithRating(img, Seq(sel), rank = Some(rank))
         }
@@ -273,7 +271,6 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           (rs.int(1), rs.int(2), ImageJdbc(i)(rs), SelectionJdbc(s1)(rs))
         )
         .list()
-        .apply()
         .map { case (rank1, rank2, i, s) =>
           ImageWithRating(i, Seq(s), rank = Some(rank1), rank2 = Some(rank2))
         }

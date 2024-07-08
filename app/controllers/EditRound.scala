@@ -1,6 +1,6 @@
 package controllers
 
-import db.scalikejdbc.{Round, RoundLimits}
+import db.scalikejdbc.{MediaType, Round, RoundLimits}
 import play.api.data.{Form, Mapping}
 import play.api.data.Forms._
 import play.api.data.validation._
@@ -94,7 +94,7 @@ object EditRound {
       monuments = monumentIds,
       topImages = topImages,
       specialNomination = specialNomination,
-      mediaType = mediaType
+      mediaType = Option(mediaType).filterNot(_ == MediaType.All)
     ).withFixedCategories
     EditRound(round, jurors.flatMap(s => Try(s.toLong).toOption), returnTo, newImages)
   }
@@ -149,7 +149,7 @@ object EditRound {
         round.monuments,
         round.topImages,
         round.specialNomination,
-        round.mediaType
+        round.mediaType.getOrElse(MediaType.All)
       )
     )
   }

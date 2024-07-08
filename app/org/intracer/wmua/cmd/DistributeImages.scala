@@ -76,7 +76,8 @@ object DistributeImages extends Logging {
       includeCategory = round.category,
       excludeCategory = round.excludeCategory,
       includeRegionIds = round.regionIds.toSet,
-      includeMonumentIds = round.monumentIds.toSet
+      includeMonumentIds = round.monumentIds.toSet,
+      mediaType = round.mediaType
     )
   }
 
@@ -114,7 +115,8 @@ object DistributeImages extends Logging {
       includeJurorId: Set[Long] = Set.empty,
       excludeJurorId: Set[Long] = Set.empty,
       includeCategory: Option[String] = None,
-      excludeCategory: Option[String] = None
+      excludeCategory: Option[String] = None,
+      mediaType: Option[String] = None
   ): Seq[Image] = {
 
     val includeFromCats = categoryFileIds(includeCategory)
