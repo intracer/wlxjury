@@ -59,12 +59,12 @@ class DistributeImages(imageRepo: ImageRepo) extends Logging {
       SelectionJdbc.removeUnrated(round.getId)
     }
 
-    val images = getFilteredImages(round, prevRound)
+    val images = imagesByRound(round, prevRound)
 
     distributeImages(round, images, jurors)
   }
 
-  def getFilteredImages(round: Round, prevRound: Option[Round]): Seq[Image] = {
+  def imagesByRound(round: Round, prevRound: Option[Round] = None): Seq[Image] = {
     getFilteredImages(
       round,
       prevRound,
@@ -74,8 +74,7 @@ class DistributeImages(imageRepo: ImageRepo) extends Logging {
       includeCategory = round.category,
       excludeCategory = round.excludeCategory,
       includeRegionIds = round.regionIds.toSet,
-      includeMonumentIds = round.monumentIds.toSet,
-      mediaType = round.mediaType
+      includeMonumentIds = round.monumentIds.toSet
     )
   }
 
@@ -92,7 +91,7 @@ class DistributeImages(imageRepo: ImageRepo) extends Logging {
       .getOrElse(Nil)
   }
 
-  def getFilteredImages(
+  private def getFilteredImages(
       round: Round,
       prevRound: Option[Round],
       includeRegionIds: Set[String] = Set.empty,
@@ -108,8 +107,7 @@ class DistributeImages(imageRepo: ImageRepo) extends Logging {
       includeJurorId: Set[Long] = Set.empty,
       excludeJurorId: Set[Long] = Set.empty,
       includeCategory: Option[String] = None,
-      excludeCategory: Option[String] = None,
-      mediaType: Option[String] = None
+      excludeCategory: Option[String] = None
   ): Seq[Image] = {
 
     val includeFromCats = categoryFileIds(includeCategory)
@@ -148,7 +146,8 @@ class DistributeImages(imageRepo: ImageRepo) extends Logging {
       selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
       mpxAtLeast = mpxAtLeast,
       sizeAtLeast = sizeAtLeast,
-      specialNomination = round.specialNomination
+      specialNomination = round.specialNomination,
+      mediaType = round.mediaType
     )
 
     val filterChain = ImageWithRatingSeqFilter.makeFunChain(funGens)

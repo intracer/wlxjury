@@ -77,7 +77,7 @@ class RoundController @Inject() (
       val stat = round.id.map(id => roundsService.getRoundStat(id, round))
       val prevRound = round.previous.flatMap(Round.findById)
       val images = round.id
-        .map(_ => distributeImages.getFilteredImages(round, prevRound))
+        .map(_ => distributeImages.imagesByRound(round, prevRound))
         .getOrElse(Nil)
       Ok(
         views.html.editRound(
