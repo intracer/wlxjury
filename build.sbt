@@ -52,6 +52,7 @@ libraryDependencies ++= Seq(
 
   "com.typesafe.akka" %% "akka-stream" % "2.6.20",
   "com.typesafe.akka" %% "akka-http" % "10.1.10",
+  "com.github.ghostdogpr" %% "caliban" % "2.8.1",
 
   "org.pac4j" %% "play-pac4j" % playPac4jVersion,
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
