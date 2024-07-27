@@ -1,6 +1,6 @@
 package org.intracer.wmua.scripts
 
-import db.scalikejdbc.Round
+import db.scalikejdbc.{ImageJdbc, Round}
 import org.intracer.wmua.Tools
 import org.intracer.wmua.cmd._
 import play.api.Configuration
@@ -23,8 +23,9 @@ object GreeceESPC {
 
     val round = AddRound(contestId, 1, 0, 1).apply()
 
-    DistributeImages.distributeImages(round, round.availableJurors, None)
+    val di = new DistributeImages(ImageJdbc)
+    di.distributeImages(round, round.availableJurors, None)
 
-    new RoundService(Round).setCurrentRound(None, round)
+    new RoundService(di, Round).setCurrentRound(None, round)
   }
 }

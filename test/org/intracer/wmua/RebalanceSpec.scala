@@ -2,8 +2,8 @@ package org.intracer.wmua
 
 import org.intracer.wmua.cmd.DistributeImages
 import org.specs2.mutable.Specification
-import DistributeImages._
-import db.scalikejdbc.{Round, User}
+import db.scalikejdbc.{ImageJdbc, Round, User}
+import org.intracer.wmua.cmd.DistributeImages.{NoRebalance, Rebalance}
 
 class RebalanceSpec extends Specification {
 
@@ -11,16 +11,17 @@ class RebalanceSpec extends Specification {
   val selection = Selection(1, 1, 1)
   val juror = User("", "", Some(1))
   val image = Image(1, "")
+  lazy val di  = new DistributeImages(ImageJdbc)
 
   "Rebalance" should {
 
     "do nothing" in {
-      rebalanceImages(round, Nil, Nil, Nil) === NoRebalance
-      rebalanceImages(round, Seq(juror), Seq(image), Seq(selection)) === NoRebalance
+      di.rebalanceImages(round, Nil, Nil, Nil) === NoRebalance
+      di.rebalanceImages(round, Seq(juror), Seq(image), Seq(selection)) === NoRebalance
     }
 
     "init one juror" in {
-      rebalanceImages(round, Seq(juror), Seq(image), Nil) === Rebalance(Seq(selection), Nil)
+      di.rebalanceImages(round, Seq(juror), Seq(image), Nil) === Rebalance(Seq(selection), Nil)
     }
   }
 

@@ -1,6 +1,6 @@
 package db.scalikejdbc
 
-import db.RoundDao
+import db.RoundRepo
 import org.intracer.wmua.{HasId, ImageWithRating}
 import scalikejdbc._
 import skinny.orm.{SkinnyCRUDMapper, SkinnyJoinTable}
@@ -153,7 +153,7 @@ object Rates {
 
 }
 
-object Round extends RoundDao with SkinnyCRUDMapper[Round] {
+object Round extends RoundRepo with SkinnyCRUDMapper[Round] {
 
   implicit def session: DBSession = autoSession
 

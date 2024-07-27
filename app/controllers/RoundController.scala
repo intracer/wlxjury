@@ -18,7 +18,8 @@ import javax.inject.Inject
 class RoundController @Inject() (
     cc: ControllerComponents,
     val contestsController: ContestController,
-    roundsService: RoundService
+    roundsService: RoundService,
+    distributeImages: DistributeImages
 ) extends Secured(cc)
     with I18nSupport
     with Logging {
@@ -76,7 +77,7 @@ class RoundController @Inject() (
       val stat = round.id.map(id => roundsService.getRoundStat(id, round))
       val prevRound = round.previous.flatMap(Round.findById)
       val images = round.id
-        .map(_ => DistributeImages.getFilteredImages(round, jurors, prevRound))
+        .map(_ => distributeImages.getFilteredImages(round, prevRound))
         .getOrElse(Nil)
       Ok(
         views.html.editRound(
@@ -127,7 +128,7 @@ class RoundController @Inject() (
                 if (editForm.newImages) {
                   val prevRound = round.previous.flatMap(Round.findById)
                   val jurors = User.findByRoundSelection(roundId)
-                  DistributeImages.distributeImages(currentRound, jurors, prevRound)
+                  distributeImages.distributeImages(currentRound, jurors, prevRound)
                 }
               }
             }

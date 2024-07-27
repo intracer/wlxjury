@@ -2,7 +2,7 @@ package modules
 
 import com.google.inject.{AbstractModule, Provides}
 import controllers.KOATUU
-import db.RoundDao
+import db.RoundRepo
 import db.scalikejdbc.Round
 import org.scalawiki.MwBot
 import play.api.{Configuration, Environment, Logging}
@@ -14,7 +14,7 @@ class AppModule(environment: Environment, configuration: Configuration)
   override def configure(): Unit = {
     logger.info("Application has started")
 
-    bind(classOf[RoundDao]).toInstance(Round)
+    bind(classOf[RoundRepo]).toInstance(Round)
 
     KOATUU.load()
   }

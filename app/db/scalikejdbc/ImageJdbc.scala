@@ -1,5 +1,6 @@
 package db.scalikejdbc
 
+import db.ImageRepo
 import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import org.scalawiki.dto.Page
@@ -8,7 +9,9 @@ import scalikejdbc.interpolation.SQLSyntax.distinct
 import skinny.logging.Logging
 import skinny.orm.SkinnyCRUDMapper
 
-object ImageJdbc extends SkinnyCRUDMapper[Image] with Logging {
+object ImageJdbc extends SkinnyCRUDMapper[Image]
+  with ImageRepo
+  with Logging {
 
   implicit def session: DBSession = autoSession
 
@@ -344,6 +347,7 @@ object ImageJdbc extends SkinnyCRUDMapper[Image] with Logging {
     val raw = ImageJdbc.byRating(rate, roundId)
     val merged = raw
       .groupBy(_.pageId)
+      .view
       .mapValues(iws => new ImageWithRating(iws.head.image, iws.map(_.selection.head)))
     merged.values.toSeq
   }

@@ -1,6 +1,7 @@
 package controllers
 
 import db.scalikejdbc.{Round, RoundLimits}
+import org.intracer.wmua.cmd.DistributeImages
 import org.specs2.mock.Mockito.mock
 import play.api.test.{Helpers, PlaySpecification}
 import services.RoundService
@@ -41,9 +42,12 @@ class RoundControllerSpec extends PlaySpecification {
         users = Nil
       )
 
-      val controller = new RoundController(Helpers.stubControllerComponents(),
-                                           mock[ContestController],
-                                           mock[RoundService])
+      val controller = new RoundController(
+        Helpers.stubControllerComponents(),
+        mock[ContestController],
+        mock[RoundService],
+        mock[DistributeImages]
+      )
 
       val editRound = EditRound(round, Nil, None, newImages = true)
       val filledForm = EditRound.editRoundForm.fill(editRound)

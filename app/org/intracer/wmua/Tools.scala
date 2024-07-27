@@ -154,11 +154,9 @@ object Tools {
   def addCriteria() = {
     val roundId = 1304
     val round = Round.findById(roundId).get
-    val images = Seq.empty
-    val jurors = User.findByRoundSelection(roundId)
     val selection = SelectionJdbc.byRound(roundId)
 
-    DistributeImages(round, images, jurors).addCriteriaRates(selection)
+    new DistributeImages(ImageJdbc).addCriteriaRates(selection)
   }
 
   def convertImages(images: Seq[Image]) = {
