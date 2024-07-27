@@ -46,7 +46,7 @@ class RoundControllerSpec extends PlaySpecification {
                                            mock[RoundService])
 
       val editRound = EditRound(round, Nil, None, newImages = true)
-      val filledForm = controller.editRoundForm.fill(editRound)
+      val filledForm = EditRound.editRoundForm.fill(editRound)
       val formRound = filledForm.value.get.round
       round === formRound
     }

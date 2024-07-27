@@ -5,7 +5,7 @@ import org.intracer.wmua.JuryTestHelpers
 import org.specs2.mutable.Specification
 import services.{ImageService, MonumentService}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 class ImagesFromListSpec extends Specification with JuryTestHelpers with TestDb {
 
@@ -14,7 +14,7 @@ class ImagesFromListSpec extends Specification with JuryTestHelpers with TestDb 
   val categoryName = "Category:Category Name"
   val contestId = 10
 
-  implicit val ec = ExecutionContext.global
+  implicit val ec: ExecutionContextExecutor = ExecutionContext.global
   "contest" should {
 
     "import from list" in {
