@@ -9,9 +9,10 @@ import org.scalawiki.dto.Namespace
 import play.api.Logging
 import spray.util.pimpFuture
 
+import javax.inject.Inject
 import scala.concurrent.duration._
 
-class DistributeImages(imageRepo: ImageRepo) extends Logging {
+class DistributeImages @Inject()(imageRepo: ImageRepo) extends Logging {
 
   def distributeImages(round: Round, images: Seq[Image], jurors: Seq[User]): Unit = {
     val selection: Seq[Selection] = newSelection(round, images, jurors)
