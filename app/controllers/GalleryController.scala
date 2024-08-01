@@ -5,8 +5,6 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import db.scalikejdbc.Round.binaryRound
 import db.scalikejdbc._
-import db.scalikejdbc.rewrite.ImageDbNew
-import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
