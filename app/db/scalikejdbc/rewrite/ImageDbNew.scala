@@ -136,6 +136,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           Region(id, name, byRegion(id))
         }
         .toSeq
+        .sortBy(_.id)
 
       if (subRegions) {
         val kyivPictures =
