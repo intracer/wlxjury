@@ -77,10 +77,10 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
       .orderBy(c.id)
 
     limit.fold(q)(l => q.limit(l))
-  }.map(MonumentJdbc(c)).list().apply()
+  }.map(MonumentJdbc(c)).list()
 
   def find(id: String)(implicit session: DBSession = autoSession): Option[Monument] = withSQL {
     select.from(MonumentJdbc as c).where.eq(c.id, id) //.and.append(isNotDeleted)
-  }.map(MonumentJdbc(c)).single().apply()
+  }.map(MonumentJdbc(c)).single()
 
 }

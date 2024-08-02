@@ -1,0 +1,7 @@
+@(form: Form[_])(implicit messages: Messages)
+
+@if(form.hasGlobalErrors) {
+    <p class="error">
+        <span class="label important">@Messages(form.errors.head.message)</span>
+    </p>
+}

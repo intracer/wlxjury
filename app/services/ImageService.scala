@@ -1,11 +1,6 @@
 package services
 
-import db.scalikejdbc.{
-  CategoryJdbc,
-  CategoryLinkJdbc,
-  ContestJuryJdbc,
-  ImageJdbc
-}
+import db.scalikejdbc.{CategoryJdbc, CategoryLinkJdbc, ContestJuryJdbc, ImageJdbc}
 import org.intracer.wmua.cmd.FetchImageText.defaultParam
 import org.intracer.wmua.cmd.{FetchImageInfo, FetchImageText, ImageEnricher}
 import org.intracer.wmua.{ContestJury, Image}
@@ -24,9 +19,7 @@ class ImageService @Inject() (
     extends Logging {
 
   def updateImageMonuments(source: String, contest: ContestJury): Unit = {
-    if (
-      contest.country == Country.Ukraine.name && contest.monumentIdTemplate.isDefined
-    ) {
+    if (contest.country == Country.Ukraine.name && contest.monumentIdTemplate.isDefined) {
       val monumentContest = Seq("earth", "monuments").filter(
         contest.name.toLowerCase.contains
       ) match {

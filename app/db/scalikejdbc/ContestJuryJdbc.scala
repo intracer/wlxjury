@@ -16,8 +16,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
 
   override lazy val defaultAlias: Alias[ContestJury] = createAlias("m")
 
-  override def extract(rs: WrappedResultSet,
-                       c: ResultName[ContestJury]): ContestJury = ContestJury(
+  override def extract(rs: WrappedResultSet, c: ResultName[ContestJury]): ContestJury = ContestJury(
     id = rs.longOpt(c.id),
     name = rs.string(c.name),
     year = rs.int(c.year),
@@ -30,37 +29,37 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
       rs.stringOpt(c.column("greeting")),
       rs.booleanOpt(c.column("use_greeting")).getOrElse(true)
     ),
-    campaign = rs.stringOpt(c.campaign),
+    campaign = rs.stringOpt(c.campaign)
   )
 
   def setImagesSource(id: Long, images: Option[String]): Int = {
     val categoryId = images.map(CategoryJdbc.findOrInsert)
 
     updateById(id)
-      .withAttributes(Symbol("images") -> images,
-                      Symbol("categoryId") -> categoryId)
+      .withAttributes("images" -> images, "categoryId" -> categoryId)
   }
 
   def updateGreeting(id: Long, greeting: Greeting): Int =
     updateById(id)
       .withAttributes(
-        Symbol("greeting") -> greeting.text,
-        Symbol("use_greeting") -> greeting.use
+        "greeting" -> greeting.text,
+        "use_greeting" -> greeting.use
       )
 
   def setCurrentRound(id: Long, round: Option[Long]): Int =
     updateById(id)
-      .withAttributes(Symbol("currentRound") -> round)
+      .withAttributes("currentRound" -> round)
 
-  def create(id: Option[Long],
-             name: String,
-             year: Int,
-             country: String,
-             images: Option[String] = None,
-             categoryId: Option[Long] = None,
-             currentRound: Option[Long] = None,
-             monumentIdTemplate: Option[String] = None,
-             campaign: Option[String] = None,
+  def create(
+      id: Option[Long],
+      name: String,
+      year: Int,
+      country: String,
+      images: Option[String] = None,
+      categoryId: Option[Long] = None,
+      currentRound: Option[Long] = None,
+      monumentIdTemplate: Option[String] = None,
+      campaign: Option[String] = None
   ): ContestJury = {
     val dbId = withSQL {
       insert
@@ -76,7 +75,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
           column.monumentIdTemplate -> monumentIdTemplate,
           column.campaign -> campaign
         )
-    }.updateAndReturnGeneratedKey().apply()
+    }.updateAndReturnGeneratedKey()
 
     ContestJury(
       id = Some(dbId),
@@ -95,18 +94,18 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
   def batchInsert(contests: Seq[ContestJury]): Seq[Int] = {
     val column = ContestJuryJdbc.column
     DB localTx { implicit session =>
-      val batchParams: Seq[Seq[Any]] = contests.map(
-        c =>
-          Seq(
-            c.id,
-            c.name,
-            c.year,
-            c.country,
-            c.images,
-            c.currentRound,
-            c.monumentIdTemplate,
-            c.campaign
-        ))
+      val batchParams: Seq[Seq[Any]] = contests.map(c =>
+        Seq(
+          c.id,
+          c.name,
+          c.year,
+          c.country,
+          c.images,
+          c.currentRound,
+          c.monumentIdTemplate,
+          c.campaign
+        )
+      )
       withSQL {
         insert
           .into(ContestJuryJdbc)
@@ -118,7 +117,7 @@ object ContestJuryJdbc extends SkinnyCRUDMapper[ContestJury] {
             column.images -> sqls.?,
             column.currentRound -> sqls.?,
             column.monumentIdTemplate -> sqls.?,
-            column.campaign -> sqls.?,
+            column.campaign -> sqls.?
           )
       }.batch(batchParams: _*).apply()
     }
