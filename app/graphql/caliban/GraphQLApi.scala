@@ -1,9 +1,8 @@
-package graphql
+package graphql.caliban
 
-import org.intracer.wmua.ContestJury
 import caliban._
 import caliban.schema.Schema.auto._
-import caliban.schema.ArgBuilder.auto._
+import org.intracer.wmua.ContestJury
 
 object GraphQLApi {
   case class ContestId(id: String)
