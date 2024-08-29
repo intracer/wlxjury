@@ -17,7 +17,7 @@
                 @for(region <- regions) {
                     <li @if(region.id == selectedRegion) {style="font-weight: bold"}>
                         <a href="@regionToUrl(region.id)" >
-                            @region.name (@region.count)
+                            @region.name @region.count.fold("")(count => s"($count)")
                         </a>
                     </li>
                 }

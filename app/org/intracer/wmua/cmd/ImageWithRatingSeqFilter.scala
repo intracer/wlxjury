@@ -19,7 +19,8 @@ trait ImageFilterGen extends (() => ImageFilter) with Product with Logging {
     (images: Seq[ImageWithRating]) => {
       val result = images.filter(i => p(i.image))
       logger.debug(
-        s"imageFilter: ${toString()}\n images before: ${images.size}, images after: ${result.size}")
+        s"imageFilter: ${toString()}\n images before: ${images.size}, images after: ${result.size}"
+      )
       result
     }
 
@@ -27,7 +28,8 @@ trait ImageFilterGen extends (() => ImageFilter) with Product with Logging {
     (images: Seq[ImageWithRating]) => {
       val result = images.filter(p)
       logger.debug(
-        s"imageRatingFilter: ${toString()}\n images before: ${images.size}, images after: ${result.size}")
+        s"imageRatingFilter: ${toString()}\n images before: ${images.size}, images after: ${result.size}"
+      )
       result
     }
 
@@ -66,20 +68,17 @@ case class ExcludeTitles(titles: Set[String]) extends ImageFilterGen {
 
 case class IncludeJurorId(jurors: Set[Long]) extends ImageFilterGen {
   def apply(): ImageFilter =
-    imageRatingFilter(
-      i => i.selection.map(_.juryId).toSet.intersect(jurors).nonEmpty)
+    imageRatingFilter(i => i.selection.map(_.juryId).toSet.intersect(jurors).nonEmpty)
 }
 
 case class ExcludeJurorId(jurors: Set[Long]) extends ImageFilterGen {
   def apply(): ImageFilter =
-    imageRatingFilter(
-      i => i.selection.map(_.juryId).toSet.intersect(jurors).isEmpty)
+    imageRatingFilter(i => i.selection.map(_.juryId).toSet.intersect(jurors).isEmpty)
 }
 
 case class SelectTopByRating(topN: Int, round: Round) extends ImageFilterGen {
   def apply(): ImageFilter =
-    (images: Seq[ImageWithRating]) =>
-      images.sortBy(-_.totalRate(round)).take(topN)
+    (images: Seq[ImageWithRating]) => images.sortBy(-_.totalRate(round)).take(topN)
 }
 
 case class SelectMinAvgRating(rate: BigDecimal, round: Round) extends ImageFilterGen {
@@ -98,15 +97,18 @@ case class SizeAtLeast(size: Int) extends ImageFilterGen {
   def apply(): ImageFilter = imageFilter(_.size.exists(_ >= size))
 }
 
-case class SpecialNominationFilter(specialNominationName: String)
-    extends ImageFilterGen {
+case class MediaTypeIs(mediaType: String) extends ImageFilterGen {
+  def apply(): ImageFilter = imageFilter(_.majorMime.contains(mediaType))
+}
+
+case class SpecialNominationFilter(specialNominationName: String) extends ImageFilterGen {
   val specialNominationIds: Set[String] = SpecialNomination.nominations
     .find(_.name == specialNominationName)
     .map { nomination =>
       val contest = Contest.WLMUkraine(2020)
       val stat = if (nomination.cities.nonEmpty) {
-        ContestStat(contest, 2012).copy(monumentDb = Some(
-          MonumentDB.getMonumentDb(contest, MonumentQuery.create(contest))))
+        ContestStat(contest, 2012)
+          .copy(monumentDb = Some(MonumentDB.getMonumentDb(contest, MonumentQuery.create(contest))))
       } else {
         ContestStat(contest, 2012)
       }
@@ -137,7 +139,9 @@ object ImageWithRatingSeqFilter {
       selectedAtLeast: Option[Int] = None,
       mpxAtLeast: Option[Int] = None,
       sizeAtLeast: Option[Int] = None,
-      specialNomination: Option[String] = None): Seq[ImageFilterGen] = {
+      specialNomination: Option[String] = None,
+      mediaType: Option[String] = None
+  ): Seq[ImageFilterGen] = {
 
     val setMap = Map(
       IncludeRegionIds(includeRegionIds) -> includeRegionIds,
@@ -159,7 +163,8 @@ object ImageWithRatingSeqFilter {
       selectedAtLeast.map(n => SelectedAtLeast(n)) -> selectedAtLeast,
       mpxAtLeast.map(MegaPixelsAtLeast) -> mpxAtLeast,
       sizeAtLeast.map(SizeAtLeast) -> sizeAtLeast,
-      specialNomination.map(SpecialNominationFilter) -> specialNomination
+      specialNomination.map(SpecialNominationFilter) -> specialNomination,
+      mediaType.map(MediaTypeIs) -> mediaType
     )
 
     (setMap
@@ -169,5 +174,5 @@ object ImageWithRatingSeqFilter {
 
   def makeFunChain(
       gens: Seq[ImageFilterGen]): Seq[ImageWithRating] => Seq[ImageWithRating] =
-    Function.chain(gens.map(_.apply))
+    Function.chain(gens.map(_.apply()))
 }

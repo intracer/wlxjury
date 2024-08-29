@@ -89,7 +89,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def list(): Seq[ImageWithRating] = {
-      postProcessor(SQL(query()).map(reader).list().apply())
+      postProcessor(SQL(query()).map(reader).list())
     }
 
     def count(): Int = {
@@ -106,16 +106,25 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def byRegionStat()(implicit messages: Messages): Seq[Region] = {
-      val map = SQL(query(byRegion = true))
-        .map(rs => rs.string(1) -> rs.int(2))
+      val map = SQL(s"""select distinct m.adm0 from
+                      |    monument m
+                      |where exists (
+                      |              select m.adm0
+                      |              from images i
+                      |                       join selection s
+                      |                            on i.page_id = s.page_id
+                      |                       join monument m on i.monument_id = m.id
+                      |              where ${userId.fold("") { id => s"s.jury_id = $id and " }}
+                      |                s.round_id = ${roundId.get}
+                      |          );""".stripMargin)
+        .map(rs => rs.string(1) -> None)
         .list()
-        .apply()
         .toMap
       regions(map, subRegions)
     }
 
-    def regions(byRegion: Map[String, Int], subRegions: Boolean = false)(
-        implicit messages: Messages
+    def regions(byRegion: Map[String, Option[Int]], subRegions: Boolean = false)(implicit
+        messages: Messages
     ): Seq[Region] = {
       val regions = byRegion.keys
         .filterNot(_ == null)
@@ -127,13 +136,14 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           Region(id, name, byRegion(id))
         }
         .toSeq
+        .sortBy(_.id)
 
       if (subRegions) {
         val kyivPictures =
-          regions.filter(_.id.startsWith("80-")).map(_.count).sum
+          regions.filter(_.id.startsWith("80-")).map(_.count.getOrElse(0)).sum
         val withoutKyivRegions = regions.filterNot(_.id.startsWith("80-"))
         val unsorted =
-          withoutKyivRegions ++ Seq(Region("80", messages("80"), kyivPictures))
+          withoutKyivRegions ++ Seq(Region("80", messages("80"), Some(kyivPictures)))
         unsorted.sortBy(_.name)
       } else {
         regions.sortBy(_.id)
@@ -141,7 +151,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def single(sql: String): Int = {
-      SQL(sql).map(_.int(1)).single().apply().getOrElse(0)
+      SQL(sql).map(_.int(1)).single().getOrElse(0)
     }
 
     private val imagesJoinSelection =
@@ -246,7 +256,6 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     $limit"""
       ).map(rs => (rs.int(1), ImageJdbc(i)(rs), SelectionJdbc(s1)(rs)))
         .list()
-        .apply()
         .map { case (rank, img, sel) =>
           ImageWithRating(img, Seq(sel), rank = Some(rank))
         }
@@ -269,11 +278,8 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                GROUP BY t1.page_id) s2
             ON s1.page_id = s2.page_id
             ORDER BY rank1 ASC $limit()""")
-        .map(rs =>
-          (rs.int(1), rs.int(2), ImageJdbc(i)(rs), SelectionJdbc(s1)(rs))
-        )
+        .map(rs => (rs.int(1), rs.int(2), ImageJdbc(i)(rs), SelectionJdbc(s1)(rs)))
         .list()
-        .apply()
         .map { case (rank1, rank2, i, s) =>
           ImageWithRating(i, Seq(s), rank = Some(rank1), rank2 = Some(rank2))
         }
@@ -293,8 +299,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         val count = rs.intOpt(2).getOrElse(0)
         ImageWithRating(
           image,
-          selection =
-            Seq(Selection(image.pageId, juryId = 0, roundId = 0, rate = sum)),
+          selection = Seq(Selection(image.pageId, juryId = 0, roundId = 0, rate = sum)),
           count
         )
       }

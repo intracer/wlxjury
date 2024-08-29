@@ -5,7 +5,7 @@ import db.scalikejdbc.Round
 import db.scalikejdbc.Round.RoundStatRow
 import db.scalikejdbc.User.autoSession
 
-trait RoundDao {
+trait RoundRepo {
 
   def countByContest(contestId: Long): Long
 

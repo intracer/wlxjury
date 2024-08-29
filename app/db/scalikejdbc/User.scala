@@ -10,24 +10,25 @@ import play.api.libs.Codecs
 import scalikejdbc._
 import skinny.orm.SkinnyCRUDMapper
 
-
 import scala.util.Try
 
-case class User(fullname: String,
-                email: String,
-                id: Option[Long] = None,
-                roles: Set[String] = Set.empty,
-                password: Option[String] = None,
-                contestId: Option[Long] = None,
-                lang: Option[String] = None,
-                createdAt: Option[ZonedDateTime] = None,
-                deletedAt: Option[ZonedDateTime] = None,
-                wikiAccount: Option[String] = None,
-                hasWikiEmail: Boolean = false,
-                accountValid: Boolean = true,
-                sort: Option[Int] = None,
-                active: Option[Boolean] = Some(true),
-               ) extends HasId with Ordered[User] {
+case class User(
+    fullname: String,
+    email: String,
+    id: Option[Long] = None,
+    roles: Set[String] = Set.empty,
+    password: Option[String] = None,
+    contestId: Option[Long] = None,
+    lang: Option[String] = None,
+    createdAt: Option[ZonedDateTime] = None,
+    deletedAt: Option[ZonedDateTime] = None,
+    wikiAccount: Option[String] = None,
+    hasWikiEmail: Boolean = false,
+    accountValid: Boolean = true,
+    sort: Option[Int] = None,
+    active: Option[Boolean] = Some(true)
+) extends HasId
+    with Ordered[User] {
 
   def emailLo: String = email.trim.toLowerCase
 
@@ -57,10 +58,12 @@ case class User(fullname: String,
         hasAnyRole(Set("organizer", "admin", "root")) ||
         (roles.contains("jury") && round.juryOrgView))
 
-  def description: String = Seq(fullname, wikiAccount.fold("")(u => "User:" + u), email).mkString(" / ")
+  def description: String =
+    Seq(fullname, wikiAccount.fold("")(u => "User:" + u), email).mkString(" / ")
 
   def sortOrBiasedId: Long = {
-    sort.map(_.toLong)
+    sort
+      .map(_.toLong)
       .orElse(id.map(_ + Int.MaxValue))
       .getOrElse(0L)
   }
@@ -75,16 +78,58 @@ object User extends SkinnyCRUDMapper[User] {
   val ADMIN_ROLE = "admin"
   val ROOT_ROLE = "root"
   val ADMIN_ROLES = Set(ADMIN_ROLE, ROOT_ROLE)
-  val LANGS = Map("en" -> "English", "fr" -> "Français",  "ru" -> "Русский", "uk" -> "Українська")
+  val LANGS = Map("en" -> "English", "fr" -> "Français", "ru" -> "Русский", "uk" -> "Українська")
 
-  def unapplyEdit(user: User): Option[(Long, String, Option[String], String, Option[String], Option[String], Option[Long], Option[String], Option[Int])] = {
-    Some((user.getId, user.fullname, user.wikiAccount, user.email, None, Some(user.roles.toSeq.head), user.contestId, user.lang, user.sort))
+  def unapplyEdit(user: User): Option[
+    (
+        Long,
+        String,
+        Option[String],
+        String,
+        Option[String],
+        Option[String],
+        Option[Long],
+        Option[String],
+        Option[Int]
+    )
+  ] = {
+    Some(
+      (
+        user.getId,
+        user.fullname,
+        user.wikiAccount,
+        user.email,
+        None,
+        Some(user.roles.toSeq.head),
+        user.contestId,
+        user.lang,
+        user.sort
+      )
+    )
   }
 
-  def applyEdit(id: Long, fullname: String, wikiAccount: Option[String], email: String, password: Option[String],
-                roles: Option[String], contest: Option[Long], lang: Option[String], sort: Option[Int]): User = {
-    new User(fullname, email.trim.toLowerCase, Some(id), roles.fold(Set.empty[String])(Set(_)), password, contest, lang,
-      wikiAccount = wikiAccount, sort = sort)
+  def applyEdit(
+      id: Long,
+      fullname: String,
+      wikiAccount: Option[String],
+      email: String,
+      password: Option[String],
+      roles: Option[String],
+      contest: Option[Long],
+      lang: Option[String],
+      sort: Option[Int]
+  ): User = {
+    new User(
+      fullname,
+      email.trim.toLowerCase,
+      Some(id),
+      roles.fold(Set.empty[String])(Set(_)),
+      password,
+      contest,
+      lang,
+      wikiAccount = wikiAccount,
+      sort = sort
+    )
   }
 
   val emailConstraint = Constraints.emailAddress
@@ -94,16 +139,27 @@ object User extends SkinnyCRUDMapper[User] {
     def fromUserName(str: String): Option[User] = {
       val withoutPrefix = str.replaceFirst("User:", "")
       Some(withoutPrefix).filter(_.trim.nonEmpty).map { _ =>
-        User(id = None, contestId = None, fullname = "", email = "", wikiAccount = Some(withoutPrefix))
+        User(
+          id = None,
+          contestId = None,
+          fullname = "",
+          email = "",
+          wikiAccount = Some(withoutPrefix)
+        )
       }
     }
 
     def fromInternetAddress(internetAddress: InternetAddress): Option[User] = {
       Constraints.emailAddress()(internetAddress.getAddress) match {
         case Valid =>
-          Some(User(id = None, contestId = None,
-            fullname = Option(internetAddress.getPersonal).getOrElse(""),
-            email = internetAddress.getAddress))
+          Some(
+            User(
+              id = None,
+              contestId = None,
+              fullname = Option(internetAddress.getPersonal).getOrElse(""),
+              email = internetAddress.getAddress
+            )
+          )
         case Invalid(_) => None
       }
     }
@@ -114,8 +170,6 @@ object User extends SkinnyCRUDMapper[User] {
       }.toOption.flatMap(_.headOption.flatMap(fromInternetAddress)).orElse(fromUserName(str))
     }
   }
-
-
 
   implicit def session: DBSession = autoSession
 
@@ -153,7 +207,7 @@ object User extends SkinnyCRUDMapper[User] {
   def byUserName(username: String): Option[User] = {
     val unameTrimmed = username.trim.toLowerCase
     val users = Constraints.emailAddress()(unameTrimmed) match {
-      case Valid => findByEmail(username)
+      case Valid           => findByEmail(username)
       case Invalid(errors) => findByAccount(unameTrimmed)
     }
     users.headOption
@@ -190,87 +244,115 @@ object User extends SkinnyCRUDMapper[User] {
   )
 
   def findByContest(contest: Long): Seq[User] =
-    where(Symbol("contestId") -> contest).orderBy(u.id).apply()
+    where("contestId" -> contest).orderBy(u.id).apply()
 
   def findByRoundSelection(roundId: Long): Seq[User] = withSQL {
     import SelectionJdbc.s
 
-    select(u.result.*).from(User as u)
+    select(u.result.*)
+      .from(User as u)
       .join(SelectionJdbc as s)
       .on(u.id, s.juryId)
-      .where.eq(s.roundId, roundId)
+      .where
+      .eq(s.roundId, roundId)
       .groupBy(u.id)
       .orderBy(u.id)
-  }.map(User(u)).list().apply()
+  }.map(User(u)).list()
 
   def countByEmail(id: Long, email: String): Long =
-    countBy(sqls
-      .eq(column.email, email).and
-      .ne(column.id, id))
+    countBy(
+      sqls
+        .eq(column.email, email)
+        .and
+        .ne(column.id, id)
+    )
 
   def findByEmail(email: String): Seq[User] =
-    where(Symbol("email") -> email)
-      .orderBy(u.id).apply()
+    where("email" -> email)
+      .orderBy(u.id)
+      .apply()
 
   def findByAccount(account: String): Seq[User] =
-    where(Symbol("wikiAccount") -> account)
-      .orderBy(u.id).apply()
+    where("wikiAccount" -> account)
+      .orderBy(u.id)
+      .apply()
 
-  def create(fullname: String,
-             email: String,
-             password: String,
-             roles: Set[String],
-             contestId: Option[Long] = None,
-             lang: Option[String] = None,
-             createdAt: Option[ZonedDateTime] = Some(ZonedDateTime.now)
-            ): User = {
+  def create(
+      fullname: String,
+      email: String,
+      password: String,
+      roles: Set[String],
+      contestId: Option[Long] = None,
+      lang: Option[String] = None,
+      createdAt: Option[ZonedDateTime] = Some(ZonedDateTime.now)
+  ): User = {
     val id = withSQL {
-      insert.into(User).namedValues(
-        column.fullname -> fullname,
-        column.email -> email.trim.toLowerCase,
-        column.password -> password,
-        column.roles -> roles.headOption.getOrElse("jury"),
-        column.contestId -> contestId,
-        column.lang -> lang,
-        column.createdAt -> createdAt)
-    }.updateAndReturnGeneratedKey().apply()
+      insert
+        .into(User)
+        .namedValues(
+          column.fullname -> fullname,
+          column.email -> email.trim.toLowerCase,
+          column.password -> password,
+          column.roles -> roles.headOption.getOrElse("jury"),
+          column.contestId -> contestId,
+          column.lang -> lang,
+          column.createdAt -> createdAt
+        )
+    }.updateAndReturnGeneratedKey()
 
-    User(id = Some(id), fullname = fullname, email = email, password = Some(password),
-      roles = roles ++ Set("USER_ID_" + id), contestId = contestId, createdAt = createdAt)
+    User(
+      id = Some(id),
+      fullname = fullname,
+      email = email,
+      password = Some(password),
+      roles = roles ++ Set("USER_ID_" + id),
+      contestId = contestId,
+      createdAt = createdAt
+    )
   }
 
   def create(user: User): User = {
     val id = withSQL {
-      insert.into(User).namedValues(
-        column.fullname -> user.fullname,
-        column.email -> user.email.trim.toLowerCase,
-        column.wikiAccount -> user.wikiAccount,
-        column.password -> user.password,
-        column.roles -> user.roles.headOption.getOrElse(""),
-        column.contestId -> user.contestId,
-        column.lang -> user.lang,
-        column.sort -> user.sort,
-        column.createdAt -> user.createdAt)
-    }.updateAndReturnGeneratedKey().apply()
+      insert
+        .into(User)
+        .namedValues(
+          column.fullname -> user.fullname,
+          column.email -> user.email.trim.toLowerCase,
+          column.wikiAccount -> user.wikiAccount,
+          column.password -> user.password,
+          column.roles -> user.roles.headOption.getOrElse(""),
+          column.contestId -> user.contestId,
+          column.lang -> user.lang,
+          column.sort -> user.sort,
+          column.createdAt -> user.createdAt
+        )
+    }.updateAndReturnGeneratedKey()
 
     user.copy(id = Some(id), roles = user.roles ++ Set("USER_ID_" + id))
   }
 
-  def updateUser(id: Long, fullname: String, wikiAccount: Option[String],
-                 email: String, roles: Set[String], lang: Option[String], sort: Option[Int]): Unit =
+  def updateUser(
+      id: Long,
+      fullname: String,
+      wikiAccount: Option[String],
+      email: String,
+      roles: Set[String],
+      lang: Option[String],
+      sort: Option[Int]
+  ): Unit =
     updateById(id)
       .withAttributes(
-        Symbol("fullname") -> fullname,
-        Symbol("email") -> email,
-        Symbol("wikiAccount") -> wikiAccount,
-        Symbol("roles") -> roles.head,
-        Symbol("lang") -> lang,
-        Symbol("sort") -> sort
+        "fullname" -> fullname,
+        "email" -> email,
+        "wikiAccount" -> wikiAccount,
+        "roles" -> roles.head,
+        "lang" -> lang,
+        "sort" -> sort
       )
 
   def updateHash(id: Long, hash: String): Unit =
     updateById(id)
-      .withAttributes(Symbol("password") -> hash)
+      .withAttributes("password" -> hash)
 
   def loadJurors(contestId: Long): Seq[User] = {
     findAllBy(sqls.in(User.u.roles, Seq("jury")).and.eq(User.u.contestId, contestId))
@@ -279,8 +361,10 @@ object User extends SkinnyCRUDMapper[User] {
   def loadJurors(contestId: Long, jurorIds: Seq[Long]): Seq[User] = {
     findAllBy(
       sqls
-        .in(User.u.id, jurorIds).and
-        .in(User.u.roles, Seq("jury")).and
+        .in(User.u.id, jurorIds)
+        .and
+        .in(User.u.roles, Seq("jury"))
+        .and
         .eq(User.u.contestId, contestId)
     )
   }

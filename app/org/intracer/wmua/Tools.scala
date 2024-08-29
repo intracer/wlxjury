@@ -36,10 +36,10 @@ object Tools {
       singleLineMode = false,
       printUnprocessedStackTrace = false,
       stackTraceDepth = 15,
-      logLevel = Symbol("info"),
+      logLevel = "info",
       warningEnabled = false,
       warningThresholdMillis = 3000L,
-      warningLogLevel = Symbol("warn")
+      warningLogLevel = "warn"
     )
 
 //    addMonuments()
@@ -154,11 +154,9 @@ object Tools {
   def addCriteria() = {
     val roundId = 1327
     val round = Round.findById(roundId).get
-    val images = Seq.empty
-    val jurors = User.findByRoundSelection(roundId)
     val selection = SelectionJdbc.byRound(roundId)
 
-    DistributeImages(round, images, jurors).addCriteriaRates(selection)
+    new DistributeImages(ImageJdbc).addCriteriaRates(selection)
   }
 
   def convertImages(images: Seq[Image]) = {

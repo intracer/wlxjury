@@ -31,7 +31,7 @@
                 )
 
                 <div class="form-actions">
-                    <input type="submit" class="btn btn-default btn-primary" value="@Messages("import")">
+                    @snippets.submit("import")
                     <a href="@routes.UserController.users(Some(contestId))" class="btn btn-default">@Messages("cancel")</a>
                 </div>
 
