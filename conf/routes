@@ -68,7 +68,6 @@ GET         /admin/rounds/edit                                                  
 POST        /admin/rounds/save                                                      @controllers.RoundController.saveRound()
 POST        /admin/setimages                                                        @controllers.RoundController.setImages()
 POST        /admin/setround                                                         @controllers.RoundController.setRound()
-POST        /admin/startround                                                       @controllers.RoundController.startRound()
 POST        /round/setrounduser                                                     @controllers.RoundController.setRoundUser()
 
 GET         /roundstat                                                              @controllers.RoundController.currentRoundStat(contestId: Option[Long] ?= None)

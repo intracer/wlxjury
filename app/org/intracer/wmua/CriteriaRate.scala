@@ -30,21 +30,20 @@ object CriteriaRate extends SQLSyntaxSupport[CriteriaRate] {
         .eq(column.selection, selection)
         .and
         .eq(column.criteria, criteria)
-    }.update().apply()
+    }.update()
 
     sql"""UPDATE selection s
           SET rate =
           IFNULL((SELECT sum(rate) FROM criteria_rate WHERE selection = $selection AND rate>0), 0)
          WHERE s.id = $selection"""
       .update()
-      .apply()
   }
 
   def getRates(
       selection: Long
   )(implicit session: DBSession = autoSession): Seq[CriteriaRate] = withSQL {
     select.from(CriteriaRate as c).where.eq(column.selection, selection)
-  }.map(CriteriaRate(c)).list().apply()
+  }.map(CriteriaRate(c)).list()
 
   def batchInsert(rates: Seq[CriteriaRate]): Unit = {
     val column = CriteriaRate.column

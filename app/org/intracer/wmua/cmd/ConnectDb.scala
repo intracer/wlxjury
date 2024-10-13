@@ -22,10 +22,10 @@ case class ConnectDb(host: String = "jury.wikilovesearth.org.ua",
       singleLineMode = false,
       printUnprocessedStackTrace = false,
       stackTraceDepth = 15,
-      logLevel = Symbol("info"),
+      logLevel = "info",
       warningEnabled = false,
       warningThresholdMillis = 3000L,
-      warningLogLevel = Symbol("warn")
+      warningLogLevel = "warn"
     )
 
   }

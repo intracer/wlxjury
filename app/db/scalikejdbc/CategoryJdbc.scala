@@ -22,8 +22,8 @@ object CategoryJdbc extends SkinnyCRUDMapper[Category] {
   )
 
   def findOrInsert(title: String): Long = {
-    where(Symbol("title") -> title).apply().headOption.map(_.id).getOrElse {
-      createWithAttributes(Symbol("title") -> title)
+    where("title" -> title).apply().headOption.map(_.id).getOrElse {
+      createWithAttributes("title" -> title)
     }
   }
 }

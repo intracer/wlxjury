@@ -1,12 +1,24 @@
 package db.scalikejdbc
 
-import db.RoundDao
-
-import java.time.ZonedDateTime
+import db.RoundRepo
 import org.intracer.wmua.{HasId, ImageWithRating}
-import org.scalawiki.dto.Page
 import scalikejdbc._
 import skinny.orm.{SkinnyCRUDMapper, SkinnyJoinTable}
+
+import java.time.ZonedDateTime
+
+case class RoundLimits(
+    min: Option[Int] = None,
+    max: Option[Int] = None,
+    recommended: Option[Int] = None
+)
+
+object MediaType {
+  val All: String = "all"
+  val Video: String = "video"
+  val Image: String = "image"
+  val mediaTypes: Seq[String] = Seq(All, Video, Image)
+}
 
 case class Round(
     id: Option[Long],
@@ -16,11 +28,7 @@ case class Round(
     roles: Set[String] = Set("jury"),
     distribution: Int = 0,
     rates: Rates = Round.binaryRound,
-    limitMin: Option[Int] = None,
-    limitMax: Option[Int] = None,
-    recommended: Option[Int] = None,
-    images: Seq[Page] = Seq.empty,
-    selected: Seq[Page] = Seq.empty,
+    limits: RoundLimits = RoundLimits(),
     createdAt: ZonedDateTime = ZonedDateTime.now,
     deletedAt: Option[ZonedDateTime] = None,
     active: Boolean = false,
@@ -40,7 +48,9 @@ case class Round(
     monuments: Option[String] = None,
     topImages: Option[Int] = None,
     specialNomination: Option[String] = None,
-    users: Seq[User] = Nil
+    users: Seq[User] = Nil,
+    criteriaNames: Seq[String] = Nil,
+    mediaType: Option[String] = None
 ) extends HasId {
 
   def availableJurors: Seq[User] =
@@ -124,7 +134,7 @@ case class Round(
     RoundUser.withColumns { c =>
       withSQL {
         delete.from(RoundUser).where.eq(c.roundId, id).and.eq(c.userId, user.id)
-      }.update().apply()
+      }.update()
     }
   }
 
@@ -143,7 +153,7 @@ object Rates {
 
 }
 
-object Round extends RoundDao with SkinnyCRUDMapper[Round] {
+object Round extends RoundRepo with SkinnyCRUDMapper[Round] {
 
   implicit def session: DBSession = autoSession
 
@@ -185,9 +195,12 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
       distribution = rs.int(c.distribution),
       contestId = rs.long(c.contestId),
       rates = Round.ratesById(rs.int(c.rates)),
-      limitMin = rs.intOpt(c.limitMin),
-      limitMax = rs.intOpt(c.limitMax),
-      recommended = rs.intOpt(c.recommended),
+      limits = RoundLimits(),
+//        RoundLimits(
+//        min = rs.intOpt(c.limitMin),
+//        max = rs.intOpt(c.limitMax),
+//        recommended = rs.intOpt(c.recommended)
+//      ),
       createdAt = rs.timestamp(c.createdAt).toZonedDateTime,
       deletedAt = rs.timestampOpt(c.deletedAt).map(_.toZonedDateTime),
       active = rs.booleanOpt(c.active).getOrElse(false),
@@ -205,7 +218,8 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
       halfStar = rs.booleanOpt(c.halfStar).getOrElse(false),
       monuments = rs.stringOpt(c.monuments),
       topImages = rs.intOpt(c.topImages),
-      specialNomination = rs.stringOpt(c.specialNomination)
+      specialNomination = rs.stringOpt(c.specialNomination),
+      mediaType = rs.stringOpt(c.mediaType)
     ).withFixedCategories
 
   def create(round: Round): Round = {
@@ -219,9 +233,9 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
           column.roles -> round.roles.head,
           column.distribution -> round.distribution,
           column.rates -> round.rates.id,
-          column.limitMin -> round.limitMin,
-          column.limitMax -> round.limitMax,
-          column.recommended -> round.recommended,
+//          column.limitMin -> round.limits.min,
+//          column.limitMax -> round.limits.max,
+//          column.recommended -> round.limits.recommended,
           column.createdAt -> round.createdAt,
           column.active -> round.active,
           column.optionalRate -> round.optionalRate,
@@ -236,9 +250,10 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
           column.halfStar -> round.halfStar,
           column.monuments -> round.monuments,
           column.topImages -> round.topImages,
-          column.specialNomination -> round.specialNomination
+          column.specialNomination -> round.specialNomination,
+          column.mediaType -> round.mediaType
         )
-    }.updateAndReturnGeneratedKey().apply()
+    }.updateAndReturnGeneratedKey()
 
     round.copy(id = Some(id))
   }
@@ -246,12 +261,12 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
   def updateRound(id: Long, round: Round): Int =
     updateById(id)
       .withAttributes(
-        Symbol("name") -> round.name,
-        Symbol("active") -> round.active
+        "name" -> round.name,
+        "active" -> round.active
       )
 
   def activeRounds(contestId: Long): Seq[Round] =
-    where(Symbol("contestId") -> contestId, Symbol("active") -> true)
+    where("contestId" -> contestId, "active" -> true)
       .orderBy(r.id)
       .apply()
 
@@ -283,7 +298,7 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
   }
 
   def findByContest(contest: Long): Seq[Round] =
-    where(Symbol("contestId") -> contest)
+    where("contestId" -> contest)
       .orderBy(r.id)
       .apply()
 
@@ -295,7 +310,7 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
 
   def setActive(id: Long, active: Boolean): Unit =
     updateById(id)
-      .withAttributes(Symbol("active") -> active)
+      .withAttributes("active" -> active)
 
   def setInactiveAllInContest(contestId: Long): Unit =
     withSQL {
@@ -303,7 +318,7 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
         .set(column.active -> false)
         .where
         .eq(column.contestId, contestId)
-    }.update().apply()
+    }.update()
 
   def countByContest(contestId: Long): Long =
     countBy(sqls.eq(r.contestId, contestId))
@@ -321,14 +336,13 @@ object Round extends RoundDao with SkinnyCRUDMapper[Round] {
     GROUP BY u.id, s.rate"""
       .map(rs => RoundStatRow(rs.int(1), rs.int(2), rs.int(3)))
       .list()
-      .apply()
 
   def roundRateStat(roundId: Long): Seq[(Int, Int)] =
     sql"""SELECT rate, count(1) FROM
 (SELECT DISTINCT s.page_id, s.rate FROM users u
   JOIN selection s ON s.jury_id = u.id
   WHERE s.round_id = $roundId) t
-  GROUP BY rate""".map(rs => (rs.int(1), rs.int(2))).list().apply()
+  GROUP BY rate""".map(rs => (rs.int(1), rs.int(2))).list()
 
 }
 
@@ -348,15 +362,15 @@ object RoundUser extends SkinnyJoinTable[RoundUser] {
     )
 
   def apply(r: Round, u: User): Option[RoundUser] =
-    for (rId <- r.id; uId <- u.id) yield RoundUser(rId, uId, u.roles.head, true)
+    for (rId <- r.id; uId <- u.id) yield RoundUser(rId, uId, u.roles.head, active = true)
 
   def activeJurors(roundId: Long): List[RoundUser] =
-    where(Symbol("roundId") -> roundId, Symbol("active") -> true).apply()
+    where("roundId" -> roundId, "active" -> true).apply()
 
   def byRoundId(roundId: Long): List[RoundUser] =
-    where(Symbol("roundId") -> roundId).apply()
+    where("roundId" -> roundId).apply()
 
   def setActive(roundId: Long, userId: Long, active: Boolean): Int =
     updateBy(sqls.eq(ru.roundId, roundId).and.eq(ru.userId, userId))
-      .withAttributes(Symbol("active") -> active)
+      .withAttributes("active" -> active)
 }

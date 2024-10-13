@@ -5,8 +5,6 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import db.scalikejdbc.Round.binaryRound
 import db.scalikejdbc._
-import db.scalikejdbc.rewrite.ImageDbNew
-import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import org.intracer.wmua._
 import play.api.http.HttpEntity
 import play.api.i18n.I18nSupport
@@ -48,8 +46,7 @@ class GalleryController @Inject() (
     * @param roundId
     *   round id
     * @param rate
-    *   filter by rate. For select/reject rounds it is selected: 1, rejected:
-    *   -1, unrated: 0
+    *   filter by rate. For select/reject rounds it is selected: 1, rejected: -1, unrated: 0
     * @return
     */
   def query(
@@ -177,9 +174,7 @@ class GalleryController @Inject() (
       Round.activeRounds(user)
     }
 
-    if (
-      galleryService.isNotAuthorized(user, maybeRound, roundContestId, rounds)
-    ) {
+    if (galleryService.isNotAuthorized(user, maybeRound, roundContestId, rounds)) {
       onUnAuthorized(user)
     } else {
 
@@ -207,7 +202,7 @@ class GalleryController @Inject() (
       val byReg = if (contest.monumentIdTemplate.isDefined) {
         query.copy(regions = Set.empty).byRegionStat()
       } else {
-        Seq.empty
+        Nil
       }
 
       val rates = galleryService.rateDistribution(user, round)
@@ -272,7 +267,7 @@ class GalleryController @Inject() (
               showAuthor
             )
           )
-        case "byrate" | "gallery" if round.rates != binaryRound =>
+        case "byrate" | "gallery" =>
           if (region != "grouped") {
             Ok(
               views.html.galleryByRate(
