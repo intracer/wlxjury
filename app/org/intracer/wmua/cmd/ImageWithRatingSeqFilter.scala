@@ -3,7 +3,7 @@ package org.intracer.wmua.cmd
 import db.scalikejdbc.Round
 import org.intracer.wmua.cmd.ImageWithRatingSeqFilter.ImageFilter
 import org.intracer.wmua.{Image, ImageWithRating}
-import org.scalawiki.wlx.MonumentDB
+import org.scalawiki.wlx.{ImageDB, MonumentDB}
 import org.scalawiki.wlx.dto.{Contest, SpecialNomination}
 import org.scalawiki.wlx.query.MonumentQuery
 import org.scalawiki.wlx.stat.ContestStat
@@ -107,10 +107,10 @@ case class SpecialNominationFilter(specialNominationName: String) extends ImageF
     .map { nomination =>
       val contest = Contest.WLMUkraine(2020)
       val stat = if (nomination.cities.nonEmpty) {
-        ContestStat(contest, 2012)
+        ContestStat(contest, 2012, currentYearImageDb = new ImageDB(contest, Nil), totalImageDb = new ImageDB(contest, Nil))
           .copy(monumentDb = Some(MonumentDB.getMonumentDb(contest, MonumentQuery.create(contest))))
       } else {
-        ContestStat(contest, 2012)
+        ContestStat(contest, 2012, currentYearImageDb = new ImageDB(contest, Nil), totalImageDb = new ImageDB(contest, Nil))
       }
       val map = SpecialNomination.getMonumentsMap(Seq(nomination), stat)
       map.values.flatten.map(_.id).toSet

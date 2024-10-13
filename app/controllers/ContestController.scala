@@ -15,13 +15,15 @@ import spray.util.pimpFuture
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class ContestController @Inject()(val commons: MwBot, cc: ControllerComponents)
+class ContestController @Inject() (val commons: MwBot, cc: ControllerComponents)
     extends Secured(cc)
     with I18nSupport {
 
-  def fetchContests(contestType: Option[String],
-                    year: Option[Int],
-                    country: Option[String]): Future[Iterable[Contest]] = {
+  def fetchContests(
+      contestType: Option[String],
+      year: Option[Int],
+      country: Option[String]
+  ): Future[Iterable[Contest]] = {
     if (contestType.isEmpty) {
       CampaignList.yearsContests()
     } else {
@@ -32,9 +34,7 @@ class ContestController @Inject()(val commons: MwBot, cc: ControllerComponents)
     }
   }
 
-  def list(contestType: Option[String],
-           year: Option[Int],
-           country: Option[String]) =
+  def list(contestType: Option[String], year: Option[Int], country: Option[String]) =
     withAuth(rolePermission(Set(User.ROOT_ROLE))) { user => implicit request =>
       val contests = findContests
       val filtered = contests.filter { c =>
@@ -42,89 +42,81 @@ class ContestController @Inject()(val commons: MwBot, cc: ControllerComponents)
       }
 
       Ok(
-        views.html.contests(user,
-                            contests,
-                            filtered,
-                            editContestForm,
-                            importContestsForm,
-                            contestType,
-                            year))
+        views.html.contests(
+          user,
+          contests,
+          filtered,
+          editContestForm,
+          importContestsForm,
+          contestType,
+          year
+        )
+      )
     }
 
   def findContests: List[ContestJury] = {
-    ContestJuryJdbc.findAll() //.map(_.copy(messages = applicationMessages))
+    ContestJuryJdbc.findAll() // .map(_.copy(messages = applicationMessages))
   }
 
-  def saveContest() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
-    user => implicit request =>
-      editContestForm
-        .bindFromRequest()
-        .fold(
-          formWithErrors => {
-            val contests = findContests
-            BadRequest(
-              views.html.contests(user,
-                                  contests,
-                                  Seq.empty,
-                                  formWithErrors,
-                                  importContestsForm))
-          },
-          formContest => {
-            createContest(formContest)
-            Redirect(routes.ContestController.list())
-          }
-        )
+  def saveContest() = withAuth(rolePermission(Set(User.ROOT_ROLE))) { user => implicit request =>
+    editContestForm
+      .bindFromRequest()
+      .fold(
+        formWithErrors => {
+          val contests = findContests
+          BadRequest(
+            views.html.contests(user, contests, Seq.empty, formWithErrors, importContestsForm)
+          )
+        },
+        formContest => {
+          createContest(formContest)
+          Redirect(routes.ContestController.list())
+        }
+      )
   }
 
-  def importContests() = withAuth(rolePermission(Set(User.ROOT_ROLE))) {
-    user => implicit request =>
-      importContestsForm
-        .bindFromRequest()
-        .fold(
-          formWithErrors => {
-            val contests = findContests
-            BadRequest(
-              views.html.contests(user,
-                                  contests,
-                                  Seq.empty,
-                                  editContestForm,
-                                  formWithErrors))
-          },
-          formContest => {
-            val imported =
-              if (formContest.startsWith("Commons:")) {
-                importListPage(formContest)
-              } else {
-                importCategory(formContest)
-              }
-
-            val existing = ContestJuryJdbc
-              .findAll()
-              .map(c => s"${c.name}/${c.year}/${c.country}")
-              .toSet
-            val newContests = imported.filterNot(
-              c =>
-                existing.contains(
-                  s"${c.contestType.name}/${c.year}/${c.country.name}"))
-
-            newContests.foreach {
-              contest =>
-                val contestJury = ContestJury(
-                  id = None,
-                  name = contest.contestType.name,
-                  year = contest.year,
-                  country = contest.country.name,
-                  images = Some(
-                    s"Category:Images from ${contest.contestType.name} ${contest.year} in ${contest.country.name}"),
-                  monumentIdTemplate =
-                    contest.uploadConfigs.headOption.map(_.fileTemplate),
-                  campaign = Some(contest.campaign)
-                )
-                createContest(contestJury)
+  def importContests() = withAuth(rolePermission(Set(User.ROOT_ROLE))) { user => implicit request =>
+    importContestsForm
+      .bindFromRequest()
+      .fold(
+        formWithErrors => {
+          val contests = findContests
+          BadRequest(
+            views.html.contests(user, contests, Seq.empty, editContestForm, formWithErrors)
+          )
+        },
+        formContest => {
+          val imported =
+            if (formContest.startsWith("Commons:")) {
+              importListPage(formContest)
+            } else {
+              importCategory(formContest)
             }
-            Redirect(routes.ContestController.list())
+
+          val existing = ContestJuryJdbc
+            .findAll()
+            .map(c => s"${c.name}/${c.year}/${c.country}")
+            .toSet
+          val newContests = imported
+            .filterNot(c => existing.contains(s"${c.contestType.name}/${c.year}/${c.country.name}"))
+
+          newContests.foreach { contest =>
+            val contestJury = ContestJury(
+              id = None,
+              name = contest.contestType.name,
+              year = contest.year,
+              country = contest.country.name,
+              images = Some(
+                s"Category:Images from ${contest.contestType.name} ${contest.year} in ${contest.country.name}"
+              ),
+              monumentIdTemplate = contest.uploadConfigs.headOption.map(_.fileTemplate),
+              campaign = Some(contest.campaign)
+            )
+            createContest(contestJury)
           }
-        )
+          Redirect(routes.ContestController.list())
+        }
+      )
   }
 
   def importListPage(pageName: String): Seq[Contest] = {
@@ -174,39 +166,46 @@ class ContestController @Inject()(val commons: MwBot, cc: ControllerComponents)
       "monumentIdTemplate" -> optional(text),
       "greetingText" -> optional(text),
       "useGreeting" -> boolean,
-      "campaign" -> optional(text),
+      "campaign" -> optional(text)
     )(
-      (id,
-       name,
-       year,
-       country,
-       images,
-       currentRound,
-       monumentIdTemplate,
-       greetingText,
-       useGreeting,
-       campaign) =>
-        ContestJury(id,
-                    name,
-                    year,
-                    country,
-                    images,
-                    None,
-                    currentRound,
-                    monumentIdTemplate,
-                    Greeting(greetingText, useGreeting),
-                    campaign))(
-      (c: ContestJury) =>
-        Some(c.id,
-             c.name,
-             c.year,
-             c.country,
-             c.images,
-             c.currentRound,
-             c.monumentIdTemplate,
-             c.greeting.text,
-             c.greeting.use,
-             c.campaign))
+      (
+          id,
+          name,
+          year,
+          country,
+          images,
+          currentRound,
+          monumentIdTemplate,
+          greetingText,
+          useGreeting,
+          campaign
+      ) =>
+        ContestJury(
+          id,
+          name,
+          year,
+          country,
+          images,
+          None,
+          currentRound,
+          monumentIdTemplate,
+          Greeting(greetingText, useGreeting),
+          campaign
+        )
+    )((c: ContestJury) =>
+      Some(
+        c.id,
+        c.name,
+        c.year,
+        c.country,
+        c.images,
+        c.currentRound,
+        c.monumentIdTemplate,
+        c.greeting.text,
+        c.greeting.use,
+        c.campaign
+      )
+    )
   )
 
   val importContestsForm = Form(
