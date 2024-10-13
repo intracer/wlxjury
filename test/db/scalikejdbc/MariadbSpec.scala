@@ -3,6 +3,7 @@ package db.scalikejdbc
 import com.dimafeng.testcontainers.{ForAllTestContainer, MariaDBContainer, MySQLContainer}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.testcontainers.utility.DockerImageName
+import play.api.db.Databases
 
 import java.sql.DriverManager
 import java.util.Properties
@@ -29,6 +30,17 @@ class MariadbSpec extends AnyFlatSpec with ForAllTestContainer {
     } finally {
       prepareStatement.close()
     }
+
+    val database = Databases(
+      driver = "com.mysql.cj.jdbc.Driver",
+      url = container.jdbcUrl,
+      name = "default",
+      config = Map(
+        "username" -> container.username,
+        "password" -> container.password
+      )
+    )
+
 
     connection.close()
   }

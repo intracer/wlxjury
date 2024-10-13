@@ -18,14 +18,14 @@ organization := "org.intracer"
 
 version := "0.13"
 
-scalaVersion := "2.13.14"
+scalaVersion := "2.13.15"
 
 val ScalikejdbcVersion = "4.3.0"
 val ScalikejdbcPlayVersion = "3.0.1-scalikejdbc-4.3"
 val ScalawikiVersion = "0.7.0-SNAPSHOT"
 val PlayMailerVersion = "9.0.0"
 val MockServerVersion = "5.7.0"
-val playPac4jVersion = "12.0.0-PLAY2.9"
+val PlayPac4jVersion = "12.0.0-PLAY2.9"
 val pac4jVersion = "6.0.4.1"
 val playVersion = "2.9.4"
 val ScalaTestVersion = "3.2.9"
