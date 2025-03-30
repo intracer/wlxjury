@@ -152,7 +152,7 @@ object Tools {
   }
 
   def addCriteria() = {
-    val roundId = 1327
+    val roundId = 1505
     val round = Round.findById(roundId).get
     val selection = SelectionJdbc.byRound(roundId)
 

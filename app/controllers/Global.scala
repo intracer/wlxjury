@@ -42,7 +42,7 @@ object Global {
   }
 
   private def resizeToPx(info: Image, resizeToHeight: Int, px: Int) = {
-    val resizeExtensions = List(".pdf", ".tif", ".tiff", ".svg")
+    val resizeExtensions = List(".pdf", ".tif", ".tiff", ".svg", ".webm")
     val lowerCaseTitle = info.title.toLowerCase
     val isResizeExtension = resizeExtensions.exists(lowerCaseTitle.endsWith)
 
@@ -69,6 +69,7 @@ object Global {
     val lowerCaseTitle = info.title.toLowerCase
     val isPdf = lowerCaseTitle.endsWith(".pdf")
     val isTif = List(".tif", ".tiff").exists(lowerCaseTitle.endsWith)
+    val isVideo = info.isVideo
 
     val url = info.url.getOrElse("")
     val lastSlash = url.lastIndexOf("/")
