@@ -84,7 +84,8 @@ libraryDependencies ++= Seq(
   "com.dimafeng" %% "testcontainers-scala-mysql" % "0.41.0" % Test,
   "org.mock-server" % "mockserver-netty" % MockServerVersion % Test,
   "net.java.dev.jna" % "jna" % "4.5.0" % Test,
-  "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test
+  "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test,
+  "com.lihaoyi" %% "os-lib" % "0.11.4" % Test
 )
 
 dependencyOverrides ++= Seq(

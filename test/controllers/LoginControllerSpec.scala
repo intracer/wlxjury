@@ -25,7 +25,7 @@ class LoginControllerSpec
   "auth" should {
     "fail empty request" in {
       testDbApp { implicit app =>
-        implicit val materializer: Materializer = app.materializer
+        implicit val mat: Materializer = app.materializer
         val result = login.auth().apply(FakeRequest().withCSRFToken)
         status(result) === BAD_REQUEST
       }
@@ -33,7 +33,7 @@ class LoginControllerSpec
 
     "fail when no users" in {
       testDbApp { implicit app =>
-        implicit val materializer: Materializer = app.materializer
+        implicit val mat: Materializer = app.materializer
         val result = login
           .auth()
           .apply(
@@ -50,7 +50,7 @@ class LoginControllerSpec
 
     "fail when wrong password" in {
       testDbApp { implicit app =>
-        implicit val materializer: Materializer = app.materializer
+        implicit val mat: Materializer = app.materializer
         User.create(User("name", "qwerty@dot.com"))
 
         val result = login
@@ -69,7 +69,7 @@ class LoginControllerSpec
 
     "no rights" in {
       testDbApp { implicit app =>
-        implicit val materializer: Materializer = app.materializer
+        implicit val mat: Materializer = app.materializer
         User.create(
           User("name", "qwerty@dot.com", password = Some(User.sha1("strong"))))
         val result = login
@@ -93,7 +93,7 @@ class LoginControllerSpec
 
     "root rights" in {
       testDbApp { implicit app =>
-        implicit val materializer: Materializer = app.materializer
+        implicit val mat: Materializer = app.materializer
         User.create(
           User("name",
                "qwerty@dot.com",
