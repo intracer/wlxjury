@@ -10,7 +10,7 @@ lazy val root = identity(
       JavaServerAppPackaging
     )
 )
-  .disablePlugins(PlayAkkaHttpServer)
+  .disablePlugins(PlayPekkoHttpServer)
 
 name := "wlxjury"
 
@@ -25,9 +25,11 @@ val ScalikejdbcPlayVersion = "3.0.1-scalikejdbc-4.3"
 val ScalawikiVersion = "0.7.0-SNAPSHOT"
 val PlayMailerVersion = "9.0.0"
 val MockServerVersion = "5.7.0"
-val PlayPac4jVersion = "12.0.0-PLAY2.9"
+val playPac4jVersion = "12.0.0-PLAY3.0"
 val pac4jVersion = "6.0.4.1"
-val playVersion = "2.9.4"
+val playVersion = "3.0.7"
+val PekkoVersion = "1.0.3"
+val PekkoHttpVersion = "1.0.1"
 val ScalaTestVersion = "3.2.9"
 val TestcontainersScalaVersion = "0.41.0"
 
@@ -61,8 +63,8 @@ libraryDependencies ++= Seq(
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
 
-  "com.typesafe.akka" %% "akka-stream" % "2.6.20",
-  "com.typesafe.akka" %% "akka-http" % "10.1.10",
+  "org.apache.pekko" %% "pekko-stream" % PekkoVersion,
+  "org.apache.pekko" %% "pekko-http" % PekkoHttpVersion,
 
   "org.pac4j" %% "play-pac4j" % PlayPac4jVersion,
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,

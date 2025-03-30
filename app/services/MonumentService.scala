@@ -5,8 +5,9 @@ import org.scalawiki.wlx.{ImageDB, MonumentDB}
 import org.scalawiki.wlx.dto.{Contest, ContestType, Monument, SpecialNomination}
 import org.scalawiki.wlx.query.MonumentQuery
 import org.scalawiki.wlx.stat.ContestStat
+import play.api.Logging
 
-class MonumentService {
+class MonumentService extends Logging {
 
   def updateLists(contest: Contest): Unit = {
     val monumentQuery = MonumentQuery.create(contest)
@@ -16,7 +17,7 @@ class MonumentService {
     val stat =
       ContestStat(
         contest,
-        2020,
+        contest.year,
         Some(new MonumentDB(contest, monuments.toSeq)),
         new ImageDB(contest, Nil),
         new ImageDB(contest, Nil)
@@ -29,9 +30,6 @@ class MonumentService {
           .flatten
           .filterNot(m => monumentIds.contains(m.id))
       } else Nil
-
-    val fromDb = MonumentJdbc.findAll()
-    val inDbIds = fromDb.map(_.id).toSet
 
     def truncate(
         monument: Monument,
@@ -55,8 +53,8 @@ class MonumentService {
       } else monument
     }
 
-    val newMonuments = (monuments ++ specialNominationMonuments).view
-      .filterNot(m => inDbIds.contains(m.id))
+    val allValidMonuments = (monuments ++ specialNominationMonuments).view
+      .filter(_.id.matches("\\d{2}-\\d{3}-\\d{4}"))
       .map(m => truncate(m, m.name, 512, s => m.copy(name = s)))
       .map(m => truncOpt(m, m.typ, 255, s => m.copy(typ = s)))
       .map(m => truncOpt(m, m.subType, 255, s => m.copy(subType = s)))
@@ -64,7 +62,14 @@ class MonumentService {
       .map(m => truncOpt(m, m.city, 255, s => m.copy(city = s)))
       .toSeq
 
-    MonumentJdbc.batchInsert(newMonuments)
+    logger.info(
+      s"Updating monuments, " +
+        s"from lists: ${monuments.size}, " +
+        s"special nominations: ${specialNominationMonuments.size}," +
+        s"allValidMonuments: ${allValidMonuments.size}"
+    )
+
+    MonumentJdbc.batchInsert(allValidMonuments)
   }
 
 }

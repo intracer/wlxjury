@@ -74,7 +74,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         " group by s.page_id"
       } else ""
 
-      val sql = columns + join(monuments = regions.nonEmpty || byRegion) +
+      val sql = columns + join(monuments = regions.size > 1 || byRegion) +
         where(count) +
         groupBy +
         (if (!(count || byRegion)) orderBy() else "")
@@ -106,17 +106,11 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
     }
 
     def byRegionStat()(implicit messages: Messages): Seq[Region] = {
-      val map = SQL(s"""select distinct m.adm0 from
-                      |    monument m
-                      |where exists (
-                      |              select m.adm0
-                      |              from images i
-                      |                       join selection s
-                      |                            on i.page_id = s.page_id
-                      |                       join monument m on i.monument_id = m.id
-                      |              where ${userId.fold("") { id => s"s.jury_id = $id and " }}
-                      |                s.round_id = ${roundId.get}
-                      |          );""".stripMargin)
+      val map = SQL(s"""select distinct substring(i.monument_id, 1, 2)
+                       |from images i
+                       |         join selection s on i.page_id = s.page_id
+                       |              where ${userId.fold("") { id => s"s.jury_id = $id and " }}
+                       |                s.round_id = ${roundId.get}""".stripMargin)
         .map(rs => rs.string(1) -> None)
         .list()
         .toMap
@@ -183,10 +177,13 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
                 .map(r => s"'$r'")
                 .mkString(", ") + ")"
             } else {
-              s"m.adm0 in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
+              if (regions.size > 1) {
+                s"m.adm0 in (" + regions.map(r => s"'$r'").mkString(", ") + ")"
+              } else {
+                s"i.monument_id like '${regions.head}%'"
+              }
             }
           }
-          //          limit.flatMap(_.startPageId).filter(_ => count).map(_ => "s.rate > 0")
         ).flatten
 
       conditions.headOption.fold("") { _ =>

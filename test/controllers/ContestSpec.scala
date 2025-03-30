@@ -1,7 +1,7 @@
 package controllers
 
-import akka.stream.Materializer
 import db.scalikejdbc.{TestDb, User}
+import org.apache.pekko.stream.Materializer
 import org.intracer.wmua.ContestJury
 import org.scalawiki.MwBot
 import play.api.test.CSRFTokenHelper._
