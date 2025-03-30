@@ -77,7 +77,7 @@ libraryDependencies ++= Seq(
   filters,
   specs2 % Test,
   jdbc % Test,
-  "com.wix" % "wix-embedded-mysql" % "4.6.1" % Test,
+  "ch.vorburger.mariaDB4j" % "mariaDB4j" % "3.1.0" % Test,
   "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
   "com.dimafeng" %% "testcontainers-scala-scalatest" % TestcontainersScalaVersion % Test,
   "com.dimafeng" %% "testcontainers-scala-mariadb" % "0.41.0" % Test,
