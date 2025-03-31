@@ -9,11 +9,7 @@ import play.api.test.CSRFTokenHelper._
 import play.api.test._
 import services.{SMTPOrWikiMail, UserService}
 
-class LoginControllerSpec
-    extends PlaySpecification
-    with Results
-    with TestDb
-    with Mockito {
+class LoginControllerSpec extends PlaySpecification with Results with TestDb with Mockito {
 
   sequential
 
@@ -85,9 +81,6 @@ class LoginControllerSpec
         status(result) === SEE_OTHER
         header(LOCATION, result) === Some(
           "/error?message=You+don%27t+have+permission+to+access+this+page")
-//        val cookie = header(SET_COOKIE, result).get
-//        cookie must contain("PLAY_SESSION=")
-//        cookie must contain("-username=qwerty%40dot.com;")
       }
     }
 
@@ -112,9 +105,6 @@ class LoginControllerSpec
 
         status(result) === SEE_OTHER
         header(LOCATION, result) === Some("/contests")
-//        val cookie = header(SET_COOKIE, result).get
-//        cookie must contain("PLAY_SESSION=")
-//        cookie must contain("-username=qwerty%40dot.com;")
       }
     }
 

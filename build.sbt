@@ -44,12 +44,11 @@ resolvers += Resolver.mavenLocal
 libraryDependencySchemes += "org.scala-lang.modules" %% "scala-parser-combinators" % "always"
 
 libraryDependencies ++= Seq(
-  "org.webjars" %% "webjars-play" % "2.9.1",
+  "org.webjars" %% "webjars-play" % "3.0.2",
   "com.adrianhurt" %% "play-bootstrap" % "1.6.1-P28-B3",
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude ("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "3.2.1",
 
-  "mysql" % "mysql-connector-java" % "8.0.25",
   "org.scalikejdbc" %% "scalikejdbc" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % ScalikejdbcPlayVersion,
@@ -58,7 +57,7 @@ libraryDependencies ++= Seq(
   "org.skinny-framework" %% "skinny-orm" % "4.0.1",
   "org.flywaydb" %% "flyway-play" % "8.0.1",
   "org.flywaydb" % "flyway-mysql" % "9.16.3",
-  "mysql" % "mysql-connector-java" % "8.0.25",
+  "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.3",
 
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
@@ -72,7 +71,6 @@ libraryDependencies ++= Seq(
   "com.github.tototoshi" %% "scala-csv" % "1.4.1",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
   "javax.xml.bind" % "jaxb-api" % "2.3.1",
-  "org.mariadb.jdbc" % "mariadb-java-client" % "3.3.2",
   guice,
   filters,
   specs2 % Test,
