@@ -38,7 +38,7 @@ libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.9.1",
   "com.adrianhurt" %% "play-bootstrap" % "1.6.1-P28-B3",
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
-  "org.webjars" % "jquery" % "3.2.1",
+  "org.webjars" % "jquery" % "3.6.4",
 
   "org.scalikejdbc" %% "scalikejdbc" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % ScalikejdbcVersion,
