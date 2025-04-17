@@ -64,7 +64,7 @@ trait TestDb {
     val dbConfiguration = Map(
       "db.default.username" -> UserName,
       "db.default.password" -> Password,
-      "db.default.url" -> s"jdbc:mysql://localhost:$port/$Schema?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false"
+      "db.default.url" -> s"jdbc:mariadb://localhost:$port/$Schema?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false"
     )
 
     new GuiceApplicationBuilder()
