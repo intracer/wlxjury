@@ -20,7 +20,7 @@ version := "0.13"
 
 scalaVersion := "2.13.15"
 
-val ScalikejdbcVersion = "4.3.0"
+val ScalikejdbcVersion = "4.3.2"
 val ScalikejdbcPlayVersion = "3.0.1-scalikejdbc-4.3"
 val ScalawikiVersion = "0.7.0-SNAPSHOT"
 val PlayMailerVersion = "9.0.0"
@@ -48,23 +48,19 @@ libraryDependencies ++= Seq(
   "com.adrianhurt" %% "play-bootstrap" % "1.6.1-P28-B3",
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude ("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "3.2.1",
-
   "org.scalikejdbc" %% "scalikejdbc" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % ScalikejdbcVersion,
+  "org.scalikejdbc" %% "scalikejdbc-orm" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % ScalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % ScalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % ScalikejdbcPlayVersion,
-  "org.skinny-framework" %% "skinny-orm" % "4.0.1",
   "org.flywaydb" %% "flyway-play" % "8.0.1",
   "org.flywaydb" % "flyway-mysql" % "9.16.3",
   "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.3",
-
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
-
   "org.apache.pekko" %% "pekko-stream" % PekkoVersion,
   "org.apache.pekko" %% "pekko-http" % PekkoHttpVersion,
-
   "org.pac4j" %% "play-pac4j" % PlayPac4jVersion,
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
   "com.typesafe.play" %% "play-mailer-guice" % PlayMailerVersion,
@@ -80,6 +76,7 @@ libraryDependencies ++= Seq(
   "com.dimafeng" %% "testcontainers-scala-scalatest" % TestcontainersScalaVersion % Test,
   "com.dimafeng" %% "testcontainers-scala-mariadb" % "0.41.0" % Test,
   "com.dimafeng" %% "testcontainers-scala-mysql" % "0.41.0" % Test,
+  "io.chrisdavenport" %% "testcontainers-specs2" % "0.2.0-M5" % Test,
   "org.mock-server" % "mockserver-netty" % MockServerVersion % Test,
   "net.java.dev.jna" % "jna" % "4.5.0" % Test,
   "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test,

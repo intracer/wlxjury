@@ -1,12 +1,11 @@
 package db.scalikejdbc
 
 import java.time.ZonedDateTime
-
 import org.intracer.wmua.{CriteriaRate, Selection}
 import scalikejdbc._
-import skinny.orm.SkinnyCRUDMapper
+import scalikejdbc.orm.CRUDMapper
 
-object SelectionJdbc extends SkinnyCRUDMapper[Selection] {
+object SelectionJdbc extends CRUDMapper[Selection] {
 
   implicit def session: DBSession = autoSession
 

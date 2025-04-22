@@ -34,7 +34,6 @@ trait TestDb {
   def testDbApp[T](
       block: Application => T
   )(implicit additionalConfig: Map[String, String] = Map.empty): T = {
-
     val config = DBConfigurationBuilder.newBuilder
     config.setPort(0) // 0 => automatically detect free port
 
@@ -52,7 +51,11 @@ trait TestDb {
       db.createDB(Schema, UserName, Password)
       val port = db.getConfiguration.getPort
       val fakeApp = getApp(additionalConfig, port)
-      running(fakeApp)(block(fakeApp))
+      running(fakeApp) {
+        roundDao.usersRef // init ref TODO fix somehow
+
+        block(fakeApp)
+      }
     } finally {
       db.stop()
     }
@@ -77,7 +80,6 @@ trait TestDb {
     */
   def withDb[T](block: => T)(implicit additionalConfig: Map[String, String] = Map.empty): T = {
     testDbApp { _ =>
-      roundDao.usersRef // init ref TODO fix somehow
       block
     }
   }

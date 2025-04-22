@@ -17,8 +17,7 @@ class ContestSpec extends PlaySpecification with TestDb {
         implicit val materializer: Materializer = app.materializer
 
         val bot = MwBot.fromHost("commons.wikimedia.org")
-        val contestsController =
-          new ContestController(bot, Helpers.stubControllerComponents())
+        val contestsController = new ContestController(bot, Helpers.stubControllerComponents())
 
         userDao.create(
           User("fullname", email, None, Set("root"), contestId = None)
@@ -26,8 +25,7 @@ class ContestSpec extends PlaySpecification with TestDb {
         FakeRequest("POST", "/")
         val request = FakeRequest("POST", "/contests/import")
           .withSession(Secured.UserName -> email)
-          .withFormUrlEncodedBody(
-            "source" -> "Category:Wiki Loves Earth 2013 in Ukraine")
+          .withFormUrlEncodedBody("source" -> "Category:Wiki Loves Earth 2013 in Ukraine")
           .withCSRFToken
 
         val result = contestsController.importContests().apply(request)
@@ -36,13 +34,14 @@ class ContestSpec extends PlaySpecification with TestDb {
         val contests = contestDao.findAll()
         contests === List(
           ContestJury(
-            Some(1),
-            "Wiki Loves Earth",
-            2013,
-            "Ukraine",
-            Some("Category:Images from Wiki Loves Earth 2013 in Ukraine"),
+            id = Some(1),
+            name = "Wiki Loves Earth",
+            year = 2013,
+            country = "Ukraine",
+            images = Some("Category:Images from Wiki Loves Earth 2013 in Ukraine"),
             monumentIdTemplate = Some("UkrainianNaturalHeritageSite")
-          ))
+          )
+        )
       }
     }
   }

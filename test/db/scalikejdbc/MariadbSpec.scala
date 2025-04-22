@@ -32,7 +32,7 @@ class MariadbSpec extends AnyFlatSpec with ForAllTestContainer {
     }
 
     val database = Databases(
-      driver = "com.mysql.cj.jdbc.Driver",
+      driver = container.driverClassName,
       url = container.jdbcUrl,
       name = "default",
       config = Map(
