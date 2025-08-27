@@ -66,7 +66,11 @@ class RoundService @Inject() (distributeImages: DistributeImages, dao: RoundRepo
   def mergeRounds(contestId: Long, targetRoundId: Long, sourceRoundId: Long): Unit = {
     val rounds = dao.findByIds(contestId, Seq(targetRoundId, sourceRoundId))
     assert(rounds.size == 2)
-    SelectionJdbc.mergeRounds(rounds.head.id.get, rounds.last.id.get)
+    for {
+      targetId <- rounds.find(_.id.contains(targetRoundId)).flatMap(_.id)
+      sourceId <- rounds.find(_.id.contains(sourceRoundId)).flatMap(_.id)
+    }
+    SelectionJdbc.mergeRounds(targetRoundId = targetId, sourceRoundId = sourceId)
   }
 
   def setCurrentRound(prevRoundId: Option[Long], round: Round): Unit = {
