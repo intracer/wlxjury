@@ -2,7 +2,7 @@ import sbt.Keys._
 
 lazy val root = identity((project in file("."))
   .enablePlugins(PlayScala, PlayNettyServer, DebianPlugin, SystemdPlugin, JavaServerAppPackaging))
-  .disablePlugins(PlayAkkaHttpServer)
+  .disablePlugins(PlayPekkoHttpServer)
 
 name := "wlxjury"
 
@@ -10,16 +10,19 @@ organization := "org.intracer"
 
 version := "0.13"
 
-scalaVersion := "2.12.10"
-scalacOptions += "-Ypartial-unification"
+scalaVersion := "2.13.14"
 
-val ScalikejdbcVersion = "3.3.5"
-val ScalikejdbcPlayVersion = "2.6.0-scalikejdbc-3.3"
-val ScalawikiVersion = "0.6.6.1"
-val PlayMailerVersion = "6.0.1"
+val ScalikejdbcVersion = "4.3.0"
+val ScalikejdbcPlayVersion = "3.0.1-scalikejdbc-4.3"
+val ScalawikiVersion = "0.7.0-SNAPSHOT"
+val PlayMailerVersion = "9.0.0"
 val MockServerVersion = "5.7.0"
+val playPac4jVersion = "12.0.0-PLAY3.0"
+val pac4jVersion = "6.0.4.1"
+val playVersion = "3.0.7"
+val PekkoVersion = "1.0.3"
+val PekkoHttpVersion = "1.0.1"
 val TapirVersion = "1.2.3"
-val AkkaHttpVersion = "10.1.14"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -29,31 +32,34 @@ resolvers += Resolver.jcenterRepo
 
 resolvers += Resolver.mavenLocal
 
+libraryDependencySchemes += "org.scala-lang.modules" %% "scala-parser-combinators" % "always"
+
 libraryDependencies ++= Seq(
-  "org.webjars" %% "webjars-play" % "2.6.3",
-  "com.adrianhurt" %% "play-bootstrap" % "1.5.1-P26-B3",
+  "org.webjars" %% "webjars-play" % "2.9.1",
+  "com.adrianhurt" %% "play-bootstrap" % "1.6.1-P28-B3",
   "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "3.2.1",
 
-  "mysql" % "mysql-connector-java" % "8.0.25",
   "org.scalikejdbc" %% "scalikejdbc" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % ScalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % ScalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % ScalikejdbcPlayVersion,
-  "org.skinny-framework" %% "skinny-orm" % "2.5.2",
-  "org.flywaydb" %% "flyway-play" % "4.0.0",
+  "org.skinny-framework" %% "skinny-orm" % "4.0.1",
+  "org.flywaydb" %% "flyway-play" % "8.0.1",
+  "org.flywaydb" % "flyway-mysql" % "9.16.3",
+  "mysql" % "mysql-connector-java" % "8.0.25",
 
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
 
-  "com.typesafe.akka" %% "akka-stream" % "2.5.26",
-  "com.typesafe.akka" %% "akka-http" % "10.1.10",
+  "org.apache.pekko" %% "pekko-stream" % PekkoVersion,
+  "org.apache.pekko" %% "pekko-http" % PekkoHttpVersion,
 
-  "nl.grons" %% "metrics-scala" % "4.0.0",
+  "org.pac4j" %% "play-pac4j" % playPac4jVersion,
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
   "com.typesafe.play" %% "play-mailer-guice" % PlayMailerVersion,
-  "com.github.tototoshi" %% "scala-csv" % "1.3.6",
+  "com.github.tototoshi" %% "scala-csv" % "1.4.1",
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
   "javax.xml.bind" % "jaxb-api" % "2.3.1",
   "com.softwaremill.sttp.tapir" %% "tapir-core" % TapirVersion,
@@ -79,15 +85,15 @@ libraryDependencies ++= Seq(
 )
 
 dependencyOverrides ++= Seq(
-  "commons-io" % "commons-io" % "2.5"
+  "commons-io" % "commons-io" % "2.16.1"
 )
 
-// routesGenerator := StaticRoutesGenerator
+routesGenerator := InjectedRoutesGenerator
 
 //doc in Compile <<= target.map(_ / "none")
 
-javaOptions in Test += "-Dconfig.file=test/resources/application.conf"
-javaOptions in Test += "-Djna.nosys=true"
+Test / javaOptions += "-Dconfig.file=test/resources/application.conf"
+Test / javaOptions += "-Djna.nosys=true"
 
 //rpmRelease := "1"
 
@@ -116,7 +122,7 @@ packageDescription :=
 
 maintainer := "Ilya Korniiko <intracer@gmail.com>"
 
-debianPackageRecommends in Debian ++= Seq("virtual-mysql-server")
+Debian / debianPackageRecommends ++= Seq("virtual-mysql-server")
 
 addCommandAlias(
   "packageAll", "; clean" +
@@ -173,42 +179,42 @@ lazy val internalPackageRpmSystemd = taskKey[File]("creates rpm package with sys
 
 internalPackageDebianSystemV := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemv-${version.value}.deb"
-  val debianFile = (packageBin in Debian).value
+  val debianFile = (Debian / packageBin).value
   IO.move(debianFile, output)
   output
 }
 
 internalPackageDebianUpstart := {
   val output = baseDirectory.value / "package" / s"wlxjury-upstart-${version.value}.deb"
-  val debianFile = (packageBin in Debian).value
+  val debianFile = (Debian / packageBin).value
   IO.move(debianFile, output)
   output
 }
 
 internalPackageDebianSystemd := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemd-${version.value}.deb"
-  val debianFile = (packageBin in Debian).value
+  val debianFile = (Debian / packageBin).value
   IO.move(debianFile, output)
   output
 }
 
 internalPackageRpmSystemV := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemv-${version.value}.rpm"
-  val rpmFile = (packageBin in Rpm).value
+  val rpmFile = (Rpm / packageBin).value
   IO.move(rpmFile, output)
   output
 }
 
 internalPackageRpmUpstart := {
   val output = baseDirectory.value / "package" / s"wlxjury-upstart-${version.value}.rpm"
-  val rpmFile = (packageBin in Rpm).value
+  val rpmFile = (Rpm / packageBin).value
   IO.move(rpmFile, output)
   output
 }
 
 internalPackageRpmSystemd := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemd-${version.value}.rpm"
-  val rpmFile = (packageBin in Rpm).value
+  val rpmFile = (Rpm / packageBin).value
   IO.move(rpmFile, output)
   output
 }

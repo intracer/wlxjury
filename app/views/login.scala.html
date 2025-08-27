@@ -1,4 +1,4 @@
-@(loginForm: Form[(String, String)])(implicit flash: Flash, lang: Lang, messages: Messages, req: RequestHeader)
+@(loginForm: Form[(String, String)])(implicit flash: Flash, messages: Messages, req: RequestHeader)
 @import b3.inline.fieldConstructor
 
 @mainAdmin(Messages("application.name")) {
@@ -15,8 +15,8 @@
             </div>
         }
 
-        @b3.text(loginForm("login"), '_hiddenLabel -> Messages("signin.your.login"), 'placeholder -> Messages("login"), 'class -> "form-control input-lg")
-        @b3.password(loginForm("password"), '_hiddenLabel -> Messages("signin.your.password"), 'placeholder -> Messages("signin.your.password"), 'class -> "form-control input-lg")
+        @b3.text(loginForm("login"), Symbol("_hiddenLabel") -> Messages("signin.your.login"), Symbol("placeholder") -> Messages("login"), Symbol("class") -> "form-control input-lg")
+        @b3.password(loginForm("password"), Symbol("_hiddenLabel") -> Messages("signin.your.password"), Symbol("placeholder") -> Messages("signin.your.password"), Symbol("class") -> "form-control input-lg")
         @helper.CSRF.formField
 
         <div class="form-group">

@@ -11,7 +11,7 @@
         region: String = "all",
         round: Round,
         module : String = "gallery")(
-        implicit flash: Flash, lang: Lang, request: Request[Any], messages: Messages)
+        implicit flash: Flash, request: Request[Any], messages: Messages)
 
 @button(btnClass: String, iconClass: String) = {
     <button type="button" class="btn btn-default btn-sm active @btnClass">
@@ -91,17 +91,10 @@
     } else {
         </div>
     @if(round.hasCriteria) {
-        <div style="color: white">Науковість</div>
-        <div id="rate-image1" style="margin-top:10px ;"></div>
-
-        <div style="color: white">Підпис</div>
-        <div id="rate-image2" style="margin-top:10px ;"></div>
-
-        <div style="color: white">Корисність</div>
-        <div id="rate-image3" style="margin-top:10px ;"></div>
-
-        <div style="color: white">Естетика</div>
-        <div id="rate-image4" style="margin-top:10px ;"></div>
+       @round.criteriaNames.zipWithIndex.map { case (criteriaName, index) =>
+           <div style="color: white">@criteriaName</div>
+           <div id="rate-image@(index + 1)" style="margin-top:10px;"> </div>
+       }
     } else if (round.rates.id > 0)  {
         <div id="rate-image" style="margin-top:10px ;"></div>
             <!-- <input type="text" id="scoretarget"/> -->

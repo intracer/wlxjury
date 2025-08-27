@@ -8,7 +8,7 @@ import play.twirl.api.Html
 class LargeViewControllerSpec extends PlaySpecification {
 
   import play.api.i18n._
-  implicit val lang = Lang("en-US")
+  implicit val lang: Lang = Lang("en-US")
 
   "large view" should {
     "have correct rating link" in {

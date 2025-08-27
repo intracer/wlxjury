@@ -2,17 +2,19 @@ package controllers
 
 import db.scalikejdbc.{TestDb, User}
 import org.specs2.mock.Mockito
-import org.specs2.mutable.Specification
-import play.api.mvc.{RequestHeader, Security, Session}
+import play.api.mvc.{RequestHeader, Session}
+import play.api.test.{Helpers, PlaySpecification}
 
-class SecuredSpec extends Specification with Mockito with TestDb {
+class SecuredWithCc extends Secured(Helpers.stubControllerComponents())
+
+class SecuredSpec extends PlaySpecification with Mockito with TestDb {
 
   sequential
 
   def mockRequest(username: String): RequestHeader = {
     val request = mock[RequestHeader]
     val session = mock[Session]
-    session.get(Security.username) returns Some(username)
+    session.get(Secured.UserName) returns Some(username)
     request.session returns session
     request
   }
@@ -26,7 +28,7 @@ class SecuredSpec extends Specification with Mockito with TestDb {
         val created = userDao.create(user)
 
         val request: RequestHeader = mockRequest(username)
-        new Secured {}.userFromRequest(request) === Some(created)
+        new SecuredWithCc().userFromRequest(request) === Some(created)
       }
     }
 
@@ -38,7 +40,7 @@ class SecuredSpec extends Specification with Mockito with TestDb {
         val created = userDao.create(user)
 
         val request: RequestHeader = mockRequest(username + " other")
-        new Secured {}.userFromRequest(request) === None
+        new SecuredWithCc().userFromRequest(request) === None
       }
     }
 

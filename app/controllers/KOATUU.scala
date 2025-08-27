@@ -13,13 +13,13 @@ object KOATUU {
 
 //  val regionPropertiesLocal = Map[String, Properties]
 
-  def load() {
+  def load(): Unit = {
     regionProperties.load(new FileReader(REGION_PROPERTIES))
 
     regions = regionProperties.asInstanceOf[java.util.Map[String, String]].asScala.toMap
   }
 
-  def regionList = regions.map(x => x).toSeq.sortBy(_._1).map(_._2)
+  def regionList: Seq[String] = regions.map(x => x).toSeq.sortBy(_._1).map(_._2)
 
   def regionIdByMonumentId(id: String): Option[String] = {
     val split = id.split("-")

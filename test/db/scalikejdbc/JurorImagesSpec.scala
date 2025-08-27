@@ -13,10 +13,10 @@ class JurorImagesSpec extends Specification with TestDb {
   var round: Round = _
   var user: User = _
 
-  def contestImage(id: Long, contestId: Long) =
+  private def contestImage(id: Long, contestId: Long) =
     Image(id, s"File:Image$id.jpg", None, None, 640, 480, Some(s"12-345-$id"))
 
-  def setUp(rates: Rates = Round.binaryRound) = {
+  private def setUp(rates: Rates = Round.binaryRound) = {
     contest = contestDao.create(None, "WLE", 2015, "Ukraine", None, None, None)
     round = roundDao.create(
       Round(None, 1, contestId = contest.getId, rates = rates, active = true)
@@ -26,16 +26,16 @@ class JurorImagesSpec extends Specification with TestDb {
     )
   }
 
-  def createImages(number: Int, contestId: Long = contest.getId, startId: Int = 0) = {
+  private def createImages(number: Int, contestId: Long = contest.getId, startId: Int = 0) = {
     val images = (startId until number + startId).map(id => contestImage(id, contestId))
     imageDao.batchInsert(images)
     images
   }
 
-  def createSelection(images: Seq[Image],
-                      rate: Int = 0,
-                      user: User = user,
-                      round: Round = round) = {
+  private def createSelection(images: Seq[Image],
+                              rate: Int = 0,
+                              user: User = user,
+                              round: Round = round) = {
     val selections = images.zipWithIndex.map { case (image, i) =>
       Selection(image, user, round, rate)
     }

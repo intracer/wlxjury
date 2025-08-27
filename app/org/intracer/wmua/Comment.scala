@@ -44,7 +44,7 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
         column.contestId -> contestId,
         column.body -> body,
         column.createdAt -> createdAt)
-    }.updateAndReturnGeneratedKey().apply()
+    }.updateAndReturnGeneratedKey()
 
     Comment(id = id, userId = userId, username = username, roundId = roundId, contestId = contestId, room =  room, body = body,
       createdAt = createdAt)
@@ -54,7 +54,7 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
     select.from(CommentJdbc as c)
       //      .where.append(isNotDeleted)
       .orderBy(c.id)
-  }.map(CommentJdbc(c)).list().apply()
+  }.map(CommentJdbc(c)).list()
 
   def findByRound(roundId: Long)(implicit session: DBSession = autoSession): List[Comment] = withSQL {
     select.from(CommentJdbc as c)
@@ -62,7 +62,7 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
       // .and
       .eq(c.roundId, roundId)
       .orderBy(c.id)
-  }.map(CommentJdbc(c)).list().apply()
+  }.map(CommentJdbc(c)).list()
 
   def findByRoundAndSubject(roundId: Long, subject: Long)(implicit session: DBSession = autoSession): List[Comment] = withSQL {
     select.from(CommentJdbc as c)
@@ -71,7 +71,7 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
       .eq(c.roundId, roundId).and
       .eq(c.room, subject)
       .orderBy(c.id)
-  }.map(CommentJdbc(c)).list().apply()
+  }.map(CommentJdbc(c)).list()
 
   def findBySubject(subject: Long)(implicit session: DBSession = autoSession): List[Comment] = withSQL {
     select.from(CommentJdbc as c)
@@ -79,7 +79,7 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
       // .and
       .eq(c.room, subject)
       .orderBy(c.id)
-  }.map(CommentJdbc(c)).list().apply()
+  }.map(CommentJdbc(c)).list()
 
   def findBySubjectAndContest(subject: Long, contestId: Long)(implicit session: DBSession = autoSession): List[Comment] = withSQL {
     select.from(CommentJdbc as c)
@@ -87,5 +87,5 @@ object CommentJdbc extends SQLSyntaxSupport[Comment] {
       .eq(c.room, subject).and
       .eq(c.contestId, contestId)
       .orderBy(c.id)
-  }.map(CommentJdbc(c)).list().apply()
+  }.map(CommentJdbc(c)).list()
 }

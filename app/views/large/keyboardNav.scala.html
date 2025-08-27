@@ -10,7 +10,7 @@
   rate: Option[Int],
   region: String = "all",
   round: Round,
-  module: String = "gallery")(implicit lang: Lang, request: Request[Any], messages: Messages)
+  module: String = "gallery")(implicit request: Request[Any], messages: Messages)
 <script src="@routes.Assets.at("javascripts/jquery.hotkeys.js")"></script>
 <script>
     @if(index < files.size-1) {

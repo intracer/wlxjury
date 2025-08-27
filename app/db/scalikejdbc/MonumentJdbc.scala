@@ -7,7 +7,7 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
 
   override val tableName = "monument"
 
-  val c = MonumentJdbc.syntax("c")
+  private val c = MonumentJdbc.syntax("c")
 
   def apply(c: SyntaxProvider[Monument])(rs: WrappedResultSet): Monument = apply(c.resultName)(rs)
 
@@ -32,7 +32,12 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
     contest = rs.longOpt(c.contest)
   )
 
-  def batchInsert(monuments: Seq[Monument]) {
+  object replace {
+    def into(support: SQLSyntaxSupport[?]): InsertSQLBuilder =
+      InsertSQLBuilder(sqls"replace into ${support.table}")
+  }
+
+  def batchInsert(monuments: Seq[Monument]): Unit = {
     val column = MonumentJdbc.column
     DB localTx { implicit session =>
       val batchParams: Seq[Seq[Any]] = monuments.map(m => Seq(
@@ -52,7 +57,7 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
         m.id.split("-").headOption.map(_.take(3))
       ))
       withSQL {
-        insert.into(MonumentJdbc).namedValues(
+        replace.into(MonumentJdbc).namedValues(
           column.id -> sqls.?,
           column.name -> sqls.?,
           column.description -> sqls.?,
@@ -77,10 +82,10 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument]{
       .orderBy(c.id)
 
     limit.fold(q)(l => q.limit(l))
-  }.map(MonumentJdbc(c)).list().apply()
+  }.map(MonumentJdbc(c)).list()
 
   def find(id: String)(implicit session: DBSession = autoSession): Option[Monument] = withSQL {
     select.from(MonumentJdbc as c).where.eq(c.id, id) //.and.append(isNotDeleted)
-  }.map(MonumentJdbc(c)).single().apply()
+  }.map(MonumentJdbc(c)).single()
 
 }

@@ -9,16 +9,15 @@ class SelectionSpec extends Specification with TestDb {
 
   val time = now
 
-  def sameTime(s: Seq[Selection]) = s.map(_.copy(createdAt = Some(time)))
-  def noIds(s: Seq[Selection]) = s.map(_.copy(id = None))
+  private def sameTime(s: Seq[Selection]): Seq[Selection] = s.map(_.copy(createdAt = Some(time)))
+  private def noIds(s: Seq[Selection]): Seq[Selection] = s.map(_.copy(id = None))
 
-  def findAll() = sameTime(selectionDao.findAll())
+  private def findAll(): Seq[Selection] = sameTime(selectionDao.findAll())
 
   "fresh database" should {
     "be empty" in {
       withDb {
-        val selection = selectionDao.findAll()
-        selection.size === 0
+        selectionDao.findAll() === Nil
       }
     }
 
@@ -28,16 +27,10 @@ class SelectionSpec extends Specification with TestDb {
         val s = Selection(-1, 20, 0, 30, Some(40), Some(now))
 
         val created = selectionDao.create(s.pageId, s.rate, s.juryId, s.roundId, s.createdAt)
-
         val id = created.getId
-
         created === s.copy(id = Some(id))
-
-        val dbi = selectionDao.findById(id)
-        dbi === Some(created)
-
-        val selections = selectionDao.findAll()
-        selections === Seq(created)
+        selectionDao.findById(id) === Some(created)
+        selectionDao.findAll() === Seq(created)
       }
     }
 

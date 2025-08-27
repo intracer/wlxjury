@@ -1,4 +1,4 @@
-@(user: db.scalikejdbc.User)(implicit lang: Lang, messages: Messages)
+@(user: db.scalikejdbc.User)(implicit messages: Messages)
 
 @if(user != null) {
     <ul class="nav navbar-nav navbar-right" >
@@ -8,7 +8,7 @@
             </a>
         <ul class="dropdown-menu">
             <li>
-                <a href="@routes.UsersController.editUser(user.getId)">
+                <a href="@routes.UserController.editUser(user.getId)">
                     <span class="glyphicon glyphicon-user"></span> @Messages("profile")
                 </a>
             </li>

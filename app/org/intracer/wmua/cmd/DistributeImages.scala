@@ -1,73 +1,75 @@
 package org.intracer.wmua.cmd
 
 import controllers.Global.commons
-import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, Round, SelectionJdbc, User}
+import db.ImageRepo
+import db.scalikejdbc._
 import org.intracer.wmua._
+import org.intracer.wmua.cmd.DistributeImages.Rebalance
 import org.scalawiki.dto.Namespace
-import play.api.Logger
+import play.api.Logging
 import spray.util.pimpFuture
 
+import javax.inject.Inject
 import scala.concurrent.duration._
 
-case class DistributeImages(round: Round, images: Seq[Image], jurors: Seq[User]) {
+class DistributeImages @Inject()(imageRepo: ImageRepo) extends Logging {
 
-  val sortedJurors = jurors.sorted
+  def distributeImages(round: Round, images: Seq[Image], jurors: Seq[User]): Unit = {
+    val selection: Seq[Selection] = newSelection(round, images, jurors)
 
-  def apply() = {
-    val selection: Seq[Selection] = newSelection
-
-    Logger.logger.debug("saving selection: " + selection.size)
+    logger.debug("saving selection: " + selection.size)
     SelectionJdbc.batchInsert(selection)
-    Logger.logger.debug(s"saved selection")
+    logger.debug(s"saved selection")
 
-    addCriteriaRates(selection)
+    if (round.hasCriteria) {
+      addCriteriaRates(selection)
+    }
   }
 
-  def newSelection = {
+  def newSelection(round: Round, images: Seq[Image], jurors: Seq[User]): Seq[Selection] = {
+    val sortedJurors = jurors.sorted
     val selection: Seq[Selection] = round.distribution match {
       case 0 =>
         sortedJurors.flatMap { juror =>
           images.map(img => Selection(img, juror, round))
         }
       case x if x > 0 =>
-        images.zipWithIndex.flatMap {
-          case (img, i) =>
-            (0 until x).map(j =>
-              Selection(img, sortedJurors((i + j) % sortedJurors.size), round)
-            )
+        images.zipWithIndex.flatMap { case (img, i) =>
+          (0 until x).map(j => Selection(img, sortedJurors((i + j) % sortedJurors.size), round))
         }
     }
     selection
   }
 
   def addCriteriaRates(selection: Seq[Selection]): Unit = {
-    if (round.hasCriteria) {
-      val criteriaIds = Seq(1, 2, 3, 4) // TODO load form DB
-      val rates = selection.flatMap { s =>
-          criteriaIds.map(id => new CriteriaRate(0, s.getId, id, 0))
-        }
-
-      CriteriaRate.batchInsert(rates)
+    val criteriaIds = Seq(6, 7, 8, 9) // TODO load form DB
+    val rates = selection.flatMap { s =>
+      criteriaIds.map(id => new CriteriaRate(0, s.getId, id, 0))
     }
-  }
-}
 
-object DistributeImages {
-  def distributeImages(round: Round,
-                       jurors: Seq[User],
-                       prevRound: Option[Round],
-                       removeUnrated: Boolean = false): Unit = {
+    CriteriaRate.batchInsert(rates)
+  }
+
+  def distributeImages(
+      round: Round,
+      jurors: Seq[User],
+      prevRound: Option[Round],
+      removeUnrated: Boolean = false
+  ): Unit = {
     if (removeUnrated) {
       SelectionJdbc.removeUnrated(round.getId)
     }
 
-    val images = getFilteredImages(round, jurors, prevRound)
+    val images = imagesByRound(round, prevRound)
 
-    distributeImages(round, jurors, images)
+    distributeImages(round, images, jurors)
   }
 
-  def getFilteredImages(round: Round, jurors: Seq[User], prevRound: Option[Round]): Seq[Image] = {
-    getFilteredImages(round, jurors, prevRound, selectedAtLeast = round.prevSelectedBy,
+  def imagesByRound(round: Round, prevRound: Option[Round] = None): Seq[Image] = {
+    getFilteredImages(
+      round,
+      prevRound,
+      selectedAtLeast = round.prevSelectedBy,
       selectMinAvgRating = round.prevMinAvgRate,
       selectTopByRating = round.topImages,
       includeCategory = round.category,
@@ -77,57 +79,59 @@ object DistributeImages {
     )
   }
 
-  def distributeImages(round: Round, jurors: Seq[User], images: Seq[Image]): Unit = {
-    DistributeImages(round, images, jurors).apply()
+  def categoryFileIds(maybeCategory: Option[String]): Iterable[Long] = {
+    maybeCategory
+      .filter(_.trim.nonEmpty)
+      .map { category =>
+        commons
+          .page(category)
+          .imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE))
+          .await(5.minutes)
+          .flatMap(_.id)
+      }
+      .getOrElse(Nil)
   }
 
-  def getFilteredImages(
-                         round: Round,
-                         jurors: Seq[User],
-                         prevRound: Option[Round],
-                         includeRegionIds: Set[String] = Set.empty,
-                         excludeRegionIds: Set[String] = Set.empty,
-                         includeMonumentIds: Set[String] = Set.empty,
-                         includePageIds: Set[Long] = Set.empty,
-                         excludePageIds: Set[Long] = Set.empty,
-                         includeTitles: Set[String] = Set.empty,
-                         excludeTitles: Set[String] = Set.empty,
-                         selectMinAvgRating: Option[Int] = None,
-                         selectTopByRating: Option[Int] = None,
-                         selectedAtLeast: Option[Int] = None,
-                         includeJurorId: Set[Long] = Set.empty,
-                         excludeJurorId: Set[Long] = Set.empty,
-                         includeCategory: Option[String] = None,
-                         excludeCategory: Option[String] = None
-                       ): Seq[Image] = {
+  private def getFilteredImages(
+      round: Round,
+      prevRound: Option[Round],
+      includeRegionIds: Set[String] = Set.empty,
+      excludeRegionIds: Set[String] = Set.empty,
+      includeMonumentIds: Set[String] = Set.empty,
+      includePageIds: Set[Long] = Set.empty,
+      excludePageIds: Set[Long] = Set.empty,
+      includeTitles: Set[String] = Set.empty,
+      excludeTitles: Set[String] = Set.empty,
+      selectMinAvgRating: Option[BigDecimal] = None,
+      selectTopByRating: Option[Int] = None,
+      selectedAtLeast: Option[Int] = None,
+      includeJurorId: Set[Long] = Set.empty,
+      excludeJurorId: Set[Long] = Set.empty,
+      includeCategory: Option[String] = None,
+      excludeCategory: Option[String] = None
+  ): Seq[Image] = {
 
-    val includeFromCats = includeCategory.filter(_.trim.nonEmpty).map { category =>
-      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await(5.minutes)
-      pages.flatMap(_.id)
-    }.getOrElse(Nil)
+    val includeFromCats = categoryFileIds(includeCategory)
+    val excludeFromCats = categoryFileIds(excludeCategory)
 
-    val excludeFromCats = excludeCategory.filter(_.trim.nonEmpty).map { category =>
-      val pages = commons.page(category).imageInfoByGenerator("categorymembers", "cm", Set(Namespace.FILE)).await(5.minutes)
-      pages.flatMap(_.id)
-    }.getOrElse(Nil)
-
-    val currentImages = ImageJdbc.byRoundMerged(round.getId, rated = None).filter(iwr => iwr.selection.nonEmpty).toSet
+    val currentImages = imageRepo
+      .byRoundMerged(round.getId)
+      .filter(iwr => iwr.selection.nonEmpty)
+      .toSet
     val existingImageIds = currentImages.map(_.pageId)
     val existingJurorIds = currentImages.flatMap(_.jurors)
     val mpxAtLeast = round.minMpx
     val sizeAtLeast = round.minImageSize.map(_ * 1024 * 1024)
 
-    val contest = ContestJuryJdbc.findById(round.contestId).get
     val imagesAll = prevRound.fold[Seq[ImageWithRating]](
-      ImageJdbc.findByContest(contest).map(i =>
-        new ImageWithRating(i, Seq.empty)
-      )
-    )(r =>
-      ImageJdbc.byRoundMerged(r.getId, rated = selectedAtLeast.map(_ > 0))
-    )
-    Logger.logger.debug("Total images: " + imagesAll.size)
+      imageRepo
+        .findByContestId(round.contestId)
+        .map(i => new ImageWithRating(i, Seq.empty))
+    )(r => imageRepo.byRoundMerged(r.getId, rated = selectedAtLeast.map(_ > 0)))
+    logger.debug("Total images: " + imagesAll.size)
 
-    val funGens = ImageWithRatingSeqFilter.funGenerators(prevRound,
+    val funGens = ImageWithRatingSeqFilter.funGenerators(
+      prevRound,
       includeRegionIds = includeRegionIds,
       excludeRegionIds = excludeRegionIds,
       includeMonumentIds = includeMonumentIds,
@@ -136,34 +140,45 @@ object DistributeImages {
       includeTitles = includeTitles,
       excludeTitles = excludeTitles,
       includeJurorId = includeJurorId,
-      excludeJurorId = excludeJurorId /*++ existingJurorIds*/ ,
-      selectMinAvgRating = prevRound.flatMap(_ => selectMinAvgRating.filter(x => !prevRound.exists(_.isBinary))),
+      excludeJurorId = excludeJurorId /*++ existingJurorIds*/,
+      selectMinAvgRating =
+        prevRound.flatMap(_ => selectMinAvgRating.filter(_ => !prevRound.exists(_.isBinary))),
       selectTopByRating = prevRound.flatMap(_ => selectTopByRating),
       selectedAtLeast = prevRound.flatMap(_ => selectedAtLeast),
       mpxAtLeast = mpxAtLeast,
       sizeAtLeast = sizeAtLeast,
-      specialNomination = round.specialNomination
+      specialNomination = round.specialNomination,
+      mediaType = round.mediaType
     )
 
     val filterChain = ImageWithRatingSeqFilter.makeFunChain(funGens)
 
     val images = filterChain(imagesAll).map(_.image)
-    Logger.logger.debug("Images after filtering: " + images.size)
+    logger.debug("Images after filtering: " + images.size)
 
     images
   }
 
-  case class Rebalance(newSelections: Seq[Selection], removedSelections: Seq[Selection])
-
-  val NoRebalance = Rebalance(Nil, Nil)
-
-  def rebalanceImages(round: Round, jurors: Seq[User], images: Seq[Image], currentSelection: Seq[Selection]): Rebalance  = {
+  def rebalanceImages(
+      round: Round,
+      jurors: Seq[User],
+      images: Seq[Image],
+      currentSelection: Seq[Selection]
+  ): Rebalance = {
 
     if (currentSelection == Nil) {
-      Rebalance(DistributeImages(round, images, jurors).newSelection, Nil)
+      Rebalance(newSelection(round, images, jurors), Nil)
     } else {
       Rebalance(Nil, Nil)
     }
   }
+
+}
+
+object DistributeImages {
+
+  case class Rebalance(newSelections: Seq[Selection], removedSelections: Seq[Selection])
+
+  val NoRebalance = Rebalance(Nil, Nil)
 
 }

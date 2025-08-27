@@ -12,7 +12,7 @@
         region: String = "all",
         regions: Seq[Region],
         rates: RateDistribution,
-        rated: Option[Boolean])(implicit flash: Flash, lang: Lang, messages: Messages)
+        rated: Option[Boolean])(implicit flash: Flash, messages: Messages)
 
     @showRateGalery(file: ImageWithRating, index: Int) = {
     @defining(maybeRound.get) { round =>
@@ -22,12 +22,10 @@
             <span style="margin-left: 5px;
                 margin-right: 10px;">
             @if(round.rates.id != 2) {
-                @defining(if(round.rates.id <= 5 || round.halfStar.contains(false)) round.rates.id else round.rates.id / 2) { starsNum =>
-                    @for(i <- 1 to starsNum) {
-                        <img alt="@i" src="@showStar(i, file.totalRate(round).toInt, round.rates.id <= 10, round.rates.id > 5 && !round.halfStar.contains(false))">
-                    }
-                    @file.rateString(round)
+                @for(i <- 1 to round.numberOfStars) {
+                    <img alt="@i" src="@showStar(i, file.totalRate(round).toInt, round.numberOfStars <= 10, round.rates.id > 5 && round.halfStar)">
                 }
+                @file.rateString(round)
             } else {
                 @for(i <- 1 to file.totalRate(round).toInt) {
                     <button type="button" class="btn btn-default btn-sm active btn-success">
@@ -66,9 +64,17 @@
 
                         <div class="thumb">
                             <a href="@routes.LargeViewController.large(asUserId, file.pageId, region, round.getId, None, "byrate")" >
+                            @if(file.image.isImage) {
                                 <img class="cropped" alt="@file.title"
                                 src="@Global.resizeTo(file.image, Global.gallerySizeX, Global.gallerySizeY)"
                                 srcset="@Global.srcSet(file.image, Global.gallerySizeX, Global.gallerySizeY)">
+                            }
+                            @if(file.image.isVideo) {
+                                <video width="100%" height="100%" muted>
+                                    <source src="@file.image.url" type="video/webm">
+                                    Your browser does not support the video tag.
+                                </video>
+                            }
                             </a>
                         </div>
 

@@ -10,10 +10,9 @@ cache:
 language: scala
 
 scala:
-   - 2.12.10
+   - 2.13.14
 
 jdk:
-  - openjdk8
   - openjdk11
 
 script: "sbt clean coverage 'testOnly -- xonly timefactor 5' coverageReport"

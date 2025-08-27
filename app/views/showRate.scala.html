@@ -18,7 +18,7 @@
         @if(round.isBinary) {
             <span class="glyphicon glyphicon-ok icon-white" aria-hidden="true"></span>
         } else {
-            @defining(round.rates.id > 5 && !round.halfStar.contains(false)) { halfStar =>
+            @defining(round.rates.id > 5 && round.halfStar) { halfStar =>
                 @for(i <- 1 to round.rates.id / (if (halfStar) 2 else 1)) {
                     <img alt="@i" src="@showStar(i, selection.rate, round.rates.id <= 10, halfStar)">
                     }
