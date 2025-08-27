@@ -147,6 +147,10 @@ class ContestController @Inject() (val commons: MwBot, cc: ControllerComponents)
     )
   }
 
+  def getContest(id: Long): Option[ContestJury] = {
+    ContestJuryJdbc.findById(id)
+  }
+
   def regions(contestId: Long): Map[String, String] = {
     ContestJuryJdbc
       .findById(contestId)

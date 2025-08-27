@@ -22,7 +22,7 @@ val pac4jVersion = "6.0.4.1"
 val playVersion = "3.0.7"
 val PekkoVersion = "1.0.3"
 val PekkoHttpVersion = "1.0.1"
-val TapirVersion = "1.2.3"
+val TapirVersion = "1.11.15"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -63,14 +63,15 @@ libraryDependencies ++= Seq(
   "uk.org.lidalia" % "sysout-over-slf4j" % "1.0.2",
   "javax.xml.bind" % "jaxb-api" % "2.3.1",
   "com.softwaremill.sttp.tapir" %% "tapir-core" % TapirVersion,
-  "com.softwaremill.sttp.tapir" %% "tapir-akka-http-server" % TapirVersion
-    exclude("com.typesafe.akka", "akka-stream_2.12")
-    exclude("com.typesafe.akka", "akka-slf4j_2.12")
-    exclude("com.typesafe.akka", "akka-http_2.12")
-    exclude("com.typesafe.akka", "akka-http-caching_2.12"),
+  "com.softwaremill.sttp.tapir" %% "tapir-pekko-http-server" % TapirVersion excludeAll(
+    ExclusionRule("org.apache.pekko", "pekko-stream_2.13"),
+    ExclusionRule("org.apache.pekko", "pekko-slf4j_2.13"),
+    ExclusionRule("org.apache.pekko", "pekko-http_2.13"),
+    ExclusionRule("org.apache.pekko", "pekko-http-caching_2.13")
+  ),
   "com.softwaremill.sttp.tapir" %% "tapir-json-play" % TapirVersion,
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % TapirVersion,
-  "de.heikoseeberger" %% "akka-http-play-json" % "1.29.1",
+  "com.github.pjfanning" %% "pekko-http-play-json" % "2.0.0",
   guice,
   filters,
   specs2 % Test,
@@ -80,8 +81,8 @@ libraryDependencies ++= Seq(
   "net.java.dev.jna" % "jna" % "4.5.0" % Test,
   "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test,
   "com.h2database" % "h2" % "1.4.193" % Test,
-  "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % Test,
-  "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.21" % Test
+  "org.apache.pekko" %% "pekko-http-testkit" % PekkoHttpVersion % Test,
+  "org.apache.pekko" %% "pekko-stream-testkit" % PekkoVersion % Test
 )
 
 dependencyOverrides ++= Seq(

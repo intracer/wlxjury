@@ -1,11 +1,11 @@
 package api
 
-import controllers.ContestsController
+import controllers.ContestController
 import org.intracer.wmua.ContestJury
 import play.api.libs.json._
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.play._
-import sttp.tapir.server.akkahttp.AkkaHttpServerInterpreter
+import sttp.tapir.server.pekkohttp.PekkoHttpServerInterpreter
 import sttp.tapir.swagger.bundle.SwaggerInterpreter
 import sttp.tapir.{endpoint, path}
 
@@ -13,14 +13,14 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class Api @Inject()(val contestsController: ContestsController) extends JsonFormat {
+class Api @Inject()(val contestsController: ContestController) extends JsonFormat {
   val api = endpoint.in("api")
 
-  val contests = api.in("contests")
-  val createContest = contests.post.in(jsonBody[ContestJury]).out(jsonBody[ContestJury])
-  val getContest = contests.in(path[Long]).get.out(jsonBody[ContestJury])
-  val updateContest = contests.put.in(jsonBody[ContestJury])
-  val listContests = contests.get.out(jsonBody[List[ContestJury]])
+  private val contests = api.in("contests")
+  private val createContest = contests.post.in(jsonBody[ContestJury]).out(jsonBody[ContestJury])
+  private val getContest = contests.in(path[Long]).get.out(jsonBody[ContestJury])
+  private val updateContest = contests.put.in(jsonBody[ContestJury])
+  private val listContests = contests.get.out(jsonBody[List[ContestJury]])
 
   val endpoints = List(createContest, getContest, updateContest, listContests)
 
@@ -28,9 +28,9 @@ class Api @Inject()(val contestsController: ContestsController) extends JsonForm
   val swaggerEndpoints = SwaggerInterpreter().fromEndpoints[Future](endpoints, "WLX Jury", "1.0")
 
   // add to your akka routes
-  val swaggerRoute = AkkaHttpServerInterpreter().toRoute(swaggerEndpoints)
+  val swaggerRoute = PekkoHttpServerInterpreter().toRoute(swaggerEndpoints)
 
-  val routes = AkkaHttpServerInterpreter().toRoute(List(
+  val routes = PekkoHttpServerInterpreter().toRoute(List(
     createContest.serverLogicSuccess { contest =>
       Future(contestsController.createContest(contest))
     },

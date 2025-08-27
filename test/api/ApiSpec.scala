@@ -1,11 +1,11 @@
 package api
 
-import akka.http.scaladsl.testkit.Specs2RouteTest
-import controllers.ContestsController
+import controllers.ContestController
+import org.apache.pekko.http.scaladsl.testkit.Specs2RouteTest
 import org.intracer.wmua.ContestJury
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport._
+import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
 
 class ApiSpec
   extends Specification
@@ -13,7 +13,7 @@ class ApiSpec
   with Specs2RouteTest
   with JsonFormat {
 
-  val controller = mock[ContestsController]
+  val controller = mock[ContestController]
   val route = new Api(controller).routes
   val contest = ContestJury(
     id = Some(1),
