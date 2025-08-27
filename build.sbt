@@ -1,7 +1,15 @@
 import sbt.Keys._
 
-lazy val root = identity((project in file("."))
-  .enablePlugins(PlayScala, PlayNettyServer, DebianPlugin, SystemdPlugin, JavaServerAppPackaging))
+lazy val root = identity(
+  (project in file("."))
+    .enablePlugins(
+      PlayScala,
+      PlayNettyServer,
+      DebianPlugin,
+      SystemdPlugin,
+      JavaServerAppPackaging
+    )
+)
   .disablePlugins(PlayPekkoHttpServer)
 
 name := "wlxjury"
@@ -10,18 +18,20 @@ organization := "org.intracer"
 
 version := "0.13"
 
-scalaVersion := "2.13.14"
+scalaVersion := "2.13.15"
 
-val ScalikejdbcVersion = "4.3.0"
+val ScalikejdbcVersion = "4.3.2"
 val ScalikejdbcPlayVersion = "3.0.1-scalikejdbc-4.3"
 val ScalawikiVersion = "0.7.0-SNAPSHOT"
 val PlayMailerVersion = "9.0.0"
 val MockServerVersion = "5.7.0"
-val playPac4jVersion = "12.0.0-PLAY3.0"
+val PlayPac4jVersion = "12.0.0-PLAY3.0"
 val pac4jVersion = "6.0.4.1"
 val playVersion = "3.0.7"
 val PekkoVersion = "1.0.3"
 val PekkoHttpVersion = "1.0.1"
+val ScalaTestVersion = "3.2.9"
+val TestcontainersScalaVersion = "0.41.0"
 val TapirVersion = "1.11.15"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
@@ -35,28 +45,26 @@ resolvers += Resolver.mavenLocal
 libraryDependencySchemes += "org.scala-lang.modules" %% "scala-parser-combinators" % "always"
 
 libraryDependencies ++= Seq(
-  "org.webjars" %% "webjars-play" % "2.9.1",
+  "org.webjars" %% "webjars-play" % "3.0.2",
   "com.adrianhurt" %% "play-bootstrap" % "1.6.1-P28-B3",
-  "org.webjars" % "bootstrap" % "3.3.7-1" exclude("org.webjars", "jquery"),
+  "org.webjars" % "bootstrap" % "3.3.7-1" exclude ("org.webjars", "jquery"),
   "org.webjars" % "jquery" % "3.2.1",
 
   "org.scalikejdbc" %% "scalikejdbc" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-config" % ScalikejdbcVersion,
+  "org.scalikejdbc" %% "scalikejdbc-orm" % ScalikejdbcVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-initializer" % ScalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-dbapi-adapter" % ScalikejdbcPlayVersion,
   "org.scalikejdbc" %% "scalikejdbc-play-fixture" % ScalikejdbcPlayVersion,
-  "org.skinny-framework" %% "skinny-orm" % "4.0.1",
   "org.flywaydb" %% "flyway-play" % "8.0.1",
   "org.flywaydb" % "flyway-mysql" % "9.16.3",
-  "mysql" % "mysql-connector-java" % "8.0.25",
-
+  "org.mariadb.jdbc" % "mariadb-java-client" % "3.5.3",
   "org.scalawiki" %% "scalawiki-core" % ScalawikiVersion,
   "org.scalawiki" %% "scalawiki-wlx" % ScalawikiVersion,
 
   "org.apache.pekko" %% "pekko-stream" % PekkoVersion,
   "org.apache.pekko" %% "pekko-http" % PekkoHttpVersion,
-
-  "org.pac4j" %% "play-pac4j" % playPac4jVersion,
+  "org.pac4j" %% "play-pac4j" % PlayPac4jVersion,
   "com.typesafe.play" %% "play-mailer" % PlayMailerVersion,
   "com.typesafe.play" %% "play-mailer-guice" % PlayMailerVersion,
   "com.github.tototoshi" %% "scala-csv" % "1.4.1",
@@ -76,11 +84,16 @@ libraryDependencies ++= Seq(
   filters,
   specs2 % Test,
   jdbc % Test,
-  "com.wix" % "wix-embedded-mysql" % "4.6.1" % Test,
+  "ch.vorburger.mariaDB4j" % "mariaDB4j" % "3.1.0" % Test,
+  "org.scalatest" %% "scalatest" % ScalaTestVersion % Test,
+  "com.dimafeng" %% "testcontainers-scala-scalatest" % TestcontainersScalaVersion % Test,
+  "com.dimafeng" %% "testcontainers-scala-mariadb" % "0.41.0" % Test,
+  "com.dimafeng" %% "testcontainers-scala-mysql" % "0.41.0" % Test,
+  "io.chrisdavenport" %% "testcontainers-specs2" % "0.2.0-M5" % Test,
   "org.mock-server" % "mockserver-netty" % MockServerVersion % Test,
   "net.java.dev.jna" % "jna" % "4.5.0" % Test,
   "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test,
-  "com.h2database" % "h2" % "1.4.193" % Test,
+  "com.lihaoyi" %% "os-lib" % "0.11.4" % Test,
   "org.apache.pekko" %% "pekko-http-testkit" % PekkoHttpVersion % Test,
   "org.apache.pekko" %% "pekko-stream-testkit" % PekkoVersion % Test
 )
@@ -95,6 +108,7 @@ routesGenerator := InjectedRoutesGenerator
 
 Test / javaOptions += "-Dconfig.file=test/resources/application.conf"
 Test / javaOptions += "-Djna.nosys=true"
+Test / fork := true
 
 //rpmRelease := "1"
 
@@ -126,7 +140,8 @@ maintainer := "Ilya Korniiko <intracer@gmail.com>"
 Debian / debianPackageRecommends ++= Seq("virtual-mysql-server")
 
 addCommandAlias(
-  "packageAll", "; clean" +
+  "packageAll",
+  "; clean" +
     "; packageDebSystemV" +
     "; clean " +
     "; packageDebUpstart" +
@@ -141,42 +156,54 @@ addCommandAlias(
 )
 
 addCommandAlias(
-  "packageDebSystemV", "; set serverLoading in Debian := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.SystemV)" +
+  "packageDebSystemV",
+  "; set serverLoading in Debian := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.SystemV)" +
     "; internalPackageDebianSystemV"
 )
 
 addCommandAlias(
-  "packageDebUpstart", "; set serverLoading in Debian := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Upstart)" +
+  "packageDebUpstart",
+  "; set serverLoading in Debian := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Upstart)" +
     "; internalPackageDebianUpstart"
 )
 
 addCommandAlias(
-  "packageDebSystemd", "; set serverLoading in Debian := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd)" +
+  "packageDebSystemd",
+  "; set serverLoading in Debian := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd)" +
     "; internalPackageDebianSystemd"
 )
 
 addCommandAlias(
-  "packageRpmSystemV", "; set serverLoading in Rpm := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.SystemV)" +
+  "packageRpmSystemV",
+  "; set serverLoading in Rpm := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.SystemV)" +
     "; internalPackageRpmSystemV"
 )
 
 addCommandAlias(
-  "packageRpmUpstart", "; set serverLoading in Rpm := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Upstart)" +
+  "packageRpmUpstart",
+  "; set serverLoading in Rpm := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Upstart)" +
     "; internalPackageRpmUpstart"
 )
 
 addCommandAlias(
-  "packageRpmSystemd", "; set serverLoading in Rpm := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd)" +
+  "packageRpmSystemd",
+  "; set serverLoading in Rpm := Some(com.typesafe.sbt.packager.archetypes.systemloader.ServerLoader.Systemd)" +
     "; internalPackageRpmSystemd"
 )
 
-lazy val internalPackageDebianSystemV = taskKey[File]("creates debian package with systemv")
-lazy val internalPackageDebianUpstart = taskKey[File]("creates debian package with upstart")
-lazy val internalPackageDebianSystemd = taskKey[File]("creates debian package with systemd")
+lazy val internalPackageDebianSystemV =
+  taskKey[File]("creates debian package with systemv")
+lazy val internalPackageDebianUpstart =
+  taskKey[File]("creates debian package with upstart")
+lazy val internalPackageDebianSystemd =
+  taskKey[File]("creates debian package with systemd")
 
-lazy val internalPackageRpmSystemV = taskKey[File]("creates rpm package with systemv")
-lazy val internalPackageRpmUpstart = taskKey[File]("creates rpm package with upstart")
-lazy val internalPackageRpmSystemd = taskKey[File]("creates rpm package with systemd")
+lazy val internalPackageRpmSystemV =
+  taskKey[File]("creates rpm package with systemv")
+lazy val internalPackageRpmUpstart =
+  taskKey[File]("creates rpm package with upstart")
+lazy val internalPackageRpmSystemd =
+  taskKey[File]("creates rpm package with systemd")
 
 internalPackageDebianSystemV := {
   val output = baseDirectory.value / "package" / s"wlxjury-systemv-${version.value}.deb"
