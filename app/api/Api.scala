@@ -1,8 +1,7 @@
 package api
 
-import controllers.ContestController
 import org.intracer.wmua.ContestJury
-import play.api.libs.json._
+import services.ContestService
 import sttp.tapir.generic.auto.schemaForCaseClass
 import sttp.tapir.json.play._
 import sttp.tapir.server.pekkohttp.PekkoHttpServerInterpreter
@@ -13,7 +12,7 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class Api @Inject()(val contestsController: ContestController) extends JsonFormat {
+class Api @Inject()(val contestService: ContestService) extends JsonFormat {
   val api = endpoint.in("api")
 
   private val contests = api.in("contests")
@@ -32,13 +31,13 @@ class Api @Inject()(val contestsController: ContestController) extends JsonForma
 
   val routes = PekkoHttpServerInterpreter().toRoute(List(
     createContest.serverLogicSuccess { contest =>
-      Future(contestsController.createContest(contest))
+      Future(contestService.createContest(contest))
     },
     getContest.serverLogicSuccess { id =>
-      Future(contestsController.getContest(id).get)
+      Future(contestService.getContest(id).get)
     },
     listContests.serverLogicSuccess { _ =>
-      Future(contestsController.findContests)
+      Future(contestService.findContests())
     }
   ))
 }

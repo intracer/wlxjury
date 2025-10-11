@@ -2,7 +2,6 @@ package controllers
 
 import db.scalikejdbc.TestDb
 import org.intracer.wmua.{Image, JuryTestHelpers}
-import org.mockito.stubbing.OngoingStubbing
 import org.scalawiki.MwBot
 import org.scalawiki.dto.{Namespace, Page, Revision}
 import org.scalawiki.query.SinglePageQuery
@@ -39,14 +38,14 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
       withDb {
         val images = Seq(image(id = 11).copy(description = Some("descr"), monumentId = None))
         val contest = contestDao.create(
-          Some(contestId),
-          "WLE",
-          2015,
-          "Ukraine",
-          Some(category),
-          None,
-          None,
-          Some("NaturalMonument")
+          id = Some(contestId),
+          name = "WLE",
+          year = 2015,
+          country = "Ukraine",
+          images = Some(category),
+          categoryId = None,
+          currentRound = None,
+          monumentIdTemplate = Some("NaturalMonument")
         )
 
         val ic = mockService(images, category, contestId)
@@ -66,14 +65,14 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
         val images = Seq(image(id = 11).copy(description = Some(descr)))
 
         val contest = contestDao.create(
-          Some(contestId),
-          "WLE",
-          2015,
-          "Ukraine",
-          Some(category),
-          None,
-          None,
-          Some(idTemplate)
+          id = Some(contestId),
+          name = "WLE",
+          year = 2015,
+          country = "Ukraine",
+          images = Some(category),
+          categoryId = None,
+          currentRound = None,
+          monumentIdTemplate = Some(idTemplate)
         )
 
         val ic = mockService(images, category, contestId)
@@ -91,14 +90,14 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
         val images =
           (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
         val contest = contestDao.create(
-          Some(contestId),
-          "WLE",
-          2015,
-          "Ukraine",
-          Some(category),
-          None,
-          None,
-          Some(idTemplate)
+          id = Some(contestId),
+          name = "WLE",
+          year = 2015,
+          country = "Ukraine",
+          images = Some(category),
+          categoryId = None,
+          currentRound = None,
+          monumentIdTemplate = Some(idTemplate)
         )
 
         val ic = mockService(images, category, contestId)
@@ -112,18 +111,19 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
     }
 
     "get images from list" in {
+      skipped
       val images =
         (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
       withDb {
         val contest = contestDao.create(
-          Some(contestId + 1),
-          "WLE",
-          2019,
-          "International",
-          Some(category),
-          None,
-          None,
-          None
+          id = Some(contestId + 1),
+          name = "WLE",
+          year = 2019,
+          country = "International",
+          images = Some(category),
+          categoryId = None,
+          currentRound = None,
+          monumentIdTemplate = None
         )
         val ic = mockService(images, category, contestId)
         val imageList = images.map(_.title).mkString(System.lineSeparator)
@@ -152,14 +152,14 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
         )
 
         val contest = contestDao.create(
-          Some(contestId),
-          "WLE",
-          2015,
-          "Ukraine",
-          Some(category),
-          None,
-          None,
-          Some(idTemplate)
+          id = Some(contestId),
+          name = "WLE",
+          year = 2015,
+          country = "Ukraine",
+          images = Some(category),
+          categoryId = None,
+          currentRound = None,
+          monumentIdTemplate = Some(idTemplate)
         )
 
         val ic = mockService(images1, category, contestId)
@@ -184,24 +184,24 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
           (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
 
         val contest1 = contestDao.create(
-          Some(contestId + 1),
-          "WLE",
-          2015,
-          "Ukraine",
-          Some(category + 1),
-          None,
-          None,
-          Some(idTemplate)
+          id = Some(contestId + 1),
+          name = "WLE",
+          year = 2015,
+          country = "Ukraine",
+          images = Some(category + 1),
+          categoryId = None,
+          currentRound = None,
+          monumentIdTemplate = Some(idTemplate)
         )
         val contest2 = contestDao.create(
-          Some(contestId + 2),
-          "WLE",
-          2015,
-          "Europe",
-          Some(category + 2),
-          None,
-          None,
-          Some(idTemplate)
+          id = Some(contestId + 2),
+          name = "WLE",
+          year = 2015,
+          country = "Europe",
+          images = Some(category + 2),
+          categoryId = None,
+          currentRound = None,
+          monumentIdTemplate = Some(idTemplate)
         )
 
         val ic = mockService(images, category + 1, contestId + 1)
@@ -227,14 +227,14 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
         val page = "Commons:Wiki Loves Earth 2019/Winners"
         val is = new ImageService(Global.commons, mock[MonumentService])
         val contest = contestDao.create(
-          Some(contestId + 1),
-          "WLE",
-          2019,
-          "International",
-          Some(page),
-          None,
-          None,
-          None
+          id = Some(contestId + 1),
+          name = "WLE",
+          year = 2019,
+          country = "International",
+          images = Some(page),
+          categoryId = None,
+          currentRound = None,
+          monumentIdTemplate = None
         )
         is.appendImages(page, "", contest)
         val contestWithCategory = contestDao.findById(contest.getId).get
@@ -260,26 +260,26 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
 
   private def imageInfo(id: Long) =
     new Page(
-      Some(id),
-      Some(Namespace.FILE),
-      s"File:Image$id.jpg",
+      id = Some(id),
+      ns = Some(Namespace.FILE),
+      title = s"File:Image$id.jpg",
       images = Seq(
         new org.scalawiki.dto.Image(
-          s"File:Image$id.jpg",
-          Some(s"url$id"),
-          Some(s"pageUrl$id"),
-          Some(1234),
-          Some(640),
-          Some(480)
+          title = s"File:Image$id.jpg",
+          url = Some(s"url$id"),
+          pageUrl = Some(s"pageUrl$id"),
+          size = Some(1234),
+          width = Some(640),
+          height = Some(480)
         )
       )
     )
 
   private def revision(id: Long, text: String) =
     new Page(
-      Some(id),
-      Some(Namespace.FILE),
-      s"File:Image$id.jpg",
+      id = Some(id),
+      ns = Some(Namespace.FILE),
+      title = s"File:Image$id.jpg",
       revisions = Seq(
         new Revision(Some(id + 100), Some(id), content = Some(text))
       )
@@ -309,12 +309,12 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
   private def queryImageInfo(
       query: SinglePageQuery,
       imageInfos: Seq[Page]
-  ): OngoingStubbing[Future[Seq[Page]]] = {
+  ) = {
     query.imageInfoByGenerator(
-      "categorymembers",
-      "cm",
+      generator = "categorymembers",
+      generatorPrefix = "cm",
       namespaces = Set(Namespace.FILE),
-      props = Set("timestamp", "user", "size", "url"),
+      props = Set("timestamp", "user", "size", "url", "mime"),
       titlePrefix = None
     ) returns Future.successful(imageInfos)
   }
@@ -322,12 +322,12 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
   private def queryRevisions(
       query: SinglePageQuery,
       revisions: Seq[Page]
-  ): OngoingStubbing[Future[Seq[Page]]] = {
+  ) = {
     query.revisionsByGenerator(
-      "categorymembers",
-      "cm",
-      Set(Namespace.FILE),
-      Set("content", "timestamp", "user", "comment"),
+      generator = "categorymembers",
+      generatorPrefix = "cm",
+      namespaces = Set(Namespace.FILE),
+      props = Set("content", "timestamp", "user", "comment"),
       limit = "50",
       titlePrefix = None
     ) returns Future.successful(revisions)

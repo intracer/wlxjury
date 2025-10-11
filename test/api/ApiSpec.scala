@@ -1,11 +1,11 @@
 package api
 
-import controllers.ContestController
+import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
 import org.apache.pekko.http.scaladsl.testkit.Specs2RouteTest
 import org.intracer.wmua.ContestJury
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
+import services.ContestService
 
 class ApiSpec
   extends Specification
@@ -13,8 +13,8 @@ class ApiSpec
   with Specs2RouteTest
   with JsonFormat {
 
-  private val controller = mock[ContestController]
-  private val route = new Api(controller).routes
+  private val service = mock[ContestService]
+  private val route = new Api(service).routes
   private val contest = ContestJury(
     id = Some(1),
     name = "WLM",
@@ -25,7 +25,7 @@ class ApiSpec
 
   "api" should {
     "get contests" in {
-      controller.findContests returns List(contest)
+      service.findContests() returns List(contest)
       Get("api/contests") ~> route ~> check {
         responseAs[List[ContestJury]] === List(contest)
       }

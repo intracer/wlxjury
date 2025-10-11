@@ -7,7 +7,6 @@ import org.testcontainers.utility.DockerImageName
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
-import scalikejdbc.PlayModule
 
 import java.time.ZonedDateTime
 
@@ -67,7 +66,6 @@ trait TestDb {
 
     new GuiceApplicationBuilder()
       .configure(dbConfiguration ++ additionalConfig)
-      .bindings(new PlayModule)
       .build()
   }
 
