@@ -45,7 +45,7 @@ object SelectionJdbc extends CRUDMapper[Selection] {
       rate: Int,
       juryId: Long,
       roundId: Long,
-      createdAt: Option[ZonedDateTime] = Some(ZonedDateTime.now)
+      createdAt: Option[ZonedDateTime] = None
   ): Selection = {
     val id = withSQL {
       insert

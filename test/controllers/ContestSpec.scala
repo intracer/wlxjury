@@ -19,16 +19,21 @@ class ContestSpec extends PlaySpecification with TestDb {
         val bot = MwBot.fromHost("commons.wikimedia.org")
         val contestsController = new ContestController(bot, Helpers.stubControllerComponents())
 
-        userDao.create(
-          User("fullname", email, None, Set("root"), contestId = None)
+        val created = userDao.create(
+          User(
+            fullname = "fullname",
+            email = email,
+            id = None,
+            roles = Set("root"),
+            contestId = None
+          )
         )
-        FakeRequest("POST", "/")
         val request = FakeRequest("POST", "/contests/import")
           .withSession(Secured.UserName -> email)
           .withFormUrlEncodedBody("source" -> "Category:Wiki Loves Earth 2013 in Ukraine")
           .withCSRFToken
 
-        val result = contestsController.importContests().apply(request)
+        val result = call(contestsController.importContests(), request)
         status(result) mustEqual SEE_OTHER
 
         val contests = contestDao.findAll()
