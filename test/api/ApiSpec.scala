@@ -13,15 +13,16 @@ class ApiSpec
   with Specs2RouteTest
   with JsonFormat {
 
-  val controller = mock[ContestController]
-  val route = new Api(controller).routes
-  val contest = ContestJury(
+  private val controller = mock[ContestController]
+  private val route = new Api(controller).routes
+  private val contest = ContestJury(
     id = Some(1),
     name = "WLM",
     year = 2022,
     country = "Ukraine",
     images = Some("Category:Images_from_Wiki_Loves_Monuments_2022_in_Ukraine")
   )
+
   "api" should {
     "get contests" in {
       controller.findContests returns List(contest)

@@ -1,8 +1,9 @@
 package db.scalikejdbc
 
-import ch.vorburger.mariadb4j.{DB, DBConfigurationBuilder}
+import com.dimafeng.testcontainers.MariaDBContainer
 import db.scalikejdbc.TestDb._
 import org.intracer.wmua.ContestJury
+import org.testcontainers.utility.DockerImageName
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
@@ -22,7 +23,7 @@ trait TestDb {
   /** Current time accessor */
   def now: ZonedDateTime = TestDb.now
 
-  /** Runs a test block with a temporary embedded database
+  /** Runs a test block with a temporary containerized database
     *
     * @param block
     *   Function to execute with the application
@@ -34,40 +35,34 @@ trait TestDb {
   def testDbApp[T](
       block: Application => T
   )(implicit additionalConfig: Map[String, String] = Map.empty): T = {
-    val config = DBConfigurationBuilder.newBuilder
-    config.setPort(0) // 0 => automatically detect free port
+    val container = MariaDBContainer(
+      dockerImageName = DockerImageName.parse("mariadb:10.6.22"),
+      dbName = Schema,
+      dbUsername = UserName,
+      dbPassword = Password
+    )
 
-    config.setUnpackingFromClasspath(false)
-    config.setLibDir(System.getProperty("java.io.tmpdir") + "/MariaDB4j/no-libs")
-
-    // On MacOS with MariaDB installed via homebrew, you can just set base dir to the output of `brew --prefix`
-    val brew = os.proc("/bin/zsh", "-c", "brew --prefix").call().out.text().trim
-    config.setBaseDir(brew)
-
-    val db = DB.newEmbeddedDB(config.build())
-
+    container.start()
     try {
-      db.start()
-      db.createDB(Schema, UserName, Password)
-      val port = db.getConfiguration.getPort
-      val fakeApp = getApp(additionalConfig, port)
+      val fakeApp = getApp(additionalConfig, container)
       running(fakeApp) {
         roundDao.usersRef // init ref TODO fix somehow
 
         block(fakeApp)
       }
     } finally {
-      db.stop()
+      container.stop()
     }
   }
 
   /** Creates a Play application with database configuration
     */
-  private def getApp(additionalConfig: Map[String, String], port: Int): Application = {
+  private def getApp(additionalConfig: Map[String, String], container: MariaDBContainer): Application = {
     val dbConfiguration = Map(
-      "db.default.username" -> UserName,
-      "db.default.password" -> Password,
-      "db.default.url" -> s"jdbc:mariadb://localhost:$port/$Schema?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false"
+      "db.default.driver" -> container.driverClassName,
+      "db.default.username" -> container.username,
+      "db.default.password" -> container.password,
+      "db.default.url" -> container.jdbcUrl
     )
 
     new GuiceApplicationBuilder()

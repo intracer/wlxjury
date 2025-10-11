@@ -11,12 +11,12 @@ import java.util.Properties
 class MariadbSpec extends AnyFlatSpec with ForAllTestContainer {
 
   override val container: MariaDBContainer =
-    MariaDBContainer(dockerImageName = DockerImageName.parse("mariadb:10.3.39"))
+    MariaDBContainer(dockerImageName = DockerImageName.parse("mariadb:10.6.22"))
 
   "Mariadb container" should "be started" in {
     Class.forName(container.driverClassName)
-    val properties = new Properties();
-    properties.setProperty("user", container.username);
+    val properties = new Properties()
+    properties.setProperty("user", container.username)
     properties.setProperty("password", container.password)
     properties.setProperty("useSSL", "false")
     val connection = DriverManager.getConnection(container.jdbcUrl, properties)

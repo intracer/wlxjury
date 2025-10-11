@@ -33,6 +33,7 @@ val PekkoHttpVersion = "1.0.1"
 val ScalaTestVersion = "3.2.9"
 val TestcontainersScalaVersion = "0.41.0"
 val TapirVersion = "1.11.15"
+val MunitVersion = "0.7.29"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -95,7 +96,8 @@ libraryDependencies ++= Seq(
   "net.java.dev.jna" % "jna-platform" % "4.5.0" % Test,
   "com.lihaoyi" %% "os-lib" % "0.11.4" % Test,
   "org.apache.pekko" %% "pekko-http-testkit" % PekkoHttpVersion % Test,
-  "org.apache.pekko" %% "pekko-stream-testkit" % PekkoVersion % Test
+  "org.apache.pekko" %% "pekko-stream-testkit" % PekkoVersion % Test,
+  "org.scalameta" %% "munit" % MunitVersion % Test
 )
 
 dependencyOverrides ++= Seq(
