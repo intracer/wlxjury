@@ -23,13 +23,31 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
     val contestId = 10
     val idTemplate = "MonumentId"
 
+    def createContest(
+        monumentIdTemplate: Option[String] = None,
+        id: Option[Long] = Some(contestId),
+        images: Option[String] = Some(category)
+    ) = {
+      contestDao.create(
+        id = id,
+        name = "WLE",
+        year = 2015,
+        country = "Ukraine",
+        images = images,
+        categoryId = None,
+        currentRound = None,
+        monumentIdTemplate = monumentIdTemplate
+      )
+    }
+
     "get images empty" in {
       withDb {
         val images = Nil
         val ic = mockService(images, category, contestId)
+        val contest = createContest()
 
-        val contest = contestDao.create(Some(contestId), "WLE", 2015, "Ukraine", Some(category))
         ic.appendImages(category, "", contest)
+
         imageDao.findByContest(contest) === images
       }
     }
@@ -37,16 +55,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
     "get one image with text" in {
       withDb {
         val images = Seq(image(id = 11).copy(description = Some("descr"), monumentId = None))
-        val contest = contestDao.create(
-          id = Some(contestId),
-          name = "WLE",
-          year = 2015,
-          country = "Ukraine",
-          images = Some(category),
-          categoryId = None,
-          currentRound = None,
-          monumentIdTemplate = Some("NaturalMonument")
-        )
+        val contest = createContest(Some("NaturalMonument"))
 
         val ic = mockService(images, category, contestId)
         ic.appendImages(category, "", contest)
@@ -64,16 +73,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
         val descr = s"descr. {{$idTemplate|12-345-$imageId}}"
         val images = Seq(image(id = 11).copy(description = Some(descr)))
 
-        val contest = contestDao.create(
-          id = Some(contestId),
-          name = "WLE",
-          year = 2015,
-          country = "Ukraine",
-          images = Some(category),
-          categoryId = None,
-          currentRound = None,
-          monumentIdTemplate = Some(idTemplate)
-        )
+        val contest = createContest(Some(idTemplate))
 
         val ic = mockService(images, category, contestId)
         ic.appendImages(category, "", contest)
@@ -89,16 +89,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
       withDb {
         val images =
           (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
-        val contest = contestDao.create(
-          id = Some(contestId),
-          name = "WLE",
-          year = 2015,
-          country = "Ukraine",
-          images = Some(category),
-          categoryId = None,
-          currentRound = None,
-          monumentIdTemplate = Some(idTemplate)
-        )
+        val contest = createContest(Some(idTemplate))
 
         val ic = mockService(images, category, contestId)
         ic.appendImages(category, "", contest)
@@ -111,20 +102,11 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
     }
 
     "get images from list" in {
-      skipped
-      val images =
-        (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
       withDb {
-        val contest = contestDao.create(
-          id = Some(contestId + 1),
-          name = "WLE",
-          year = 2019,
-          country = "International",
-          images = Some(category),
-          categoryId = None,
-          currentRound = None,
-          monumentIdTemplate = None
-        )
+        val images =
+          (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
+
+        val contest = createContest()
         val ic = mockService(images, category, contestId)
         val imageList = images.map(_.title).mkString(System.lineSeparator)
         ic.appendImages("", imageList, contest)
@@ -151,16 +133,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
           )
         )
 
-        val contest = contestDao.create(
-          id = Some(contestId),
-          name = "WLE",
-          year = 2015,
-          country = "Ukraine",
-          images = Some(category),
-          categoryId = None,
-          currentRound = None,
-          monumentIdTemplate = Some(idTemplate)
-        )
+        val contest = createContest(Some(idTemplate))
 
         val ic = mockService(images1, category, contestId)
         ic.appendImages(category, "", contest)
@@ -183,24 +156,14 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
         val images =
           (11 to 15).map(id => image(id).copy(description = Some(s"{{$idTemplate|12-345-$id}}")))
 
-        val contest1 = contestDao.create(
+        val contest1 = createContest(
           id = Some(contestId + 1),
-          name = "WLE",
-          year = 2015,
-          country = "Ukraine",
           images = Some(category + 1),
-          categoryId = None,
-          currentRound = None,
           monumentIdTemplate = Some(idTemplate)
         )
-        val contest2 = contestDao.create(
+        val contest2 = createContest(
           id = Some(contestId + 2),
-          name = "WLE",
-          year = 2015,
-          country = "Europe",
           images = Some(category + 2),
-          categoryId = None,
-          currentRound = None,
           monumentIdTemplate = Some(idTemplate)
         )
 
@@ -226,16 +189,7 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
       withDb {
         val page = "Commons:Wiki Loves Earth 2019/Winners"
         val is = new ImageService(Global.commons, mock[MonumentService])
-        val contest = contestDao.create(
-          id = Some(contestId + 1),
-          name = "WLE",
-          year = 2019,
-          country = "International",
-          images = Some(page),
-          categoryId = None,
-          currentRound = None,
-          monumentIdTemplate = None
-        )
+        val contest = createContest()
         is.appendImages(page, "", contest)
         val contestWithCategory = contestDao.findById(contest.getId).get
 
@@ -248,13 +202,13 @@ class AppendImagesSpec extends Specification with Mockito with JuryTestHelpers w
 
   private def image(id: Long) =
     Image(
-      id,
-      s"File:Image$id.jpg",
-      Some(s"url$id"),
-      None,
-      640,
-      480,
-      Some(s"12-345-$id"),
+      pageId = id,
+      title = s"File:Image$id.jpg",
+      url = Some(s"url$id"),
+      pageUrl = None,
+      width = 640,
+      height = 480,
+      monumentId = Some(s"12-345-$id"),
       size = Some(1234)
     )
 
