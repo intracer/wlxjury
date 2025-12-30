@@ -106,10 +106,12 @@
         Symbol("readonly") -> noEdit
     )
 
-    @b3.select(
-        editRoundForm("specialNomination"),
-        Seq(("no.filter", Messages("no.filter"))) ++ specialNominations.map(sn => (sn.name, Messages(sn.name))),
-        Symbol("_label") -> Messages("special.nomination"),
-        Symbol("readonly") -> noEdit
-)
+    @if(specialNominations.nonEmpty) {
+        @b3.select(
+            editRoundForm("specialNomination"),
+            Seq(("no.filter", Messages("no.filter"))) ++ specialNominations.map(sn => (sn.name, Messages(sn.name))),
+            Symbol("_label") -> Messages("special.nomination"),
+            Symbol("readonly") -> noEdit
+        )
+    }
 }
