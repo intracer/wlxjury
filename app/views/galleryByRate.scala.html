@@ -41,7 +41,7 @@
     }
 
     @main("byrate", user, asUserId, maybeRound, rounds, true, rate, region,
-        pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate"), rates, rated, contestId
+        pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate", contestId), rates, rated, contestId
     ) {
 
         @defining(maybeRound.flatMap(_.id).map(_.toLong).getOrElse(0L)) { roundId =>
