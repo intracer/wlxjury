@@ -77,7 +77,8 @@ class GalleryService {
       rated: Option[Boolean] = None,
       regions: Set[String] = Set.empty,
       subRegions: Boolean = false,
-      withPageId: Option[Long] = None
+      withPageId: Option[Long] = None,
+      contestId: Option[Long] = None
   ): SelectionQuery = {
     val userIdOpt = Some(userId).filter(_ != 0)
 
@@ -92,7 +93,8 @@ class GalleryService {
       groupWithDetails = userDetails,
       limit = pager.map(p => Limit(Some(p.pageSize), p.offset, p.startPageId)),
       subRegions = subRegions,
-      withPageId = withPageId
+      withPageId = withPageId,
+      contestId = contestId
     )
   }
 

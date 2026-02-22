@@ -34,7 +34,8 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       order: Map[String, Int] = Map.empty,
       subRegions: Boolean = false,
       withPageId: Option[Long] = None,
-      driver: String = "mysql"
+      driver: String = "mysql",
+      contestId: Option[Long] = None
   ) {
 
     private val reader: WrappedResultSet => ImageWithRating =
@@ -164,6 +165,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         Seq(
           userId.map(id => "s.jury_id = " + id),
           roundId.map(id => "s.round_id = " + id),
+          contestId.map(id => s"s.round_id IN (SELECT id FROM rounds WHERE contest_id = $id)"),
           rate.map(r => "s.rate = " + r),
           rated.map { r =>
             val rated = if (r) "s.rate > 0" else "s.rate = 0"

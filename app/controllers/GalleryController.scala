@@ -381,6 +381,46 @@ class GalleryController @Inject() (
     )
   }
 
+  def contestGallery(
+      contestId: Long,
+      page: Int = 1,
+      region: String = "all",
+      rate: Option[Int] = None
+  ): EssentialAction =
+    withAuth() { user => implicit request =>
+      if (!user.hasRole("root") && !user.isInContest(Some(contestId))) {
+        onUnAuthorized(user)
+      } else {
+        val rounds = Round.findByContest(contestId)
+        val pager = pageOffset(page)
+        val query = galleryService.getQuery(
+          userId = 0,
+          rate = rate,
+          roundId = None,
+          pager = Some(pager),
+          contestId = Some(contestId)
+        )
+        pager.setCount(query.count())
+        val files = galleryService.filesByUserId(query, pager, userDetails = false)
+        Ok(
+          views.html.galleryByRate(
+            user,
+            0,
+            files,
+            pager,
+            None,
+            rounds,
+            rate,
+            region,
+            Nil,
+            new RateDistribution(Map.empty),
+            None,
+            Some(contestId)
+          )
+        )
+      }
+    }
+
   def thumbnailUrls(contestId: Long, roundId: Option[Long]): EssentialAction =
     withAuth() { user => implicit request =>
       val contest = ContestJuryJdbc.findById(contestId).get

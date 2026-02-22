@@ -83,6 +83,7 @@ GET         /monuments/id/:id                                                   
 GET         /contests                                                               @controllers.ContestController.list(contestType: Option[String] ?= None, year: Option[Int] ?= None, country: Option[String] ?= None)
 POST        /contests/save                                                          @controllers.ContestController.saveContest()
 POST        /contests/import                                                        @controllers.ContestController.importContests()
+GET         /contest/:contestId/gallery                                              @controllers.GalleryController.contestGallery(contestId: Long, page: Int ?= 1, region: String ?= "all", rate: Option[Int] ?= None)
 GET         /contest/:id/images                                                     @controllers.ImageController.images(id: Long)
 POST        /contest/:id/importimages                                               @controllers.ImageController.importImages(id: Long)
 

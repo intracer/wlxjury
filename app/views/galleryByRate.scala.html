@@ -12,10 +12,11 @@
         region: String = "all",
         regions: Seq[Region],
         rates: RateDistribution,
-        rated: Option[Boolean])(implicit flash: Flash, messages: Messages)
+        rated: Option[Boolean],
+        contestId: Option[Long] = None)(implicit flash: Flash, messages: Messages)
 
     @showRateGalery(file: ImageWithRating, index: Int) = {
-    @defining(maybeRound.get) { round =>
+    @for(round <- maybeRound) {
         @if(round.rates.id > 0) {
         <div style="margin-bottom: 10px;
             color: #ffffff;"> <b>@file.rankStr</b>
@@ -40,16 +41,15 @@
     }
 
     @main("byrate", user, asUserId, maybeRound, rounds, true, rate, region,
-        pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate"), rates, rated
+        pagerView(asUserId, pager, rate, maybeRound.flatMap(_.id), region, "byrate"), rates, rated, contestId
     ) {
 
-        @defining(maybeRound.get) { round =>
-            @defining(round.id.getOrElse(0)) { roundId =>
+        @defining(maybeRound.flatMap(_.id).map(_.toLong).getOrElse(0L)) { roundId =>
 
                 @if(regions.nonEmpty) {
                     @regionNav(
                         (region: String) =>
-                            routes.GalleryController.query("byrate", Some(asUserId), 1, region, roundId.asInstanceOf[Long], rate).url,
+                            routes.GalleryController.query("byrate", Some(asUserId), 1, region, roundId, rate).url,
                         maybeRound, region, regions)
                 }
 
@@ -63,7 +63,7 @@
                             height: 1px"></h1>
 
                         <div class="thumb">
-                            <a href="@routes.LargeViewController.large(asUserId, file.pageId, region, round.getId, None, "byrate")" >
+                            <a href="@routes.LargeViewController.large(asUserId, file.pageId, region, roundId, None, "byrate")" >
                             @if(file.image.isImage) {
                                 <img class="cropped" alt="@file.title"
                                 src="@Global.resizeTo(file.image, Global.gallerySizeX, Global.gallerySizeY)"
@@ -85,6 +85,5 @@
 
             </ul>
             </div>
-            }
         }
     }
