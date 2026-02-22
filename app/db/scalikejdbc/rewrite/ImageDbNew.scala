@@ -29,6 +29,15 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       .single()
       .getOrElse(0)
 
+  /** Return page_ids in gallery order for a category (used to locate an image's position). */
+  def pageIdsByCategory(categoryId: Long): Seq[Long] =
+    SQL(
+      s"select i.page_id from images i join category_members cm on i.page_id = cm.page_id" +
+        s" where cm.category_id = $categoryId" +
+        s" order by i.monument_id asc, i.page_id asc"
+    ).map(_.long(1))
+      .list()
+
   /** Fetch a page of images for a category, ordered by monument_id / page_id. */
   def listByCategory(categoryId: Long, limit: Int, offset: Int): Seq[ImageWithRating] =
     SQL(

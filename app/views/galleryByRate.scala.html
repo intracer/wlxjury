@@ -63,7 +63,7 @@
                             height: 1px"></h1>
 
                         <div class="thumb">
-                            <a href="@routes.LargeViewController.large(asUserId, file.pageId, region, roundId, None, "byrate")" >
+                            <a href="@contestId.fold(routes.LargeViewController.large(asUserId, file.pageId, region, roundId, None, "byrate").url)(cId => routes.LargeViewController.largeForContest(cId, file.pageId, region, rate).url)" >
                             @if(file.image.isImage) {
                                 <img class="cropped" alt="@file.title"
                                 src="@Global.resizeTo(file.image, Global.gallerySizeX, Global.gallerySizeY)"

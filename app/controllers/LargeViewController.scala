@@ -1,5 +1,6 @@
 package controllers
 
+import db.scalikejdbc.rewrite.{ImageDbNew}
 import db.scalikejdbc.rewrite.ImageDbNew.Limit
 import db.scalikejdbc.{ContestJuryJdbc, MonumentJdbc, Round, SelectionJdbc, User}
 import org.intracer.wmua._
@@ -21,6 +22,35 @@ class LargeViewController @Inject() (
   implicit val imageWrites: OWrites[Image] = Json.writes[Image]
   implicit val iwrWrites: OWrites[ImageWithRating] =
     Json.writes[ImageWithRating]
+
+  def largeForContest(
+      contestId: Long,
+      pageId: Long,
+      region: String = "all",
+      rate: Option[Int] = None
+  ): EssentialAction = withAuth() { user => implicit request =>
+    if (!user.hasRole("root") && !user.isInContest(Some(contestId))) {
+      onUnAuthorized(user)
+    } else {
+      val categoryId = ContestJuryJdbc.findById(contestId).flatMap(_.categoryId).getOrElse(0L)
+      val pageIds = ImageDbNew.pageIdsByCategory(categoryId)
+      val rank = pageIds.indexOf(pageId)
+      if (rank < 0) {
+        Redirect(routes.GalleryController.contestGallery(contestId))
+      } else {
+        Round.findByContest(contestId).headOption match {
+          case None =>
+            Redirect(routes.GalleryController.contestGallery(contestId))
+          case Some(round) =>
+            val offset = Math.max(0, rank - 2)
+            val files = ImageDbNew.listByCategory(categoryId, 5, offset)
+            val index = rank - offset
+            val page = rank / Pager.pageSize + 1
+            show2(index, files, user, 0, rate, page, round, region, "byrate", Seq.empty)
+        }
+      }
+    }
+  }
 
   def large(
       asUserId: Long,
