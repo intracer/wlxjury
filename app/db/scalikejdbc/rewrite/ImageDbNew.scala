@@ -22,6 +22,24 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       startPageId: Option[Long] = None
   )
 
+  /** Count all images in a category (used for contest gallery paging). */
+  def countByCategory(categoryId: Long): Int =
+    SQL(s"select count(*) from category_members where category_id = $categoryId")
+      .map(_.int(1))
+      .single()
+      .getOrElse(0)
+
+  /** Fetch a page of images for a category, ordered by monument_id / page_id. */
+  def listByCategory(categoryId: Long, limit: Int, offset: Int): Seq[ImageWithRating] =
+    SQL(
+      s"select ${sqls"${i.result.*}".value}" +
+        s" from images i join category_members cm on i.page_id = cm.page_id" +
+        s" where cm.category_id = $categoryId" +
+        s" order by i.monument_id asc, i.page_id asc" +
+        s" limit $limit offset $offset"
+    ).map(rs => ImageWithRating(ImageJdbc(i)(rs), Seq.empty))
+      .list()
+
   case class SelectionQuery(
       userId: Option[Long] = None,
       roundId: Option[Long] = None,
@@ -34,8 +52,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       order: Map[String, Int] = Map.empty,
       subRegions: Boolean = false,
       withPageId: Option[Long] = None,
-      driver: String = "mysql",
-      contestId: Option[Long] = None
+      driver: String = "mysql"
   ) {
 
     private val reader: WrappedResultSet => ImageWithRating =
@@ -165,7 +182,6 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
         Seq(
           userId.map(id => "s.jury_id = " + id),
           roundId.map(id => "s.round_id = " + id),
-          contestId.map(id => s"s.round_id IN (SELECT id FROM rounds WHERE contest_id = $id)"),
           rate.map(r => "s.rate = " + r),
           rated.map { r =>
             val rated = if (r) "s.rate > 0" else "s.rate = 0"
