@@ -2,6 +2,7 @@ package controllers
 
 import db.scalikejdbc.Round.binaryRound
 import db.scalikejdbc._
+import db.scalikejdbc.rewrite.ImageDbNew
 import org.apache.pekko.http.scaladsl.model.ContentTypes
 import org.apache.pekko.stream.scaladsl.Source
 import org.apache.pekko.util.ByteString
@@ -380,6 +381,40 @@ class GalleryController @Inject() (
       )
     )
   }
+
+  def contestGallery(
+      contestId: Long,
+      page: Int = 1,
+      region: String = "all",
+      rate: Option[Int] = None
+  ): EssentialAction =
+    withAuth() { user => implicit request =>
+      if (!user.hasRole("root") && !user.isInContest(Some(contestId))) {
+        onUnAuthorized(user)
+      } else {
+        val rounds = Round.findByContest(contestId)
+        val categoryId = ContestJuryJdbc.findById(contestId).flatMap(_.categoryId).getOrElse(0L)
+        val pager = pageOffset(page)
+        pager.setCount(ImageDbNew.countByCategory(categoryId))
+        val files = ImageDbNew.listByCategory(categoryId, pager.pageSize, pager.offset.getOrElse(0))
+        Ok(
+          views.html.galleryByRate(
+            user,
+            0,
+            files,
+            pager,
+            None,
+            rounds,
+            rate,
+            region,
+            Nil,
+            new RateDistribution(Map.empty),
+            None,
+            Some(contestId)
+          )
+        )
+      }
+    }
 
   def thumbnailUrls(contestId: Long, roundId: Option[Long]): EssentialAction =
     withAuth() { user => implicit request =>

@@ -22,6 +22,33 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       startPageId: Option[Long] = None
   )
 
+  /** Count all images in a category (used for contest gallery paging). */
+  def countByCategory(categoryId: Long): Int =
+    SQL(s"select count(*) from category_members where category_id = $categoryId")
+      .map(_.int(1))
+      .single()
+      .getOrElse(0)
+
+  /** Return page_ids in gallery order for a category (used to locate an image's position). */
+  def pageIdsByCategory(categoryId: Long): Seq[Long] =
+    SQL(
+      s"select i.page_id from images i join category_members cm on i.page_id = cm.page_id" +
+        s" where cm.category_id = $categoryId" +
+        s" order by i.monument_id asc, i.page_id asc"
+    ).map(_.long(1))
+      .list()
+
+  /** Fetch a page of images for a category, ordered by monument_id / page_id. */
+  def listByCategory(categoryId: Long, limit: Int, offset: Int): Seq[ImageWithRating] =
+    SQL(
+      s"select ${sqls"${i.result.*}".value}" +
+        s" from images i join category_members cm on i.page_id = cm.page_id" +
+        s" where cm.category_id = $categoryId" +
+        s" order by i.monument_id asc, i.page_id asc" +
+        s" limit $limit offset $offset"
+    ).map(rs => ImageWithRating(ImageJdbc(i)(rs), Seq.empty))
+      .list()
+
   case class SelectionQuery(
       userId: Option[Long] = None,
       roundId: Option[Long] = None,
