@@ -1,6 +1,6 @@
 "use strict";
 
-const { formatCacheStatus, pollCacheStatus } = require("./cache-status");
+const { formatCacheStatus, pollCacheStatus } = require("../public/javascripts/cache-status");
 
 // ---------------------------------------------------------------------------
 // formatCacheStatus – pure logic, no DOM needed

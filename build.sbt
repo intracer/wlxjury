@@ -1,5 +1,17 @@
 import sbt.Keys._
 
+// Run Jest tests in public/javascripts as part of `sbt test`.
+lazy val jsTest = taskKey[Unit]("Run Jest tests for public/javascripts")
+
+jsTest := {
+  val jsDir = baseDirectory.value / "javascript-test"
+  val result = scala.sys.process.Process(Seq("npm", "test", "--", "--no-coverage"), jsDir).!
+  if (result != 0) throw new MessageOnlyException("Jest tests failed")
+}
+
+// Wire jsTest into the normal `sbt test` run.
+Test / test := (Test / test).dependsOn(jsTest).value
+
 lazy val root = identity(
   (project in file("."))
     .enablePlugins(
