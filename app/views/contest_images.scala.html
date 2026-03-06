@@ -58,10 +58,17 @@
                     .then(function(p) {
                         var el = document.getElementById("cache-status");
                         if (p.total > 0) {
-                            var pct = Math.round(100 * p.done / p.total);
+                            var pct    = Math.round(100 * p.done / p.total);
                             var errStr = p.errors > 0 ? ", " + p.errors + " errors" : "";
+                            var rate   = p.ratePerSec > 0 ? " – " + p.ratePerSec.toFixed(1) + " img/s" : "";
+                            var eta    = "";
+                            if (p.running && p.etaSeconds > 0) {
+                                eta = p.etaSeconds >= 60
+                                    ? " – ETA " + Math.floor(p.etaSeconds / 60) + "m " + (p.etaSeconds % 60) + "s"
+                                    : " – ETA " + p.etaSeconds + "s";
+                            }
                             el.textContent = p.done + " / " + p.total + " downloaded (" + pct + "%" + errStr + ")"
-                                + (p.running ? " – running…" : " – done");
+                                + rate + eta + (p.running ? " – running…" : " – done");
                         } else if (p.running) {
                             el.textContent = "Starting…";
                         }
