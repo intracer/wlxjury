@@ -22,7 +22,16 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
-case class CacheProgress(done: Int, total: Int, errors: Int, running: Boolean)
+case class CacheProgress(
+    done: Int,
+    total: Int,
+    errors: Int,
+    running: Boolean,
+    startedAtMs: Long  = 0L,
+    elapsedMs: Long    = 0L,
+    ratePerSec: Double = 0.0,
+    etaSeconds: Long   = 0L
+)
 
 object CacheProgress {
   implicit val writes: Writes[CacheProgress] = Json.writes[CacheProgress]
@@ -73,8 +82,17 @@ class LocalImageCacheService @Inject() (
     val total = images.size
     val done  = new AtomicInteger(0)
     val errs  = new AtomicInteger(0)
+    val startMs = System.currentTimeMillis()
 
-    progressMap.put(contestId, CacheProgress(0, total, 0, running = true))
+    def mkProgress(d: Int, running: Boolean): CacheProgress = {
+      val elapsed = System.currentTimeMillis() - startMs
+      val rate    = if (elapsed > 0) d * 1000.0 / elapsed else 0.0
+      val eta     = if (rate > 0) ((total - d) / rate).toLong else 0L
+      CacheProgress(d, total, errs.get, running,
+        startedAtMs = startMs, elapsedMs = elapsed, ratePerSec = rate, etaSeconds = eta)
+    }
+
+    progressMap.put(contestId, mkProgress(0, running = true))
 
     Source(images)
       .filterNot(allSizesCached)
@@ -87,12 +105,12 @@ class LocalImageCacheService @Inject() (
           }
           .map { _ =>
             val d = done.incrementAndGet()
-            progressMap.put(contestId, CacheProgress(d, total, errs.get, running = true))
+            progressMap.put(contestId, mkProgress(d, running = true))
           }
       }
       .runWith(Sink.ignore)
       .onComplete { _ =>
-        progressMap.put(contestId, CacheProgress(done.get, total, errs.get, running = false))
+        progressMap.put(contestId, mkProgress(done.get, running = false))
       }
   }
 
