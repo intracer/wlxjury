@@ -1,7 +1,7 @@
 import sbt.Keys._
 
-// Run Jest tests in public/javascripts as part of `sbt test`.
-lazy val jsTest = taskKey[Unit]("Run Jest tests for public/javascripts")
+// Run Jest tests in javascript-test/ as part of `sbt test`.
+lazy val jsTest = taskKey[Unit]("Run Jest tests in javascript-test/")
 
 jsTest := {
   val jsDir = baseDirectory.value / "javascript-test"
