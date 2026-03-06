@@ -40,4 +40,36 @@
                 }
             </div>
         }
+
+        <hr/>
+        <h4>@Messages("local.image.cache")</h4>
+        <div id="cache-status"></div>
+        <form method="post" action="@routes.ImageController.startImageCache(contest.getId)">
+            @helper.CSRF.formField
+            <button type="submit" class="btn btn-default">@Messages("download.images.locally")</button>
+        </form>
+
+        <script>
+        (function pollCacheStatus() {
+            var statusUrl = "@routes.ImageController.imageCacheStatus(contest.getId)";
+            function update() {
+                fetch(statusUrl)
+                    .then(function(r) { return r.json(); })
+                    .then(function(p) {
+                        var el = document.getElementById("cache-status");
+                        if (p.total > 0) {
+                            var pct = Math.round(100 * p.done / p.total);
+                            var errStr = p.errors > 0 ? ", " + p.errors + " errors" : "";
+                            el.textContent = p.done + " / " + p.total + " downloaded (" + pct + "%" + errStr + ")"
+                                + (p.running ? " – running…" : " – done");
+                        } else if (p.running) {
+                            el.textContent = "Starting…";
+                        }
+                        if (p.running) { setTimeout(update, 3000); }
+                    })
+                    .catch(function() { setTimeout(update, 5000); });
+            }
+            update();
+        })();
+        </script>
     }
