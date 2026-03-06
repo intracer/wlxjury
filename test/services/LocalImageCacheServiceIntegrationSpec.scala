@@ -2,8 +2,10 @@ package services
 
 import com.typesafe.config.ConfigFactory
 import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.Http
 import org.apache.pekko.stream.scaladsl.{Sink, Source}
 import org.intracer.wmua.{Image, ImageUtil}
+import org.specs2.matcher.MatchResult
 import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
 import org.specs2.mutable.Specification
@@ -20,14 +22,18 @@ class LocalImageCacheServiceIntegrationSpec extends Specification {
   sequential
   skipAllUnless(sys.props.get("integration").contains("true"))
 
-  implicit val system: ActorSystem  = ActorSystem("LocalImageCacheIntegrationSpec")
-  implicit val ec: ExecutionContext = system.dispatcher
+  implicit lazy val system: ActorSystem  = ActorSystem("LocalImageCacheIntegrationSpec")
+  implicit lazy val ec: ExecutionContext = system.dispatcher
 
   // ── helpers ────────────────────────────────────────────────────────────────
 
-  val tempDir: File = Files.createTempDirectory("wlxjury-integration").toFile
+  lazy val tempDir: File = {
+    val d = Files.createTempDirectory("wlxjury-integration").toFile
+    d.deleteOnExit()
+    d
+  }
 
-  val svc: LocalImageCacheService = {
+  lazy val svc: LocalImageCacheService = {
     val config = Configuration(
       ConfigFactory.parseString(
         s"""wlxjury.thumbs.local-path = "${tempDir.getAbsolutePath}"
@@ -43,7 +49,7 @@ class LocalImageCacheServiceIntegrationSpec extends Specification {
   // mirrors LocalImageCacheService.sourceHeight
   private val sourceHeight = (controllers.Global.largeSizeY * 1.5).toInt
 
-  private val imageInfoProps = Set("timestamp", "user", "size", "url", "mime")
+  private val imageInfoProps = Set("size", "url", "mime")
 
   /** Fetch up to `limit` eligible images from a Commons category via scalawiki. */
   def fetchImagesFromCommons(category: String, limit: Int): Seq[Image] = {
@@ -128,11 +134,14 @@ class LocalImageCacheServiceIntegrationSpec extends Specification {
       succeeded mustEqual images.size
 
       // Every processed image must have all thumbnail sizes on disk
-      images must contain { img: Image => svc.allSizesCached(img) must beTrue }.forall
+      images.foldLeft(ok: MatchResult[Any]) { (acc, img) =>
+        acc and (svc.allSizesCached(img) must beTrue.updateMessage(m => s"${img.title}: $m"))
+      }
     }
   }
 
   step {
+    Await.result(Http().shutdownAllConnectionPools(), 10.seconds)
     Await.result(system.terminate(), 30.seconds)
     ()
   }
