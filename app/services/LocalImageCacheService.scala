@@ -76,9 +76,13 @@ class LocalImageCacheService @Inject() (
   private val userAgent = headers.RawHeader("User-Agent", "WLXJury/1.0 (https://commons.wikimedia.org/wiki/Commons:WLX_Jury_Tool; intracer@gmail.com)")
 
   private val progressMap = new ConcurrentHashMap[Long, CacheProgress]()
+  private val roundProgressMap = new ConcurrentHashMap[Long, CacheProgress]()
 
   def progress(contestId: Long): CacheProgress =
     Option(progressMap.get(contestId)).getOrElse(CacheProgress(0, 0, 0, running = false))
+
+  def progressForRound(roundId: Long): CacheProgress =
+    Option(roundProgressMap.get(roundId)).getOrElse(CacheProgress(0, 0, 0, running = false))
 
   def startDownload(contestId: Long): Unit = {
     if (progress(contestId).running) return
@@ -86,6 +90,58 @@ class LocalImageCacheService @Inject() (
       .findByContestId(contestId)
       .filter(img => img.isImage && img.url.isDefined && img.width > 0 && img.height > 0)
     runDownload(contestId, images)
+  }
+
+  def startDownloadForRound(contestId: Long, roundId: Long): Unit = {
+    if (progressForRound(roundId).running) return
+    val images = scala.util.Try(ImageJdbc.byRound(roundId)) match {
+      case scala.util.Success(imgs) => imgs
+      case scala.util.Failure(ex) =>
+        logger.warn(s"Failed to load images for round $roundId: ${ex.getMessage}")
+        Seq.empty
+    }
+    val filtered = images.filter(img => img.isImage && img.url.isDefined && img.width > 0 && img.height > 0)
+    if (filtered.isEmpty) return  // nothing to do, progress stays at default (running=false)
+    runDownloadForRound(roundId, filtered)
+  }
+
+  private def runDownloadForRound(roundId: Long, images: Seq[Image]): Future[Unit] = {
+    val existing   = localFileSet()
+    val toDownload = images.filterNot(allSizesCached(_, existing))
+    logger.info(s"Round $roundId: ${images.size} images total, ${images.size - toDownload.size} already cached, ${toDownload.size} to download")
+
+    val startMs = System.currentTimeMillis()
+    val total   = toDownload.size
+    val done    = new AtomicInteger(0)
+    val errs    = new AtomicInteger(0)
+
+    def mkProgress(d: Int, running: Boolean): CacheProgress = {
+      val elapsed = System.currentTimeMillis() - startMs
+      val rate    = if (elapsed > 0) d * 1000.0 / elapsed else 0.0
+      val eta     = if (rate > 0) ((total - d) / rate).toLong else 0L
+      CacheProgress(d, total, errs.get, running,
+        startedAtMs = startMs, elapsedMs = elapsed, ratePerSec = rate, etaSeconds = eta)
+    }
+
+    roundProgressMap.put(roundId, mkProgress(0, running = true))
+
+    Source(toDownload)
+      .throttle(ratePerSec, 1.second)
+      .mapAsyncUnordered(parallelism) { image =>
+        downloadAndResize(image)
+          .recover { case ex =>
+            logger.warn(s"Failed to cache ${image.title}: ${ex.getMessage}")
+            errs.incrementAndGet()
+          }
+          .map { _ =>
+            val d = done.incrementAndGet()
+            roundProgressMap.put(roundId, mkProgress(d, running = true))
+          }
+      }
+      .runWith(Sink.ignore)
+      .map { _ =>
+        roundProgressMap.put(roundId, mkProgress(done.get, running = false))
+      }
   }
 
   private[services] def runDownload(contestId: Long, images: Seq[Image]): Future[Unit] = {

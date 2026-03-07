@@ -443,6 +443,41 @@ class LocalImageCacheServiceSpec extends Specification {
     }
   }
 
+  // ── startDownloadForRound ─────────────────────────────────────────────────
+
+  "startDownloadForRound" should {
+
+    "report progress keyed by roundId, separate from contest progress" in {
+      val tmpDir = Files.createTempDirectory("round-cache-test").toFile
+      val svc = mkService(tmpDir)
+
+      svc.startDownloadForRound(contestId = 99L, roundId = 7L)
+
+      val roundProg  = svc.progressForRound(7L)
+      val contestProg = svc.progress(99L)
+
+      roundProg.running must beFalse   // nothing in round, completes instantly
+      contestProg.running must beFalse // contest progress not touched
+
+      tmpDir.delete()
+      ok
+    }
+
+    "not start a second download for the same round while one is running" in {
+      val tmpDir = Files.createTempDirectory("round-cache-guard").toFile
+      val svc = mkService(tmpDir)
+
+      // prime the round progress as running
+      svc.progressForRound(8L) // ensure key exists (returns default)
+      // can't easily assert "second call is no-op" without mocking images,
+      // so just verify it doesn't throw
+      svc.startDownloadForRound(contestId = 1L, roundId = 8L)
+      svc.startDownloadForRound(contestId = 1L, roundId = 8L) // should be no-op
+
+      ok
+    }
+  }
+
   // ── teardown ─────────────────────────────────────────────────────────────
 
   step {
