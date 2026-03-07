@@ -25,7 +25,7 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
   // ── shared images (fetched once) ────────────────────────────────────────────
 
   lazy val images = fetchImagesFromCommons(
-    "Category:Images from Wiki Loves Earth 2021 in Armenia",
+    "Category:Images from Wiki Loves Earth 2025 in Bolivia",
     limit = 50
   )
 
@@ -66,6 +66,7 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
   def buildApp(extraConfig: Map[String, String] = Map.empty) =
     new GuiceApplicationBuilder()
       .configure(Map(
+        "commons.host"                   -> "commons.wikimedia.org",
         "db.default.driver"              -> "org.mariadb.jdbc.Driver",
         "db.default.url"                 -> (
           s"jdbc:mariadb://$mariadbHost:$mariadbPort/wlxjury_test" +
