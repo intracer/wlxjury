@@ -28,14 +28,15 @@ function formatCacheStatus(p) {
     return null;
 }
 
-function pollCacheStatus(statusUrl) {
+function pollCacheStatus(statusUrl, elementId) {
+    elementId = elementId || 'cache-status';
     function update() {
         fetch(statusUrl)
             .then(function(r) { return r.json(); })
             .then(function(p) {
                 var text = formatCacheStatus(p);
                 if (text !== null) {
-                    document.getElementById("cache-status").textContent = text;
+                    document.getElementById(elementId).textContent = text;
                 }
                 if (p.running) { setTimeout(update, 3000); }
             })

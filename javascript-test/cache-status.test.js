@@ -196,4 +196,15 @@ describe("pollCacheStatus", () => {
         await flushPromises();
         expect(global.fetch).toHaveBeenCalledTimes(2);
     });
+
+    test("uses custom elementId when provided", async () => {
+        const customEl = { textContent: "" };
+        global.document = {
+            getElementById: jest.fn((id) => id === "round-cache-status" ? customEl : null)
+        };
+        mockFetch({ total: 100, done: 60, errors: 0, running: false, ratePerSec: 0, etaSeconds: 0 });
+        pollCacheStatus("/status/1", "round-cache-status");
+        await flushPromises();
+        expect(customEl.textContent).toBe("60 / 100 downloaded (60%) \u2013 done");
+    });
 });
