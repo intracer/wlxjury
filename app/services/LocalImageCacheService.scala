@@ -149,12 +149,16 @@ class LocalImageCacheService @Inject() (
         (if (isPdf || isTif) ".jpg" else "")
     }
 
-  // Local path mirrors the URL path, so Apache can serve it under the same URL structure
+  // Local path mirrors the URL path, so Apache can serve it under the same URL structure.
+  // URL-decode the path so Cyrillic/Unicode filenames stay under the 255-byte OS limit
+  // (each encoded char is 6 ASCII bytes but only 2 UTF-8 bytes when decoded).
+  // Apache URL-decodes request paths before file lookup, so it finds the decoded files.
   private[services] def localFile(image: Image, px: Int): File = {
     val path = wikiThumbUrl(image, px)
       .getOrElse("")
       .replaceFirst("https?://upload\\.wikimedia\\.org", "")
-    new File(localPath + path)
+    val decoded = java.net.URLDecoder.decode(path, "UTF-8")
+    new File(localPath + decoded)
   }
 
   private def downloadAndResize(image: Image): Future[Unit] = {
