@@ -97,10 +97,12 @@ class LocalImageCacheService @Inject() (
         startedAtMs = startMs, elapsedMs = elapsed, ratePerSec = rate, etaSeconds = eta)
     }
 
+    val toDownload = images.filterNot(allSizesCached)
+    logger.info(s"Contest $contestId: ${images.size} images total, ${images.size - toDownload.size} already cached, ${toDownload.size} to download")
+
     progressMap.put(contestId, mkProgress(0, running = true))
 
-    Source(images)
-      .filterNot(allSizesCached)
+    Source(toDownload)
       .throttle(ratePerSec, 1.second)
       .mapAsyncUnordered(parallelism) { image =>
         downloadAndResize(image)
@@ -120,6 +122,7 @@ class LocalImageCacheService @Inject() (
   }
 
   private[services] def allSizesCached(image: Image): Boolean =
+    image.url.exists(_.contains("//upload.wikimedia.org/wikipedia/commons/")) &&
     targetHeights.forall { h =>
       val px = ImageUtil.resizeTo(image.width, image.height, h)
       px >= image.width || localFile(image, px).exists()
@@ -160,7 +163,9 @@ class LocalImageCacheService @Inject() (
     val urlOpt = if (sourcePx >= image.width) image.url else wikiThumbUrl(image, sourcePx)
 
     urlOpt match {
-      case None => Future.successful(())
+      case None =>
+        logger.warn(s"No cacheable URL for ${image.title} (url=${image.url})")
+        Future.successful(())
       case Some(url) =>
         downloadWithRetry(url, attempt = 1).map {
           case Some(bytes) =>
