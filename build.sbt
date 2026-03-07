@@ -123,6 +123,10 @@ routesGenerator := InjectedRoutesGenerator
 Test / javaOptions += "-Dconfig.file=test/resources/application.conf"
 Test / javaOptions += "-Djna.nosys=true"
 Test / fork := true
+// Forward -Dintegration and -Ddocker.tests to the forked test JVM
+Test / javaOptions ++= Seq("integration", "docker.tests").flatMap { key =>
+  sys.props.get(key).map(v => s"-D$key=$v")
+}
 
 //rpmRelease := "1"
 
