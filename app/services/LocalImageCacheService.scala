@@ -68,6 +68,9 @@ class LocalImageCacheService @Inject() (
   // The source image downloaded from wikimedia covers all target heights
   private val sourceHeight = (Global.largeSizeY * 1.5).toInt // 1650
 
+  // Wikimedia only serves thumbnails at these fixed widths ($wgThumbnailSteps)
+  private val wikiThumbnailSteps = Seq(20, 40, 60, 120, 250, 330, 500, 960, 1280, 1920, 3840)
+
   private val userAgent = headers.RawHeader("User-Agent", "WLXJury/1.0 (Wikimedia jury tool)")
 
   private val progressMap = new ConcurrentHashMap[Long, CacheProgress]()
@@ -155,11 +158,10 @@ class LocalImageCacheService @Inject() (
   }
 
   private def downloadAndResize(image: Image): Future[Unit] = {
-    val sourcePx = math.min(
-      ImageUtil.resizeTo(image.width, image.height, sourceHeight),
-      image.width
-    )
-    // Use original URL if source size equals full image width, otherwise use a thumb
+    val neededPx = ImageUtil.resizeTo(image.width, image.height, sourceHeight)
+    // Snap up to the nearest Wikimedia thumbnail step; fall back to original if none is large enough
+    val sourcePx = wikiThumbnailSteps.find(_ >= neededPx).getOrElse(image.width)
+    // Use original URL if snapped step meets or exceeds the full image width
     val urlOpt = if (sourcePx >= image.width) image.url else wikiThumbUrl(image, sourcePx)
 
     urlOpt match {
