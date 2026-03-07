@@ -195,9 +195,14 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
           acc and (svc.allSizesCached(img) must beTrue.updateMessage(
             m => s"${img.title}: $m"))
         } and {
-          // Spot-check three heights via Apache for all images
+          // Allow a moment for the bind-mount (VirtioFS on macOS) to sync writes
+          // from the host filesystem into the container before Apache checks files.
+          Thread.sleep(3000)
+          // Spot-check three heights via Apache for a sample of images.
+          // Checking all 50 × 3 = 150 requests back-to-back would hit Wikimedia's
+          // rate limit for any file Apache has to proxy (before the sync is complete).
           val checkHeights = Seq(120, 250, 1100)
-          images.foldLeft(ok: org.specs2.matcher.MatchResult[Any]) { (acc, img) =>
+          images.take(3).foldLeft(ok: org.specs2.matcher.MatchResult[Any]) { (acc, img) =>
             checkHeights.foldLeft(acc) { (acc2, h) =>
               val px = org.intracer.wmua.ImageUtil.resizeTo(img.width, img.height, h)
               if (px < img.width) {
