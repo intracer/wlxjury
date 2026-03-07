@@ -36,7 +36,7 @@ function pollCacheStatus(statusUrl, elementId) {
             .then(function(p) {
                 var text = formatCacheStatus(p);
                 if (text !== null) {
-                    document.getElementById(elementId).textContent = text;
+                    document.getElementById(elementId).innerHTML = text;
                 }
                 if (p.running) { setTimeout(update, 3000); }
             })

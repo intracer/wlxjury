@@ -132,7 +132,7 @@ describe("pollCacheStatus", () => {
         jest.useFakeTimers();
 
         // Minimal DOM stub
-        statusEl = { textContent: "" };
+        statusEl = { innerHTML: "" };
         global.document = {
             getElementById: jest.fn((id) => id === "cache-status" ? statusEl : null)
         };
@@ -161,11 +161,11 @@ describe("pollCacheStatus", () => {
         expect(global.fetch).toHaveBeenCalledWith("/status/42");
     });
 
-    test("updates #cache-status textContent", async () => {
+    test("updates #cache-status innerHTML", async () => {
         mockFetch({ total: 100, done: 60, errors: 0, running: false, ratePerSec: 0, etaSeconds: 0 });
         pollCacheStatus("/status/1");
         await flushPromises();
-        expect(statusEl.textContent).toBe("60 / 100 downloaded (60%) \u2013 done");
+        expect(statusEl.innerHTML).toBe("60 / 100 downloaded (60%) \u2013 done");
     });
 
     test("schedules a follow-up poll when running", async () => {
@@ -198,13 +198,13 @@ describe("pollCacheStatus", () => {
     });
 
     test("uses custom elementId when provided", async () => {
-        const customEl = { textContent: "" };
+        const customEl = { innerHTML: "" };
         global.document = {
             getElementById: jest.fn((id) => id === "round-cache-status" ? customEl : null)
         };
         mockFetch({ total: 100, done: 60, errors: 0, running: false, ratePerSec: 0, etaSeconds: 0 });
         pollCacheStatus("/status/1", "round-cache-status");
         await flushPromises();
-        expect(customEl.textContent).toBe("60 / 100 downloaded (60%) \u2013 done");
+        expect(customEl.innerHTML).toBe("60 / 100 downloaded (60%) \u2013 done");
     });
 });
