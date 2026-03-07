@@ -48,12 +48,14 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
 
   // ── helpers ─────────────────────────────────────────────────────────────────
 
-  /** Simple blocking HTTP GET; returns (statusCode, contentType). */
-  def httpGet(url: String): (Int, Option[String]) = {
+  /** Simple blocking HTTP GET; returns (statusCode, contentType, X-Jury-Cache header value). */
+  def httpGet(url: String): (Int, Option[String], Option[String]) = {
     val conn = new java.net.URL(url).openConnection().asInstanceOf[HttpURLConnection]
     conn.setConnectTimeout(10_000)
     conn.setReadTimeout(30_000)
-    try (conn.getResponseCode, Option(conn.getContentType))
+    try (conn.getResponseCode,
+         Option(conn.getContentType),
+         Option(conn.getHeaderField("X-Jury-Cache")))
     finally conn.disconnect()
   }
 
@@ -76,9 +78,9 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
         "db.default.password"            -> "wlxjury_password",
         "wlxjury.thumbs.host"            -> s"$apacheHost:$apachePort",
         "wlxjury.thumbs.local-path"      -> imagesDir.getAbsolutePath,
-        "wlxjury.thumbs.parallelism"     -> "4",
+        "wlxjury.thumbs.parallelism"     -> "1",
         "wlxjury.thumbs.rate-per-second" -> "5",
-        "wlxjury.thumbs.max-attempts"    -> "5"
+        "wlxjury.thumbs.max-attempts"    -> "3"
       ) ++ extraConfig)
       .build()
 
@@ -133,12 +135,12 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
       }
       wikiUrlOpt must beSome
       val apacheUrl = toApacheUrl(wikiUrlOpt.get)
-      val (st, _) = httpGet(apacheUrl)
-      st mustEqual 200
+      val (st, _, xCache) = httpGet(apacheUrl)
+      (st mustEqual 200) and (xCache must beSome("proxied"))
     }
 
     "return non-200 for a completely bogus path" in {
-      val (st, _) = httpGet(
+      val (st, _, _) = httpGet(
         s"http://$apacheHost:$apachePort/wikipedia/commons/thumb/x/xx/nosuchfile.jpg/999px-nosuchfile.jpg"
       )
       st must be_>=(400)
@@ -195,12 +197,11 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
           acc and (svc.allSizesCached(img) must beTrue.updateMessage(
             m => s"${img.title}: $m"))
         } and {
-          // Allow a moment for the bind-mount (VirtioFS on macOS) to sync writes
-          // from the host filesystem into the container before Apache checks files.
-          Thread.sleep(3000)
-          // Spot-check three heights via Apache for a sample of images.
-          // Checking all 50 × 3 = 150 requests back-to-back would hit Wikimedia's
-          // rate limit for any file Apache has to proxy (before the sync is complete).
+          // Spot-check a sample of images: assert Apache serves them from local disk.
+          // X-Cache: local  → file found in DocumentRoot, served without proxying  ✓
+          // X-Cache: proxied → file missing from container, Apache fetched from Wikimedia ✗
+          // Using X-Cache avoids false passes (local file ≈ proxied file both return 200)
+          // and avoids 429s from Wikimedia caused by making many rapid proxy requests.
           val checkHeights = Seq(120, 250, 1100)
           images.take(3).foldLeft(ok: org.specs2.matcher.MatchResult[Any]) { (acc, img) =>
             checkHeights.foldLeft(acc) { (acc2, h) =>
@@ -210,11 +211,11 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
                   case None => acc2
                   case Some(wikiUrl) =>
                     val apacheUrl = toApacheUrl(wikiUrl)
-                    val (st, ct) = httpGet(apacheUrl)
+                    val (st, _, xCache) = httpGet(apacheUrl)
                     acc2 and
                       (st mustEqual 200).updateMessage(m => s"${img.title} ${px}px status: $m") and
-                      (ct must beSome(contain("image")).updateMessage(
-                        m => s"${img.title} ${px}px content-type: $m"))
+                      (xCache must beSome("local")).updateMessage(
+                        m => s"${img.title} ${px}px not served from local cache (X-Cache=$xCache): $m")
                 }
               } else acc2
             }
