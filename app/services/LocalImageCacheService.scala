@@ -49,9 +49,9 @@ class LocalImageCacheService @Inject() (
   implicit private val system: ActorSystem = actorSystem
 
   private val localPath   = config.get[String]("wlxjury.thumbs.local-path")
-  private val parallelism = config.getOptional[Int]("wlxjury.thumbs.parallelism").getOrElse(8)
-  private val ratePerSec  = config.getOptional[Int]("wlxjury.thumbs.rate-per-second").getOrElse(5)
-  private val maxAttempts = config.getOptional[Int]("wlxjury.thumbs.max-attempts").getOrElse(10)
+  private val parallelism = config.getOptional[Int]("wlxjury.thumbs.parallelism").getOrElse(1)
+  private val ratePerSec  = config.getOptional[Int]("wlxjury.thumbs.rate-per-second").getOrElse(10)
+  private val maxAttempts = config.getOptional[Int]("wlxjury.thumbs.max-attempts").getOrElse(3)
 
   // All thumbnail heights used by the jury UI (1x, 1.5x and 2x for each size slot)
   private val targetHeights: Seq[Int] = Seq(
@@ -71,7 +71,7 @@ class LocalImageCacheService @Inject() (
   // Wikimedia only serves thumbnails at these fixed widths ($wgThumbnailSteps)
   private val wikiThumbnailSteps = Seq(20, 40, 60, 120, 250, 330, 500, 960, 1280, 1920, 3840)
 
-  private val userAgent = headers.RawHeader("User-Agent", "WLXJury/1.0 (Wikimedia jury tool)")
+  private val userAgent = headers.RawHeader("User-Agent", "WLXJury/1.0 (https://commons.wikimedia.org/wiki/Commons:WLX_Jury_Tool; intracer@gmail.com)")
 
   private val progressMap = new ConcurrentHashMap[Long, CacheProgress]()
 
@@ -190,7 +190,7 @@ class LocalImageCacheService @Inject() (
 
         case HttpResponse(StatusCodes.TooManyRequests, respHeaders, entity, _) =>
           entity.toStrict(10.seconds).flatMap { strict =>
-            val body = strict.data.utf8String.take(500)
+            val body = strict.data.utf8String
             if (attempt >= maxAttempts) {
               logger.warn(s"Giving up on $url after $attempt attempts (429): $body")
               Future.successful(None)
