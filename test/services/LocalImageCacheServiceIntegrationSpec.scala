@@ -45,8 +45,8 @@ class LocalImageCacheServiceIntegrationSpec extends Specification with CommonsIm
 
   "LocalImageCacheService integration" should {
 
-    "download and resize all images from Category:Images from Wiki Loves Earth 2021 in Armenia" in {
-      val category = "Category:Images from Wiki Loves Earth 2021 in Armenia"
+    "download and resize all images from Category:Images from Wiki Loves Monuments 2025 in Ukraine" in {
+      val category = "Category:Images from Wiki Loves Monuments 2025 in Ukraine"
       val images   = fetchImagesFromCommons(category, limit = 50)
 
       images must not(beEmpty)
