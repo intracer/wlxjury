@@ -85,6 +85,17 @@ class ImageController @Inject() (
       Ok(Json.toJson(localImageCacheService.progress(contestId)))
     }
 
+  def startRoundImageCache(id: Long, rid: Long): EssentialAction =
+    withAuth(contestPermission(User.ADMIN_ROLES, Some(id))) { _ => implicit request =>
+      localImageCacheService.startDownloadForRound(id, rid)
+      Redirect(routes.RoundController.editRound(Some(rid), id, None))
+    }
+
+  def roundImageCacheStatus(id: Long, rid: Long): EssentialAction =
+    withAuth(contestPermission(User.ADMIN_ROLES, Some(id))) { _ => _ =>
+      Ok(Json.toJson(localImageCacheService.progressForRound(rid)))
+    }
+
   val importImagesForm = Form(
     tuple(
       "source" -> text,
