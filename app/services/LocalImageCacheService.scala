@@ -14,6 +14,8 @@ import play.api.{Configuration, Logging}
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.io.{ByteArrayInputStream, File}
+import java.nio.file.Files
+import scala.jdk.CollectionConverters._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
@@ -87,10 +89,17 @@ class LocalImageCacheService @Inject() (
   }
 
   private[services] def runDownload(contestId: Long, images: Seq[Image]): Future[Unit] = {
-    val total   = images.size
+    // Scan the cache directory once to build a set of existing files.
+    // This is far faster than calling File.exists() per image × per size (320k+ stat calls).
+    val existing  = localFileSet()
+    val toDownload = images.filterNot(allSizesCached(_, existing))
+    logger.info(s"Contest $contestId: ${images.size} images total, ${images.size - toDownload.size} already cached, ${toDownload.size} to download")
+
+    // Start the clock only after the scan, so elapsed/rate/ETA reflect download time only.
+    val startMs = System.currentTimeMillis()
+    val total   = toDownload.size
     val done    = new AtomicInteger(0)
     val errs    = new AtomicInteger(0)
-    val startMs = System.currentTimeMillis()
 
     def mkProgress(d: Int, running: Boolean): CacheProgress = {
       val elapsed = System.currentTimeMillis() - startMs
@@ -99,9 +108,7 @@ class LocalImageCacheService @Inject() (
       CacheProgress(d, total, errs.get, running,
         startedAtMs = startMs, elapsedMs = elapsed, ratePerSec = rate, etaSeconds = eta)
     }
-
-    val toDownload = images.filterNot(allSizesCached)
-    logger.info(s"Contest $contestId: ${images.size} images total, ${images.size - toDownload.size} already cached, ${toDownload.size} to download")
+    logger.info(s"Download config: localPath=$localPath, parallelism=$parallelism, ratePerSec=$ratePerSec, maxAttempts=$maxAttempts")
 
     progressMap.put(contestId, mkProgress(0, running = true))
 
@@ -124,6 +131,25 @@ class LocalImageCacheService @Inject() (
       }
   }
 
+  /** Scans the local cache directory once and returns the set of all cached files. */
+  private def localFileSet(): Set[File] = {
+    val root = new File(localPath)
+    if (!root.exists()) return Set.empty
+    Files.walk(root.toPath).iterator().asScala
+      .filter(p => Files.isRegularFile(p))
+      .map(_.toFile)
+      .toSet
+  }
+
+  /** Bulk variant: checks against a pre-built file set instead of calling File.exists() per file. */
+  private def allSizesCached(image: Image, existing: Set[File]): Boolean =
+    image.url.exists(_.contains("//upload.wikimedia.org/wikipedia/commons/")) &&
+    targetHeights.forall { h =>
+      val px = ImageUtil.resizeTo(image.width, image.height, h)
+      px >= image.width || existing.contains(localFile(image, px))
+    }
+
+  /** Single-image variant for status checks and tests (uses File.exists()). */
   private[services] def allSizesCached(image: Image): Boolean =
     image.url.exists(_.contains("//upload.wikimedia.org/wikipedia/commons/")) &&
     targetHeights.forall { h =>
