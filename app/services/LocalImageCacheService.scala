@@ -8,7 +8,7 @@ import org.apache.pekko.http.scaladsl.model._
 import org.apache.pekko.pattern.after
 import org.apache.pekko.stream.scaladsl._
 import org.intracer.wmua.{Image, ImageUtil}
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.{Json, Reads, Writes}
 import play.api.{Configuration, Logging}
 
 import java.awt.RenderingHints
@@ -35,6 +35,8 @@ case class CacheProgress(
 
 object CacheProgress {
   implicit val writes: Writes[CacheProgress] = Json.writes[CacheProgress]
+  implicit val reads: play.api.libs.json.Reads[CacheProgress] =
+    play.api.libs.json.Json.reads[CacheProgress]
 }
 
 @Singleton
