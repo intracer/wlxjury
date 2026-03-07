@@ -102,13 +102,13 @@ class LocalImageCacheService @Inject() (
     }
     val filtered = images.filter(img => img.isImage && img.url.isDefined && img.width > 0 && img.height > 0)
     if (filtered.isEmpty) return  // nothing to do, progress stays at default (running=false)
-    runDownloadForRound(roundId, filtered)
+    runDownloadForRound(contestId, roundId, filtered)
   }
 
-  private def runDownloadForRound(roundId: Long, images: Seq[Image]): Future[Unit] = {
+  private def runDownloadForRound(contestId: Long, roundId: Long, images: Seq[Image]): Future[Unit] = {
     val existing   = localFileSet()
     val toDownload = images.filterNot(allSizesCached(_, existing))
-    logger.info(s"Round $roundId: ${images.size} images total, ${images.size - toDownload.size} already cached, ${toDownload.size} to download")
+    logger.info(s"Contest $contestId, Round $roundId: ${images.size} images total, ${images.size - toDownload.size} already cached, ${toDownload.size} to download")
 
     val startMs = System.currentTimeMillis()
     val total   = toDownload.size
