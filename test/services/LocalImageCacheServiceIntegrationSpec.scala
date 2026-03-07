@@ -3,10 +3,7 @@ package services
 import com.typesafe.config.ConfigFactory
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.http.scaladsl.Http
-import org.intracer.wmua.Image
 import org.specs2.matcher.MatchResult
-import org.scalawiki.MwBot
-import org.scalawiki.dto.Namespace
 import org.specs2.mutable.Specification
 import play.api.Configuration
 
