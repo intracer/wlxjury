@@ -106,8 +106,6 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
     compose.start()
   }
 
-  step { compose.stop() }
-
   // ── test (a): Apache serving ────────────────────────────────────────────────
 
   "Apache" should {
@@ -212,4 +210,6 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
       }
     }
   }
+
+  step { compose.stop() }
 }
