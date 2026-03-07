@@ -3,19 +3,17 @@ package services
 import com.typesafe.config.ConfigFactory
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.http.scaladsl.Http
-import org.apache.pekko.stream.scaladsl.{Sink, Source}
-import org.intracer.wmua.{Image, ImageUtil}
+import org.intracer.wmua.Image
 import org.specs2.matcher.MatchResult
 import org.scalawiki.MwBot
 import org.scalawiki.dto.Namespace
 import org.specs2.mutable.Specification
 import play.api.Configuration
 
-import java.io.{ByteArrayInputStream, File}
+import java.io.File
 import java.nio.file.Files
-import javax.imageio.ImageIO
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext}
 
 class LocalImageCacheServiceIntegrationSpec extends Specification {
 
@@ -45,9 +43,6 @@ class LocalImageCacheServiceIntegrationSpec extends Specification {
     )
     new LocalImageCacheService(config, system)
   }
-
-  // mirrors LocalImageCacheService.sourceHeight
-  private val sourceHeight = (controllers.Global.largeSizeY * 1.5).toInt
 
   private val imageInfoProps = Set("size", "url", "mime")
 
@@ -82,58 +77,25 @@ class LocalImageCacheServiceIntegrationSpec extends Specification {
       .take(limit)
   }
 
-  /** Download and resize one image. Returns true on success. */
-  def processImage(image: Image): Future[Boolean] = {
-    val sourcePx = math.min(
-      ImageUtil.resizeTo(image.width, image.height, sourceHeight),
-      image.width
-    )
-    val urlOpt = if (sourcePx >= image.width) image.url else svc.wikiThumbUrl(image, sourcePx)
-    urlOpt match {
-      case None => Future.successful(false)
-      case Some(url) =>
-        svc.downloadWithRetry(url, attempt = 1).map {
-          case Some(bytes) =>
-            val sourceImg = ImageIO.read(new ByteArrayInputStream(bytes))
-            if (sourceImg != null) {
-              svc.saveResized(image, sourceImg, sourcePx)
-              true
-            } else false
-          case None => false
-        }
-    }
-  }
-
   // ── tests ──────────────────────────────────────────────────────────────────
 
   "LocalImageCacheService integration" should {
 
     "download and resize all images from Category:Images from Wiki Loves Earth 2021 in Armenia" in {
-
       val category = "Category:Images from Wiki Loves Earth 2021 in Armenia"
       val images   = fetchImagesFromCommons(category, limit = 50)
 
       images must not(beEmpty)
 
       val startMs = System.currentTimeMillis()
+      Await.result(svc.runDownload(contestId = 1L, images), 60.seconds)
+      val elapsed = System.currentTimeMillis() - startMs
 
-      val results: Seq[Boolean] = Await.result(
-        Source(images)
-          .throttle(5, 1.second)
-          .mapAsyncUnordered(4)(processImage)
-          .runWith(Sink.seq),
-        60.seconds
-      )
+      val p = svc.progress(1L)
+      println(f"Integration test: ${p.done}/${images.size} images processed in ${elapsed / 1000.0}%.1fs (${p.ratePerSec}%.1f img/s)")
 
-      val elapsed   = System.currentTimeMillis() - startMs
-      val succeeded = results.count(identity)
-      println(f"Integration test: $succeeded/${images.size} images processed in ${elapsed / 1000.0}%.1fs " +
-              f"(${succeeded * 1000.0 / elapsed}%.1f img/s)")
+      p.done mustEqual images.size
 
-      // All images must succeed — this feature exists to eliminate missing images
-      succeeded mustEqual images.size
-
-      // Every processed image must have all thumbnail sizes on disk
       images.foldLeft(ok: MatchResult[Any]) { (acc, img) =>
         acc and (svc.allSizesCached(img) must beTrue.updateMessage(m => s"${img.title}: $m"))
       }

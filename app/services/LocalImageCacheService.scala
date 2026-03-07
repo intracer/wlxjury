@@ -75,13 +75,16 @@ class LocalImageCacheService @Inject() (
 
   def startDownload(contestId: Long): Unit = {
     if (progress(contestId).running) return
-
     val images = ImageJdbc
       .findByContestId(contestId)
       .filter(img => img.isImage && img.url.isDefined && img.width > 0 && img.height > 0)
-    val total = images.size
-    val done  = new AtomicInteger(0)
-    val errs  = new AtomicInteger(0)
+    runDownload(contestId, images)
+  }
+
+  private[services] def runDownload(contestId: Long, images: Seq[Image]): Future[Unit] = {
+    val total   = images.size
+    val done    = new AtomicInteger(0)
+    val errs    = new AtomicInteger(0)
     val startMs = System.currentTimeMillis()
 
     def mkProgress(d: Int, running: Boolean): CacheProgress = {
@@ -109,7 +112,7 @@ class LocalImageCacheService @Inject() (
           }
       }
       .runWith(Sink.ignore)
-      .onComplete { _ =>
+      .map { _ =>
         progressMap.put(contestId, mkProgress(done.get, running = false))
       }
   }
