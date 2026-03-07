@@ -189,14 +189,16 @@ class LocalImageCacheService @Inject() (
           entity.toStrict(60.seconds).map(e => Some(e.data.toArray))
 
         case HttpResponse(StatusCodes.TooManyRequests, respHeaders, entity, _) =>
-          entity.discardBytes()
-          if (attempt >= maxAttempts) {
-            logger.warn(s"Giving up on $url after $attempt attempts (429)")
-            Future.successful(None)
-          } else {
-            val delay = retryDelay(respHeaders, attempt)
-            logger.info(s"429 on attempt $attempt for $url, retrying in ${delay.toSeconds}s")
-            after(delay)(downloadWithRetry(url, attempt + 1))
+          entity.toStrict(10.seconds).flatMap { strict =>
+            val body = strict.data.utf8String.take(500)
+            if (attempt >= maxAttempts) {
+              logger.warn(s"Giving up on $url after $attempt attempts (429): $body")
+              Future.successful(None)
+            } else {
+              val delay = retryDelay(respHeaders, attempt)
+              logger.info(s"429 on attempt $attempt for $url, retrying in ${delay.toSeconds}s: $body")
+              after(delay)(downloadWithRetry(url, attempt + 1))
+            }
           }
 
         case resp =>
