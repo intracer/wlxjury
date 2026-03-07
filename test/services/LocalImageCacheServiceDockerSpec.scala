@@ -103,7 +103,14 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
   // ── startup / shutdown ───────────────────────────────────────────────────────
 
   step {
-    imagesDir.mkdirs()
+    // Clean any cached files from a previous run so allSizesCached doesn't skip downloads
+    if (imagesDir.exists()) {
+      java.nio.file.Files.walk(imagesDir.toPath)
+        .sorted(java.util.Comparator.reverseOrder())
+        .forEach { p => if (p.toFile != imagesDir) java.nio.file.Files.delete(p) }
+    } else {
+      imagesDir.mkdirs()
+    }
     compose.start()
   }
 
@@ -155,9 +162,9 @@ class LocalImageCacheServiceDockerSpec extends Specification with CommonsImageFe
           password = Some(User.sha1("pass")), roles = Set(User.ROOT_ROLE)))
 
         // Create contest + link images so startDownload finds them
-        ContestJuryJdbc.create(Some(contestId), "WLE E2E", 2021, "Armenia")
+        ContestJuryJdbc.create(Some(contestId), "WLE E2E", 2025, "Bolivia")
         ContestJuryJdbc.setImagesSource(contestId,
-          Some("Category:Images from Wiki Loves Earth 2021 in Armenia"))
+          Some("Category:Images from Wiki Loves Earth 2025 in Bolivia"))
         val updatedContest = ContestJuryJdbc.findById(contestId).get
         val categoryId = updatedContest.categoryId.get
         ImageJdbc.batchInsert(images)
