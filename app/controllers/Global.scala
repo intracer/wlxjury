@@ -1,6 +1,5 @@
 package controllers
 
-import com.typesafe.config.ConfigFactory
 import org.intracer.wmua._
 import org.scalawiki.MwBot
 
@@ -24,8 +23,6 @@ object Global {
   val sizeFactors = Seq(1.0, 1.5, 2.0)
 
   lazy val commons = MwBot.fromHost(COMMONS_WIKIMEDIA_ORG)
-
-  lazy val thumbsHost = ConfigFactory.load().getString("wlxjury.thumbs.host")
 
   val useLegacyThumbUrl = true
   val thumbUrl: (Image, Int, Int) => String =
@@ -66,9 +63,9 @@ object Global {
   }
 
   def legacyThumbUlr(info: Image, px: Int, resizeToHeight: Int): String =
-    legacyThumbUrl(info, px, thumbsHost)
+    legacyThumbUrl(info, px)
 
-  private[controllers] def legacyThumbUrl(info: Image, px: Int, host: String): String = {
+  private[controllers] def legacyThumbUrl(info: Image, px: Int): String = {
     val lowerCaseTitle = info.title.toLowerCase
     val isPdf = lowerCaseTitle.endsWith(".pdf")
     val isTif = List(".tif", ".tiff").exists(lowerCaseTitle.endsWith)
@@ -78,11 +75,9 @@ object Global {
     val utf8Size = info.title.getBytes("UTF8").length
     val thumbStr = if (utf8Size > 165) "thumbnail.jpg" else url.substring(lastSlash + 1)
 
-    val scheme = if (host.startsWith("localhost") || host.startsWith("127.")) "http" else "https"
-
     url.replaceFirst(
       "(?:https?:)?//upload\\.wikimedia\\.org/wikipedia/commons/",
-      s"$scheme://$host/wikipedia/commons/thumb/"
+      "/wikipedia/commons/thumb/"
     ) + "/" +
       (if (isPdf) "page1-" else if (isTif) "lossy-page1-" else "") +
       px + "px-" + thumbStr + (if (isPdf || isTif) ".jpg" else "")
