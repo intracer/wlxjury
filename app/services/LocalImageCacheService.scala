@@ -75,6 +75,10 @@ class LocalImageCacheService @Inject() (
 
   private val userAgent = headers.RawHeader("User-Agent", "WLXJury/1.0 (https://commons.wikimedia.org/wiki/Commons:WLX_Jury_Tool; intracer@gmail.com)")
 
+  private[services] val wikiBaseUrl =
+    config.getOptional[String]("wlxjury.thumbs.wiki-base-url")
+      .getOrElse("https://upload.wikimedia.org")
+
   private val progressMap = new ConcurrentHashMap[Long, CacheProgress]()
   private val roundProgressMap = new ConcurrentHashMap[Long, CacheProgress]()
 
@@ -83,6 +87,45 @@ class LocalImageCacheService @Inject() (
   private[services] def registrySize: Int = registry.size()
   private[services] def registryContains(file: File): Boolean =
     registry.containsKey(file.getAbsolutePath)
+
+  def fileIfCached(image: Image, px: Int): Option[File] = {
+    val file = localFile(image, px)
+    if (registry.containsKey(file.getAbsolutePath)) Some(file) else None
+  }
+
+  def fetchAndCacheAll(image: Image, requestedPx: Int): Future[Array[Byte]] = {
+    val neededPx = ImageUtil.resizeTo(image.width, image.height, sourceHeight)
+    val sourcePx = wikiThumbnailSteps.find(_ >= neededPx).getOrElse(image.width)
+    val urlOpt   =
+      if (sourcePx >= image.width)
+        image.url.map(_.replaceFirst("https?://upload\\.wikimedia\\.org", wikiBaseUrl))
+      else
+        wikiThumbUrl(image, sourcePx)
+
+    urlOpt match {
+      case None =>
+        Future.failed(new Exception(s"No cacheable URL for ${image.title}"))
+      case Some(url) =>
+        downloadWithRetry(url, attempt = 1).flatMap {
+          case None =>
+            Future.failed(new Exception(s"Failed to download $url"))
+          case Some(bytes) =>
+            val sourceImg = ImageIO.read(new ByteArrayInputStream(bytes))
+            if (sourceImg == null)
+              Future.failed(new Exception(s"Could not decode image from $url"))
+            else {
+              // Save all target sizes in background (saveResized skips those already in registry)
+              Future(saveResized(image, sourceImg, sourcePx))
+                .recover { case ex => logger.warn(s"Background save failed for ${image.title}: ${ex.getMessage}") }
+              // Resize the requested size and return immediately
+              val requestedImg = scale(sourceImg, requestedPx)
+              val baos = new java.io.ByteArrayOutputStream()
+              ImageIO.write(requestedImg, "JPEG", baos)
+              Future.successful(baos.toByteArray)
+            }
+        }
+    }
+  }
 
   private[services] def initRegistry(): Future[Unit] = Future {
     val root = new File(localPath)
@@ -182,7 +225,7 @@ class LocalImageCacheService @Inject() (
       px >= image.width || registry.containsKey(localFile(image, px).getAbsolutePath)
     }
 
-  // Mirrors the URL construction in Global.legacyThumbUlr, always using upload.wikimedia.org
+  // Mirrors the URL construction in Global.legacyThumbUlr, using wikiBaseUrl as host
   private[services] def wikiThumbUrl(image: Image, px: Int): Option[String] =
     image.url.filter(_.contains("//upload.wikimedia.org/wikipedia/commons/")).map { url =>
       val lower     = image.title.toLowerCase
@@ -191,9 +234,10 @@ class LocalImageCacheService @Inject() (
       val lastSlash = url.lastIndexOf("/")
       val utf8Size  = image.title.getBytes("UTF-8").length
       val thumbStr  = if (utf8Size > 165) "thumbnail.jpg" else url.substring(lastSlash + 1)
-      url.replace(
-        "//upload.wikimedia.org/wikipedia/commons/",
-        "//upload.wikimedia.org/wikipedia/commons/thumb/"
+      val scheme = wikiBaseUrl.takeWhile(_ != ':')
+      val host   = wikiBaseUrl.replaceFirst("https?://", "")
+      url.replaceFirst("https?://upload\\.wikimedia\\.org/wikipedia/commons/",
+        s"$scheme://$host/wikipedia/commons/thumb/"
       ) + "/" +
         (if (isPdf) "page1-" else if (isTif) "lossy-page1-" else "") +
         px + "px-" + thumbStr +
@@ -207,7 +251,7 @@ class LocalImageCacheService @Inject() (
   private[services] def localFile(image: Image, px: Int): File = {
     val path = wikiThumbUrl(image, px)
       .getOrElse("")
-      .replaceFirst("https?://upload\\.wikimedia\\.org", "")
+      .replaceFirst("https?://[^/]+", "")
     val decoded = java.net.URLDecoder.decode(path, "UTF-8")
     new File(localPath + decoded)
   }
@@ -217,7 +261,10 @@ class LocalImageCacheService @Inject() (
     // Snap up to the nearest Wikimedia thumbnail step; fall back to original if none is large enough
     val sourcePx = wikiThumbnailSteps.find(_ >= neededPx).getOrElse(image.width)
     // Use original URL if snapped step meets or exceeds the full image width
-    val urlOpt = if (sourcePx >= image.width) image.url else wikiThumbUrl(image, sourcePx)
+    val urlOpt = if (sourcePx >= image.width)
+      image.url.map(_.replaceFirst("https?://upload\\.wikimedia\\.org", wikiBaseUrl))
+    else
+      wikiThumbUrl(image, sourcePx)
 
     urlOpt match {
       case None =>
