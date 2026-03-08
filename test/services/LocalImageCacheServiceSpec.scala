@@ -492,6 +492,7 @@ class LocalImageCacheServiceSpec extends Specification {
     "be empty before any files are saved" in {
       val tmpDir = Files.createTempDirectory("registry-test").toFile
       val svc = mkService(tmpDir)
+      Await.result(svc.initRegistry(), 10.seconds)
       svc.registrySize mustEqual 0
       tmpDir.delete()
       ok

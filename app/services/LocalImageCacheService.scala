@@ -87,9 +87,11 @@ class LocalImageCacheService @Inject() (
   private[services] def initRegistry(): Future[Unit] = Future {
     val root = new File(localPath)
     if (root.exists()) {
-      Files.walk(root.toPath).iterator().asScala
-        .filter(p => Files.isRegularFile(p))
-        .foreach(p => registry.put(p.toAbsolutePath.toString, ()))
+      val stream = Files.walk(root.toPath)
+      try stream.iterator().asScala
+            .filter(p => Files.isRegularFile(p))
+            .foreach(p => registry.put(p.toAbsolutePath.toString, ()))
+      finally stream.close()
       logger.info(s"Registry initialized with ${registry.size()} cached files")
     }
   }
@@ -134,7 +136,7 @@ class LocalImageCacheService @Inject() (
       tracker: ConcurrentHashMap[Long, CacheProgress],
       key: Long,
       logLabel: String
-  ): Future[Unit] = {
+  ): Future[Unit] = registryReady.flatMap { _ =>
     val toDownload = images.filterNot(allSizesCached)
     logger.info(s"$logLabel: ${images.size} images total, ${images.size - toDownload.size} already cached, ${toDownload.size} to download")
 
@@ -302,5 +304,5 @@ class LocalImageCacheService @Inject() (
     out
   }
 
-  initRegistry()
+  private val registryReady: Future[Unit] = initRegistry()
 }
