@@ -105,51 +105,25 @@ class LocalImageCacheService @Inject() (
     runDownloadForRound(contestId, roundId, filtered)
   }
 
-  private def runDownloadForRound(contestId: Long, roundId: Long, images: Seq[Image]): Future[Unit] = {
-    val existing   = localFileSet()
-    val toDownload = images.filterNot(allSizesCached(_, existing))
-    logger.info(s"Contest $contestId, Round $roundId: ${images.size} images total, ${images.size - toDownload.size} already cached, ${toDownload.size} to download")
-
-    val startMs = System.currentTimeMillis()
-    val total   = toDownload.size
-    val done    = new AtomicInteger(0)
-    val errs    = new AtomicInteger(0)
-
-    def mkProgress(d: Int, running: Boolean): CacheProgress = {
-      val elapsed = System.currentTimeMillis() - startMs
-      val rate    = if (elapsed > 0) d * 1000.0 / elapsed else 0.0
-      val eta     = if (rate > 0) ((total - d) / rate).toLong else 0L
-      CacheProgress(d, total, errs.get, running,
-        startedAtMs = startMs, elapsedMs = elapsed, ratePerSec = rate, etaSeconds = eta)
-    }
-
-    roundProgressMap.put(roundId, mkProgress(0, running = true))
-
-    Source(toDownload)
-      .throttle(ratePerSec, 1.second)
-      .mapAsyncUnordered(parallelism) { image =>
-        downloadAndResize(image)
-          .recover { case ex =>
-            logger.warn(s"Failed to cache ${image.title}: ${ex.getMessage}")
-            errs.incrementAndGet()
-          }
-          .map { _ =>
-            val d = done.incrementAndGet()
-            roundProgressMap.put(roundId, mkProgress(d, running = true))
-          }
-      }
-      .runWith(Sink.ignore)
-      .map { _ =>
-        roundProgressMap.put(roundId, mkProgress(done.get, running = false))
-      }
+  private[services] def runDownload(contestId: Long, images: Seq[Image]): Future[Unit] = {
+    logger.info(s"Download config: localPath=$localPath, parallelism=$parallelism, ratePerSec=$ratePerSec, maxAttempts=$maxAttempts")
+    runDownloadImpl(images, progressMap, contestId, s"Contest $contestId")
   }
 
-  private[services] def runDownload(contestId: Long, images: Seq[Image]): Future[Unit] = {
+  private def runDownloadForRound(contestId: Long, roundId: Long, images: Seq[Image]): Future[Unit] =
+    runDownloadImpl(images, roundProgressMap, roundId, s"Contest $contestId, Round $roundId")
+
+  private def runDownloadImpl(
+      images: Seq[Image],
+      tracker: ConcurrentHashMap[Long, CacheProgress],
+      key: Long,
+      logLabel: String
+  ): Future[Unit] = {
     // Scan the cache directory once to build a set of existing files.
     // This is far faster than calling File.exists() per image × per size (320k+ stat calls).
-    val existing  = localFileSet()
+    val existing   = localFileSet()
     val toDownload = images.filterNot(allSizesCached(_, existing))
-    logger.info(s"Contest $contestId: ${images.size} images total, ${images.size - toDownload.size} already cached, ${toDownload.size} to download")
+    logger.info(s"$logLabel: ${images.size} images total, ${images.size - toDownload.size} already cached, ${toDownload.size} to download")
 
     // Start the clock only after the scan, so elapsed/rate/ETA reflect download time only.
     val startMs = System.currentTimeMillis()
@@ -164,9 +138,8 @@ class LocalImageCacheService @Inject() (
       CacheProgress(d, total, errs.get, running,
         startedAtMs = startMs, elapsedMs = elapsed, ratePerSec = rate, etaSeconds = eta)
     }
-    logger.info(s"Download config: localPath=$localPath, parallelism=$parallelism, ratePerSec=$ratePerSec, maxAttempts=$maxAttempts")
 
-    progressMap.put(contestId, mkProgress(0, running = true))
+    tracker.put(key, mkProgress(0, running = true))
 
     Source(toDownload)
       .throttle(ratePerSec, 1.second)
@@ -178,12 +151,12 @@ class LocalImageCacheService @Inject() (
           }
           .map { _ =>
             val d = done.incrementAndGet()
-            progressMap.put(contestId, mkProgress(d, running = true))
+            tracker.put(key, mkProgress(d, running = true))
           }
       }
       .runWith(Sink.ignore)
       .map { _ =>
-        progressMap.put(contestId, mkProgress(done.get, running = false))
+        tracker.put(key, mkProgress(done.get, running = false))
       }
   }
 
