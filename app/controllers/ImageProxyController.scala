@@ -23,7 +23,7 @@ class ImageProxyController @Inject() (
     // Expect at least: X/XX/filename/Npx-filename (or page1-Npx-filename for PDF/TIF)
     val parsed = for {
       rawFilename <- if (segments.length >= 2) Some(segments(segments.length - 2)) else None
-      filename    = URLDecoder.decode(rawFilename, "UTF-8")
+      filename    = URLDecoder.decode(rawFilename, "UTF-8").replace('_', ' ')
       lastSeg    <- segments.lastOption
       px         <- lastSeg match {
                       case pxPattern(n) => Try(n.toInt).toOption
