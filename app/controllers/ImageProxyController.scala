@@ -44,7 +44,7 @@ class ImageProxyController @Inject() (
               case None =>
                 // Not in DB: redirect to Wikimedia; browser follows transparently for <img>
                 Future.successful(
-                  Redirect(s"https://upload.wikimedia.org/$path", SEE_OTHER)
+                  Redirect(s"https://upload.wikimedia.org/wikipedia/commons/thumb/$path", SEE_OTHER)
                 )
 
               case Some(image) =>
@@ -64,7 +64,7 @@ class ImageProxyController @Inject() (
                       }
                       .recover { case ex =>
                         logger.warn(s"Failed to fetch $path: ${ex.getMessage}")
-                        Redirect(s"https://upload.wikimedia.org/$path", SEE_OTHER)
+                        Redirect(s"https://upload.wikimedia.org/wikipedia/commons/thumb/$path", SEE_OTHER)
                       }
                 }
             }

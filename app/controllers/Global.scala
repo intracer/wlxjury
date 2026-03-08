@@ -65,31 +65,26 @@ object Global {
     s"https://commons.wikimedia.org/w/thumb.php?f=$file&w=$px"
   }
 
-  def legacyThumbUlr(info: Image, px: Int, resizeToHeight: Int): String = {
+  def legacyThumbUlr(info: Image, px: Int, resizeToHeight: Int): String =
+    legacyThumbUrl(info, px, thumbsHost)
+
+  private[controllers] def legacyThumbUrl(info: Image, px: Int, host: String): String = {
     val lowerCaseTitle = info.title.toLowerCase
     val isPdf = lowerCaseTitle.endsWith(".pdf")
     val isTif = List(".tif", ".tiff").exists(lowerCaseTitle.endsWith)
-    val isVideo = info.isVideo
 
     val url = info.url.getOrElse("")
     val lastSlash = url.lastIndexOf("/")
     val utf8Size = info.title.getBytes("UTF8").length
-    val thumbStr = if (utf8Size > 165) {
-      "thumbnail.jpg"
-    } else {
-      url.substring(lastSlash + 1)
-    }
+    val thumbStr = if (utf8Size > 165) "thumbnail.jpg" else url.substring(lastSlash + 1)
 
-    val imageHost = thumbsHost
+    val scheme = if (host.startsWith("localhost") || host.startsWith("127.")) "http" else "https"
 
-    url.replace(
-      "//upload.wikimedia.org/wikipedia/commons/",
-      s"//$imageHost/wikipedia/commons/thumb/"
+    url.replaceFirst(
+      "(?:https?:)?//upload\\.wikimedia\\.org/wikipedia/commons/",
+      s"$scheme://$host/wikipedia/commons/thumb/"
     ) + "/" +
-      (if (isPdf) "page1-"
-       else if (isTif) "lossy-page1-"
-       else
-         "") +
+      (if (isPdf) "page1-" else if (isTif) "lossy-page1-" else "") +
       px + "px-" + thumbStr + (if (isPdf || isTif) ".jpg" else "")
   }
 }
