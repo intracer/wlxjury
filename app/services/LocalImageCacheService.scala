@@ -78,6 +78,22 @@ class LocalImageCacheService @Inject() (
   private val progressMap = new ConcurrentHashMap[Long, CacheProgress]()
   private val roundProgressMap = new ConcurrentHashMap[Long, CacheProgress]()
 
+  private val registry = new ConcurrentHashMap[String, Unit]()
+
+  private[services] def registrySize: Int = registry.size()
+  private[services] def registryContains(file: File): Boolean =
+    registry.containsKey(file.getAbsolutePath)
+
+  private[services] def initRegistry(): Future[Unit] = Future {
+    val root = new File(localPath)
+    if (root.exists()) {
+      Files.walk(root.toPath).iterator().asScala
+        .filter(p => Files.isRegularFile(p))
+        .foreach(p => registry.put(p.toAbsolutePath.toString, ()))
+      logger.info(s"Registry initialized with ${registry.size()} cached files")
+    }
+  }
+
   def progress(contestId: Long): CacheProgress =
     Option(progressMap.get(contestId)).getOrElse(CacheProgress(0, 0, 0, running = false))
 
@@ -119,10 +135,7 @@ class LocalImageCacheService @Inject() (
       key: Long,
       logLabel: String
   ): Future[Unit] = {
-    // Scan the cache directory once to build a set of existing files.
-    // This is far faster than calling File.exists() per image × per size (320k+ stat calls).
-    val existing   = localFileSet()
-    val toDownload = images.filterNot(allSizesCached(_, existing))
+    val toDownload = images.filterNot(allSizesCached)
     logger.info(s"$logLabel: ${images.size} images total, ${images.size - toDownload.size} already cached, ${toDownload.size} to download")
 
     // Start the clock only after the scan, so elapsed/rate/ETA reflect download time only.
@@ -160,30 +173,11 @@ class LocalImageCacheService @Inject() (
       }
   }
 
-  /** Scans the local cache directory once and returns the set of all cached files. */
-  private def localFileSet(): Set[File] = {
-    val root = new File(localPath)
-    if (!root.exists()) return Set.empty
-    Files.walk(root.toPath).iterator().asScala
-      .filter(p => Files.isRegularFile(p))
-      .map(_.toFile)
-      .toSet
-  }
-
-  /** Bulk variant: checks against a pre-built file set instead of calling File.exists() per file. */
-  private def allSizesCached(image: Image, existing: Set[File]): Boolean =
-    image.url.exists(_.contains("//upload.wikimedia.org/wikipedia/commons/")) &&
-    targetHeights.forall { h =>
-      val px = ImageUtil.resizeTo(image.width, image.height, h)
-      px >= image.width || existing.contains(localFile(image, px))
-    }
-
-  /** Single-image variant for status checks and tests (uses File.exists()). */
   private[services] def allSizesCached(image: Image): Boolean =
     image.url.exists(_.contains("//upload.wikimedia.org/wikipedia/commons/")) &&
     targetHeights.forall { h =>
       val px = ImageUtil.resizeTo(image.width, image.height, h)
-      px >= image.width || localFile(image, px).exists()
+      px >= image.width || registry.containsKey(localFile(image, px).getAbsolutePath)
     }
 
   // Mirrors the URL construction in Global.legacyThumbUlr, always using upload.wikimedia.org
@@ -287,10 +281,11 @@ class LocalImageCacheService @Inject() (
       val px = ImageUtil.resizeTo(image.width, image.height, h)
       if (px > 0 && px < image.width && px <= sourcePx) {
         val file = localFile(image, px)
-        if (!file.exists()) {
+        if (!registry.containsKey(file.getAbsolutePath)) {
           file.getParentFile.mkdirs()
           val resized = scale(sourceImg, px)
           ImageIO.write(resized, "JPEG", file)
+          registry.put(file.getAbsolutePath, ())
         }
       }
     }
@@ -306,4 +301,6 @@ class LocalImageCacheService @Inject() (
     g.dispose()
     out
   }
+
+  initRegistry()
 }

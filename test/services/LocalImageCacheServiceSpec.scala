@@ -10,7 +10,7 @@ import org.specs2.mutable.Specification
 import play.api.Configuration
 
 import java.awt.image.BufferedImage
-import java.io.{ByteArrayOutputStream, File}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 import java.nio.file.Files
 import javax.imageio.ImageIO
 import scala.concurrent.duration._
@@ -188,6 +188,7 @@ class LocalImageCacheServiceSpec extends Specification {
         f.getParentFile.mkdirs()
         f.createNewFile()
       }
+      Await.result(svc.initRegistry(), 10.seconds)
       svc.allSizesCached(img) must beTrue
     }
 
@@ -201,6 +202,7 @@ class LocalImageCacheServiceSpec extends Specification {
         f.getParentFile.mkdirs()
         f.createNewFile()
       }
+      Await.result(svc.initRegistry(), 10.seconds)
       svc.allSizesCached(img) must beFalse
     }
 
@@ -215,6 +217,7 @@ class LocalImageCacheServiceSpec extends Specification {
         f.getParentFile.mkdirs()
         f.createNewFile()
       }
+      Await.result(svc.initRegistry(), 10.seconds)
       // No files for px=400 (heights 375+) – allSizesCached must still be true
       svc.localFile(img, 400).exists() must beFalse
       svc.allSizesCached(img) must beTrue
@@ -474,6 +477,53 @@ class LocalImageCacheServiceSpec extends Specification {
       svc.startDownloadForRound(contestId = 1L, roundId = 8L)
       svc.startDownloadForRound(contestId = 1L, roundId = 8L) // should be no-op
 
+      ok
+    }
+  }
+
+  // ── registry ─────────────────────────────────────────────────────────────
+
+  "registry" should {
+
+    val SW = 4000; val SH = 3000
+    val targetHeights = Seq(120, 180, 240, 250, 375, 500, 1100, 1650)
+    val neededWidths  = targetHeights.map(h => ImageUtil.resizeTo(SW, SH, h)).filter(_ < SW)
+
+    "be empty before any files are saved" in {
+      val tmpDir = Files.createTempDirectory("registry-test").toFile
+      val svc = mkService(tmpDir)
+      svc.registrySize mustEqual 0
+      tmpDir.delete()
+      ok
+    }
+
+    "contain a file after saveResized writes it" in {
+      val tmpDir = Files.createTempDirectory("registry-save").toFile
+      val svc    = mkService(tmpDir)
+      val img    = mkImage()
+      val src    = ImageIO.read(new ByteArrayInputStream(jpegBytes(800, 600)))
+
+      svc.saveResized(img, src, 800)
+
+      val expectedFile = svc.localFile(img, neededWidths.head)
+      svc.registryContains(expectedFile) must beTrue
+      tmpDir.delete()
+      ok
+    }
+
+    "be populated by initRegistry from existing files on disk" in {
+      val tmpDir = Files.createTempDirectory("registry-init").toFile
+      val svc1   = mkService(tmpDir)
+      val img    = mkImage()
+      val src    = ImageIO.read(new ByteArrayInputStream(jpegBytes(800, 600)))
+      svc1.saveResized(img, src, 800)
+
+      val svc2 = mkService(tmpDir)
+      Await.result(svc2.initRegistry(), 10.seconds)
+
+      val expectedFile = svc2.localFile(img, neededWidths.head)
+      svc2.registryContains(expectedFile) must beTrue
+      tmpDir.delete()
       ok
     }
   }
