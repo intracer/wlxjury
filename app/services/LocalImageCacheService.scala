@@ -114,11 +114,18 @@ class LocalImageCacheService @Inject() (
             if (sourceImg == null)
               Future.failed(new Exception(s"Could not decode image from $url"))
             else {
-              // Save all target sizes in background (saveResized skips those already in registry)
-              Future(saveResized(image, sourceImg, sourcePx))
-                .recover { case ex => logger.warn(s"Background save failed for ${image.title}: ${ex.getMessage}") }
-              // Resize the requested size and return immediately
-              val requestedImg = scale(sourceImg, requestedPx)
+              // Run cascade synchronously: saves fire async inside saveResized, cascade CPU returns
+              // the requested image immediately. A try/catch preserves the current behavior where
+              // scaling errors (e.g. OOM) are logged and fall back to a direct scale rather than
+              // propagating a failed Future to the caller.
+              val imgOpt = try {
+                saveResized(image, sourceImg, sourcePx, Some(requestedPx))
+              } catch {
+                case ex: Exception =>
+                  logger.warn(s"Cascade failed for ${image.title}: ${ex.getMessage}")
+                  None
+              }
+              val requestedImg = imgOpt.getOrElse(scale(sourceImg, requestedPx))
               val baos = new java.io.ByteArrayOutputStream()
               ImageIO.write(requestedImg, "JPEG", baos)
               Future.successful(baos.toByteArray)
