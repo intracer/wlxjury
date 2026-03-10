@@ -274,7 +274,7 @@ class LocalImageCacheService @Inject() (
         downloadWithRetry(url, attempt = 1).map {
           case Some(bytes) =>
             val sourceImg = ImageIO.read(new ByteArrayInputStream(bytes))
-            if (sourceImg != null) saveResized(image, sourceImg, sourcePx)
+            if (sourceImg != null) { saveResized(image, sourceImg, sourcePx); () }
           case None => ()
         }
     }
@@ -325,19 +325,41 @@ class LocalImageCacheService @Inject() (
     (baseSeconds + jitter).seconds
   }
 
-  private[services] def saveResized(image: Image, sourceImg: BufferedImage, sourcePx: Int): Unit =
-    targetHeights.foreach { h =>
-      val px = ImageUtil.resizeTo(image.width, image.height, h)
-      if (px > 0 && px < image.width && px <= sourcePx) {
-        val file = localFile(image, px)
-        if (!registry.containsKey(file.getAbsolutePath)) {
-          file.getParentFile.mkdirs()
-          val resized = scale(sourceImg, px)
-          ImageIO.write(resized, "JPEG", file)
-          registry.put(file.getAbsolutePath, ())
+  /** Generates all target sizes via cascaded downscaling and saves them asynchronously.
+    *
+    * @param requestedPx if Some(px), returns the BufferedImage for that width if generated
+    * @return Some(img) for the requested width if it was generated; None otherwise
+    */
+  private[services] def saveResized(
+    image: Image,
+    sourceImg: BufferedImage,
+    sourcePx: Int,
+    requestedPx: Option[Int] = None
+  ): Option[BufferedImage] = {
+    val toGenerate = targetHeights
+      .map(h => ImageUtil.resizeTo(image.width, image.height, h))
+      .filter(px => px > 0 && px < image.width && px <= sourcePx)
+      .distinct
+      .sorted(Ordering[Int].reverse)  // largest first for cascade
+
+    val results = cascadeScale(sourceImg, toGenerate)
+
+    results.foreach { case (px, img) =>
+      val file = localFile(image, px)
+      if (!registry.containsKey(file.getAbsolutePath)) {
+        registry.put(file.getAbsolutePath, ())   // claim before async write
+        file.getParentFile.mkdirs()
+        Future {
+          ImageIO.write(img, "JPEG", file)
+        }.recover { case ex =>
+          logger.warn(s"Failed to write ${file.getName}: ${ex.getMessage}")
+          registry.remove(file.getAbsolutePath)  // release claim on failure
         }
       }
     }
+
+    requestedPx.flatMap(rpx => results.find(_._1 == rpx).map(_._2))
+  }
 
   private[services] def scale(src: BufferedImage, targetWidth: Int): BufferedImage = {
     val targetHeight = (src.getHeight.toDouble * targetWidth / src.getWidth).toInt
@@ -349,6 +371,26 @@ class LocalImageCacheService @Inject() (
     g.drawImage(src, 0, 0, targetWidth, targetHeight, null)
     g.dispose()
     out
+  }
+
+  /** Scales sourceImg down through targetWidths in order (largest first).
+    * Each step uses the previous output as source, reducing the downscale ratio
+    * and the number of pixels read per step. Pure CPU — no IO.
+    *
+    * @param sourceImg   the starting (largest) image
+    * @param targetWidths widths to generate, sorted descending (largest first)
+    * @return (width, image) pairs in the same order as targetWidths
+    */
+  private[services] def cascadeScale(
+    sourceImg: BufferedImage,
+    targetWidths: Seq[Int]
+  ): Seq[(Int, BufferedImage)] = {
+    var prev = sourceImg
+    targetWidths.map { px =>
+      val scaled = scale(prev, px)
+      prev = scaled
+      (px, scaled)
+    }
   }
 
   private val registryReady: Future[Unit] = initRegistry()
