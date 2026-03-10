@@ -385,6 +385,10 @@ class LocalImageCacheService @Inject() (
     sourceImg: BufferedImage,
     targetWidths: Seq[Int]
   ): Seq[(Int, BufferedImage)] = {
+    require(
+      targetWidths.isEmpty || targetWidths == targetWidths.sorted(Ordering[Int].reverse),
+      "targetWidths must be sorted descending (largest first)"
+    )
     var prev = sourceImg
     targetWidths.map { px =>
       val scaled = scale(prev, px)
