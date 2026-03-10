@@ -61,13 +61,11 @@ class SaveResizedBenchmark {
 
   /** Current approach: each target scaled independently from sourceImg. */
   @Benchmark
-  def fromLargest(): Unit = {
-    targetWidths.foreach { px =>
-      svc.scale(sourceImg, px)
-    }
-  }
+  def fromLargest(): Seq[BufferedImage] =
+    targetWidths.map(px => svc.scale(sourceImg, px))
 
-  /** Placeholder — NOT annotated with @Benchmark.
-    * Wired to cascadeScale in Chunk 3 Task 6. */
-  def cascaded(): Unit = fromLargest()
+  /** Cascade approach: each target scaled from the previous larger output. */
+  @Benchmark
+  def cascaded(): Seq[(Int, BufferedImage)] =
+    svc.cascadeScale(sourceImg, targetWidths)
 }

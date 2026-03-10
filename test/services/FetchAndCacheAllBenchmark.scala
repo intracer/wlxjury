@@ -82,7 +82,11 @@ class FetchAndCacheAllBenchmark {
   def fromLargest(): Array[Byte] =
     encodeJpeg(svc.scale(sourceImg, requestedPx))
 
-  /** Placeholder — NOT annotated with @Benchmark.
-    * Wired to cascadeScale in Chunk 3 Task 6. */
-  def cascaded(): Array[Byte] = fromLargest()
+  /** Cascade approach: cascade from largest to requestedPx, then JPEG encode. */
+  @Benchmark
+  def cascaded(): Array[Byte] = {
+    val results = svc.cascadeScale(sourceImg, cascadeWidths)
+    val img = results.find(_._1 == requestedPx).map(_._2).getOrElse(sourceImg)
+    encodeJpeg(img)
+  }
 }
