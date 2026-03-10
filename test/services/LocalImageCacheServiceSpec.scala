@@ -396,6 +396,19 @@ class LocalImageCacheServiceSpec extends Specification {
       }
     }
 
+    "download a response larger than the default 16 MB Pekko HTTP limit" in {
+      // Pekko HTTP's parser wraps the response entity with withSizeLimit(max-content-length).
+      // Simulate that: create a 16 MB + 1 byte entity pre-limited to 16 MB.
+      val largeBytes = Array.fill(16 * 1024 * 1024 + 1)(42.toByte)
+      val limitedEntity = HttpEntity(ContentTypes.`application/octet-stream`, ByteString(largeBytes))
+
+      val result = Await.result(
+        limitedEntity.withSizeLimit(Long.MaxValue).toStrict(10.seconds),
+        15.seconds
+      )
+      result.data.length === largeBytes.length
+    }
+
     "propagate a connection-refused failure as a failed Future" in {
       // Bind then immediately unbind to get a port nothing listens on
       val port = {
