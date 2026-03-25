@@ -47,7 +47,7 @@ Standard Gatling HTML reports land in `target/gatling/`. Each run produces a tim
 Uses existing ScalikeJDBC DAOs: `MonumentJdbc.batchInsert`, `ImageJdbc.batchInsert`, `ContestJuryJdbc.create`, `Round.create`, `User.create`, `SelectionJdbc.batchInsert`. ScalikeJDBC is live because the Play TestServer has already started when data loading runs.
 
 CSV parsing uses `com.github.tototoshi:scala-csv` (already a project dependency):
-- **Monuments**: parse `data/wlm-ua-monuments.csv` → `Seq[Monument]` → `MonumentJdbc.batchInsert`. CSV columns `id`, `name`, `adm0`, `lat`, `lon`, `typ`, `year`, `city` map to `Monument` constructor fields.
+- **Monuments**: parse `data/wlm-ua-monuments.csv` → `Seq[Monument]` → `MonumentJdbc.batchInsert`. CSV columns mapped: `id`→`id`, `name`→`name`, `lat`→`lat`, `lon`→`lon`, `type`→`typ`, `year_of_construction`→`year`, `municipality`→`city`. The CSV's `adm0` column (`"ua"`) is **not** used — `MonumentJdbc.batchInsert` derives the DB `adm0` value internally as `id.split("-").head.take(3)` (e.g. `"80"` from `"80-361-9002"`).
 - **Images**: parse `data/wlm-UA-images-2025.csv` → `Seq[Image]` → `ImageJdbc.batchInsert`. CSV columns `page_id`, `title`, `width`, `height`, `size_bytes`, `mime`, `monument_id`, `url`, `page_url` map to `Image`.
 
 Both are chunked into batches of 1000 rows before calling `batchInsert` (the DAOs' `DB localTx` handles each chunk's transaction independently).
@@ -79,7 +79,7 @@ Selections are chunked into 5000-row slices before calling `SelectionJdbc.batchI
 - `jurorIds: Seq[Long]`
 - `organizerId: Long`
 - `imagePageIds: Seq[Long]`
-- `regions: Seq[String]` — distinct `adm0` values present in loaded monuments
+- `regions: Seq[String]` — queried from DB after monument load: `SELECT DISTINCT adm0 FROM monument WHERE adm0 IS NOT NULL`. These are 2-digit region codes derived from monument IDs (e.g. `"80"`, `"18"`, `"01"`), not country codes.
 
 ---
 
@@ -124,7 +124,7 @@ All five simulation classes live in `test/gatling/simulations/`. Each references
 ### 2. `RegionFilterSimulation`
 - **Endpoint:** `GET /gallery/round/:round/user/:user/region/:region/page/:page`
 - **Auth:** juror session
-- **Feeder:** `(jurorId, roundId, region, page)` — `region` drawn from `GatlingTestFixture.regions` (`adm0` values, e.g. `"ua"`, `"01"`)
+- **Feeder:** `(jurorId, roundId, region, page)` — `region` drawn from `GatlingTestFixture.regions` (2-digit `adm0` codes derived from monument IDs, e.g. `"80"`, `"18"`, `"01"`)
 - **Indexes exercised:** `idx_selection_jury_round`, monument region indexes
 
 ### 3. `AggregatedRatingsSimulation`
