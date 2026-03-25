@@ -62,7 +62,7 @@ val PekkoVersion = "1.0.3"
 val PekkoHttpVersion = "1.0.1"
 val ScalaTestVersion = "3.2.9"
 val TestcontainersScalaVersion = "0.41.0"
-val TapirVersion = "1.13.13"
+val TapirVersion = "1.11.15"
 val MunitVersion = "0.7.29"
 val GatlingVersion = "3.8.4"
 
@@ -111,7 +111,7 @@ libraryDependencies ++= Seq(
   ),
   "com.softwaremill.sttp.tapir" %% "tapir-json-play" % TapirVersion,
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % TapirVersion,
-  "com.github.pjfanning" %% "pekko-http-play-json" % "3.9.0",
+  "com.github.pjfanning" %% "pekko-http-play-json" % "2.0.0",
   guice,
   filters,
   specs2 % Test,
