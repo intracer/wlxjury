@@ -18,4 +18,4 @@ addDependencyTreePlugin
 
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.7")
 
-addSbtPlugin("io.gatling" % "gatling-sbt" % "3.2.1")
+addSbtPlugin("io.gatling" % "gatling-sbt" % "4.2.4")

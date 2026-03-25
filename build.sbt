@@ -1,4 +1,4 @@
-import sbt.Keys._
+import sbt.Keys.{libraryDependencies, *}
 
 // Run Jest tests in javascript-test/ as part of `sbt test`.
 lazy val jsTest = taskKey[Unit]("Run Jest tests in javascript-test/")
@@ -28,11 +28,11 @@ lazy val root = identity(
       Jmh / classDirectory      := (Test / classDirectory).value,
       Jmh / dependencyClasspath := (Test / dependencyClasspath).value,
       // Gatling sources live in test/gatling/ — separate from JMH sources in test/
-      Gatling / scalaSource     := (Test / sourceDirectory).value / "gatling",
-      // Exclude Gatling simulation files from Test scope (they need gatling classpath, not Test)
-      Test / unmanagedSources / excludeFilter :=
-        HiddenFileFilter || new SimpleFileFilter(f =>
-          f.getAbsolutePath.contains("/test/gatling/simulations/")),
+//      Gatling / scalaSource     := (Test / sourceDirectory).value / "gatling",
+//      // Exclude Gatling simulation files from Test scope (they need gatling classpath, not Test)
+//      Test / unmanagedSources / excludeFilter :=
+//        HiddenFileFilter || new SimpleFileFilter(f =>
+//          f.getAbsolutePath.contains("/test/gatling/simulations/")),
       Gatling / javaOptions     += "-Dconfig.file=test/resources/application.conf",
       // Forward -Dgatling.* overrides to Gatling JVM
       Gatling / javaOptions     ++= sys.props.toSeq.collect {
@@ -62,8 +62,9 @@ val PekkoVersion = "1.0.3"
 val PekkoHttpVersion = "1.0.1"
 val ScalaTestVersion = "3.2.9"
 val TestcontainersScalaVersion = "0.41.0"
-val TapirVersion = "1.11.15"
+val TapirVersion = "1.13.13"
 val MunitVersion = "0.7.29"
+val GatlingVersion = "3.8.4"
 
 resolvers += Resolver.bintrayRepo("intracer", "maven")
 
@@ -110,7 +111,7 @@ libraryDependencies ++= Seq(
   ),
   "com.softwaremill.sttp.tapir" %% "tapir-json-play" % TapirVersion,
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % TapirVersion,
-  "com.github.pjfanning" %% "pekko-http-play-json" % "2.0.0",
+  "com.github.pjfanning" %% "pekko-http-play-json" % "3.9.0",
   guice,
   filters,
   specs2 % Test,
@@ -128,8 +129,8 @@ libraryDependencies ++= Seq(
   "org.apache.pekko" %% "pekko-http-testkit" % PekkoHttpVersion % Test,
   "org.apache.pekko" %% "pekko-stream-testkit" % PekkoVersion % Test,
   "org.scalameta" %% "munit" % MunitVersion % Test,
-  "io.gatling.highcharts" % "gatling-charts-highcharts" % "3.11.5" % "gatling",
-  "io.gatling"            % "gatling-test-framework"     % "3.11.5" % "gatling"
+  "io.gatling.highcharts" % "gatling-charts-highcharts" % GatlingVersion % Test,
+  "io.gatling" % "gatling-test-framework" % GatlingVersion % Test
 )
 
 dependencyOverrides ++= Seq(
