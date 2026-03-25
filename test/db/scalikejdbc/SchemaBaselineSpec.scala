@@ -13,6 +13,9 @@ class SchemaBaselineSpec extends Specification {
 
   "schema baseline generator" should {
     "generate B44 baseline migration" in {
+      if (sys.props.get("generate.baseline").isEmpty)
+        skipped("Pass -Dgenerate.baseline=true to regenerate the baseline")
+
       val container = MariaDBContainer(
         dockerImageName = DockerImageName.parse("mariadb:10.6.22"),
         dbName = "wlxjury",
@@ -53,6 +56,6 @@ class SchemaBaselineSpec extends Specification {
       } finally {
         container.stop()
       }
-    } tag "baseline"
+    }
   }
 }
