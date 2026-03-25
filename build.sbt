@@ -29,6 +29,10 @@ lazy val root = identity(
       Jmh / dependencyClasspath := (Test / dependencyClasspath).value,
       // Gatling sources live in test/gatling/ — separate from JMH sources in test/
       Gatling / scalaSource     := (Test / sourceDirectory).value / "gatling",
+      // Exclude Gatling simulation files from Test scope (they need gatling classpath, not Test)
+      Test / unmanagedSources / excludeFilter :=
+        HiddenFileFilter || new SimpleFileFilter(f =>
+          f.getAbsolutePath.contains("/test/gatling/simulations/")),
       Gatling / javaOptions     += "-Dconfig.file=test/resources/application.conf",
       // Forward -Dgatling.* overrides to Gatling JVM
       Gatling / javaOptions     ++= sys.props.toSeq.collect {
