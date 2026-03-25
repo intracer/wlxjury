@@ -48,19 +48,21 @@ object GatlingDbSetup {
     // 2 ── Load images from CSV
     val imageRows = parseCsv("data/wlm-UA-images-2025.csv")
     val images = imageRows.flatMap { row =>
-      row.get("page_id").filter(_.nonEmpty).map { pid =>
-        Image(
-          pageId     = pid.toLong,
-          title      = row.getOrElse("title", ""),
-          url        = row.get("url").filter(_.nonEmpty),
-          pageUrl    = row.get("page_url").filter(_.nonEmpty),
-          width      = row.get("width").flatMap(s => scala.util.Try(s.toInt).toOption).getOrElse(0),
-          height     = row.get("height").flatMap(s => scala.util.Try(s.toInt).toOption).getOrElse(0),
-          monumentId = row.get("monument_id").filter(_.nonEmpty),
-          author     = row.get("author").filter(_.nonEmpty),
-          size       = row.get("size_bytes").flatMap(s => scala.util.Try(s.toInt).toOption),
-          mime       = row.get("mime").filter(_.nonEmpty)
-        )
+      row.get("page_id").filter(_.nonEmpty).flatMap { pid =>
+        scala.util.Try(pid.toLong).toOption.map { pageId =>
+          Image(
+            pageId     = pageId,
+            title      = row.getOrElse("title", ""),
+            url        = row.get("url").filter(_.nonEmpty),
+            pageUrl    = row.get("page_url").filter(_.nonEmpty),
+            width      = row.get("width").flatMap(s => scala.util.Try(s.toInt).toOption).getOrElse(0),
+            height     = row.get("height").flatMap(s => scala.util.Try(s.toInt).toOption).getOrElse(0),
+            monumentId = row.get("monument_id").filter(_.nonEmpty),
+            author     = row.get("author").filter(_.nonEmpty),
+            size       = row.get("size_bytes").flatMap(s => scala.util.Try(s.toInt).toOption),
+            mime       = row.get("mime").filter(_.nonEmpty)
+          )
+        }
       }
     }
     images.grouped(1000).foreach(batch => ImageJdbc.batchInsert(batch.toSeq))
@@ -125,7 +127,9 @@ object GatlingDbSetup {
     val allSelections = binarySelections ++ ratingSelections
     allSelections.grouped(5000).foreach(batch => SelectionJdbc.batchInsert(batch.toSeq))
 
-    val votingPairs = allSelections.map(s => (s.juryId, s.pageId, s.roundId, s.rate)).take(50000)
+    // Interleave binary and rating so votingPairs covers both rounds
+    val interleavedSelections = binarySelections.zip(ratingSelections).flatMap { case (b, r) => Seq(b, r) }
+    val votingPairs = interleavedSelections.map(s => (s.juryId, s.pageId, s.roundId, s.rate)).take(50000)
 
     // 9 ── Regions from monument adm0 (computed by MonumentJdbc.batchInsert)
     val regions = DB readOnly { implicit session =>
