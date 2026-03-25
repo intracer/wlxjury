@@ -20,12 +20,20 @@ lazy val root = identity(
       DebianPlugin,
       SystemdPlugin,
       JavaServerAppPackaging,
-      JmhPlugin
+      JmhPlugin,
+      GatlingPlugin
     )
     .settings(
       Jmh / sourceDirectory     := (Test / sourceDirectory).value,
       Jmh / classDirectory      := (Test / classDirectory).value,
-      Jmh / dependencyClasspath := (Test / dependencyClasspath).value
+      Jmh / dependencyClasspath := (Test / dependencyClasspath).value,
+      // Gatling sources live in test/gatling/ — separate from JMH sources in test/
+      Gatling / scalaSource     := (Test / sourceDirectory).value / "gatling",
+      Gatling / javaOptions     += "-Dconfig.file=test/resources/application.conf",
+      // Forward -Dgatling.* overrides to Gatling JVM
+      Gatling / javaOptions     ++= sys.props.toSeq.collect {
+        case (k, v) if k.startsWith("gatling.") => s"-D$k=$v"
+      }
     )
 )
   .disablePlugins(PlayPekkoHttpServer)
@@ -115,7 +123,9 @@ libraryDependencies ++= Seq(
   "com.lihaoyi" %% "os-lib" % "0.11.4" % Test,
   "org.apache.pekko" %% "pekko-http-testkit" % PekkoHttpVersion % Test,
   "org.apache.pekko" %% "pekko-stream-testkit" % PekkoVersion % Test,
-  "org.scalameta" %% "munit" % MunitVersion % Test
+  "org.scalameta" %% "munit" % MunitVersion % Test,
+  "io.gatling.highcharts" % "gatling-charts-highcharts" % "3.11.5" % "gatling",
+  "io.gatling"            % "gatling-test-framework"     % "3.11.5" % "gatling"
 )
 
 dependencyOverrides ++= Seq(
