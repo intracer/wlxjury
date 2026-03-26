@@ -130,20 +130,20 @@ object ImageJdbc extends CRUDMapper[Image]
 
   def deleteImage(pageId: Long): Unit = deleteById(pageId)
 
-  def findByFilename(filename: String): Option[Image] =
+  def findByFilename(filename: String)(implicit session: DBSession = AutoSession): Option[Image] =
     findBy(sqls.eq(column.title, s"File:$filename"))
 
-  def findByContestId(contestId: Long): List[Image] =
+  def findByContestId(contestId: Long)(implicit session: DBSession = AutoSession): List[Image] =
     ContestJuryJdbc.findById(contestId).map(findByContest).getOrElse(Nil)
 
-  def findByContest(contest: ContestJury): List[Image] = {
+  def findByContest(contest: ContestJury)(implicit session: DBSession = AutoSession): List[Image] = {
     contest.categoryId.map(findByCategory).getOrElse(Nil)
   }
 
   def countByContest(contest: ContestJury): Long =
     contest.categoryId.map(ImageJdbc.countByCategory).getOrElse(0L)
 
-  def findByCategory(categoryId: Long): List[Image] =
+  def findByCategory(categoryId: Long)(implicit session: DBSession = AutoSession): List[Image] =
     withSQL {
       select
         .from[Image](ImageJdbc as i)
