@@ -32,8 +32,8 @@ class ImageRankedSpec extends Specification with BeforeAll {
 
       val result = imageDao.byUserImageWithRatingRanked(userId = 1L, roundId = 1L)
       result must haveSize(1)
-      result.head.rank === Some(1)
-      result.head.pageId === 101L
+      result.head.rank must_== Some(1)
+      result.head.pageId must_== 101L
     }
 
     "order two images: higher rate gets rank=1" in new AutoRollbackDb {
@@ -45,10 +45,10 @@ class ImageRankedSpec extends Specification with BeforeAll {
 
       val result = imageDao.byUserImageWithRatingRanked(userId = 1L, roundId = 1L)
       result must haveSize(2)
-      result(0).pageId === 201L
-      result(0).rank === Some(1)
-      result(1).pageId === 202L
-      result(1).rank === Some(2)
+      result(0).pageId must_== 201L
+      result(0).rank must_== Some(1)
+      result(1).pageId must_== 202L
+      result(1).rank must_== Some(2)
     }
 
     "rank three images with distinct rates correctly" in new AutoRollbackDb {
@@ -62,12 +62,12 @@ class ImageRankedSpec extends Specification with BeforeAll {
 
       val result = imageDao.byUserImageWithRatingRanked(userId = 1L, roundId = 1L)
       result must haveSize(3)
-      result(0).pageId === 301L
-      result(0).rank === Some(1)
-      result(1).pageId === 302L
-      result(1).rank === Some(2)
-      result(2).pageId === 303L
-      result(2).rank === Some(3)
+      result(0).pageId must_== 301L
+      result(0).rank must_== Some(1)
+      result(1).pageId must_== 302L
+      result(1).rank must_== Some(2)
+      result(2).pageId must_== 303L
+      result(2).rank must_== Some(3)
     }
 
     "isolate by juryId — other juror's selections not included" in new AutoRollbackDb {
@@ -79,7 +79,7 @@ class ImageRankedSpec extends Specification with BeforeAll {
 
       val result = imageDao.byUserImageWithRatingRanked(userId = 1L, roundId = 1L)
       result must haveSize(1)
-      result.head.pageId === 401L
+      result.head.pageId must_== 401L
     }
 
     "isolate by roundId — other round's selections not included" in new AutoRollbackDb {
@@ -91,7 +91,7 @@ class ImageRankedSpec extends Specification with BeforeAll {
 
       val result = imageDao.byUserImageWithRatingRanked(userId = 1L, roundId = 1L)
       result must haveSize(1)
-      result.head.pageId === 501L
+      result.head.pageId must_== 501L
     }
 
     "respects pageSize and offset" in new AutoRollbackDb {
@@ -104,13 +104,13 @@ class ImageRankedSpec extends Specification with BeforeAll {
 
       val firstPage = imageDao.byUserImageWithRatingRanked(userId = 1L, roundId = 1L, pageSize = 2, offset = 0)
       firstPage must haveSize(2)
-      firstPage(0).rank === Some(1)
-      firstPage(1).rank === Some(2)
+      firstPage(0).rank must_== Some(1)
+      firstPage(1).rank must_== Some(2)
 
       val secondPage = imageDao.byUserImageWithRatingRanked(userId = 1L, roundId = 1L, pageSize = 2, offset = 2)
       secondPage must haveSize(2)
-      secondPage(0).rank === Some(3)
-      secondPage(1).rank === Some(4)
+      secondPage(0).rank must_== Some(3)
+      secondPage(1).rank must_== Some(4)
     }
   }
 
@@ -131,9 +131,9 @@ class ImageRankedSpec extends Specification with BeforeAll {
 
       val result = imageDao.byUserImageRangeRanked(userId = 1L, roundId = 1L)
       result must haveSize(1)
-      result.head.rank === Some(1)
-      result.head.rank2 === Some(1)
-      result.head.pageId === 701L
+      result.head.rank must_== Some(1)
+      result.head.rank2 must_== Some(1)
+      result.head.pageId must_== 701L
     }
 
     "compute rank1 (DESC) and rank2 (ASC) correctly for two images" in new AutoRollbackDb {
@@ -148,13 +148,13 @@ class ImageRankedSpec extends Specification with BeforeAll {
 
       // highest rate (5) → rank1=1 (best by DESC), rank2=1 (1 image has rate >= 5)
       val best = result.find(_.pageId == 801L).get
-      best.rank === Some(1)
-      best.rank2 === Some(1)
+      best.rank must_== Some(1)
+      best.rank2 must_== Some(1)
 
       // lowest rate (2) → rank1=2 (worst by DESC), rank2=2 (2 images have rate >= 2)
       val worst = result.find(_.pageId == 802L).get
-      worst.rank === Some(2)
-      worst.rank2 === Some(2)
+      worst.rank must_== Some(2)
+      worst.rank2 must_== Some(2)
     }
 
     "orders results by rank1 ascending" in new AutoRollbackDb {
@@ -167,10 +167,10 @@ class ImageRankedSpec extends Specification with BeforeAll {
 
       val result = imageDao.byUserImageRangeRanked(userId = 1L, roundId = 1L)
       result must haveSize(3)
-      result.map(_.rank) === Seq(Some(1), Some(2), Some(3))
-      result(0).pageId === 901L
-      result(1).pageId === 902L
-      result(2).pageId === 903L
+      result.map(_.rank) must_== Seq(Some(1), Some(2), Some(3))
+      result(0).pageId must_== 901L
+      result(1).pageId must_== 902L
+      result(2).pageId must_== 903L
     }
 
     "respects pageSize and offset" in new AutoRollbackDb {
@@ -183,13 +183,13 @@ class ImageRankedSpec extends Specification with BeforeAll {
 
       val firstPage = imageDao.byUserImageRangeRanked(userId = 1L, roundId = 1L, pageSize = 2, offset = 0)
       firstPage must haveSize(2)
-      firstPage(0).rank === Some(1)
-      firstPage(1).rank === Some(2)
+      firstPage(0).rank must_== Some(1)
+      firstPage(1).rank must_== Some(2)
 
       val secondPage = imageDao.byUserImageRangeRanked(userId = 1L, roundId = 1L, pageSize = 2, offset = 2)
       secondPage must haveSize(2)
-      secondPage(0).rank === Some(3)
-      secondPage(1).rank === Some(4)
+      secondPage(0).rank must_== Some(3)
+      secondPage(1).rank must_== Some(4)
     }
   }
 }
