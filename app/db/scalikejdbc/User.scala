@@ -311,7 +311,7 @@ object User extends CRUDMapper[User] {
     )
   }
 
-  def create(user: User): User = {
+  def create(user: User)(implicit session: DBSession): User = {
     val id = withSQL {
       insert
         .into(User)

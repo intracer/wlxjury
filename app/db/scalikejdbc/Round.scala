@@ -222,7 +222,7 @@ object Round extends RoundRepo with CRUDMapper[Round] {
       mediaType = rs.stringOpt(c.mediaType)
     ).withFixedCategories
 
-  def create(round: Round): Round = {
+  def create(round: Round)(implicit session: DBSession = AutoSession): Round = {
     val id = withSQL {
       insert
         .into(Round)

@@ -30,7 +30,7 @@ class UserService @Inject()(val sendMail: SMTPOrWikiMail,
       password = Some(hash),
       contestId = contestOpt.flatMap(_.id).orElse(creator.contestId))
 
-    val createdUser = User.create(toCreate)
+    val createdUser = User.create(toCreate)(User.session)
 
     contestOpt.foreach { contest =>
       if (contest.greeting.use) {

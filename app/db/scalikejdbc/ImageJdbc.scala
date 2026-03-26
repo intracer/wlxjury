@@ -69,42 +69,40 @@ object ImageJdbc extends CRUDMapper[Image]
 
   def apply(c: ResultName[Image])(rs: WrappedResultSet): Image = extract(rs, c)
 
-  def batchInsert(images: Seq[Image]): Unit = {
+  def batchInsert(images: Seq[Image])(implicit session: DBSession = AutoSession): Unit = {
     val column = ImageJdbc.column
-    DB localTx { implicit session =>
-      val batchParams: Seq[Seq[Any]] = images.map(i =>
-        Seq(
-          i.pageId,
-          i.title,
-          i.url,
-          i.pageUrl,
-          i.width,
-          i.height,
-          i.monumentId,
-          i.description,
-          i.size,
-          i.author,
-          i.mime
-        )
+    val batchParams: Seq[Seq[Any]] = images.map(i =>
+      Seq(
+        i.pageId,
+        i.title,
+        i.url,
+        i.pageUrl,
+        i.width,
+        i.height,
+        i.monumentId,
+        i.description,
+        i.size,
+        i.author,
+        i.mime
       )
-      withSQL {
-        insert
-          .into(ImageJdbc)
-          .namedValues(
-            column.pageId -> sqls.?,
-            column.title -> sqls.?,
-            column.url -> sqls.?,
-            column.pageUrl -> sqls.?,
-            column.width -> sqls.?,
-            column.height -> sqls.?,
-            column.monumentId -> sqls.?,
-            column.description -> sqls.?,
-            column.size -> sqls.?,
-            column.author -> sqls.?,
-            column.mime -> sqls.?
-          )
-      }.batch(batchParams: _*).apply()
-    }
+    )
+    withSQL {
+      insert
+        .into(ImageJdbc)
+        .namedValues(
+          column.pageId -> sqls.?,
+          column.title -> sqls.?,
+          column.url -> sqls.?,
+          column.pageUrl -> sqls.?,
+          column.width -> sqls.?,
+          column.height -> sqls.?,
+          column.monumentId -> sqls.?,
+          column.description -> sqls.?,
+          column.size -> sqls.?,
+          column.author -> sqls.?,
+          column.mime -> sqls.?
+        )
+    }.batch(batchParams: _*).apply()
   }
 
   def update(image: Image): Unit =

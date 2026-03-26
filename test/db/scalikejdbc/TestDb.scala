@@ -9,8 +9,13 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers.running
 
 import java.time.ZonedDateTime
+import scalikejdbc.DBSession
 
 trait TestDb {
+
+  /** Default session for non-AutoRollback tests. AutoRollback tests shadow this
+    * with their own `implicit val session` from the AutoRollback trait. */
+  implicit val testSession: DBSession = User.session
 
   /** Data Access Objects */
   val contestDao: ContestJuryJdbc.type = ContestJuryJdbc
