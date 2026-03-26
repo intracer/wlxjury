@@ -105,7 +105,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
       )
     }
 
-    def byRegionStat()(implicit messages: Messages): Seq[Region] = {
+    def byRegionStat()(implicit messages: Messages, session: DBSession = autoSession): Seq[Region] = {
       val map = SQL(s"""select distinct substring(i.monument_id, 1, 2)
                        |from images i
                        |         join selection s on i.page_id = s.page_id
