@@ -5,7 +5,10 @@ import org.specs2.specification.BeforeAll
 
 class UserDbSpec extends Specification with BeforeAll {
 
-  override def beforeAll(): Unit = SharedTestDb.init()
+  override def beforeAll(): Unit = {
+    SharedTestDb.init()
+    SharedTestDb.truncateAll()
+  }
 
   "fresh database" should {
     "be empty" in new AutoRollbackDb {

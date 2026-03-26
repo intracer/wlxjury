@@ -23,6 +23,7 @@ trait AutoRollbackMunitDb extends FunFixtures with TestDb { self: FunSuite =>
   private val dbFixture: FunFixture[(DB, DBSession)] = FunFixture(
     setup = _ => {
       SharedTestDb.init()
+      SharedTestDb.truncateAll()
       val db = DB(ConnectionPool.borrow())
       db.begin()
       (db, db.withinTxSession())

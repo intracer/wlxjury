@@ -1,47 +1,85 @@
 package db.scalikejdbc
 
-import com.dimafeng.testcontainers.MariaDBContainer
-import org.testcontainers.utility.DockerImageName
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-/** Provides a Play application backed by its own MariaDB container,
- *  started once for the spec class (in beforeAll) and stopped in afterAll.
+/** Mixin for tests that need a running Play application.
  *
- *  Use only when tests require Akka actors or other Play services.
- *  `GuiceApplicationBuilder.build()` returns an already-started application;
- *  flyway-play runs migrations automatically on startup via the Play module.
- *  `app.stop()` returns Future[Unit] — Await ensures clean shutdown.
+ *  == Shared app (default) ==
+ *  Call `testDbApp { implicit app => ... }` directly.  On first call the
+ *  shared [[SharedPlayApp]] is initialised (reusing [[SharedTestDb]]'s
+ *  container) and all tables are truncated for isolation.
+ *
+ *  == Per-spec lifecycle (e.g. RoundUsersSpec) ==
+ *  Call `startPlayApp()` in `beforeAll` and `stopPlayApp()` in `afterAll`.
+ *  `protected var app` is then the shared application.
+ *
+ *  == Per-test with custom config (e.g. ImageProxyControllerSpec) ==
+ *  Place `implicit val cfg: Map[String, String] = Map(...)` in scope before
+ *  calling `testDbApp { implicit app => ... }`.  A fresh Play app is started
+ *  on top of the shared container and stopped after the call.  The shared
+ *  ScalikeJDBC pool is restored via [[SharedTestDb.reregisterDefault()]]
+ *  afterwards.
  */
 trait PlayTestDb extends TestDb {
 
-  private var _container: MariaDBContainer = _
-  protected var app: Application           = _
+  // Used by startPlayApp / stopPlayApp pattern (e.g. RoundUsersSpec)
+  protected var app: Application = _
+
+  /** Run `body` with a Play application.
+   *
+   *  With an empty `additionalConfig` (the common case), uses [[SharedPlayApp]]
+   *  and truncates all tables first.
+   *
+   *  With a non-empty `additionalConfig`, starts a fresh Play app for this
+   *  single call (sharing [[SharedTestDb]]'s container but with extra config).
+   */
+  def testDbApp[T](
+      body: Application => T
+  )(implicit additionalConfig: Map[String, String] = Map.empty): T = {
+    if (additionalConfig.isEmpty) {
+      SharedPlayApp.init()
+      SharedPlayApp.truncateAll()
+      body(SharedPlayApp.app)
+    } else {
+      SharedTestDb.init()
+      val perTestApp = new GuiceApplicationBuilder()
+        .configure(Map(
+          "db.default.driver"   -> SharedTestDb.driverClassName,
+          "db.default.username" -> SharedTestDb.username,
+          "db.default.password" -> SharedTestDb.password,
+          "db.default.url"      -> SharedTestDb.jdbcUrl
+        ) ++ additionalConfig)
+        .build()
+      try {
+        body(perTestApp)
+      } finally {
+        Await.result(perTestApp.stop(), 30.seconds)
+        // PlayDBApiAdapterModule closes ALL ScalikeJDBC pools on stop().
+        // Restore the shared container's pool so other tests can still connect.
+        SharedTestDb.reregisterDefault()
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Per-spec lifecycle (used by RoundUsersSpec)
+  // -------------------------------------------------------------------------
 
   def startPlayApp(additionalConfig: Map[String, String] = Map.empty): Unit = {
-    _container = MariaDBContainer(
-      dockerImageName = DockerImageName.parse("mariadb:10.6.22"),
-      dbName         = "wlxjury",
-      dbUsername     = "WLXJURY_DB_USER",
-      dbPassword     = "WLXJURY_DB_PASSWORD"
-    )
-    _container.start()
-    app = new GuiceApplicationBuilder()
-      .configure(Map(
-        "db.default.driver"   -> _container.driverClassName,
-        "db.default.username" -> _container.username,
-        "db.default.password" -> _container.password,
-        "db.default.url"      -> _container.jdbcUrl
-      ) ++ additionalConfig)
-      .build()
-    roundDao.usersRef // initialise actor ref required by addUsers
+    SharedPlayApp.init()
+    SharedPlayApp.truncateAll()
+    app = SharedPlayApp.app
+    roundDao.usersRef
   }
 
   def stopPlayApp(): Unit = {
-    if (app != null) Await.result(app.stop(), 30.seconds)
-    if (_container != null) _container.stop()
+    // The shared app lives until JVM shutdown — nothing to stop here.
+    // Truncate data so subsequent AutoRollback tests see an empty database.
+    SharedPlayApp.truncateAll()
+    SharedTestDb.reregisterDefault()
   }
 }
