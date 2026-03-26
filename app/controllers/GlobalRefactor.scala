@@ -151,7 +151,7 @@ class GlobalRefactor(val commons: MwBot) {
       User(name, name, None, Set("admin"), Some(hash), contest.id, Some("en"))
 
     println(s"admin user: $name / $password")
-    User.create(user)(User.session)
+    User.create(user)
   }
 
   def categoriesToContests(contest: String,
