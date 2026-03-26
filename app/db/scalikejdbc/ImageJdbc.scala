@@ -234,7 +234,7 @@ object ImageJdbc extends CRUDMapper[Image]
       roundId: Long,
       pageSize: Int = Int.MaxValue,
       offset: Int = 0
-  ): Seq[ImageWithRating] =
+  )(implicit session: DBSession = AutoSession): Seq[ImageWithRating] =
     sql"""SELECT count(s2.page_id) + 1 AS rank, ${i.result.*}, ${s1.result.*}
     FROM images i
     JOIN (SELECT * FROM selection s WHERE s.jury_id = $userId  AND s.round_id = $roundId) AS s1
@@ -256,7 +256,7 @@ object ImageJdbc extends CRUDMapper[Image]
       roundId: Long,
       pageSize: Int = Int.MaxValue,
       offset: Int = 0
-  ): Seq[ImageWithRating] =
+  )(implicit session: DBSession = AutoSession): Seq[ImageWithRating] =
     sql"""SELECT s1.rank1, s2.rank2, ${i.result.*}, ${s1.result.*}
           FROM images i JOIN
             (SELECT t1.*, count(t2.page_id) + 1 AS rank1
