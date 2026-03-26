@@ -26,7 +26,8 @@ object GatlingTestFixture {
         "db.default.driver"   -> container.driverClassName,
         "db.default.username" -> container.username,
         "db.default.password" -> container.password,
-        "db.default.url"      -> container.jdbcUrl
+        "db.default.url"      -> container.jdbcUrl,
+        "play.filters.disabled" -> Seq("play.filters.csrf.CSRFFilter")
       ))
       .build()
     val server = TestServer(port, app)
