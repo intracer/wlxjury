@@ -39,7 +39,16 @@ object GatlingTestFixture {
       try server.stop() finally container.stop()
     }))
 
-    GatlingDbSetup.load(port, GatlingConfig)
+    val cacheKey = GatlingDbCache.cacheKey(GatlingConfig)
+
+    if (GatlingDbCache.exists(cacheKey)) {
+      GatlingDbCache.restore(container, cacheKey)
+      GatlingDbSetup.loadFromDb(port)
+    } else {
+      val data = GatlingDbSetup.load(port, GatlingConfig)
+      GatlingDbCache.save(container, cacheKey)
+      data
+    }
   }
 
   private def freePort(): Int = {

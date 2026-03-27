@@ -23,6 +23,63 @@ case class GatlingFixtureData(
 
 object GatlingDbSetup {
 
+  /** Reconstruct GatlingFixtureData from a restored DB without re-running the CSV load. */
+  def loadFromDb(port: Int): GatlingFixtureData = {
+    import scalikejdbc.AutoSession
+    implicit val session: DBSession = AutoSession
+
+    // Initialise the hasManyThrough association (required before any Round.findAllBy call)
+    Round.usersRef
+
+    val contest = ContestJuryJdbc.findAll()
+      .find(_.name == "Gatling Perf Test Contest")
+      .getOrElse(throw new RuntimeException("Gatling contest not found — is the dump stale?"))
+    val contestId = contest.id.get
+
+    val rounds = Round.findAllBy(sqls.eq(Round.defaultAlias.contestId, contestId))
+    val binaryRound = rounds.find(_.name.exists(_.contains("Binary")))
+      .getOrElse(throw new RuntimeException("Binary round not found"))
+    val ratingRound = rounds.find(_.name.exists(_.contains("Rating")))
+      .getOrElse(throw new RuntimeException("Rating round not found"))
+
+    val allUsers = User.findAllBy(sqls.eq(User.defaultAlias.contestId, contestId))
+
+    val jurors = allUsers
+      .filter(_.roles.contains("jury"))
+      .sortBy(_.email)
+      .map { u =>
+        val email = u.email
+        val idx   = email.replaceAll("juror(\\d+)@.*", "$1")
+        (u.id.get, email, s"pass$idx")
+      }
+
+    val orgUser = allUsers.find(_.roles.contains("admin"))
+      .getOrElse(throw new RuntimeException("Organizer not found"))
+    val organizer = (orgUser.id.get, orgUser.email, "orgpass")
+
+    val imagePageIds = sql"SELECT page_id FROM images"
+      .map(_.long("page_id")).list()
+
+    val regions = sql"SELECT DISTINCT adm0 FROM monument WHERE adm0 IS NOT NULL"
+      .map(_.string("adm0")).list()
+
+    // Split 50k evenly across both rounds so both are represented in votingPairs
+    val votingPairs =
+      (sql"""SELECT jury_id, page_id, round_id, rate FROM selection
+             WHERE round_id = ${binaryRound.id.get} LIMIT 25000"""
+        .map(rs => (rs.long("jury_id"), rs.long("page_id"), rs.long("round_id"), rs.int("rate")))
+        .list() ++
+       sql"""SELECT jury_id, page_id, round_id, rate FROM selection
+             WHERE round_id = ${ratingRound.id.get} LIMIT 25000"""
+        .map(rs => (rs.long("jury_id"), rs.long("page_id"), rs.long("round_id"), rs.int("rate")))
+        .list())
+
+    GatlingFixtureData(port = port, contestId = contestId,
+      roundBinaryId = binaryRound.id.get, roundRatingId = ratingRound.id.get,
+      jurors = jurors, organizer = organizer,
+      imagePageIds = imagePageIds, regions = regions, votingPairs = votingPairs)
+  }
+
   def load(port: Int, cfg: GatlingConfig.type): GatlingFixtureData = {
     val numUsers = cfg.users
     val fraction = cfg.jurorFraction
@@ -127,6 +184,11 @@ object GatlingDbSetup {
 
       SQL("SET foreign_key_checks = 1").execute.apply()
       SQL("SET unique_checks = 1").execute.apply()
+    }
+
+    // Refresh optimizer statistics after bulk load so the first query uses correct plans.
+    DB autoCommit { implicit session =>
+      SQL("ANALYZE TABLE images, selection, monument, users, rounds, round_user").execute.apply()
     }
 
     val interleavedSelections = binarySelections.zip(ratingSelections).flatMap { case (b, r) => Seq(b, r) }
