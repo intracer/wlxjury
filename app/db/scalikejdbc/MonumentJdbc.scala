@@ -134,14 +134,13 @@ object MonumentJdbc extends SQLSyntaxSupport[Monument] {
   )(implicit session: DBSession = autoSession): List[Monument] = withSQL {
     val q: PagingSQLBuilder[List[Monument]] = select
       .from(MonumentJdbc as c)
-      //      .where.append(isNotDeleted)
       .orderBy(c.id)
 
     limit.fold(q)(l => q.limit(l))
   }.map(MonumentJdbc(c)).list()
 
   def find(id: String)(implicit session: DBSession = autoSession): Option[Monument] = withSQL {
-    select.from(MonumentJdbc as c).where.eq(c.id, id) // .and.append(isNotDeleted)
+    select.from(MonumentJdbc as c).where.eq(c.id, id)
   }.map(MonumentJdbc(c)).single()
 
 }
