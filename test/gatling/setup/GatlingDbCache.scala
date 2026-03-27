@@ -39,8 +39,8 @@ object GatlingDbCache {
       md.update(java.nio.ByteBuffer.allocate(8).putLong(size).array())
     }
 
-    // Hash user count (changing users produces a different fixture).
-    md.update(cfg.users.toString.getBytes("UTF-8"))
+    // Hash fixture parameters (user count, fraction, max rate).
+    md.update(s"${cfg.users}:${cfg.jurorFraction}:${cfg.maxRate}".getBytes("UTF-8"))
 
     md.digest().map("%02x".format(_)).mkString.take(16)
   }
@@ -65,6 +65,15 @@ object GatlingDbCache {
     )
     if (result.getExitCode != 0)
       throw new RuntimeException(s"[GatlingDbCache] restore failed: ${result.getStderr}")
+
+    // Refresh optimizer statistics after restore so queries use correct execution plans.
+    val analyzeResult = container.container.execInContainer("sh", "-c",
+      s"mysql -u${container.username} -p${container.password} ${container.databaseName}" +
+      s" -e 'ANALYZE TABLE images, selection, monument, users, rounds, round_user;'"
+    )
+    if (analyzeResult.getExitCode != 0)
+      println(s"[GatlingDbCache] ANALYZE TABLE warning: ${analyzeResult.getStderr}")
+
     println("[GatlingDbCache] Restore complete.")
   }
 
