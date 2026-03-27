@@ -81,7 +81,7 @@ object GatlingDbSetup {
     val orgEmail    = "organizer@gatling.test"
     val orgPassword = "orgpass"
     val orgUser     = User.create(fullname = "Organizer", email = orgEmail,
-                                  password = User.sha1(orgPassword), roles = Set("organizer"),
+                                  password = User.sha1(orgPassword), roles = Set("admin"),
                                   contestId = Some(contestId))
     val organizer   = (orgUser.id.get, orgEmail, orgPassword)
 

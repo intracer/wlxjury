@@ -27,7 +27,9 @@ object GatlingTestFixture {
         "db.default.username" -> container.username,
         "db.default.password" -> container.password,
         "db.default.url"      -> container.jdbcUrl,
-        "play.filters.disabled" -> Seq("play.filters.csrf.CSRFFilter")
+        "play.filters.disabled"              -> Seq.empty[String],
+        "play.filters.csrf.method.whiteList" -> Seq("GET", "HEAD", "OPTIONS", "POST"),
+        "play.http.session.secure"           -> false
       ))
       .build()
     val server = TestServer(port, app)

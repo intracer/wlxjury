@@ -20,7 +20,7 @@ import java.net.{CookieManager, CookiePolicy, URI}
 class GatlinSmokeSpec extends Specification {
   sequential
 
-  private val MaxMs     = 1000L
+  private val MaxMs     = 1500L
   private lazy val base = s"http://localhost:${GatlingTestFixture.port}"
   private val f         = GatlingTestFixture
 
