@@ -85,7 +85,7 @@ object ImageDbNew extends SQLSyntaxSupport[Image] {
           // The images table carries no information needed for a pure count, and
           // having it as the outer/driving table forces a full 38k-row scan even
           // when idx_selection_jury_round can satisfy the predicate in < 1 ms.
-          val countExpr = if (grouped) "COUNT(DISTINCT s.page_id)" else "COUNT(*)"
+          val countExpr = "COUNT(DISTINCT s.page_id)"
           "select " + countExpr + " from selection s" + where()
         } else if (count)
           "select count(t.pi_on_i) from (" + sql + ") t"
