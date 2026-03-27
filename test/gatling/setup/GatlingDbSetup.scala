@@ -29,7 +29,7 @@ object GatlingDbSetup {
     val maxRate  = cfg.maxRate
     val rng      = new Random(42)
 
-    // 1 ── Load monuments from CSV
+    // ── Parse CSVs (outside transaction — pure CPU) ──────────────────────────
     val monumentRows = parseCsv("data/wlm-ua-monuments.csv")
     val monuments = monumentRows.map { row =>
       new Monument(
@@ -43,9 +43,7 @@ object GatlingDbSetup {
         page = row("id")
       )
     }
-    monuments.grouped(1000).foreach(batch => MonumentJdbc.batchInsert(batch.toSeq))
 
-    // 2 ── Load images from CSV
     val imageRows = parseCsv("data/wlm-UA-images-2025.csv")
     val images = imageRows.flatMap { row =>
       row.get("page_id").filter(_.nonEmpty).flatMap { pid =>
@@ -65,14 +63,12 @@ object GatlingDbSetup {
         }
       }
     }
-    images.grouped(1000).foreach(batch => ImageJdbc.batchInsert(batch.toSeq))
     val imagePageIds = images.map(_.pageId)
 
-    // 3 ── Contest
+    // ── Entity creation (auto-commits individually; small row counts) ─────────
     val contest   = ContestJuryJdbc.create(id = None, name = "Gatling Perf Test Contest", year = 2024, country = "ua")
     val contestId = contest.id.get
 
-    // 4 ── Jurors
     val jurors = (1 to numUsers).map { i =>
       val email    = s"juror$i@gatling.test"
       val password = s"pass$i"
@@ -82,7 +78,6 @@ object GatlingDbSetup {
       (user.id.get, email, password)
     }
 
-    // 5 ── Organizer
     val orgEmail    = "organizer@gatling.test"
     val orgPassword = "orgpass"
     val orgUser     = User.create(fullname = "Organizer", email = orgEmail,
@@ -90,7 +85,6 @@ object GatlingDbSetup {
                                   contestId = Some(contestId))
     val organizer   = (orgUser.id.get, orgEmail, orgPassword)
 
-    // 6 ── Rounds
     val binaryRound = Round.create(Round(id = None, number = 1, name = Some("Binary Round"),
                                          contestId = contestId, rates = Round.binaryRound, active = true))
     val ratingRound = Round.create(Round(id = None, number = 2, name = Some("Rating Round"),
@@ -98,15 +92,14 @@ object GatlingDbSetup {
                                          rates = Round.rateRounds.find(_.id == maxRate).getOrElse(Round.rateRounds.last),
                                          active = true))
 
-    // 7 ── Add jurors to both rounds
-    // Round.addUsers uses the *receiver* round's id — call on each round separately
     val jurorUsers = jurors.map { case (id, _, _) =>
       RoundUser(roundId = binaryRound.id.get, userId = id, role = "jury", active = true)
     }
     binaryRound.addUsers(jurorUsers)
     ratingRound.addUsers(jurorUsers)
 
-    // 8 ── Generate selections
+    // ── Bulk inserts — wrapped in a single transaction with constraint checks disabled ──
+    // Only batchInsert calls participate; entity creation above uses autoSession.
     val jurorIds  = jurors.map(_._1)
     val numJurors = jurorIds.length
 
@@ -124,14 +117,22 @@ object GatlingDbSetup {
     } yield Selection(pageId = pageId, juryId = juryId, roundId = ratingRound.id.get,
                       rate = rng.nextInt(maxRate) + 1)
 
-    val allSelections = binarySelections ++ ratingSelections
-    allSelections.grouped(5000).foreach(batch => SelectionJdbc.batchInsert(batch.toSeq))
+    DB.localTx { implicit session =>
+      SQL("SET foreign_key_checks = 0").execute.apply()
+      SQL("SET unique_checks = 0").execute.apply()
 
-    // Interleave binary and rating so votingPairs covers both rounds
+      monuments.grouped(1000).foreach(batch => MonumentJdbc.batchInsert(batch.toSeq))
+      images.grouped(1000).foreach(batch => ImageJdbc.batchInsert(batch.toSeq))
+      (binarySelections ++ ratingSelections).grouped(5000).foreach(batch => SelectionJdbc.batchInsert(batch.toSeq))
+
+      SQL("SET foreign_key_checks = 1").execute.apply()
+      SQL("SET unique_checks = 1").execute.apply()
+    }
+
     val interleavedSelections = binarySelections.zip(ratingSelections).flatMap { case (b, r) => Seq(b, r) }
     val votingPairs = interleavedSelections.map(s => (s.juryId, s.pageId, s.roundId, s.rate)).take(50000)
 
-    // 9 ── Regions from monument adm0 (computed by MonumentJdbc.batchInsert)
+    // ── Regions query — runs after transaction commits ───────────────────────
     val regions = DB readOnly { implicit session =>
       sql"SELECT DISTINCT adm0 FROM monument WHERE adm0 IS NOT NULL"
         .map(_.string("adm0")).list()
