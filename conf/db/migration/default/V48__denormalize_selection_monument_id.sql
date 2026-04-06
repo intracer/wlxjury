@@ -7,7 +7,8 @@ UPDATE selection s
   SET s.monument_id = i.monument_id;
 
 -- Drop the now-superseded two-column index (V45a); the covering index below replaces it
-DROP INDEX idx_selection_jury_round ON selection;
+-- Use IF EXISTS so this is idempotent if the index was already dropped or never created
+DROP INDEX IF EXISTS idx_selection_jury_round ON selection;
 
 -- Covering index: enables STRAIGHT_JOIN selection→images with index-only sort
 -- on (jury_id, round_id) predicate + (rate DESC, monument_id ASC, page_id ASC) order
