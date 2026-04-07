@@ -3,7 +3,7 @@ package db.scalikejdbc
 import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import munit.FunSuite
 
-class ImagesSqlSpec extends FunSuite {
+class ImagesSqlSpec extends FunSuite with AutoRollbackMunitDb {
 
   private val imageFields =
     "i.page_id as pi_on_i, i.contest as c_on_i, i.title as t_on_i, i.url as u_on_i, i.page_url as pu_on_i, " +
@@ -26,7 +26,7 @@ class ImagesSqlSpec extends FunSuite {
     assertEquals(foldSpace(f(q)), foldSpace(expected))
   }
 
-  test("list - all") {
+  dbTest("list - all") { implicit session =>
     check(
       SelectionQuery(),
       s"""select $allFields from images i
@@ -35,7 +35,7 @@ class ImagesSqlSpec extends FunSuite {
     )
   }
 
-  test("list - by user") {
+  dbTest("list - by user") { implicit session =>
     check(
       SelectionQuery(userId = Some(123)),
       s"""select $allFields from images i
@@ -46,7 +46,7 @@ class ImagesSqlSpec extends FunSuite {
     )
   }
 
-  test("list - by round") {
+  dbTest("list - by round") { implicit session =>
     check(
       SelectionQuery(roundId = Some(234)),
       s"""select $allFields from images i
@@ -57,7 +57,7 @@ class ImagesSqlSpec extends FunSuite {
     )
   }
 
-  test("list - by rate") {
+  dbTest("list - by rate") { implicit session =>
     check(
       SelectionQuery(rate = Some(1)),
       s"""select $allFields from images i
@@ -68,7 +68,7 @@ class ImagesSqlSpec extends FunSuite {
     )
   }
 
-  test("list - by user, round, rate") {
+  dbTest("list - by user, round, rate") { implicit session =>
     check(
       SelectionQuery(userId = Some(2), roundId = Some(3), rate = Some(1)),
       s"""select $allFields from images i
@@ -79,7 +79,7 @@ class ImagesSqlSpec extends FunSuite {
     )
   }
 
-  test("grouped - group by page list by round") {
+  dbTest("grouped - group by page list by round") { implicit session =>
     check(
       SelectionQuery(roundId = Some(3), grouped = true),
       s"""select sum(s.rate) as rate, count(s.rate) as rate_count, $imageFields from images i
@@ -91,7 +91,7 @@ class ImagesSqlSpec extends FunSuite {
     )
   }
 
-  test("by region - list") {
+  dbTest("by region - list") { implicit session =>
     check(
       SelectionQuery(regions = Set("12")),
       s"""select $allFields from images i
@@ -101,7 +101,7 @@ class ImagesSqlSpec extends FunSuite {
     )
   }
 
-  test("by region - stat") {
+  dbTest("by region - stat") { implicit session =>
     def regionStatQuery(q: SelectionQuery): String = q.query(byRegion = true)
 
     check(
