@@ -153,6 +153,24 @@ class SelectionQuerySpec extends Specification {
     }
   }
 
+  "orderBy" should {
+
+    "include monument_id asc when specified" in {
+      SelectionQuery(userId = Some(userId), roundId = Some(roundId))
+        .orderBy(Map("s.monument_id" -> 1)) must contain("s.monument_id asc")
+    }
+
+    "include rate desc when specified" in {
+      SelectionQuery(userId = Some(userId), roundId = Some(roundId))
+        .orderBy(Map("rate" -> -1)) must contain("rate desc")
+    }
+
+    "produce empty string when order map is empty" in {
+      SelectionQuery(userId = Some(userId), roundId = Some(roundId))
+        .orderBy(Map.empty) === ""
+    }
+  }
+
 }
 
 object SelectionQuerySpec {

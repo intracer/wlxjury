@@ -20,7 +20,9 @@ class ImageDbNewDbSpec extends Specification with BeforeAll with TestDb {
     Selection(pageId = pageId, juryId = userId, roundId = roundId, rate = rate,
               monumentId = Some(monumentId))
 
-  private val galleryOrder = Map("s.rate" -> -1, "s.monument_id" -> 1, "s.page_id" -> 1)
+  // "rate" (unqualified): in grouped queries refers to the sum(s.rate) alias;
+  // in per-juror queries it unambiguously refers to s.rate.
+  private val galleryOrder = Map("rate" -> -1, "s.monument_id" -> 1, "s.page_id" -> 1)
 
   "SelectionQuery.list" should {
 
