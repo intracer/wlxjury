@@ -12,7 +12,7 @@ class ImagesSqlSpec extends FunSuite with AutoRollbackMunitDb {
 
   private val selectionFields =
     "s.id as i_on_s, s.jury_id as ji_on_s, s.created_at as ca_on_s, s.deleted_at as da_on_s, " +
-      "s.round_id as ri_on_s, s.page_id as pi_on_s, s.rate as r_on_s, s.criteria_id as ci_on_s"
+      "s.round_id as ri_on_s, s.page_id as pi_on_s, s.rate as r_on_s, s.criteria_id as ci_on_s, s.monument_id as mi_on_s"
 
   private val allFields = imageFields + ", " + selectionFields
 
@@ -29,8 +29,8 @@ class ImagesSqlSpec extends FunSuite with AutoRollbackMunitDb {
   dbTest("list - all") { implicit session =>
     check(
       SelectionQuery(),
-      s"""select $allFields from images i
-          join selection s
+      s"""select $allFields from selection s
+          STRAIGHT_JOIN images i
           on i.page_id = s.page_id"""
     )
   }
@@ -38,8 +38,8 @@ class ImagesSqlSpec extends FunSuite with AutoRollbackMunitDb {
   dbTest("list - by user") { implicit session =>
     check(
       SelectionQuery(userId = Some(123)),
-      s"""select $allFields from images i
-          join selection s
+      s"""select $allFields from selection s
+          STRAIGHT_JOIN images i
           on i.page_id = s.page_id
           where
           s.jury_id = 123"""
@@ -49,8 +49,8 @@ class ImagesSqlSpec extends FunSuite with AutoRollbackMunitDb {
   dbTest("list - by round") { implicit session =>
     check(
       SelectionQuery(roundId = Some(234)),
-      s"""select $allFields from images i
-          join selection s
+      s"""select $allFields from selection s
+          STRAIGHT_JOIN images i
           on i.page_id = s.page_id
           where
           s.round_id = 234"""
@@ -60,8 +60,8 @@ class ImagesSqlSpec extends FunSuite with AutoRollbackMunitDb {
   dbTest("list - by rate") { implicit session =>
     check(
       SelectionQuery(rate = Some(1)),
-      s"""select $allFields from images i
-          join selection s
+      s"""select $allFields from selection s
+          STRAIGHT_JOIN images i
           on i.page_id = s.page_id
           where
           s.rate = 1"""
@@ -71,8 +71,8 @@ class ImagesSqlSpec extends FunSuite with AutoRollbackMunitDb {
   dbTest("list - by user, round, rate") { implicit session =>
     check(
       SelectionQuery(userId = Some(2), roundId = Some(3), rate = Some(1)),
-      s"""select $allFields from images i
-          join selection s
+      s"""select $allFields from selection s
+          STRAIGHT_JOIN images i
           on i.page_id = s.page_id
           where
           s.jury_id = 2 and s.round_id = 3 and s.rate = 1"""
@@ -82,8 +82,8 @@ class ImagesSqlSpec extends FunSuite with AutoRollbackMunitDb {
   dbTest("grouped - group by page list by round") { implicit session =>
     check(
       SelectionQuery(roundId = Some(3), grouped = true),
-      s"""select sum(s.rate) as rate, count(s.rate) as rate_count, $imageFields from images i
-          join selection s
+      s"""select sum(s.rate) as rate, count(s.rate) as rate_count, $imageFields from selection s
+          STRAIGHT_JOIN images i
           on i.page_id = s.page_id
           where
           s.round_id = 3
@@ -94,8 +94,8 @@ class ImagesSqlSpec extends FunSuite with AutoRollbackMunitDb {
   dbTest("by region - list") { implicit session =>
     check(
       SelectionQuery(regions = Set("12")),
-      s"""select $allFields from images i
-          join selection s
+      s"""select $allFields from selection s
+          STRAIGHT_JOIN images i
           on i.page_id = s.page_id
           where i.monument_id like '12%'"""
     )
@@ -106,8 +106,8 @@ class ImagesSqlSpec extends FunSuite with AutoRollbackMunitDb {
 
     check(
       SelectionQuery(),
-      s"""select m.adm0, count(DISTINCT i.page_id) from images i
-          join selection s
+      s"""select m.adm0, count(DISTINCT i.page_id) from selection s
+          STRAIGHT_JOIN images i
           on i.page_id = s.page_id
           join monument m
           on i.monument_id = m.id
