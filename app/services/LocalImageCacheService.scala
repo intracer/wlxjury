@@ -114,18 +114,11 @@ class LocalImageCacheService @Inject() (
             if (sourceImg == null)
               Future.failed(new Exception(s"Could not decode image from $url"))
             else {
-              // Run cascade synchronously: saves fire async inside saveResized, cascade CPU returns
-              // the requested image immediately. A try/catch preserves the current behavior where
-              // scaling errors (e.g. OOM) are logged and fall back to a direct scale rather than
-              // propagating a failed Future to the caller.
-              val imgOpt = try {
-                saveResized(image, sourceImg, sourcePx, Some(requestedPx))
-              } catch {
-                case ex: Exception =>
-                  logger.warn(s"Cascade failed for ${image.title}: ${ex.getMessage}")
-                  None
-              }
-              val requestedImg = imgOpt.getOrElse(scale(sourceImg, requestedPx))
+              // Save all target sizes in background (saveResized skips those already in registry)
+              Future(saveResized(image, sourceImg, sourcePx))
+                .recover { case ex => logger.warn(s"Background save failed for ${image.title}: ${ex.getMessage}") }
+              // Resize the requested size and return immediately
+              val requestedImg = scale(sourceImg, requestedPx)
               val baos = new java.io.ByteArrayOutputStream()
               ImageIO.write(requestedImg, "JPEG", baos)
               Future.successful(baos.toByteArray)
@@ -281,7 +274,7 @@ class LocalImageCacheService @Inject() (
         downloadWithRetry(url, attempt = 1).map {
           case Some(bytes) =>
             val sourceImg = ImageIO.read(new ByteArrayInputStream(bytes))
-            if (sourceImg != null) { saveResized(image, sourceImg, sourcePx); () }
+            if (sourceImg != null) saveResized(image, sourceImg, sourcePx)
           case None => ()
         }
     }
@@ -332,41 +325,19 @@ class LocalImageCacheService @Inject() (
     (baseSeconds + jitter).seconds
   }
 
-  /** Generates all target sizes via cascaded downscaling and saves them asynchronously.
-    *
-    * @param requestedPx if Some(px), returns the BufferedImage for that width if generated
-    * @return Some(img) for the requested width if it was generated; None otherwise
-    */
-  private[services] def saveResized(
-    image: Image,
-    sourceImg: BufferedImage,
-    sourcePx: Int,
-    requestedPx: Option[Int] = None
-  ): Option[BufferedImage] = {
-    val toGenerate = targetHeights
-      .map(h => ImageUtil.resizeTo(image.width, image.height, h))
-      .filter(px => px > 0 && px < image.width && px <= sourcePx)
-      .distinct
-      .sorted(Ordering[Int].reverse)  // largest first for cascade
-
-    val results = cascadeScale(sourceImg, toGenerate)
-
-    results.foreach { case (px, img) =>
-      val file = localFile(image, px)
-      if (!registry.containsKey(file.getAbsolutePath)) {
-        registry.put(file.getAbsolutePath, ())   // claim before async write
-        file.getParentFile.mkdirs()
-        Future {
-          ImageIO.write(img, "JPEG", file)
-        }.recover { case ex =>
-          logger.warn(s"Failed to write ${file.getName}: ${ex.getMessage}")
-          registry.remove(file.getAbsolutePath)  // release claim on failure
+  private[services] def saveResized(image: Image, sourceImg: BufferedImage, sourcePx: Int): Unit =
+    targetHeights.foreach { h =>
+      val px = ImageUtil.resizeTo(image.width, image.height, h)
+      if (px > 0 && px < image.width && px <= sourcePx) {
+        val file = localFile(image, px)
+        if (!registry.containsKey(file.getAbsolutePath)) {
+          file.getParentFile.mkdirs()
+          val resized = scale(sourceImg, px)
+          ImageIO.write(resized, "JPEG", file)
+          registry.put(file.getAbsolutePath, ())
         }
       }
     }
-
-    requestedPx.flatMap(rpx => results.find(_._1 == rpx).map(_._2))
-  }
 
   private[services] def scale(src: BufferedImage, targetWidth: Int): BufferedImage = {
     val targetHeight = (src.getHeight.toDouble * targetWidth / src.getWidth).toInt

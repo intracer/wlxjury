@@ -251,40 +251,6 @@ class LocalImageCacheServiceSpec extends Specification {
     }
   }
 
-  // ── cascadeScale ──────────────────────────────────────────────────────────
-
-  "cascadeScale" should {
-
-    val svc = mkService(mkTempDir())
-
-    "produce outputs with the requested widths in order" in {
-      val src = new BufferedImage(2200, 1650, BufferedImage.TYPE_INT_RGB)
-      val widths = Seq(1466, 666, 333)  // already sorted descending
-      val results = svc.cascadeScale(src, widths)
-      results.map(_._1) === widths
-    }
-
-    "produce correct pixel widths" in {
-      val src = new BufferedImage(2200, 1650, BufferedImage.TYPE_INT_RGB)
-      val widths = Seq(1466, 666, 333)
-      val results = svc.cascadeScale(src, widths)
-      results.forall { case (w, img) => img.getWidth == w } must beTrue
-    }
-
-    "never produce an image wider than the previous step" in {
-      val src = new BufferedImage(2200, 1650, BufferedImage.TYPE_INT_RGB)
-      val widths = Seq(1466, 666, 333)
-      val results = svc.cascadeScale(src, widths)
-      val allWidths = src.getWidth +: results.map(_._1)
-      allWidths.zip(allWidths.tail).forall { case (a, b) => b <= a } must beTrue
-    }
-
-    "return empty for empty input" in {
-      val src = new BufferedImage(100, 75, BufferedImage.TYPE_INT_RGB)
-      svc.cascadeScale(src, Seq.empty) must beEmpty
-    }
-  }
-
   // ── saveResized ───────────────────────────────────────────────────────────
 
   "saveResized" should {
@@ -371,31 +337,6 @@ class LocalImageCacheServiceSpec extends Specification {
       svc.localFile(img, 500).exists()  must beTrue
       // 333px < sourcePx → file IS created
       svc.localFile(img, 333).exists()  must beTrue
-    }
-
-    "return Some(img) for the requested px when it is generated" in {
-      val dir = mkTempDir()
-      val svc = mkService(dir)
-      val img = largeImg
-      val result = svc.saveResized(img, sourceImg, sourcePx = 2200, requestedPx = Some(333))
-      // result is synchronous (cascade CPU); no sleep needed
-      result must beSome
-      result.get.getWidth === 333
-    }
-
-    "return None when requestedPx exceeds sourcePx" in {
-      val dir = mkTempDir()
-      val svc = mkService(dir)
-      val img = largeImg
-      val result = svc.saveResized(img, sourceImg, sourcePx = 500, requestedPx = Some(1466))
-      result must beNone
-    }
-
-    "return None when requestedPx is absent (default)" in {
-      val dir = mkTempDir()
-      val svc = mkService(dir)
-      val img = largeImg
-      svc.saveResized(img, sourceImg, sourcePx = 2200) must beNone
     }
   }
 
