@@ -1,6 +1,7 @@
 package org.intracer.wmua
 
 import db.scalikejdbc._
+import db.scalikejdbc.UserContestJdbc
 import org.intracer.wmua.cmd.DistributeImages
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -33,6 +34,9 @@ class ImageDistributorSpec extends Specification with TestDb with Mockito
 
     val jurors = (start until jurorsNum + start).map(contestUser(_))
     val dbJurors = jurors.map(userDao.create)
+    dbJurors.foreach { u =>
+      UserContestJdbc.createMembership(u.getId, contest.id.get, "jury")
+    }
 
     val preJurors = (start until jurorsNum + start).map(i => contestUser(i + 100, "prejury"))
     preJurors.foreach(userDao.create)
@@ -100,7 +104,7 @@ class ImageDistributorSpec extends Specification with TestDb with Mockito
       selection1.map(_.juryId).toSet === juryIds.toSet
 
       val roundWithJurors = roundDao.findById(dbRound.getId).get
-      roundWithJurors.users === oneJuror
+      roundWithJurors.users.map(_.id) === oneJuror.map(_.id)
     }
 
     "create first round 1 juror to image" in {

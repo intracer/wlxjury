@@ -42,10 +42,7 @@ object GatlingDbSetup {
     val ratingRound = rounds.find(_.name.exists(_.contains("Rating")))
       .getOrElse(throw new RuntimeException("Rating round not found"))
 
-    val allUsers = User.findAllBy(sqls.eq(User.defaultAlias.contestId, contestId))
-
-    val jurors = allUsers
-      .filter(_.roles.contains("jury"))
+    val jurors = User.findByContestAndRoles(contestId, Seq("jury"))
       .sortBy(_.email)
       .map { u =>
         val email = u.email
@@ -53,7 +50,8 @@ object GatlingDbSetup {
         (u.id.get, email, s"pass$idx")
       }
 
-    val orgUser = allUsers.find(_.roles.contains("admin"))
+    val orgUser = User.findByContestAndRoles(contestId, Seq("admin"))
+      .headOption
       .getOrElse(throw new RuntimeException("Organizer not found"))
     val organizer = (orgUser.id.get, orgUser.email, "orgpass")
 
@@ -134,12 +132,16 @@ object GatlingDbSetup {
                                  contestId = Some(contestId))
       (user.id.get, email, password)
     }
+    jurors.foreach { case (userId, _, _) =>
+      UserContestJdbc.createMembership(userId, contestId, "jury")
+    }
 
     val orgEmail    = "organizer@gatling.test"
     val orgPassword = "orgpass"
     val orgUser     = User.create(fullname = "Organizer", email = orgEmail,
                                   password = User.sha1(orgPassword), roles = Set("admin"),
                                   contestId = Some(contestId))
+    UserContestJdbc.createMembership(orgUser.id.get, contestId, "admin")
     val organizer   = (orgUser.id.get, orgEmail, orgPassword)
 
     val binaryRound = Round.create(Round(id = None, number = 1, name = Some("Binary Round"),
