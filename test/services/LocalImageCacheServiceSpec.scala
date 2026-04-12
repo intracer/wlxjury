@@ -15,7 +15,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File}
 import java.nio.file.Files
 import javax.imageio.ImageIO
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import java.util.concurrent.atomic.AtomicInteger
 
 class LocalImageCacheServiceSpec extends Specification {
@@ -660,6 +660,85 @@ class LocalImageCacheServiceSpec extends Specification {
 
         bytes must not be empty
         ImageIO.read(new ByteArrayInputStream(bytes)) must not(beNull)
+      }
+
+      tmpDir.delete()
+      ok
+    }
+  }
+
+  // ── saveResized (concurrent) ─────────────────────────────────────────────
+
+  "saveResized (concurrent)" should {
+
+    val W = 4000; val H = 3000
+    def largeImg  = mkImage(filename = "ConcurrentPhoto.jpg", w = W, h = H)
+    val targetHts = Seq(120, 180, 240, 250, 375, 500, 1100, 1650)
+    val allWidths = targetHts.map(h => ImageUtil.resizeTo(W, H, h)).filter(_ < W)
+
+    "not corrupt files when called from many threads simultaneously" in {
+      val dir     = mkTempDir()
+      val svc     = mkService(dir)
+      val img     = largeImg
+      val src     = new BufferedImage(2200, 1650, BufferedImage.TYPE_INT_RGB)
+      val barrier = new java.util.concurrent.CyclicBarrier(20)
+
+      val futures = (1 to 20).map { _ =>
+        Future {
+          barrier.await()
+          svc.saveResized(img, src, 2200)
+        }
+      }
+      Await.result(Future.sequence(futures), 30.seconds)
+
+      val corrupt = allWidths.filterNot { px =>
+        val f = svc.localFile(img, px)
+        f.exists() && scala.util.Try(ImageIO.read(f)).toOption.exists(_ != null)
+      }
+      corrupt must beEmpty
+    }
+  }
+
+  // ── fetchAndCacheAll (concurrent) ────────────────────────────────────────
+
+  "fetchAndCacheAll (concurrent)" should {
+
+    val SW = 4000; val SH = 3000
+    val neededWidths = Seq(120, 180, 240, 250, 375, 500, 1100, 1650)
+      .map(h => ImageUtil.resizeTo(SW, SH, h)).filter(_ < SW)
+
+    "download from upstream only once when called concurrently for the same image" in {
+      val tmpDir        = Files.createTempDirectory("fetch-dedup").toFile
+      val img           = mkImage()
+      val downloadCount = new AtomicInteger(0)
+      val latch         = new java.util.concurrent.CountDownLatch(1)
+
+      withServer { _ =>
+        downloadCount.incrementAndGet()
+        // Hold the response until the test releases the latch, so all 10 caller
+        // threads have time to enter computeIfAbsent before any response arrives.
+        latch.await(10, java.util.concurrent.TimeUnit.SECONDS)
+        HttpResponse(entity = HttpEntity(
+          ContentTypes.`application/octet-stream`, ByteString(jpegBytes(800, 600))
+        ))
+      } { port =>
+        val svc     = mkService(tmpDir, serverPort = Some(port))
+        val px      = neededWidths.head
+        val barrier = new java.util.concurrent.CyclicBarrier(10)
+
+        val futs = (1 to 10).map { _ =>
+          Future {
+            barrier.await()
+            Await.result(svc.fetchAndCacheAll(img, px), 30.seconds)
+          }
+        }
+
+        // Give all 10 threads time to reach computeIfAbsent before responding
+        Thread.sleep(200)
+        latch.countDown()
+
+        Await.result(Future.sequence(futs), 60.seconds)
+        downloadCount.get() must_== 1
       }
 
       tmpDir.delete()
