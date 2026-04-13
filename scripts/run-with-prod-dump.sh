@@ -18,9 +18,10 @@ ENV_FILE="$REPO_DIR/.env"
 usage() {
   cat <<'EOF'
 Usage:
-  ./scripts/run-with-prod-dump.sh            # full flow: dump → restore → run
-  ./scripts/run-with-prod-dump.sh --skip-dump # re-use existing /tmp/wlxjury-prod.sql.gz
-  ./scripts/run-with-prod-dump.sh --dump-only # dump and restore, do not start sbt
+  ./scripts/run-with-prod-dump.sh                  # full flow: dump → restore → run
+  ./scripts/run-with-prod-dump.sh --skip-dump       # re-use existing /tmp/wlxjury-prod.sql.gz
+  ./scripts/run-with-prod-dump.sh --dump-only       # dump and restore, do not start sbt
+  ./scripts/run-with-prod-dump.sh --reuse-container # skip dump+restore, use running container
 EOF
 }
 
@@ -37,11 +38,13 @@ format_duration() {
 # ── Argument parsing ───────────────────────────────────────────────────────────
 SKIP_DUMP=false
 DUMP_ONLY=false
+REUSE_CONTAINER=false
 
 for arg in "$@"; do
   case "$arg" in
-    --skip-dump) SKIP_DUMP=true ;;
-    --dump-only) DUMP_ONLY=true ;;
+    --skip-dump)       SKIP_DUMP=true ;;
+    --dump-only)       DUMP_ONLY=true ;;
+    --reuse-container) REUSE_CONTAINER=true ;;
     --help|-h)
       usage
       exit 0
@@ -52,6 +55,11 @@ for arg in "$@"; do
       ;;
   esac
 done
+
+if [[ "$REUSE_CONTAINER" == true && "$DUMP_ONLY" == true ]]; then
+  echo "ERROR: --reuse-container and --dump-only cannot be used together." >&2
+  exit 1
+fi
 
 # ── Load prod credentials from .env ───────────────────────────────────────────
 if [[ ! -f "$ENV_FILE" ]]; then
@@ -96,100 +104,121 @@ cleanup() {
 trap cleanup EXIT
 
 echo "==> Config"
-echo "    Prod host  : $WLXJURY_DB_HOST"
-echo "    Prod DB    : $WLXJURY_DB"
-echo "    Local port : $LOCAL_PORT"
-echo "    Dump file  : $DUMP_FILE"
-echo "    Skip dump  : $SKIP_DUMP"
-echo "    Dump only  : $DUMP_ONLY"
+echo "    Prod host       : $WLXJURY_DB_HOST"
+echo "    Prod DB         : $WLXJURY_DB"
+echo "    Local port      : $LOCAL_PORT"
+echo "    Dump file       : $DUMP_FILE"
+echo "    Skip dump       : $SKIP_DUMP"
+echo "    Dump only       : $DUMP_ONLY"
+echo "    Reuse container : $REUSE_CONTAINER"
 
-# ── Phase 1: Dump ──────────────────────────────────────────────────────────────
-dump_prod_db() {
-  local tmp_file="${DUMP_FILE}.tmp"
-  local start=$SECONDS
-  echo "==> Dumping prod DB (via docker mariadb:10.6 client)..."
-  docker run --rm \
-    -e MYSQL_PWD="$WLXJURY_DB_PASSWORD" \
-    mariadb:10.6 \
-    mysqldump \
-      -h "$WLXJURY_DB_HOST" \
-      -u "$WLXJURY_DB_USER" \
-      --single-transaction \
-      --quick \
-      --triggers \
-      --routines \
-      "$WLXJURY_DB" \
-  | gzip > "$tmp_file"
-  mv "$tmp_file" "$DUMP_FILE"
-  echo "    Dump written to $DUMP_FILE  $(du -sh "$DUMP_FILE" | cut -f1)  (took $(format_duration "$((SECONDS - start))"))"
-}
-
-if [[ "$SKIP_DUMP" == true ]]; then
-  if [[ ! -f "$DUMP_FILE" ]]; then
-    echo "ERROR: --skip-dump set but $DUMP_FILE does not exist." >&2
+if [[ "$REUSE_CONTAINER" == true ]]; then
+  # ── Reuse path ──────────────────────────────────────────────────────────────
+  echo "==> Reusing existing container '$CONTAINER_NAME' on port $LOCAL_PORT (skipping dump and restore)..."
+  if [[ "$(docker inspect --format='{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null)" != "true" ]]; then
+    echo "ERROR: --reuse-container set but container '$CONTAINER_NAME' is not running." >&2
+    echo "       Start one first:  ./scripts/run-with-prod-dump.sh --dump-only" >&2
     exit 1
   fi
-  echo "==> Skipping dump; using existing $DUMP_FILE ($(du -sh "$DUMP_FILE" | cut -f1))"
+  CONTAINER_STARTED=true
+  reuse_db_size=$(docker exec \
+    -e MYSQL_PWD="$LOCAL_ROOT_PASSWORD" \
+    "$CONTAINER_NAME" \
+    mysql -u root -sNe \
+      "SELECT CONCAT(ROUND(SUM(data_length + index_length) / 1024 / 1024, 1), ' MB') FROM information_schema.tables WHERE table_schema = '$LOCAL_DB';" \
+    2>/dev/null) || reuse_db_size="unknown"
+  echo "    DB size: $reuse_db_size"
+
 else
-  dump_prod_db
-fi
+  # ── Phase 1: Dump ────────────────────────────────────────────────────────────
+  dump_prod_db() {
+    local tmp_file="${DUMP_FILE}.tmp"
+    local start=$SECONDS
+    echo "==> Dumping prod DB (via docker mariadb:10.6 client)..."
+    docker run --rm \
+      -e MYSQL_PWD="$WLXJURY_DB_PASSWORD" \
+      mariadb:10.6 \
+      mysqldump \
+        -h "$WLXJURY_DB_HOST" \
+        -u "$WLXJURY_DB_USER" \
+        --single-transaction \
+        --quick \
+        --triggers \
+        --routines \
+        "$WLXJURY_DB" \
+    | gzip > "$tmp_file"
+    mv "$tmp_file" "$DUMP_FILE"
+    echo "    Dump written to $DUMP_FILE  $(du -sh "$DUMP_FILE" | cut -f1)  (took $(format_duration "$((SECONDS - start))"))"
+  }
 
-# ── Phase 2: Start local MariaDB container ────────────────────────────────────
-echo "==> Starting local MariaDB container '$CONTAINER_NAME'..."
-
-if docker inspect "$CONTAINER_NAME" &>/dev/null; then
-  echo "    Removing existing container..."
-  docker rm -f "$CONTAINER_NAME"
-fi
-
-docker run -d \
-  --name "$CONTAINER_NAME" \
-  -e MARIADB_DATABASE="$LOCAL_DB" \
-  -e MARIADB_USER="$LOCAL_USER" \
-  -e MARIADB_PASSWORD="$LOCAL_PASSWORD" \
-  -e MARIADB_ROOT_PASSWORD="$LOCAL_ROOT_PASSWORD" \
-  -p "${LOCAL_PORT}:3306" \
-  mariadb:10.6
-CONTAINER_STARTED=true
-
-echo -n "    Waiting for MariaDB to accept connections"
-retries=60
-until docker exec "$CONTAINER_NAME" \
-      mysqladmin ping -h 127.0.0.1 --silent 2>/dev/null; do
-  retries=$((retries - 1))
-  if [[ $retries -le 0 ]]; then
-    echo ""
-    echo "ERROR: MariaDB container did not become healthy in time." >&2
-    docker logs "$CONTAINER_NAME" >&2
-    exit 1
+  if [[ "$SKIP_DUMP" == true ]]; then
+    if [[ ! -f "$DUMP_FILE" ]]; then
+      echo "ERROR: --skip-dump set but $DUMP_FILE does not exist." >&2
+      exit 1
+    fi
+    echo "==> Skipping dump; using existing $DUMP_FILE ($(du -sh "$DUMP_FILE" | cut -f1))"
+  else
+    dump_prod_db
   fi
-  echo -n "."
-  sleep 1
-done
-echo " ready"
 
-# ── Phase 3: Restore dump ─────────────────────────────────────────────────────
-echo "==> Restoring dump into local container..."
-restore_start=$SECONDS
-zcat < "$DUMP_FILE" \
-  | docker exec -i \
-      -e MYSQL_PWD="$LOCAL_ROOT_PASSWORD" \
-      "$CONTAINER_NAME" \
-      mysql -u root "$LOCAL_DB"
-restore_elapsed=$((SECONDS - restore_start))
-db_size=$(docker exec \
-  -e MYSQL_PWD="$LOCAL_ROOT_PASSWORD" \
-  "$CONTAINER_NAME" \
-  mysql -u root -sNe \
-    "SELECT CONCAT(ROUND(SUM(data_length + index_length) / 1024 / 1024, 1), ' MB') FROM information_schema.tables WHERE table_schema = '$LOCAL_DB';" \
-  2>/dev/null) || db_size="unknown"
-echo "    Restore complete  (took $(format_duration "$restore_elapsed"))  |  DB size: $db_size"
+  # ── Phase 2: Start local MariaDB container ──────────────────────────────────
+  echo "==> Starting local MariaDB container '$CONTAINER_NAME'..."
 
-if [[ "$DUMP_ONLY" == true ]]; then
-  echo "==> --dump-only set; skipping sbt run."
-  echo "    Container '$CONTAINER_NAME' left running on port $LOCAL_PORT."
-  echo "    Connect: mysql -h 127.0.0.1 -P $LOCAL_PORT -u $LOCAL_USER -p$LOCAL_PASSWORD $LOCAL_DB"
-  exit 0
+  if docker inspect "$CONTAINER_NAME" &>/dev/null; then
+    echo "    Removing existing container..."
+    docker rm -f "$CONTAINER_NAME"
+  fi
+
+  docker run -d \
+    --name "$CONTAINER_NAME" \
+    -e MARIADB_DATABASE="$LOCAL_DB" \
+    -e MARIADB_USER="$LOCAL_USER" \
+    -e MARIADB_PASSWORD="$LOCAL_PASSWORD" \
+    -e MARIADB_ROOT_PASSWORD="$LOCAL_ROOT_PASSWORD" \
+    -p "${LOCAL_PORT}:3306" \
+    mariadb:10.6
+  CONTAINER_STARTED=true
+
+  echo -n "    Waiting for MariaDB to accept connections"
+  retries=60
+  until docker exec "$CONTAINER_NAME" \
+        mysqladmin ping -h 127.0.0.1 --silent 2>/dev/null; do
+    retries=$((retries - 1))
+    if [[ $retries -le 0 ]]; then
+      echo ""
+      echo "ERROR: MariaDB container did not become healthy in time." >&2
+      docker logs "$CONTAINER_NAME" >&2
+      exit 1
+    fi
+    echo -n "."
+    sleep 1
+  done
+  echo " ready"
+
+  # ── Phase 3: Restore dump ───────────────────────────────────────────────────
+  echo "==> Restoring dump into local container..."
+  restore_start=$SECONDS
+  zcat < "$DUMP_FILE" \
+    | docker exec -i \
+        -e MYSQL_PWD="$LOCAL_ROOT_PASSWORD" \
+        "$CONTAINER_NAME" \
+        mysql -u root "$LOCAL_DB"
+  restore_elapsed=$((SECONDS - restore_start))
+  db_size=$(docker exec \
+    -e MYSQL_PWD="$LOCAL_ROOT_PASSWORD" \
+    "$CONTAINER_NAME" \
+    mysql -u root -sNe \
+      "SELECT CONCAT(ROUND(SUM(data_length + index_length) / 1024 / 1024, 1), ' MB') FROM information_schema.tables WHERE table_schema = '$LOCAL_DB';" \
+    2>/dev/null) || db_size="unknown"
+  echo "    Restore complete  (took $(format_duration "$restore_elapsed"))  |  DB size: $db_size"
+
+  if [[ "$DUMP_ONLY" == true ]]; then
+    echo "==> --dump-only set; skipping sbt run."
+    echo "    Container '$CONTAINER_NAME' left running on port $LOCAL_PORT."
+    echo "    Connect: mysql -h 127.0.0.1 -P $LOCAL_PORT -u $LOCAL_USER -p$LOCAL_PASSWORD $LOCAL_DB"
+    exit 0
+  fi
+
 fi
 
 # ── Phase 4: Run dev server ────────────────────────────────────────────────────
