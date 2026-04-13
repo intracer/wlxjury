@@ -17,6 +17,9 @@ Dumps the production DB, restores it into a local MariaDB 10.6 Docker container 
 
 # Dump and restore only — leave container running for manual inspection
 ./scripts/run-with-prod-dump.sh --dump-only
+
+# Skip dump and restore entirely — use the already-running local container
+./scripts/run-with-prod-dump.sh --reuse-container
 ```
 
 The container (`wlxjury-local-dev`) is left running after the script exits. To remove it:
