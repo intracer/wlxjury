@@ -14,6 +14,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 ENV_FILE="$REPO_DIR/.env"
 
+# ── Usage ──────────────────────────────────────────────────────────────────────
+usage() {
+  cat <<'EOF'
+Usage:
+  ./scripts/run-with-prod-dump.sh            # full flow: dump → restore → run
+  ./scripts/run-with-prod-dump.sh --skip-dump # re-use existing /tmp/wlxjury-prod.sql.gz
+  ./scripts/run-with-prod-dump.sh --dump-only # dump and restore, do not start sbt
+EOF
+}
+
 # ── Argument parsing ───────────────────────────────────────────────────────────
 SKIP_DUMP=false
 DUMP_ONLY=false
@@ -23,7 +33,7 @@ for arg in "$@"; do
     --skip-dump) SKIP_DUMP=true ;;
     --dump-only) DUMP_ONLY=true ;;
     --help|-h)
-      sed -n '3,9p' "${BASH_SOURCE[0]}"
+      usage
       exit 0
       ;;
     *)
