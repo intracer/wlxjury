@@ -122,3 +122,17 @@ until docker exec "$CONTAINER_NAME" \
   sleep 1
 done
 echo " ready"
+
+# ── Phase 3: Restore dump ─────────────────────────────────────────────────────
+echo "==> Restoring dump into local container..."
+zcat "$DUMP_FILE" \
+  | docker exec -i "$CONTAINER_NAME" \
+      mysql -u root "-p${LOCAL_ROOT_PASSWORD}" "$LOCAL_DB"
+echo "    Restore complete."
+
+if [[ "$DUMP_ONLY" == true ]]; then
+  echo "==> --dump-only set; skipping sbt run."
+  echo "    Container '$CONTAINER_NAME' left running on port $LOCAL_PORT."
+  echo "    Connect: mysql -h 127.0.0.1 -P $LOCAL_PORT -u $LOCAL_USER -p$LOCAL_PASSWORD $LOCAL_DB"
+  exit 0
+fi
