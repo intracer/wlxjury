@@ -14,6 +14,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 ENV_FILE="$REPO_DIR/.env"
 
+# ── Argument parsing ───────────────────────────────────────────────────────────
 SKIP_DUMP=false
 DUMP_ONLY=false
 
@@ -22,7 +23,7 @@ for arg in "$@"; do
     --skip-dump) SKIP_DUMP=true ;;
     --dump-only) DUMP_ONLY=true ;;
     --help|-h)
-      sed -n '3,9p' "${BASH_SOURCE[0]}"   # print the comment header
+      sed -n '3,9p' "${BASH_SOURCE[0]}"
       exit 0
       ;;
     *)
@@ -37,8 +38,10 @@ if [[ ! -f "$ENV_FILE" ]]; then
   echo "ERROR: $ENV_FILE not found. Create it with WLXJURY_DB_HOST, WLXJURY_DB, WLXJURY_DB_USER, WLXJURY_DB_PASSWORD." >&2
   exit 1
 fi
+set -a
 # shellcheck source=/dev/null
-set -a; source "$ENV_FILE"; set +a
+source "$ENV_FILE"
+set +a
 
 : "${WLXJURY_DB_HOST:?WLXJURY_DB_HOST must be set in .env}"
 : "${WLXJURY_DB:?WLXJURY_DB must be set in .env}"
@@ -53,6 +56,20 @@ LOCAL_USER="wlxjury_user"
 LOCAL_PASSWORD="wlxjury_localpass"
 LOCAL_ROOT_PASSWORD="wlxjury_rootpass"
 DUMP_FILE="/tmp/wlxjury-prod.sql.gz"
+
+# ── Cleanup hint on exit ───────────────────────────────────────────────────────
+cleanup() {
+  local exit_code=$?
+  if [[ $exit_code -ne 0 ]]; then
+    echo ""
+    echo "Script exited with code $exit_code."
+  fi
+  echo ""
+  echo "Container '$CONTAINER_NAME' may still be running on port $LOCAL_PORT."
+  echo "  Inspect : docker exec -it $CONTAINER_NAME mysql -u $LOCAL_USER -p$LOCAL_PASSWORD $LOCAL_DB"
+  echo "  Remove  : docker rm -f $CONTAINER_NAME"
+}
+trap cleanup EXIT
 
 echo "==> Config"
 echo "    Prod host  : $WLXJURY_DB_HOST"
@@ -140,7 +157,7 @@ fi
 # ── Phase 4: Run dev server ────────────────────────────────────────────────────
 echo "==> Starting sbt dev server against local prod dump..."
 echo "    DB  : jdbc:mariadb://127.0.0.1:${LOCAL_PORT}/${LOCAL_DB}"
-echo "    Stop: Ctrl-C (container '$CONTAINER_NAME' will remain; remove with: docker rm -f $CONTAINER_NAME)"
+echo "    Stop: Ctrl-C  (container '$CONTAINER_NAME' remains; remove: docker rm -f $CONTAINER_NAME)"
 echo ""
 
 WLXJURY_DB_HOST="127.0.0.1:${LOCAL_PORT}" \
