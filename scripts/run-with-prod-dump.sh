@@ -24,6 +24,16 @@ Usage:
 EOF
 }
 
+# ── Helpers ────────────────────────────────────────────────────────────────────
+format_duration() {
+  local secs=$1
+  if [[ $secs -lt 60 ]]; then
+    echo "${secs}s"
+  else
+    echo "$((secs / 60))m $((secs % 60))s"
+  fi
+}
+
 # ── Argument parsing ───────────────────────────────────────────────────────────
 SKIP_DUMP=false
 DUMP_ONLY=false
@@ -96,6 +106,7 @@ echo "    Dump only  : $DUMP_ONLY"
 # ── Phase 1: Dump ──────────────────────────────────────────────────────────────
 dump_prod_db() {
   local tmp_file="${DUMP_FILE}.tmp"
+  local start=$SECONDS
   echo "==> Dumping prod DB (via docker mariadb:10.6 client)..."
   docker run --rm \
     -e MYSQL_PWD="$WLXJURY_DB_PASSWORD" \
@@ -110,7 +121,7 @@ dump_prod_db() {
       "$WLXJURY_DB" \
   | gzip > "$tmp_file"
   mv "$tmp_file" "$DUMP_FILE"
-  echo "    Dump written to $DUMP_FILE ($(du -sh "$DUMP_FILE" | cut -f1))"
+  echo "    Dump written to $DUMP_FILE  $(du -sh "$DUMP_FILE" | cut -f1)  (took $(format_duration "$((SECONDS - start))"))"
 }
 
 if [[ "$SKIP_DUMP" == true ]]; then
