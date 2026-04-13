@@ -61,3 +61,31 @@ echo "    Local port : $LOCAL_PORT"
 echo "    Dump file  : $DUMP_FILE"
 echo "    Skip dump  : $SKIP_DUMP"
 echo "    Dump only  : $DUMP_ONLY"
+
+# ── Phase 1: Dump ──────────────────────────────────────────────────────────────
+dump_prod_db() {
+  echo "==> Dumping prod DB (via docker mariadb:10.6 client)..."
+  docker run --rm \
+    mariadb:10.6 \
+    mysqldump \
+      -h "$WLXJURY_DB_HOST" \
+      -u "$WLXJURY_DB_USER" \
+      "-p${WLXJURY_DB_PASSWORD}" \
+      --single-transaction \
+      --quick \
+      --triggers \
+      --routines \
+      "$WLXJURY_DB" \
+  | gzip > "$DUMP_FILE"
+  echo "    Dump written to $DUMP_FILE ($(du -sh "$DUMP_FILE" | cut -f1))"
+}
+
+if [[ "$SKIP_DUMP" == true ]]; then
+  if [[ ! -f "$DUMP_FILE" ]]; then
+    echo "ERROR: --skip-dump set but $DUMP_FILE does not exist." >&2
+    exit 1
+  fi
+  echo "==> Skipping dump; using existing $DUMP_FILE ($(du -sh "$DUMP_FILE" | cut -f1))"
+else
+  dump_prod_db
+fi
