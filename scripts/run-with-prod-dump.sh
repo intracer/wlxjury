@@ -136,3 +136,15 @@ if [[ "$DUMP_ONLY" == true ]]; then
   echo "    Connect: mysql -h 127.0.0.1 -P $LOCAL_PORT -u $LOCAL_USER -p$LOCAL_PASSWORD $LOCAL_DB"
   exit 0
 fi
+
+# ── Phase 4: Run dev server ────────────────────────────────────────────────────
+echo "==> Starting sbt dev server against local prod dump..."
+echo "    DB  : jdbc:mariadb://127.0.0.1:${LOCAL_PORT}/${LOCAL_DB}"
+echo "    Stop: Ctrl-C (container '$CONTAINER_NAME' will remain; remove with: docker rm -f $CONTAINER_NAME)"
+echo ""
+
+WLXJURY_DB_HOST="127.0.0.1:${LOCAL_PORT}" \
+WLXJURY_DB="$LOCAL_DB" \
+WLXJURY_DB_USER="$LOCAL_USER" \
+WLXJURY_DB_PASSWORD="$LOCAL_PASSWORD" \
+  sbt run
