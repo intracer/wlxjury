@@ -93,11 +93,11 @@ echo "    Dump only  : $DUMP_ONLY"
 dump_prod_db() {
   echo "==> Dumping prod DB (via docker mariadb:10.6 client)..."
   docker run --rm \
+    -e MYSQL_PWD="$WLXJURY_DB_PASSWORD" \
     mariadb:10.6 \
     mysqldump \
       -h "$WLXJURY_DB_HOST" \
       -u "$WLXJURY_DB_USER" \
-      "-p${WLXJURY_DB_PASSWORD}" \
       --single-transaction \
       --quick \
       --triggers \
@@ -153,8 +153,10 @@ echo " ready"
 # ── Phase 3: Restore dump ─────────────────────────────────────────────────────
 echo "==> Restoring dump into local container..."
 zcat "$DUMP_FILE" \
-  | docker exec -i "$CONTAINER_NAME" \
-      mysql -u root "-p${LOCAL_ROOT_PASSWORD}" "$LOCAL_DB"
+  | docker exec -i \
+      -e MYSQL_PWD="$LOCAL_ROOT_PASSWORD" \
+      "$CONTAINER_NAME" \
+      mysql -u root "$LOCAL_DB"
 echo "    Restore complete."
 
 if [[ "$DUMP_ONLY" == true ]]; then
