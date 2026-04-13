@@ -170,12 +170,20 @@ echo " ready"
 
 # ── Phase 3: Restore dump ─────────────────────────────────────────────────────
 echo "==> Restoring dump into local container..."
-zcat "$DUMP_FILE" \
+restore_start=$SECONDS
+zcat < "$DUMP_FILE" \
   | docker exec -i \
       -e MYSQL_PWD="$LOCAL_ROOT_PASSWORD" \
       "$CONTAINER_NAME" \
       mysql -u root "$LOCAL_DB"
-echo "    Restore complete."
+restore_elapsed=$((SECONDS - restore_start))
+db_size=$(docker exec \
+  -e MYSQL_PWD="$LOCAL_ROOT_PASSWORD" \
+  "$CONTAINER_NAME" \
+  mysql -u root -sNe \
+    "SELECT CONCAT(ROUND(SUM(data_length + index_length) / 1024 / 1024, 1), ' MB') FROM information_schema.tables WHERE table_schema = '$LOCAL_DB';" \
+  2>/dev/null) || db_size="unknown"
+echo "    Restore complete  (took $(format_duration "$restore_elapsed"))  |  DB size: $db_size"
 
 if [[ "$DUMP_ONLY" == true ]]; then
   echo "==> --dump-only set; skipping sbt run."
