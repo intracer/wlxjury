@@ -89,3 +89,36 @@ if [[ "$SKIP_DUMP" == true ]]; then
 else
   dump_prod_db
 fi
+
+# ── Phase 2: Start local MariaDB container ────────────────────────────────────
+echo "==> Starting local MariaDB container '$CONTAINER_NAME'..."
+
+if docker inspect "$CONTAINER_NAME" &>/dev/null; then
+  echo "    Removing existing container..."
+  docker rm -f "$CONTAINER_NAME"
+fi
+
+docker run -d \
+  --name "$CONTAINER_NAME" \
+  -e MARIADB_DATABASE="$LOCAL_DB" \
+  -e MARIADB_USER="$LOCAL_USER" \
+  -e MARIADB_PASSWORD="$LOCAL_PASSWORD" \
+  -e MARIADB_ROOT_PASSWORD="$LOCAL_ROOT_PASSWORD" \
+  -p "${LOCAL_PORT}:3306" \
+  mariadb:10.6
+
+echo -n "    Waiting for MariaDB to accept connections"
+retries=60
+until docker exec "$CONTAINER_NAME" \
+      mysqladmin ping -h 127.0.0.1 --silent 2>/dev/null; do
+  retries=$((retries - 1))
+  if [[ $retries -le 0 ]]; then
+    echo ""
+    echo "ERROR: MariaDB container did not become healthy in time." >&2
+    docker logs "$CONTAINER_NAME" >&2
+    exit 1
+  fi
+  echo -n "."
+  sleep 1
+done
+echo " ready"
