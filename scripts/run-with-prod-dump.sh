@@ -70,6 +70,7 @@ DUMP_FILE="/tmp/wlxjury-prod.sql.gz"
 # ── Cleanup hint on exit ───────────────────────────────────────────────────────
 cleanup() {
   local exit_code=$?
+  rm -f "${DUMP_FILE}.tmp" 2>/dev/null || true
   if [[ $exit_code -ne 0 ]]; then
     echo ""
     echo "Script exited with code $exit_code."
@@ -91,6 +92,7 @@ echo "    Dump only  : $DUMP_ONLY"
 
 # ── Phase 1: Dump ──────────────────────────────────────────────────────────────
 dump_prod_db() {
+  local tmp_file="${DUMP_FILE}.tmp"
   echo "==> Dumping prod DB (via docker mariadb:10.6 client)..."
   docker run --rm \
     -e MYSQL_PWD="$WLXJURY_DB_PASSWORD" \
@@ -103,7 +105,8 @@ dump_prod_db() {
       --triggers \
       --routines \
       "$WLXJURY_DB" \
-  | gzip > "$DUMP_FILE"
+  | gzip > "$tmp_file"
+  mv "$tmp_file" "$DUMP_FILE"
   echo "    Dump written to $DUMP_FILE ($(du -sh "$DUMP_FILE" | cut -f1))"
 }
 
