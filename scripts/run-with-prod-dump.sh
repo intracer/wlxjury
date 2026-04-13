@@ -66,6 +66,7 @@ LOCAL_USER="wlxjury_user"
 LOCAL_PASSWORD="wlxjury_localpass"
 LOCAL_ROOT_PASSWORD="wlxjury_rootpass"
 DUMP_FILE="/tmp/wlxjury-prod.sql.gz"
+CONTAINER_STARTED=false
 
 # ── Cleanup hint on exit ───────────────────────────────────────────────────────
 cleanup() {
@@ -74,11 +75,13 @@ cleanup() {
   if [[ $exit_code -ne 0 ]]; then
     echo ""
     echo "Script exited with code $exit_code."
+    if [[ "$CONTAINER_STARTED" == true ]]; then
+      echo ""
+      echo "Container '$CONTAINER_NAME' may still be running on port $LOCAL_PORT."
+      echo "  Inspect : docker exec -it $CONTAINER_NAME mysql -u $LOCAL_USER -p$LOCAL_PASSWORD $LOCAL_DB"
+      echo "  Remove  : docker rm -f $CONTAINER_NAME"
+    fi
   fi
-  echo ""
-  echo "Container '$CONTAINER_NAME' may still be running on port $LOCAL_PORT."
-  echo "  Inspect : docker exec -it $CONTAINER_NAME mysql -u $LOCAL_USER -p$LOCAL_PASSWORD $LOCAL_DB"
-  echo "  Remove  : docker rm -f $CONTAINER_NAME"
 }
 trap cleanup EXIT
 
@@ -136,6 +139,7 @@ docker run -d \
   -e MARIADB_ROOT_PASSWORD="$LOCAL_ROOT_PASSWORD" \
   -p "${LOCAL_PORT}:3306" \
   mariadb:10.6
+CONTAINER_STARTED=true
 
 echo -n "    Waiting for MariaDB to accept connections"
 retries=60
