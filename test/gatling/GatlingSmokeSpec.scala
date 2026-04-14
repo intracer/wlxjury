@@ -92,6 +92,15 @@ class GatlingSmokeSpec extends Specification {
     r.ms must be_<=(MaxMs)
   }
 
+  "RegionStat smoke" in {
+    // byRegionStat is called during gallery page render when contest.monumentIdTemplate.isDefined.
+    // This test verifies the SELECT DISTINCT … FROM selection JOIN monument query stays < 1s.
+    val (cl, jurorId) = jurorClient()
+    val r = doGet(cl, s"/gallery/round/${f.roundBinaryId}/user/$jurorId/page/1")
+    r.status must_== 200
+    r.ms must be_<=(MaxMs)
+  }
+
   "AggregatedRatings smoke" in {
     val cl = organizerClient()
     val r  = doGet(cl, s"/roundstat/${f.roundRatingId}")
