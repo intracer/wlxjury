@@ -101,7 +101,7 @@ class GatlingSmokeSpec extends Specification {
     val req = HttpRequest.newBuilder()
       .uri(URI.create(s"$base/gallery/round/${f.roundBinaryId}/user/$jurorId/page/1"))
       .GET().build()
-    val resp = cl.send(req, java.net.http.HttpResponse.BodyHandlers.ofString())
+    val resp = cl.send(req, BodyHandlers.ofString())
     val ms   = System.currentTimeMillis() - t0
     resp.statusCode() must_== 200
     ms must be_<=(MaxMs)
