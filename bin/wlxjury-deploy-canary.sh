@@ -53,6 +53,7 @@ mysqldump --single-transaction --master-data=2 \
 
 # 4. Extract and save binlog position for the promote step
 grep "CHANGE MASTER TO" "$DUMP_FILE" > "$SYNC_POS"
+echo "DEPLOYED_TO_SLOT=$CANARY_SLOT" >> "$SYNC_POS"
 echo "Saved binlog position:"
 cat "$SYNC_POS"
 

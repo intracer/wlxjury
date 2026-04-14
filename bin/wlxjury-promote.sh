@@ -28,12 +28,20 @@ echo "=== Promoting $CANARY_SLOT → active (current active: $ACTIVE_SLOT) ==="
 
 # 1. Replay binlogs from the position captured at canary-deploy time.
 #    --to-last-log reads all binlog files from $LOG_FILE forward, handling rotation.
-LOG_FILE=$(grep -oP "MASTER_LOG_FILE='\K[^']+" "$SYNC_POS")
-LOG_POS=$(grep -oP  "MASTER_LOG_POS=\K[0-9]+"  "$SYNC_POS")
-echo "Replaying binlogs from $LOG_FILE position $LOG_POS into $CANARY_DB..."
-mysqlbinlog --start-position="$LOG_POS" --to-last-log "$BINLOG_DIR/$LOG_FILE" \
-  | mysql -u"$DB_USER" -p"$DB_PASS" "$CANARY_DB"
-echo "Binlog replay complete."
+#    Skip replay on rollback: the backup DB already has current data.
+DEPLOYED_TO_SLOT=$(grep "^DEPLOYED_TO_SLOT=" "$SYNC_POS" | cut -d= -f2)
+if [[ "$DEPLOYED_TO_SLOT" == "$CANARY_SLOT" ]]; then
+  # Normal promotion: bring canary DB current via binlog replay
+  LOG_FILE=$(grep -oP "MASTER_LOG_FILE='\K[^']+" "$SYNC_POS")
+  LOG_POS=$(grep -oP  "MASTER_LOG_POS=\K[0-9]+"  "$SYNC_POS")
+  echo "Replaying binlogs from $LOG_FILE position $LOG_POS into $CANARY_DB..."
+  mysqlbinlog --start-position="$LOG_POS" --to-last-log "$BINLOG_DIR/$LOG_FILE" \
+    | mysql -u"$DB_USER" -p"$DB_PASS" "$CANARY_DB"
+  echo "Binlog replay complete."
+else
+  # Rollback: backup DB already has current data — skip replay
+  echo "Rollback detected (deployed to $DEPLOYED_TO_SLOT, current canary is $CANARY_SLOT) — skipping binlog replay."
+fi
 
 # 2. Swap Apache slot file and slots.env
 if grep -q "WLXJURY_ACTIVE_PORT 9000" "$SLOT_FILE"; then

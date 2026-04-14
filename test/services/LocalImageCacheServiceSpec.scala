@@ -550,6 +550,26 @@ class LocalImageCacheServiceSpec extends Specification {
       tmpDir.delete()
       ok
     }
+
+    "delete stale .tmp- files and not register them during initRegistry" in {
+      val tmpDir = Files.createTempDirectory("registry-stale-tmp").toFile
+      val svc    = mkService(tmpDir)
+
+      // Simulate a stale temp file left by a prior JVM crash
+      val staleDir = new File(tmpDir, "wikipedia/commons/thumb/a/ab/Photo.jpg")
+      staleDir.mkdirs()
+      val staleFile = new File(staleDir, ".tmp-crashed-1234.jpg")
+      staleFile.createNewFile()
+
+      Await.result(svc.initRegistry(), 10.seconds)
+
+      staleFile.exists()                              must beFalse   // file was deleted
+      svc.registryContains(staleFile)                must beFalse   // not in registry
+      svc.registrySize                               mustEqual 0    // nothing else registered
+
+      tmpDir.delete()
+      ok
+    }
   }
 
   // ── fetchAndCacheAll / fileIfCached ──────────────────────────────────────
