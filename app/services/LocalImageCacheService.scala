@@ -14,7 +14,7 @@ import play.api.{Configuration, Logging}
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.io.{ByteArrayInputStream, File}
-import java.nio.file.Files
+import java.nio.file.{Files, StandardCopyOption}
 import scala.jdk.CollectionConverters._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -357,11 +357,23 @@ class LocalImageCacheService @Inject() (
       val px = ImageUtil.resizeTo(image.width, image.height, h)
       if (px > 0 && px < image.width && px <= sourcePx) {
         val file = localFile(image, px)
-        // putIfAbsent atomically claims the slot; only the thread that gets null back writes the file.
+        // putIfAbsent atomically claims the slot within this JVM; only the thread
+        // that gets null back proceeds to write. Across JVMs, two instances may
+        // both proceed — the atomic rename below ensures the file is never corrupt.
         if (registry.putIfAbsent(file.getAbsolutePath, ()) == null) {
           file.getParentFile.mkdirs()
           val resized = scale(sourceImg, px)
-          ImageIO.write(resized, "JPEG", file)
+          val tmp = File.createTempFile(".tmp-", ".jpg", file.getParentFile)
+          try {
+            ImageIO.write(resized, "JPEG", tmp)
+            Files.move(tmp.toPath, file.toPath,
+              StandardCopyOption.ATOMIC_MOVE,
+              StandardCopyOption.REPLACE_EXISTING)
+          } catch {
+            case ex: Exception =>
+              tmp.delete()
+              throw ex
+          }
         }
       }
     }
