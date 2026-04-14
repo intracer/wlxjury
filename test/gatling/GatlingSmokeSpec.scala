@@ -93,12 +93,19 @@ class GatlingSmokeSpec extends Specification {
   }
 
   "RegionStat smoke" in {
-    // byRegionStat is called during gallery page render when contest.monumentIdTemplate.isDefined.
-    // This test verifies the SELECT DISTINCT … FROM selection JOIN monument query stays < 1s.
+    // byRegionStat is called during gallery page render when contest.monumentIdTemplate.isDefined
+    // (set in GatlingDbSetup.load). This test verifies both that the query stays < 1s and that
+    // it actually returns region data (body contains a known region code).
     val (cl, jurorId) = jurorClient()
-    val r = doGet(cl, s"/gallery/round/${f.roundBinaryId}/user/$jurorId/page/1")
-    r.status must_== 200
-    r.ms must be_<=(MaxMs)
+    val t0  = System.currentTimeMillis()
+    val req = HttpRequest.newBuilder()
+      .uri(URI.create(s"$base/gallery/round/${f.roundBinaryId}/user/$jurorId/page/1"))
+      .GET().build()
+    val resp = cl.send(req, java.net.http.HttpResponse.BodyHandlers.ofString())
+    val ms   = System.currentTimeMillis() - t0
+    resp.statusCode() must_== 200
+    ms must be_<=(MaxMs)
+    resp.body() must contain(f.regions.head)
   }
 
   "AggregatedRatings smoke" in {
