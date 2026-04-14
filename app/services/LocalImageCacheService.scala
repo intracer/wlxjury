@@ -142,7 +142,12 @@ class LocalImageCacheService @Inject() (
       val stream = Files.walk(root.toPath)
       try stream.iterator().asScala
             .filter(p => Files.isRegularFile(p))
-            .foreach(p => registry.put(p.toAbsolutePath.toString, ()))
+            .foreach { p =>
+              if (p.getFileName.toString.startsWith(".tmp-"))
+                Files.deleteIfExists(p)  // stale temp file from a prior crash
+              else
+                registry.put(p.toAbsolutePath.toString, ())
+            }
       finally stream.close()
       logger.info(s"Registry initialized with ${registry.size()} cached files")
     }
