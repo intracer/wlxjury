@@ -231,4 +231,4 @@ WLXJURY_DB_HOST="127.0.0.1:${LOCAL_PORT}" \
 WLXJURY_DB="$LOCAL_DB" \
 WLXJURY_DB_USER="$LOCAL_USER" \
 WLXJURY_DB_PASSWORD="$LOCAL_PASSWORD" \
-  sbt run
+  sbt -Ddb.default.migration.auto=true run
