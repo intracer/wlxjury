@@ -7,13 +7,11 @@
 # Prerequisites:
 #   /etc/wlxjury/slots.env   — slot state file (see conf/wlxjury/slots.env.example)
 #   /etc/wlxjury/<slot>.env  — per-slot env files (see conf/wlxjury/*.env.example)
-#   MariaDB log_bin=ON, binlog_format=ROW
 
 set -euo pipefail
 
 ZIP="${1:?Usage: $0 <path-to-wlxjury.zip>}"
 SLOTS_ENV=/etc/wlxjury/slots.env
-SYNC_POS=/etc/wlxjury/canary-sync-pos.txt
 EXTRACT_TMP="/tmp/wlxjury-extract-$$"
 
 source "$SLOTS_ENV"   # ACTIVE_SLOT, CANARY_SLOT, ACTIVE_DB, CANARY_DB
@@ -45,19 +43,13 @@ rm -rf "$EXTRACT_TMP"
 chmod +x "$INSTALL_DIR/bin/wlxjury"
 echo "Extracted to $INSTALL_DIR"
 
-# 3. Dump active DB, capturing binlog position in the dump header (--master-data=2
-#    writes it as a SQL comment so the dump can be replayed without replication setup)
+# 3. Dump active DB
+# flyway_schema_history is included so promote.sh only runs the new migration.
 echo "Dumping active DB ($ACTIVE_DB)..."
-mysqldump --single-transaction --master-data=2 \
+mysqldump --single-transaction \
   -u"$DB_USER" -p"$DB_PASS" "$ACTIVE_DB" > "$DUMP_FILE"
 
-# 4. Extract and save binlog position for the promote step
-grep "CHANGE MASTER TO" "$DUMP_FILE" > "$SYNC_POS"
-echo "DEPLOYED_TO_SLOT=$CANARY_SLOT" >> "$SYNC_POS"
-echo "Saved binlog position:"
-cat "$SYNC_POS"
-
-# 5. Restore dump into canary DB (wipe first so Flyway starts from clean slate)
+# 4. Restore dump into canary DB (wipe first so Flyway starts from clean slate)
 echo "Restoring into canary DB ($CANARY_DB)..."
 mysql -u"$DB_USER" -p"$DB_PASS" \
   -e "DROP DATABASE IF EXISTS \`$CANARY_DB\`; \
@@ -66,7 +58,7 @@ mysql -u"$DB_USER" -p"$DB_PASS" "$CANARY_DB" < "$DUMP_FILE"
 rm -f "$DUMP_FILE"
 echo "Restored $CANARY_DB"
 
-# 6. Start canary — Flyway migrates the canary DB schema on startup
+# 5. Start canary — Flyway migrates the canary DB schema on startup
 echo "Starting wlxjury-$CANARY_SLOT..."
 systemctl start "wlxjury-$CANARY_SLOT"
 
