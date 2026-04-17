@@ -41,6 +41,7 @@ echo "    Maintenance window begins — all vhosts will return 503"
 # ── Rollback on any error before the slot swap ────────────────────────────────
 rollback() {
   echo "ROLLBACK: removing maintenance flag and reloading Apache." >&2
+  rm -f "$DUMP_FILE"
   rm -f "$MAINTENANCE"
   systemctl reload apache2
   echo "Active slot ($ACTIVE_SLOT) is still serving traffic." >&2
@@ -77,7 +78,7 @@ until curl -sf "http://127.0.0.1:$CANARY_PORT/" -o /dev/null; do
   ELAPSED=$((ELAPSED + 5))
   if [[ $ELAPSED -ge $HEALTH_TIMEOUT ]]; then
     echo "Health check timed out after ${HEALTH_TIMEOUT}s." >&2
-    exit 1   # triggers rollback trap
+    false
   fi
   echo "  ...still waiting (${ELAPSED}s elapsed)"
 done
