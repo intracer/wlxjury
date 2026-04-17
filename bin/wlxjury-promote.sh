@@ -1,51 +1,94 @@
 #!/usr/bin/env bash
-# Promotes the canary slot to active.
+# Promotes the canary slot to active via a maintenance-window dump+restore.
 #
-# 1. Replays MariaDB binlogs from the position saved by wlxjury-deploy-canary.sh
-#    into the canary DB, bringing it current (takes seconds, not a minute).
-# 2. Swaps /etc/apache2/wlxjury-slot.conf and /etc/wlxjury/slots.env.
-# 3. Reloads Apache (~2 sec gap while workers drain).
+# 1. Enables maintenance mode — all vhosts return 503 (see conf/apache/0002-wlxjury.conf).
+# 2. Dumps the active DB into the canary DB (flyway_schema_history included,
+#    so Flyway only runs the new migration on restart — not all historical ones).
+# 3. Restarts the canary service; Flyway applies the delta migration only.
+# 4. Waits for the canary to pass a health check (HTTP 200 on canary port).
+# 5. Swaps the Apache slot file and reloads Apache (traffic switches to canary).
+# 6. Removes the maintenance flag — all vhosts serve normally again.
 #
-# Run twice to rollback. After rollback, canary-sync-pos.txt is stale —
-# re-run wlxjury-deploy-canary.sh before the next deployment.
+# On failure before the slot swap: rollback removes the maintenance flag and
+# reloads Apache — the active service was never stopped, so traffic returns.
+#
+# To rollback after a successful promotion: run this script again. The dump+restore
+# runs in the other direction. Note: the backup slot (old active) will have the new
+# schema after rollback; old code may not work if the migration was a breaking change.
 #
 # Run as root.
 
 set -euo pipefail
 
 SLOT_FILE=/etc/apache2/wlxjury-slot.conf
-SYNC_POS=/etc/wlxjury/canary-sync-pos.txt
 SLOTS_ENV=/etc/wlxjury/slots.env
-BINLOG_DIR=/var/log/mysql
+MAINTENANCE=/etc/wlxjury/maintenance
+HEALTH_TIMEOUT=120   # seconds
 
 source "$SLOTS_ENV"   # ACTIVE_SLOT, CANARY_SLOT, ACTIVE_DB, CANARY_DB
 source /etc/wlxjury/"$CANARY_SLOT".env  # WLXJURY_DB_USER, WLXJURY_DB_PASSWORD
 
 DB_USER="$WLXJURY_DB_USER"
 DB_PASS="$WLXJURY_DB_PASSWORD"
+DUMP_FILE="/tmp/wlxjury-promote-$$.sql"
+
+# Read CANARY_PORT from the slot file for the health check
+CANARY_PORT=$(grep -oP 'WLXJURY_CANARY_PORT \K[0-9]+' "$SLOT_FILE")
 
 echo "=== Promoting $CANARY_SLOT → active (current active: $ACTIVE_SLOT) ==="
+echo "    Maintenance window begins — all vhosts will return 503"
 
-# 1. Replay binlogs from the position captured at canary-deploy time.
-#    --to-last-log reads all binlog files from $LOG_FILE forward, handling rotation.
-#    Skip replay on rollback: the backup DB already has current data.
-DEPLOYED_TO_SLOT=$(grep "^DEPLOYED_TO_SLOT=" "$SYNC_POS" | cut -d= -f2)
-if [[ "$DEPLOYED_TO_SLOT" == "$CANARY_SLOT" ]]; then
-  # Normal promotion: bring canary DB current via binlog replay
-  LOG_FILE=$(grep -oP "MASTER_LOG_FILE='\K[^']+" "$SYNC_POS")
-  LOG_POS=$(grep -oP  "MASTER_LOG_POS=\K[0-9]+"  "$SYNC_POS")
-  echo "Replaying binlogs from $LOG_FILE position $LOG_POS into $CANARY_DB..."
-  mysqlbinlog --start-position="$LOG_POS" --to-last-log "$BINLOG_DIR/$LOG_FILE" \
-    | mysql -u"$DB_USER" -p"$DB_PASS" "$CANARY_DB"
-  echo "Binlog replay complete."
-else
-  # Rollback: backup DB already has current data — skip replay
-  echo "Rollback detected (deployed to $DEPLOYED_TO_SLOT, current canary is $CANARY_SLOT) — skipping binlog replay."
-fi
+# ── Rollback on any error before the slot swap ────────────────────────────────
+rollback() {
+  echo "ROLLBACK: removing maintenance flag and reloading Apache." >&2
+  rm -f "$MAINTENANCE"
+  systemctl reload apache2
+  echo "Active slot ($ACTIVE_SLOT) is still serving traffic." >&2
+  exit 1
+}
+trap rollback ERR
 
-# 2. Swap Apache slot file and slots.env
+# 1. Enable maintenance mode
+touch "$MAINTENANCE"
+systemctl reload apache2
+
+# 2. Dump active DB (flyway_schema_history included)
+echo "Dumping active DB ($ACTIVE_DB)..."
+mysqldump --single-transaction \
+  -u"$DB_USER" -p"$DB_PASS" "$ACTIVE_DB" > "$DUMP_FILE"
+
+# 3. Drop + recreate canary DB, restore dump
+echo "Restoring into canary DB ($CANARY_DB)..."
+mysql -u"$DB_USER" -p"$DB_PASS" \
+  -e "DROP DATABASE IF EXISTS \`$CANARY_DB\`; \
+      CREATE DATABASE \`$CANARY_DB\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u"$DB_USER" -p"$DB_PASS" "$CANARY_DB" < "$DUMP_FILE"
+rm -f "$DUMP_FILE"
+
+# 4. Restart canary — Flyway runs the new migration only
+echo "Restarting wlxjury-$CANARY_SLOT (Flyway will apply delta migration)..."
+systemctl restart "wlxjury-$CANARY_SLOT"
+
+# 5. Health check loop
+echo "Waiting for canary health check on port $CANARY_PORT (timeout: ${HEALTH_TIMEOUT}s)..."
+ELAPSED=0
+until curl -sf "http://127.0.0.1:$CANARY_PORT/" -o /dev/null; do
+  sleep 5
+  ELAPSED=$((ELAPSED + 5))
+  if [[ $ELAPSED -ge $HEALTH_TIMEOUT ]]; then
+    echo "Health check timed out after ${HEALTH_TIMEOUT}s." >&2
+    exit 1   # triggers rollback trap
+  fi
+  echo "  ...still waiting (${ELAPSED}s elapsed)"
+done
+echo "Canary is healthy."
+
+# Disable ERR trap — slot swap and Apache reload errors should not trigger rollback
+trap - ERR
+
+# 6. Swap slot file and slots.env
 if grep -q "WLXJURY_ACTIVE_PORT 9000" "$SLOT_FILE"; then
-  # blue→active, green→canary  ⟹  swap to  green→active, blue→canary
+  # blue→active  ⟹  swap to  green→active
   sed -i \
     's/WLXJURY_ACTIVE_PORT 9000/WLXJURY_ACTIVE_PORT 9001/;
      s/WLXJURY_CANARY_PORT 9001/WLXJURY_CANARY_PORT 9000/' "$SLOT_FILE"
@@ -55,7 +98,7 @@ if grep -q "WLXJURY_ACTIVE_PORT 9000" "$SLOT_FILE"; then
      s/ACTIVE_DB=wlxjury_blue/ACTIVE_DB=wlxjury_green/;
      s/CANARY_DB=wlxjury_green/CANARY_DB=wlxjury_blue/' "$SLOTS_ENV"
 else
-  # green→active, blue→canary  ⟹  swap to  blue→active, green→canary
+  # green→active  ⟹  swap to  blue→active
   sed -i \
     's/WLXJURY_ACTIVE_PORT 9001/WLXJURY_ACTIVE_PORT 9000/;
      s/WLXJURY_CANARY_PORT 9000/WLXJURY_CANARY_PORT 9001/' "$SLOT_FILE"
@@ -65,14 +108,16 @@ else
      s/ACTIVE_DB=wlxjury_green/ACTIVE_DB=wlxjury_blue/;
      s/CANARY_DB=wlxjury_blue/CANARY_DB=wlxjury_green/' "$SLOTS_ENV"
 fi
-
-# 3. Reload Apache (graceful — existing connections finish before workers restart)
 systemctl reload apache2
+
+# 7. Remove maintenance flag
+rm -f "$MAINTENANCE"
 
 echo ""
 echo "=== Promotion complete ==="
 grep "ACTIVE_SLOT\|CANARY_SLOT" "$SLOTS_ENV"
 grep "ACTIVE_PORT\|CANARY_PORT" "$SLOT_FILE"
 echo ""
-echo "To rollback: run this script again."
-echo "Writes made after this promotion will be lost on rollback."
+echo "To rollback: run this script again (full dump+restore in reverse)."
+echo "Note: on rollback the old-active slot will have the new schema applied."
+echo "Old code may not work if the migration was a breaking change."
