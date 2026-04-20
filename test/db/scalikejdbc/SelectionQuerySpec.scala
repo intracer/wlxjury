@@ -148,6 +148,20 @@ class SelectionQuerySpec extends Specification {
       SelectionQuery(regions = Set("13-001"), subRegions = true).where() ===
         " where m.adm1 in ('13-001')"
     }
+
+    // VULNERABILITY PROOF — these two tests PASS before the fix because the
+    // payload is embedded verbatim in the SQL string.
+    // They are DELETED in Task 5 once where() returns SQLSyntax.
+
+    "embed region verbatim in LIKE clause (sqli proof)" in {
+      val payload = "u'"       // length 2 → routes to LIKE branch; quote breaks SQL
+      SelectionQuery(regions = Set(payload)).where() must contain(payload)
+    }
+
+    "embed region verbatim in IN clause (sqli proof)" in {
+      val payload = "uk' UNION SELECT 1,2,3,4--"
+      SelectionQuery(regions = Set(payload, "xx")).where() must contain("UNION SELECT")
+    }
   }
 
   "join" should {
