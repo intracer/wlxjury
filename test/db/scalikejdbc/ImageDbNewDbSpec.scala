@@ -138,14 +138,23 @@ class ImageDbNewDbSpec extends Specification with BeforeAll with TestDb {
 
   "SQL injection via regions parameter" should {
 
-    // BEFORE FIX: an unclosed-quote payload causes a MariaDB syntax error.
-    // AFTER  FIX: the same payload is a bind parameter; query returns Seq.empty.
-    "throw a SQL syntax exception when region contains an unescaped quote (pre-fix proof)" in new AutoRollbackDb {
+    "treat injection payload as literal data, return empty result (not an exception)" in new AutoRollbackDb {
+      // Before fix: WHERE i.monument_id like 'uk'%' → SQL syntax error (exception)
+      // After fix:  WHERE i.monument_id like ?      bind: ["uk'%"] → 0 results, no error
       SelectionQuery(
         userId  = Some(userId),
         roundId = Some(roundId),
-        regions = Set("uk'")       // breaks: WHERE i.monument_id like 'uk'%'
-      ).list() must throwAn[Exception]
+        regions = Set("uk'")
+      ).list() === Nil
+    }
+
+    "multi-region injection payload is treated as data, not executed SQL" in new AutoRollbackDb {
+      val payload = "uk' UNION SELECT 1,2,3,4,5,6,7,8,9,10,11,12,13,14--"
+      SelectionQuery(
+        userId  = Some(userId),
+        roundId = Some(roundId),
+        regions = Set(payload, "de")
+      ).list() === Nil
     }
   }
 }

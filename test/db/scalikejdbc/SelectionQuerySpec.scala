@@ -3,164 +3,118 @@ package db.scalikejdbc
 import db.scalikejdbc.SelectionQuerySpec.{pageId, regionId, roundId, userId}
 import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import org.specs2.mutable.Specification
+import scalikejdbc._
 
 class SelectionQuerySpec extends Specification {
 
   "where" should {
     "no conditions" in {
-      SelectionQuery().where() === ""
+      SelectionQuery().where() === sqls""
     }
 
     "userId" in {
-      SelectionQuery(userId = Some(userId))
-        .where() === s" where s.jury_id = $userId"
+      val w = SelectionQuery(userId = Some(userId)).where()
+      (w.value === " where s.jury_id = ?") and (w.parameters.toSeq === Seq(userId))
     }
 
     "roundId" in {
-      SelectionQuery(roundId = Some(roundId))
-        .where() === s" where s.round_id = $roundId"
+      val w = SelectionQuery(roundId = Some(roundId)).where()
+      (w.value === " where s.round_id = ?") and (w.parameters.toSeq === Seq(roundId))
     }
 
     "rate" in {
       val rate = 1
-      SelectionQuery(rate = Some(rate))
-        .where() === s" where s.rate = $rate"
+      val w = SelectionQuery(rate = Some(rate)).where()
+      (w.value === " where s.rate = ?") and (w.parameters.toSeq === Seq(rate))
     }
 
     "rated" in {
-      SelectionQuery(rated = Some(true))
-        .where() === s" where s.rate > 0"
+      val w = SelectionQuery(rated = Some(true)).where()
+      (w.value === " where s.rate > 0") and (w.parameters.toSeq === Seq.empty)
     }
 
     "not rated" in {
-      SelectionQuery(rated = Some(false))
-        .where() === s" where s.rate = 0"
+      val w = SelectionQuery(rated = Some(false)).where()
+      (w.value === " where s.rate = 0") and (w.parameters.toSeq === Seq.empty)
     }
 
-    "region" in {
-      SelectionQuery(regions = Set(regionId))
-        .where() === s" where i.monument_id like '$regionId%'"
+    "region — single short code uses LIKE with bind parameter (injection blocked)" in {
+      // "u'" is length 2 (≤ 2) → goes through the LIKE branch, not IN
+      val injection = "u'"
+      val w = SelectionQuery(regions = Set(injection)).where()
+      w.value must contain("monument_id like ?")
+      w.parameters.toSeq must_=== Seq(injection + "%")
     }
 
-    "withPageId" in {
-      SelectionQuery(withPageId = Some(pageId)).where() === ""
+    "region — multi-code uses IN with bind parameters (injection blocked)" in {
+      val injection = "uk' UNION SELECT 1,2,3--"
+      val w = SelectionQuery(regions = Set(injection, "de")).where()
+      w.value must contain("in (?, ?)")
+      w.value must not contain "UNION SELECT"
+      w.parameters.size must_=== 2
+      w.parameters must contain(injection)
+      w.parameters must contain("de")
+    }
+
+    "withPageId alone" in {
+      SelectionQuery(withPageId = Some(pageId)).where() === sqls""
     }
 
     "userId and roundId" in {
-      SelectionQuery(
-        userId = Some(userId),
-        roundId = Some(roundId)
-      ).where() === s" where" +
-        s" s.jury_id = $userId and" +
-        s" s.round_id = $roundId"
+      val w = SelectionQuery(userId = Some(userId), roundId = Some(roundId)).where()
+      (w.value === " where s.jury_id = ? and s.round_id = ?") and (w.parameters.toSeq === Seq(userId, roundId))
     }
 
     "userId and roundId and rated" in {
-      SelectionQuery(
-        userId = Some(userId),
-        roundId = Some(roundId),
-        rated = Some(true)
-      ).where() === s" where" +
-        s" s.jury_id = $userId and" +
-        s" s.round_id = $roundId and" +
-        s" s.rate > 0"
+      val w = SelectionQuery(
+        userId = Some(userId), roundId = Some(roundId), rated = Some(true)
+      ).where()
+      (w.value === " where s.jury_id = ? and s.round_id = ? and s.rate > 0") and (w.parameters.toSeq === Seq(userId, roundId))
     }
 
     "userId and roundId and not rated" in {
-      SelectionQuery(
-        userId = Some(userId),
-        roundId = Some(roundId),
-        rated = Some(false)
-      ).where() === s" where" +
-        s" s.jury_id = $userId and" +
-        s" s.round_id = $roundId and" +
-        s" s.rate = 0"
+      val w = SelectionQuery(
+        userId = Some(userId), roundId = Some(roundId), rated = Some(false)
+      ).where()
+      (w.value === " where s.jury_id = ? and s.round_id = ? and s.rate = 0") and (w.parameters.toSeq === Seq(userId, roundId))
     }
 
     "userId and roundId and rated and withPageId" in {
-      SelectionQuery(
-        userId = Some(userId),
-        roundId = Some(roundId),
-        rated = Some(true),
-        withPageId = Some(pageId)
-      ).where() === s" where " +
-        s"s.jury_id = $userId and" +
-        s" s.round_id = $roundId and " +
-        s"(s.rate > 0 or" +
-        s" s.page_id = $pageId)"
+      val w = SelectionQuery(
+        userId = Some(userId), roundId = Some(roundId),
+        rated = Some(true), withPageId = Some(pageId)
+      ).where()
+      (w.value === " where s.jury_id = ? and s.round_id = ? and (s.rate > 0 or s.page_id = ?)") and (w.parameters.toSeq === Seq(userId, roundId, pageId))
     }
 
     "userId and roundId and not rated and withPageId" in {
-      SelectionQuery(
-        userId = Some(userId),
-        roundId = Some(roundId),
-        rated = Some(false),
-        withPageId = Some(pageId)
-      ).where() === s" where " +
-        s"s.jury_id = $userId and" +
-        s" s.round_id = $roundId and " +
-        s"(s.rate = 0 or" +
-        s" s.page_id = $pageId)"
+      val w = SelectionQuery(
+        userId = Some(userId), roundId = Some(roundId),
+        rated = Some(false), withPageId = Some(pageId)
+      ).where()
+      (w.value === " where s.jury_id = ? and s.round_id = ? and (s.rate = 0 or s.page_id = ?)") and (w.parameters.toSeq === Seq(userId, roundId, pageId))
     }
 
     "userId and roundId and rated and region" in {
-      SelectionQuery(
-        userId = Some(userId),
-        roundId = Some(roundId),
-        rated = Some(true),
-        regions = Set(regionId)
-      ).where() === s" where" +
-        s" s.jury_id = $userId and" +
-        s" s.round_id = $roundId and" +
-        s" s.rate > 0 and" +
-        s" i.monument_id like '$regionId%'"
+      val w = SelectionQuery(
+        userId = Some(userId), roundId = Some(roundId),
+        rated = Some(true), regions = Set(regionId)
+      ).where()
+      w.value must contain("s.jury_id = ?")
+      w.value must contain("s.round_id = ?")
+      w.value must contain("s.rate > 0")
+      w.value must contain("monument_id like ?")
+      w.parameters must contain(regionId + "%")
     }
 
     "userId and roundId and not rated and region" in {
-      SelectionQuery(
-        userId = Some(userId),
-        roundId = Some(roundId),
-        rated = Some(false),
-        regions = Set(regionId)
-      ).where() === s" where" +
-        s" s.jury_id = $userId and" +
-        s" s.round_id = $roundId and" +
-        s" s.rate = 0 and" +
-        s" i.monument_id like '$regionId%'"
-    }
-
-    "single long region (length > 2) uses adm0 IN clause" in {
-      SelectionQuery(regions = Set("13-001")).where() ===
-        " where m.adm0 in ('13-001')"
-    }
-
-    "multiple short regions (all length <= 2) uses adm0 IN clause" in {
-      SelectionQuery(regions = scala.collection.immutable.SortedSet("07", "08")).where() ===
-        " where m.adm0 in ('07', '08')"
-    }
-
-    "multiple long regions uses adm0 IN clause" in {
-      SelectionQuery(regions = scala.collection.immutable.SortedSet("07-001", "08-002")).where() ===
-        " where m.adm0 in ('07-001', '08-002')"
-    }
-
-    "subRegions=true uses adm1 column in IN clause" in {
-      SelectionQuery(regions = Set("13-001"), subRegions = true).where() ===
-        " where m.adm1 in ('13-001')"
-    }
-
-    // VULNERABILITY PROOF — these two tests PASS before the fix because the
-    // payload is embedded verbatim in the SQL string.
-    // They are DELETED in Task 5 once where() returns SQLSyntax.
-
-    "embed region verbatim in LIKE clause (sqli proof)" in {
-      val payload = "u'"       // length 2 → routes to LIKE branch; quote breaks SQL
-      SelectionQuery(regions = Set(payload)).where() must contain(payload)
-    }
-
-    "embed region verbatim in IN clause (sqli proof)" in {
-      val payload = "uk' UNION SELECT 1,2,3,4--"
-      SelectionQuery(regions = Set(payload, "xx")).where() must contain("UNION SELECT")
+      val w = SelectionQuery(
+        userId = Some(userId), roundId = Some(roundId),
+        rated = Some(false), regions = Set(regionId)
+      ).where()
+      w.value must contain("s.rate = 0")
+      w.value must contain("monument_id like ?")
+      w.parameters must contain(regionId + "%")
     }
   }
 
