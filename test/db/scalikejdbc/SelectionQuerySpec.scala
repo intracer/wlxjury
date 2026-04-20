@@ -128,6 +128,26 @@ class SelectionQuerySpec extends Specification {
         s" s.rate = 0 and" +
         s" i.monument_id like '$regionId%'"
     }
+
+    "single long region (length > 2) uses adm0 IN clause" in {
+      SelectionQuery(regions = Set("13-001")).where() ===
+        " where m.adm0 in ('13-001')"
+    }
+
+    "multiple short regions (all length <= 2) uses adm0 IN clause" in {
+      SelectionQuery(regions = scala.collection.immutable.SortedSet("07", "08")).where() ===
+        " where m.adm0 in ('07', '08')"
+    }
+
+    "multiple long regions uses adm0 IN clause" in {
+      SelectionQuery(regions = scala.collection.immutable.SortedSet("07-001", "08-002")).where() ===
+        " where m.adm0 in ('07-001', '08-002')"
+    }
+
+    "subRegions=true uses adm1 column in IN clause" in {
+      SelectionQuery(regions = Set("13-001"), subRegions = true).where() ===
+        " where m.adm1 in ('13-001')"
+    }
   }
 
   "join" should {
