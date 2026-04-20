@@ -135,4 +135,17 @@ class ImageDbNewDbSpec extends Specification with BeforeAll with TestDb {
       ).list() === Nil
     }
   }
+
+  "SQL injection via regions parameter" should {
+
+    // BEFORE FIX: an unclosed-quote payload causes a MariaDB syntax error.
+    // AFTER  FIX: the same payload is a bind parameter; query returns Seq.empty.
+    "throw a SQL syntax exception when region contains an unescaped quote (pre-fix proof)" in new AutoRollbackDb {
+      SelectionQuery(
+        userId  = Some(userId),
+        roundId = Some(roundId),
+        regions = Set("uk'")       // breaks: WHERE i.monument_id like 'uk'%'
+      ).list() must throwAn[Exception]
+    }
+  }
 }
