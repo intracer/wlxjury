@@ -1,5 +1,6 @@
 package modules
 
+import api.ApiServer
 import com.google.inject.{AbstractModule, Provides}
 import controllers.KOATUU
 import db.{ImageRepo, RoundRepo}
@@ -16,6 +17,7 @@ class AppModule(environment: Environment, configuration: Configuration)
 
     bind(classOf[RoundRepo]).toInstance(Round)
     bind(classOf[ImageRepo]).toInstance(ImageJdbc)
+    bind(classOf[ApiServer]).asEagerSingleton()
 
     KOATUU.load()
   }

@@ -18,8 +18,9 @@ Both scripts install `ui/node_modules` on first run if missing, start the Vite d
 ./scripts/run-with-prod-dump.sh --reuse-container  # skip dump+restore entirely
 ```
 
-- Play API: [http://localhost:9000](http://localhost:9000)
-- React UI (hot-reload): [http://localhost:5173](http://localhost:5173)
+- Play (HTML pages): [http://localhost:9000](http://localhost:9000)
+- Tapir REST API + Swagger UI: [http://localhost:9001/api/contests](http://localhost:9001/api/contests) · [http://localhost:9001/api/docs](http://localhost:9001/api/docs)
+- React UI (hot-reload, proxies /api to 9001): [http://localhost:5173](http://localhost:5173)
 
 **Running manually (if you need separate terminals):**
 
