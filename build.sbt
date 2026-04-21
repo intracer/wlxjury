@@ -37,8 +37,16 @@ jsTest := {
   if (result != 0) throw new MessageOnlyException("Jest tests failed")
 }
 
-// Wire jsTest into the normal `sbt test` run.
-Test / test := (Test / test).dependsOn(jsTest).value
+lazy val uiTest = taskKey[Unit]("Run Vitest tests in ui/")
+
+uiTest := {
+  val uiDir = baseDirectory.value / "ui"
+  val result = scala.sys.process.Process(Seq("npm", "test", "--", "--run"), uiDir).!
+  if (result != 0) throw new MessageOnlyException("Vitest tests failed")
+}
+
+// Wire jsTest and uiTest into the normal `sbt test` run.
+Test / test := (Test / test).dependsOn(jsTest, uiTest).value
 
 lazy val root = identity(
   (project in file("."))

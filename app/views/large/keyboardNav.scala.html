@@ -11,7 +11,7 @@
   region: String = "all",
   round: Round,
   module: String = "gallery")(implicit request: Request[Any], messages: Messages)
-<script src="@routes.Assets.at("javascripts/jquery.hotkeys.js")"></script>
+<script src="@routes.Assets.at("/public", "javascripts/jquery.hotkeys.js")"></script>
 <script>
     @if(index < files.size-1) {
     $(document).on('keydown', null, 'down', function (e) {

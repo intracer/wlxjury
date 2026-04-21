@@ -98,3 +98,6 @@ GET         /thumb_urls/:contestId                                              
 #GET         /largeRound/:round/:region/:pageid                    controllers.Gallery.largeRound2(region: String, pageid:Int, round:Int)
 #GET         /selectRound/:round/:region/:pageId                  controllers.Gallery.selectRound2(region: String, pageId:Long, round:Int)
 #GET         /unselectRound/:round/:region/:pageId                controllers.Gallery.unselectRound2(region: String, pageId:Long, round:Int)
+
+GET         /ui                                                                     @controllers.Assets.at(path="/public/ui", file="index.html")
+GET         /ui/*file                                                               @controllers.Assets.at(path="/public/ui", file)
