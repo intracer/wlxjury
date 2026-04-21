@@ -6,7 +6,7 @@
 
 **Architecture:** Standalone Vite project in `ui/`, proxying `/api/*` to Play in dev. MUI X DataGrid with `editMode="row"` for inline editing. The Scala backend needs one addition: `ContestService.updateContest` and wiring it into `Api.scala`. Tests use Vitest + React Testing Library, run as a `uiTest` sbt task.
 
-**Tech Stack:** React 18, TypeScript 5, Vite 5, MUI v5 + MUI X DataGrid v7 (free), Vitest 1, React Testing Library 14.
+**Tech Stack:** React 19, TypeScript 5, Vite 8, MUI v9 + MUI X DataGrid v9 (free), Vitest 4, React Testing Library 16.
 
 ---
 
@@ -119,25 +119,25 @@
       "test:watch": "vitest"
     },
     "dependencies": {
-      "@emotion/react": "^11.11.0",
-      "@emotion/styled": "^11.11.0",
-      "@mui/icons-material": "^5.15.0",
-      "@mui/material": "^5.15.0",
-      "@mui/x-data-grid": "^7.0.0",
-      "react": "^18.2.0",
-      "react-dom": "^18.2.0"
+      "@emotion/react": "^11.14.0",
+      "@emotion/styled": "^11.14.0",
+      "@mui/icons-material": "^9.0.0",
+      "@mui/material": "^9.0.0",
+      "@mui/x-data-grid": "^9.0.0",
+      "react": "^19.0.0",
+      "react-dom": "^19.0.0"
     },
     "devDependencies": {
-      "@testing-library/jest-dom": "^6.4.0",
-      "@testing-library/react": "^14.2.0",
+      "@testing-library/jest-dom": "^6.6.0",
+      "@testing-library/react": "^16.0.0",
       "@testing-library/user-event": "^14.5.0",
-      "@types/react": "^18.2.0",
-      "@types/react-dom": "^18.2.0",
-      "@vitejs/plugin-react": "^4.2.0",
-      "jsdom": "^24.0.0",
+      "@types/react": "^19.0.0",
+      "@types/react-dom": "^19.0.0",
+      "@vitejs/plugin-react": "^5.0.0",
+      "jsdom": "^25.0.0",
       "typescript": "^5.3.0",
-      "vite": "^5.1.0",
-      "vitest": "^1.3.0"
+      "vite": "^8.0.0",
+      "vitest": "^4.0.0"
     }
   }
   ```
@@ -179,7 +179,8 @@
       "isolatedModules": true,
       "noEmit": true,
       "jsx": "react-jsx",
-      "strict": true
+      "strict": true,
+      "types": ["vitest/globals"]
     },
     "include": ["src"]
   }
@@ -219,14 +220,14 @@
 - [ ] **Step 6: Create `ui/src/main.tsx`**
 
   ```typescript
-  import React from 'react'
-  import ReactDOM from 'react-dom/client'
+  import { StrictMode } from 'react'
+  import { createRoot } from 'react-dom/client'
   import App from './App'
 
-  ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
       <App />
-    </React.StrictMode>
+    </StrictMode>
   )
   ```
 
