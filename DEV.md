@@ -2,21 +2,28 @@
 
 ### Dev workflow
 
-The UI lives in `ui/` as a standalone Vite project. It proxies `/api/*` to Play on port 9000, so both must be running.
+The easiest way to start everything is the `run-dev.sh` script, which starts both Play and the Vite dev server together:
 
-**Terminal 1 — Play backend:**
+```bash
+./run-dev.sh
+```
+
+It reads DB credentials from `.env` (same file used for production), installs `ui/node_modules` on first run if missing, and kills Vite automatically when you stop Play.
+
+- Play API: [http://localhost:9000](http://localhost:9000)
+- React UI (hot-reload): [http://localhost:5173](http://localhost:5173)
+
+**Running manually (if you need separate terminals):**
+
+Terminal 1 — Play backend:
 ```bash
 WLXJURY_DB_HOST=... WLXJURY_DB=... WLXJURY_DB_USER=... WLXJURY_DB_PASSWORD=... sbt run
 ```
 
-**Terminal 2 — Vite dev server:**
+Terminal 2 — Vite dev server:
 ```bash
-cd ui
-npm install   # first time only
-npm run dev
+cd ui && npm run dev
 ```
-
-Open [http://localhost:5173](http://localhost:5173). The UI hot-reloads on save. API calls go to Play at port 9000 via the Vite proxy.
 
 ### Tests
 
