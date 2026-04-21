@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   DataGrid,
   GridColDef,
@@ -19,6 +19,12 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import { listContests, createContest, updateContest } from '../api/contests'
 import type { Contest } from '../api/contests'
 
+declare module '@mui/x-data-grid' {
+  interface ToolbarPropsOverrides {
+    onAdd: () => void
+  }
+}
+
 type Row = Contest & { isNew?: boolean }
 
 function Toolbar({ onAdd }: { onAdd: () => void }) {
@@ -36,14 +42,17 @@ export default function ContestsGrid() {
   const [rowModes, setRowModes] = useState<GridRowModesModel>({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isLoadError, setIsLoadError] = useState(false)
 
   const fetchContests = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setIsLoadError(false)
     try {
       setRows(await listContests())
     } catch {
       setError('Failed to load contests.')
+      setIsLoadError(true)
     } finally {
       setLoading(false)
     }
@@ -51,7 +60,7 @@ export default function ContestsGrid() {
 
   useEffect(() => { fetchContests() }, [fetchContests])
 
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     const id = -Date.now()
     setRows(prev => [
       { id, name: '', year: new Date().getFullYear(), country: '', isNew: true },
@@ -61,7 +70,7 @@ export default function ContestsGrid() {
       ...prev,
       [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' }
     }))
-  }
+  }, [])
 
   const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {
     if (params.reason === GridRowEditStopReasons.rowFocusOut) {
@@ -69,21 +78,21 @@ export default function ContestsGrid() {
     }
   }
 
-  const handleEdit = (id: GridRowId) => () =>
-    setRowModes(prev => ({ ...prev, [id]: { mode: GridRowModes.Edit } }))
+  const handleEdit = useCallback((id: GridRowId) => () =>
+    setRowModes(prev => ({ ...prev, [id]: { mode: GridRowModes.Edit } })), [])
 
-  const handleSave = (id: GridRowId) => () =>
-    setRowModes(prev => ({ ...prev, [id]: { mode: GridRowModes.View } }))
+  const handleSave = useCallback((id: GridRowId) => () =>
+    setRowModes(prev => ({ ...prev, [id]: { mode: GridRowModes.View } })), [])
 
-  const handleCancel = (id: GridRowId) => () => {
+  const handleCancel = useCallback((id: GridRowId) => () => {
     setRowModes(prev => ({
       ...prev,
       [id]: { mode: GridRowModes.View, ignoreModifications: true }
     }))
     setRows(prev => prev.filter(r => !(r.id === id && r.isNew)))
-  }
+  }, [])
 
-  const processRowUpdate = async (newRow: GridRowModel): Promise<GridRowModel> => {
+  const processRowUpdate = useCallback(async (newRow: GridRowModel): Promise<GridRowModel> => {
     const row = newRow as Row
     if (!row.name?.trim() || !row.year || !row.country?.trim()) {
       throw new Error('Name, year, and country are required.')
@@ -98,11 +107,11 @@ export default function ContestsGrid() {
       await fetchContests()
       return newRow
     }
-  }
+  }, [fetchContests])
 
-  const handleProcessRowUpdateError = (err: Error) => {
+  const handleProcessRowUpdateError = useCallback((err: Error) => {
     setError(err.message)
-  }
+  }, [])
 
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 70, editable: false },
@@ -151,7 +160,7 @@ export default function ContestsGrid() {
           severity="error"
           onClose={() => setError(null)}
           action={
-            error === 'Failed to load contests.' ? (
+            isLoadError ? (
               <Button color="inherit" size="small" onClick={fetchContests}>
                 Retry
               </Button>
@@ -174,7 +183,7 @@ export default function ContestsGrid() {
         onProcessRowUpdateError={handleProcessRowUpdateError}
         showToolbar
         slots={{ toolbar: Toolbar }}
-        slotProps={{ toolbar: { onAdd: handleAdd } as { onAdd: () => void } }}
+        slotProps={{ toolbar: { onAdd: handleAdd } }}
         pageSizeOptions={[25, 50, 100]}
         initialState={{ pagination: { paginationModel: { pageSize: 25 } } }}
         autoHeight

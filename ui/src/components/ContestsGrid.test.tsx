@@ -85,7 +85,7 @@ test('saving a new row calls createContest and re-fetches', async () => {
   await user.clear(countryInput)
   await user.type(countryInput, 'Germany')
 
-  await user.click(screen.getByRole('menuitem', { name: /save/i }, { hidden: true }))
+  await user.click(screen.getByRole('menuitem', { name: /save/i, hidden: true }))
 
   await waitFor(() => expect(api.createContest).toHaveBeenCalledWith(
     expect.objectContaining({ name: 'New Contest', year: 2025, country: 'Germany' })
@@ -122,7 +122,7 @@ test('saving an edited row calls updateContest and re-fetches', async () => {
   await user.clear(nameInput)
   await user.type(nameInput, 'WLM Ukraine Updated')
 
-  await user.click(screen.getByRole('menuitem', { name: /save/i }, { hidden: true }))
+  await user.click(screen.getByRole('menuitem', { name: /save/i, hidden: true }))
 
   await waitFor(() => expect(api.updateContest).toHaveBeenCalledWith(
     expect.objectContaining({ id: 1, name: 'WLM Ukraine Updated' })
@@ -173,7 +173,7 @@ test('saving with blank name shows error and does not call API', async () => {
   const nameInput = await screen.findByDisplayValue('WLM Ukraine')
   await user.clear(nameInput)
 
-  await user.click(screen.getByRole('menuitem', { name: /save/i }, { hidden: true }))
+  await user.click(screen.getByRole('menuitem', { name: /save/i, hidden: true }))
 
   await waitFor(() => expect(screen.getByText(/name.*required|required.*name/i)).toBeInTheDocument())
   expect(api.updateContest).not.toHaveBeenCalled()
