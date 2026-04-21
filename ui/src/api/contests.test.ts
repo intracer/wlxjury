@@ -5,7 +5,7 @@ import type { Contest } from './contests'
 const mockContest: Contest = { id: 1, name: 'WLM', year: 2024, country: 'Ukraine' }
 
 function mockFetch(body: unknown, ok = true, status = 200) {
-  global.fetch = vi.fn().mockResolvedValue({
+  globalThis.fetch = vi.fn().mockResolvedValue({
     ok,
     status,
     json: () => Promise.resolve(body)
@@ -18,7 +18,7 @@ describe('listContests', () => {
   test('calls GET /api/contests and returns JSON', async () => {
     mockFetch([mockContest])
     const result = await listContests()
-    expect(global.fetch).toHaveBeenCalledWith('/api/contests', undefined)
+    expect(globalThis.fetch).toHaveBeenCalledWith('/api/contests', undefined)
     expect(result).toEqual([mockContest])
   })
 
@@ -33,7 +33,7 @@ describe('createContest', () => {
     mockFetch(mockContest)
     const input = { name: 'WLM', year: 2024, country: 'Ukraine' }
     const result = await createContest(input)
-    expect(global.fetch).toHaveBeenCalledWith('/api/contests', expect.objectContaining({
+    expect(globalThis.fetch).toHaveBeenCalledWith('/api/contests', expect.objectContaining({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input)
@@ -51,7 +51,7 @@ describe('updateContest', () => {
   test('calls PUT /api/contests with JSON body', async () => {
     mockFetch(null)
     await updateContest(mockContest)
-    expect(global.fetch).toHaveBeenCalledWith('/api/contests', expect.objectContaining({
+    expect(globalThis.fetch).toHaveBeenCalledWith('/api/contests', expect.objectContaining({
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(mockContest)

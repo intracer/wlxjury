@@ -32,11 +32,10 @@ export function createContest(contest: Contest): Promise<Contest> {
   })
 }
 
-export async function updateContest(contest: Contest): Promise<void> {
-  const res = await fetch('/api/contests', {
+export function updateContest(contest: Contest): Promise<void> {
+  return request('/api/contests', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(contest)
   })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
 }
