@@ -168,7 +168,7 @@ export default function ContestsGrid() {
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 90, editable: false },
     { field: 'name', headerName: 'Name', flex: 1, minWidth: 120, maxWidth: 220, editable: true },
-    { field: 'year', headerName: 'Year', width: 110, editable: true },
+    { field: 'year', headerName: 'Year', width: 80, type: 'number', editable: true },
     { field: 'country', headerName: 'Country', flex: 0.8, minWidth: 90, editable: true },
     { field: 'images', headerName: 'Images category', flex: 2, minWidth: 150, editable: true },
     { field: 'monumentIdTemplate', headerName: 'Monument template', flex: 1.5, minWidth: 140, editable: true },
