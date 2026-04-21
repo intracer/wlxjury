@@ -1,3 +1,54 @@
+## React UI (Contests)
+
+### Dev workflow
+
+The UI lives in `ui/` as a standalone Vite project. It proxies `/api/*` to Play on port 9000, so both must be running.
+
+**Terminal 1 — Play backend:**
+```bash
+WLXJURY_DB_HOST=... WLXJURY_DB=... WLXJURY_DB_USER=... WLXJURY_DB_PASSWORD=... sbt run
+```
+
+**Terminal 2 — Vite dev server:**
+```bash
+cd ui
+npm install   # first time only
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173). The UI hot-reloads on save. API calls go to Play at port 9000 via the Vite proxy.
+
+### Tests
+
+```bash
+cd ui && npm test          # run once (CI mode)
+cd ui && npm run test:watch  # watch mode for development
+```
+
+Tests are also run as part of `sbt test` via the `uiTest` task.
+
+### Deploying (production build)
+
+1. Build the UI:
+   ```bash
+   cd ui && npm run build
+   ```
+   This outputs static assets to `ui/dist/`.
+
+2. Copy to the Play public directory before running `sbt dist`:
+   ```bash
+   cp -r ui/dist/* public/ui/
+   ```
+
+3. Package and deploy as normal:
+   ```bash
+   sbt dist
+   ```
+
+Play serves the built UI at `/ui` via the routes added to `conf/routes`. The API at `/api/*` continues to be served by Tapir/Pekko HTTP on the same port.
+
+---
+
 ## Running with Vagrant
 
 Create and provision the vagrant box with
