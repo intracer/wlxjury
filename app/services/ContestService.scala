@@ -79,4 +79,16 @@ class ContestService @Inject() (val commons: MwBot) {
     ContestJuryJdbc.findById(id)
   }
 
+  def updateContest(contest: ContestJury): Unit =
+    contest.id.foreach { id =>
+      ContestJuryJdbc.updateById(id).withAttributes(
+        "name"                -> contest.name,
+        "year"                -> contest.year,
+        "country"             -> contest.country,
+        "images"              -> contest.images,
+        "campaign"            -> contest.campaign,
+        "monumentIdTemplate"  -> contest.monumentIdTemplate
+      )
+    }
+
 }

@@ -38,6 +38,9 @@ class Api @Inject()(val contestService: ContestService) extends JsonFormat {
     },
     listContests.serverLogicSuccess { _ =>
       Future(contestService.findContests())
+    },
+    updateContest.serverLogicSuccess { contest =>
+      Future(contestService.updateContest(contest))
     }
   ))
 }
