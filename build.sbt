@@ -94,12 +94,6 @@ val TapirVersion = "1.11.15"
 val MunitVersion = "0.7.29"
 val GatlingVersion = "3.8.4"
 
-resolvers += Resolver.bintrayRepo("intracer", "maven")
-
-resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
-
-resolvers += Resolver.jcenterRepo
-
 resolvers += Resolver.mavenLocal
 
 libraryDependencySchemes += "org.scala-lang.modules" %% "scala-parser-combinators" % "always"
