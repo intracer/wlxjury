@@ -2,13 +2,21 @@
 
 ### Dev workflow
 
-The easiest way to start everything is the `run-dev.sh` script, which starts both Play and the Vite dev server together:
+Two convenience scripts start everything (Play + Vite) in one command:
+
+| Script | DB source |
+|---|---|
+| `./run-dev.sh` | credentials from `.env` (same as production) |
+| `./scripts/run-with-prod-dump.sh` | dumps production DB, restores into a local Docker container |
+
+Both scripts install `ui/node_modules` on first run if missing, start the Vite dev server in the background, and kill it automatically when Play exits.
 
 ```bash
-./run-dev.sh
+./run-dev.sh                                    # local .env DB
+./scripts/run-with-prod-dump.sh                 # fresh prod dump → local container
+./scripts/run-with-prod-dump.sh --skip-dump     # re-use last dump
+./scripts/run-with-prod-dump.sh --reuse-container  # skip dump+restore entirely
 ```
-
-It reads DB credentials from `.env` (same file used for production), installs `ui/node_modules` on first run if missing, and kills Vite automatically when you stop Play.
 
 - Play API: [http://localhost:9000](http://localhost:9000)
 - React UI (hot-reload): [http://localhost:5173](http://localhost:5173)
