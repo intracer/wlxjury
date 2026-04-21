@@ -28,7 +28,7 @@ Name, Year, and Country cells in ContestsGrid become clickable. Clicking a value
 
 ### Filtering
 - Client-side only — `rows.filter()` applied to the full row list before passing to DataGrid.
-- No API calls, no URL/query-string persistence; filter state is ephemeral (component state only).
+- No API calls. Filter state is persisted in the URL query string (see below).
 
 ---
 
@@ -42,6 +42,32 @@ const [filters, setFilters] = useState<Record<FilterKey, string | null>>({
 ```
 
 Derived: `filteredRows = rows.filter(r => every active filter matches r[key])`.
+
+---
+
+## URL persistence
+
+Filter state is reflected in the URL query string so that filtered views are bookmarkable and survive page reload.
+
+### Query parameter format
+
+Each active filter maps to a query param with a `f_` prefix:
+
+| Filter | Query param |
+|---|---|
+| `name = WLM Ukraine` | `f_name=WLM+Ukraine` |
+| `year = 2023` | `f_year=2023` |
+| `country = Ukraine` | `f_country=Ukraine` |
+
+Example URL: `/?f_country=Ukraine&f_year=2023`
+
+### Read on mount
+
+On component mount, read `window.location.search` with `URLSearchParams` and initialise `filters` state from any `f_name` / `f_year` / `f_country` params present. Unknown or empty params are ignored.
+
+### Write on change
+
+A `useEffect` that depends on `filters` calls `history.replaceState` to update the query string without a page navigation. Active filters are written as `f_*` params; null filters are omitted entirely. Unrelated query params (if any) are preserved.
 
 ---
 
@@ -83,6 +109,5 @@ A small inline component (can live in the same file as `ContestsGrid`):
 
 ## Out of scope
 
-- URL/query-string persistence of filter state
 - Filtering on any other column (ID, Images category, Monument template)
 - Server-side filtering
