@@ -1,5 +1,3 @@
-import ContestsGrid from './components/ContestsGrid'
-
 export default function App() {
-  return <ContestsGrid />
+  return <div>WLX Jury</div>
 }
