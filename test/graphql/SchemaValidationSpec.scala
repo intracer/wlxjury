@@ -9,5 +9,6 @@ class SchemaValidationSpec extends FunSuite {
     val sdl = scala.io.Source.fromResource("graphql/schema.graphql").mkString
     val result = QueryParser.parse(sdl)
     assert(result.isSuccess, result.failed.map(_.getMessage).getOrElse("parse failed"))
+    assert(result.get.definitions.nonEmpty, "schema document has no definitions")
   }
 }

@@ -47,8 +47,8 @@ type Image {
   monumentId: String
   author: String
   mime: String
-  mpx: Float
-  isVideo: Boolean!
+  mpx: Float        # computed: width * height / 1_000_000.0
+  isVideo: Boolean! # computed: from mime type
 }
 
 type Selection {
@@ -76,7 +76,7 @@ type Comment {
   username: String!
   roundId: ID!
   contestId: ID
-  imagePageId: ID!
+  imagePageId: ID!  # maps to domain field 'room' (DB column: room)
   body: String!
   createdAt: String!
 }
@@ -93,7 +93,7 @@ type Monument {
   typ: String
   subType: String
   photo: String
-  contest: ID
+  contestId: ID  # was named 'contest' in domain model
 }
 
 type RoundStat {
