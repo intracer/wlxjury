@@ -3,6 +3,7 @@ package graphql
 
 import com.github.pjfanning.pekkohttpplayjson.PlayJsonSupport._
 import db.scalikejdbc.{ContestJuryJdbc, SharedTestDb, User}
+import graphql.SubscriptionEventBus
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.http.scaladsl.model.headers.RawHeader
 import org.apache.pekko.http.scaladsl.testkit.Specs2RouteTest
@@ -17,7 +18,7 @@ class GraphQLRouteSpec extends Specification with Specs2RouteTest with BeforeAll
 
   private val jwtSecret = "test-secret"
   private val config    = Configuration("graphql.jwt.secret" -> jwtSecret)
-  private val route     = new GraphQLRoute(config).route
+  private val route     = new GraphQLRoute(config, SubscriptionEventBus.noop).route
 
   override def beforeAll(): Unit = SharedTestDb.init()
 

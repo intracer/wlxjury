@@ -4,7 +4,10 @@ package graphql
 import db.scalikejdbc.User
 import sangria.execution.{ExceptionHandler, HandledException}
 
-case class GraphQLContext(currentUser: Option[User]) {
+case class GraphQLContext(
+  currentUser: Option[User],
+  eventBus: SubscriptionEventBus = SubscriptionEventBus.noop
+) {
 
   def requireAuth(): User =
     currentUser.getOrElse(throw AuthenticationError("Not authenticated"))

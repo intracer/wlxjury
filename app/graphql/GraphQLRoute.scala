@@ -17,7 +17,7 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-class GraphQLRoute @Inject()(config: Configuration)(implicit ec: ExecutionContext) {
+class GraphQLRoute @Inject()(config: Configuration, eventBus: SubscriptionEventBus)(implicit ec: ExecutionContext) {
 
   private val jwtSecret = config.get[String]("graphql.jwt.secret")
   private val schema    = SchemaDefinition.schema(jwtSecret)
@@ -45,7 +45,7 @@ class GraphQLRoute @Inject()(config: Configuration)(implicit ec: ExecutionContex
               val query  = (body \ "query").as[String]
               val vars   = (body \ "variables").asOpt[JsObject].getOrElse(JsObject.empty)
               val opName = (body \ "operationName").asOpt[String]
-              val ctx    = GraphQLContext(resolveUser(authHeader, proxyUser))
+              val ctx    = GraphQLContext(resolveUser(authHeader, proxyUser), eventBus)
 
               QueryParser.parse(query) match {
                 case Success(ast) =>
