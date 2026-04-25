@@ -2,7 +2,7 @@
 package graphql
 
 import db.scalikejdbc.User
-import sangria.execution.{ExceptionHandler, HandledException, UserFacingError}
+import sangria.execution.{ExceptionHandler, HandledException}
 
 case class GraphQLContext(currentUser: Option[User]) {
 
@@ -17,10 +17,10 @@ case class GraphQLContext(currentUser: Option[User]) {
   }
 }
 
-case class AuthenticationError(message: String) extends Exception(message) with UserFacingError
-case class AuthorizationError(message: String)  extends Exception(message) with UserFacingError
-case class NotFoundError(message: String)        extends Exception(message) with UserFacingError
-case class BadInputError(message: String)        extends Exception(message) with UserFacingError
+case class AuthenticationError(message: String) extends Exception(message)
+case class AuthorizationError(message: String)  extends Exception(message)
+case class NotFoundError(message: String)        extends Exception(message)
+case class BadInputError(message: String)        extends Exception(message)
 
 object GraphQLContext {
   val exceptionHandler: ExceptionHandler = ExceptionHandler {
