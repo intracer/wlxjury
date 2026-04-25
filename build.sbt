@@ -104,6 +104,8 @@ val SangriaVersion    = "4.1.0"
 val SangriaPlayJson   = "2.0.2"
 val JwtScalaVersion   = "10.0.1"
 val GatlingVersion = "3.8.4"
+val CalibanVersion = "2.9.1"
+val ZioVersion     = "2.1.14"
 
 resolvers += Resolver.mavenLocal
 
@@ -148,6 +150,11 @@ libraryDependencies ++= Seq(
   "com.github.pjfanning" %% "pekko-http-play-json" % "2.0.0",
   "org.sangria-graphql" %% "sangria"           % SangriaVersion,
   "org.sangria-graphql" %% "sangria-play-json" % SangriaPlayJson,
+  // GraphQL - Caliban (parallel implementation for comparison)
+  "com.github.ghostdogpr" %% "caliban"                     % CalibanVersion,
+  "dev.zio"               %% "zio"                         % ZioVersion,
+  "dev.zio"               %% "zio-streams"                 % ZioVersion,
+  "dev.zio"               %% "zio-interop-reactivestreams" % "2.0.2",
   "com.github.jwt-scala" %% "jwt-play-json"    % JwtScalaVersion,
   guice,
   filters,
