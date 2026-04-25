@@ -100,6 +100,9 @@ val ScalaTestVersion = "3.2.9"
 val TestcontainersScalaVersion = "0.41.0"
 val TapirVersion = "1.11.15"
 val MunitVersion = "0.7.29"
+val SangriaVersion    = "4.1.0"
+val SangriaPlayJson   = "2.0.2"
+val JwtScalaVersion   = "10.0.1"
 val GatlingVersion = "3.8.4"
 
 resolvers += Resolver.mavenLocal
@@ -143,6 +146,9 @@ libraryDependencies ++= Seq(
   "com.softwaremill.sttp.tapir" %% "tapir-json-play" % TapirVersion,
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % TapirVersion,
   "com.github.pjfanning" %% "pekko-http-play-json" % "2.0.0",
+  "org.sangria-graphql" %% "sangria"           % SangriaVersion,
+  "org.sangria-graphql" %% "sangria-play-json" % SangriaPlayJson,
+  "com.github.jwt-scala" %% "jwt-play-json"    % JwtScalaVersion,
   guice,
   filters,
   specs2 % Test,
