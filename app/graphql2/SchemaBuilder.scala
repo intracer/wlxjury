@@ -130,29 +130,34 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
 
     updateContest = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("root") *>
-        ZIO.fromFuture[ContestView] { implicit ec =>
-          scala.concurrent.Future {
-            val id = args.id.toLong
-            val existing = ContestJuryJdbc.findById(id)
-              .getOrElse(throw GraphQL2Context.notFound(s"Contest ${args.id} not found"))
-            ContestJuryJdbc.updateById(id).withAttributes(
-              "name"               -> args.input.name,
-              "year"               -> args.input.year,
-              "country"            -> args.input.country,
-              "images"             -> args.input.images,
-              "campaign"           -> args.input.campaign,
-              "monumentIdTemplate" -> args.input.monumentIdTemplate
-            )
-            ContestView.from(existing.copy(
-              name               = args.input.name,
-              year               = args.input.year,
-              country            = args.input.country,
-              images             = args.input.images,
-              campaign           = args.input.campaign,
-              monumentIdTemplate = args.input.monumentIdTemplate
-            ))
+        ZIO.fromFuture(implicit ec =>
+          scala.concurrent.Future(ContestJuryJdbc.findById(args.id.toLong))
+        ).mapError(GraphQL2Context.dbError)
+          .flatMap {
+            case None => ZIO.fail(GraphQL2Context.notFound(s"Contest ${args.id} not found"))
+            case Some(existing) =>
+              ZIO.fromFuture { implicit ec =>
+                val id = args.id.toLong
+                scala.concurrent.Future {
+                  ContestJuryJdbc.updateById(id).withAttributes(
+                    "name"               -> args.input.name,
+                    "year"               -> args.input.year,
+                    "country"            -> args.input.country,
+                    "images"             -> args.input.images,
+                    "campaign"           -> args.input.campaign,
+                    "monumentIdTemplate" -> args.input.monumentIdTemplate
+                  )
+                  ContestView.from(existing.copy(
+                    name               = args.input.name,
+                    year               = args.input.year,
+                    country            = args.input.country,
+                    images             = args.input.images,
+                    campaign           = args.input.campaign,
+                    monumentIdTemplate = args.input.monumentIdTemplate
+                  ))
+                }
+              }.mapError(GraphQL2Context.dbError)
           }
-        }.mapError(GraphQL2Context.dbError)
     },
 
     deleteContest = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
