@@ -47,6 +47,7 @@ object RoundView {
           SelectionQuery(
             roundId = r.id,
             rate    = args.rate,
+            regions = args.region.toSet,
             grouped = true,
             limit   = Some(Limit(Some(pageSize), Some(offset)))
           ).list().map(ImageWithRatingView.from).toList

@@ -8,5 +8,6 @@ import zio.stream.ZStream
 
 case class Subscriptions(
   imageRated:    ImageRatedArgs => ZStream[GraphQL2Context, CalibanError, ImageRatedEventView],
+  // roundProgress streams raw rating events (same shape as imageRated), matching the Sangria implementation
   roundProgress: ImageRatedArgs => ZStream[GraphQL2Context, CalibanError, ImageRatedEventView]
 )
