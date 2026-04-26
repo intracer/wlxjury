@@ -20,8 +20,8 @@ package
 null
 .qodo
 .bloop
-.bsp
 .metals
+.bsp
 data/cache/
 .superpowers/
 public/ui/

@@ -5,8 +5,13 @@ import org.intracer.wmua.ContestJury
 import org.scalawiki.MwBot
 import org.specs2.mutable.Specification
 import org.specs2.specification.{BeforeAll, BeforeEach}
+import org.specs2.mock.Mockito
+import org.scalawiki.dto.{Namespace, Page}
+import org.scalawiki.query.SinglePageQuery
+import scala.concurrent.Future
 
-class ContestSpec extends Specification with TestDb with BeforeAll with BeforeEach {
+
+class ContestSpec extends Specification with TestDb with Mockito with BeforeAll with BeforeEach {
 
   override def beforeAll(): Unit = SharedTestDb.init()
   override protected def before: Any = SharedTestDb.truncateAll()
@@ -16,7 +21,12 @@ class ContestSpec extends Specification with TestDb with BeforeAll with BeforeEa
   "import contests" should {
     "import Ukraine" in {
 
-      val bot = MwBot.fromHost("commons.wikimedia.org")
+      val imagesCategory = Page("Category:Images from Wiki Loves Earth 2013 in Ukraine")
+      val query = mock[SinglePageQuery]
+      query.categoryMembers(Set(Namespace.CATEGORY)) returns Future.successful(Seq(imagesCategory))
+      val bot = mockBot()
+      bot.page("Category:Wiki Loves Earth 2013 in Ukraine") returns query
+
       val contestService = new ContestService(bot)
 
       contestService.importContests("Category:Wiki Loves Earth 2013 in Ukraine")
