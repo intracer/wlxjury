@@ -4,8 +4,8 @@ package graphql2
 import caliban._
 import caliban.schema.{ArgBuilder, GenericSchema, Schema}
 import caliban.schema.ArgBuilder.auto._
-import db.scalikejdbc.{ContestJuryJdbc, Round, RoundUser, User}
-import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
+import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, Round, RoundUser, SelectionJdbc, User}
+import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import graphql2.inputs._
 import graphql2.views._
 import zio._
@@ -123,8 +123,28 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
         }
       }.mapError(GraphQL2Context.dbError)
     },
-    images    = _ => stub,
-    image     = _ => stub,
+    images = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture { implicit ec =>
+        scala.concurrent.Future {
+          val page     = args.page.getOrElse(1)
+          val pageSize = args.pageSize.getOrElse(20)
+          val offset   = (page - 1) * pageSize
+          SelectionQuery(
+            roundId = Some(args.roundId.toLong),
+            userId  = args.userId.map(_.toLong),
+            rate    = args.rate,
+            grouped = args.userId.isEmpty,
+            limit   = Some(Limit(Some(pageSize), Some(offset)))
+          ).list().map(ImageWithRatingView.from).toList
+        }
+      }.mapError(GraphQL2Context.dbError)
+    },
+
+    image = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture(implicit ec =>
+        scala.concurrent.Future(ImageJdbc.findById(args.pageId.toLong).map(ImageView.from))
+      ).mapError(GraphQL2Context.dbError)
+    },
     users     = _ => stub,
     user      = _ => stub,
     me        = ZIO.serviceWith[GraphQL2Context](_.currentUser.map(UserView.from)),
@@ -273,9 +293,55 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
               }.mapError(GraphQL2Context.dbError)
           }
     },
-    rateImage        = _ => stub,
-    rateImageBulk    = _ => stub,
-    setRoundImages   = _ => stub,
+    rateImage = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireAuth *> ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+        ZIO.fromFuture { implicit ec =>
+          scala.concurrent.Future {
+            val user    = ctx.currentUser.get
+            val roundId = args.roundId.toLong
+            val pageId  = args.pageId.toLong
+            SelectionJdbc.findBy(pageId, user.getId, roundId) match {
+              case Some(_) =>
+                SelectionJdbc.rate(pageId, user.getId, roundId, args.rate)
+                SelectionJdbc.findBy(pageId, user.getId, roundId).map(SelectionView.from).get
+              case None =>
+                SelectionView.from(SelectionJdbc.create(pageId, args.rate, user.getId, roundId))
+            }
+          }
+        }.mapError(GraphQL2Context.dbError)
+      }
+    },
+
+    rateImageBulk = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireAuth *> ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+        ZIO.fromFuture { implicit ec =>
+          scala.concurrent.Future {
+            val user    = ctx.currentUser.get
+            val roundId = args.roundId.toLong
+            args.ratings.map { r =>
+              val pageId = r.pageId.toLong
+              SelectionJdbc.findBy(pageId, user.getId, roundId) match {
+                case Some(_) =>
+                  SelectionJdbc.rate(pageId, user.getId, roundId, r.rate)
+                  SelectionJdbc.findBy(pageId, user.getId, roundId).map(SelectionView.from).get
+                case None =>
+                  SelectionView.from(SelectionJdbc.create(pageId, r.rate, user.getId, roundId))
+              }
+            }
+          }
+        }.mapError(GraphQL2Context.dbError)
+      }
+    },
+
+    setRoundImages = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireRole("organizer") *>
+        ZIO.fromFuture(implicit ec =>
+          scala.concurrent.Future {
+            ContestJuryJdbc.setImagesSource(args.roundId.toLong, Some(args.category))
+            true
+          }
+        ).mapError(GraphQL2Context.dbError)
+    },
     createUser       = _ => stub,
     updateUser       = _ => stub,
     addComment       = _ => stub
