@@ -4,7 +4,8 @@ package graphql2
 import caliban._
 import caliban.schema.{ArgBuilder, GenericSchema, Schema}
 import caliban.schema.ArgBuilder.auto._
-import db.scalikejdbc.ContestJuryJdbc
+import db.scalikejdbc.{ContestJuryJdbc, Round, RoundUser, User}
+import db.scalikejdbc.rewrite.ImageDbNew.SelectionQuery
 import graphql2.inputs._
 import graphql2.views._
 import zio._
@@ -94,9 +95,34 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
         scala.concurrent.Future(ContestJuryJdbc.findById(args.id.toLong).map(ContestView.from))
       ).mapError(GraphQL2Context.dbError)
     },
-    round     = _ => stub,
-    rounds    = _ => stub,
-    roundStat = _ => stub,
+    round = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture(implicit ec =>
+        scala.concurrent.Future(Round.findById(args.id.toLong).map(RoundView.from))
+      ).mapError(GraphQL2Context.dbError)
+    },
+
+    rounds = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture(implicit ec =>
+        scala.concurrent.Future(Round.findByContest(args.contestId.toLong).map(RoundView.from).toList)
+      ).mapError(GraphQL2Context.dbError)
+    },
+
+    roundStat = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture { implicit ec =>
+        scala.concurrent.Future {
+          val roundId = args.roundId.toLong
+          val total   = SelectionQuery(roundId = Some(roundId), grouped = true).count()
+          val rated   = SelectionQuery(roundId = Some(roundId), rate = Some(1), grouped = true).count()
+          val jurors  = User.findByRoundSelection(roundId)
+          val stats   = jurors.map { u =>
+            val r = SelectionQuery(roundId = Some(roundId), userId = u.id, grouped = true).count()
+            val s = SelectionQuery(roundId = Some(roundId), userId = u.id, rate = Some(1), grouped = true).count()
+            JurorStatView(UserView.from(u), r, s)
+          }
+          RoundStatView(roundId = roundId.toString, totalImages = total, ratedImages = rated, jurorStats = stats.toList)
+        }
+      }.mapError(GraphQL2Context.dbError)
+    },
     images    = _ => stub,
     image     = _ => stub,
     users     = _ => stub,
@@ -166,10 +192,87 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
           scala.concurrent.Future { ContestJuryJdbc.deleteById(args.id.toLong); true }
         ).mapError(GraphQL2Context.dbError)
     },
-    createRound      = _ => stub,
-    updateRound      = _ => stub,
-    setActiveRound   = _ => stub,
-    addJurorsToRound = _ => stub,
+    createRound = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireRole("organizer") *>
+        ZIO.fromFuture { implicit ec =>
+          scala.concurrent.Future(
+            Round.create(Round(
+              id             = None,
+              number         = 0,
+              name           = args.input.name,
+              contestId      = args.input.contestId.toLong,
+              distribution   = args.input.distribution.getOrElse(0),
+              minMpx         = args.input.minMpx,
+              category       = args.input.category,
+              regions        = args.input.regions,
+              mediaType      = args.input.mediaType,
+              hasCriteria    = args.input.hasCriteria.getOrElse(false),
+              previous       = args.input.previousRoundId.map(_.toLong),
+              prevSelectedBy = args.input.prevSelectedBy
+            ))
+          ).map(RoundView.from)
+        }.mapError(GraphQL2Context.dbError)
+    },
+
+    updateRound = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireRole("organizer") *>
+        ZIO.fromFuture(implicit ec =>
+          scala.concurrent.Future(Round.findById(args.id.toLong))
+        ).mapError(GraphQL2Context.dbError)
+          .flatMap {
+            case None => ZIO.fail(GraphQL2Context.notFound(s"Round ${args.id} not found"))
+            case Some(existing) =>
+              ZIO.fromFuture { implicit ec =>
+                val id = args.id.toLong
+                scala.concurrent.Future {
+                  Round.updateById(id).withAttributes(
+                    "name"        -> args.input.name.orElse(existing.name).orNull,
+                    "category"    -> args.input.category.orElse(existing.category).orNull,
+                    "regions"     -> args.input.regions.orElse(existing.regions).orNull,
+                    "mediaType"   -> args.input.mediaType.orElse(existing.mediaType).orNull,
+                    "hasCriteria" -> args.input.hasCriteria.getOrElse(existing.hasCriteria),
+                    "minMpx"      -> args.input.minMpx.orElse(existing.minMpx).orNull
+                  )
+                  RoundView.from(Round.findById(id).get)
+                }
+              }.mapError(GraphQL2Context.dbError)
+          }
+    },
+
+    setActiveRound = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireRole("organizer") *>
+        ZIO.fromFuture(implicit ec =>
+          scala.concurrent.Future(Round.findById(args.id.toLong))
+        ).mapError(GraphQL2Context.dbError)
+          .flatMap {
+            case None => ZIO.fail(GraphQL2Context.notFound(s"Round ${args.id} not found"))
+            case Some(round) =>
+              ZIO.fromFuture { implicit ec =>
+                scala.concurrent.Future {
+                  Round.setActive(args.id.toLong, active = true)
+                  RoundView.from(round.copy(active = true))
+                }
+              }.mapError(GraphQL2Context.dbError)
+          }
+    },
+
+    addJurorsToRound = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireRole("organizer") *>
+        ZIO.fromFuture(implicit ec =>
+          scala.concurrent.Future(Round.findById(args.roundId.toLong))
+        ).mapError(GraphQL2Context.dbError)
+          .flatMap {
+            case None => ZIO.fail(GraphQL2Context.notFound(s"Round ${args.roundId} not found"))
+            case Some(round) =>
+              ZIO.fromFuture { implicit ec =>
+                scala.concurrent.Future {
+                  val roundId = args.roundId.toLong
+                  round.addUsers(args.userIds.map(uid => RoundUser(roundId, uid.toLong, "jury", active = true)))
+                  RoundView.from(Round.findById(roundId).get)
+                }
+              }.mapError(GraphQL2Context.dbError)
+          }
+    },
     rateImage        = _ => stub,
     rateImageBulk    = _ => stub,
     setRoundImages   = _ => stub,
