@@ -145,9 +145,24 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
         scala.concurrent.Future(ImageJdbc.findById(args.pageId.toLong).map(ImageView.from))
       ).mapError(GraphQL2Context.dbError)
     },
-    users     = _ => stub,
-    user      = _ => stub,
-    me        = ZIO.serviceWith[GraphQL2Context](_.currentUser.map(UserView.from)),
+    users = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture { implicit ec =>
+        scala.concurrent.Future {
+          args.contestId match {
+            case Some(id) => User.findAllBy(scalikejdbc.sqls.eq(User.u.contestId, id.toLong)).map(UserView.from).toList
+            case None     => User.findAll().map(UserView.from).toList
+          }
+        }
+      }.mapError(GraphQL2Context.dbError)
+    },
+
+    user = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture(implicit ec =>
+        scala.concurrent.Future(User.findById(args.id.toLong).map(UserView.from))
+      ).mapError(GraphQL2Context.dbError)
+    },
+
+    me = ZIO.serviceWith[GraphQL2Context](_.currentUser.map(UserView.from)),
     comments  = _ => stub,
     monuments = _ => stub,
     monument  = _ => stub
@@ -342,8 +357,46 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
           }
         ).mapError(GraphQL2Context.dbError)
     },
-    createUser       = _ => stub,
-    updateUser       = _ => stub,
+    createUser = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireRole("admin") *>
+        ZIO.fromFuture { implicit ec =>
+          scala.concurrent.Future(
+            UserView.from(User.create(User(
+              fullname    = args.input.fullname,
+              email       = args.input.email,
+              roles       = args.input.roles.toSet,
+              contestId   = args.input.contestId.map(_.toLong),
+              lang        = args.input.lang,
+              wikiAccount = args.input.wikiAccount
+            )))
+          )
+        }.mapError(GraphQL2Context.dbError)
+    },
+
+    updateUser = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireRole("admin") *>
+        ZIO.fromFuture(implicit ec =>
+          scala.concurrent.Future(User.findById(args.id.toLong))
+        ).mapError(GraphQL2Context.dbError)
+          .flatMap {
+            case None => ZIO.fail(GraphQL2Context.notFound(s"User ${args.id} not found"))
+            case Some(existing) =>
+              ZIO.fromFuture { implicit ec =>
+                val id = args.id.toLong
+                scala.concurrent.Future {
+                  User.updateById(id).withAttributes(
+                    "fullname"    -> args.input.fullname,
+                    "email"       -> args.input.email,
+                    "roles"       -> args.input.roles.mkString(","),
+                    "contestId"   -> args.input.contestId.map(_.toLong).orElse(existing.contestId).orNull,
+                    "lang"        -> args.input.lang.orElse(existing.lang).orNull,
+                    "wikiAccount" -> args.input.wikiAccount.orElse(existing.wikiAccount).orNull
+                  )
+                  UserView.from(User.findById(id).get)
+                }
+              }.mapError(GraphQL2Context.dbError)
+          }
+    },
     addComment       = _ => stub
   )
 
