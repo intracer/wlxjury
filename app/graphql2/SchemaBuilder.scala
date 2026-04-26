@@ -8,6 +8,8 @@ import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, Round, RoundUser, SelectionJd
 import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import graphql2.inputs._
 import graphql2.views._
+import pdi.jwt.{JwtAlgorithm, JwtClaim, JwtJson}
+import play.api.libs.json.Json
 import zio._
 import zio.stream.ZStream
 
@@ -76,6 +78,8 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
   implicit val queriesSchema: Schema[GraphQL2Context, Queries]                      = gen[GraphQL2Context, Queries]
   implicit val mutationsSchema: Schema[GraphQL2Context, Mutations]                   = gen[GraphQL2Context, Mutations]
   implicit val subscriptionsSchema: Schema[GraphQL2Context, Subscriptions]           = gen[GraphQL2Context, Subscriptions]
+
+  var jwtSecret: String = "test-secret"
 
   private def stub[A]: ZIO[GraphQL2Context, CalibanError, A] =
     ZIO.die(new RuntimeException("not implemented"))
@@ -191,7 +195,26 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
   )
 
   val mutations: Mutations = Mutations(
-    login         = _ => stub,
+    login = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture { implicit ec =>
+        scala.concurrent.Future {
+          val userOpt = User.findByEmail(args.email).headOption
+          val authed  = userOpt.filter(_.password.exists(_ == User.sha1(args.password)))
+          val user    = authed.getOrElse(throw new RuntimeException("Invalid email or password"))
+          val claim = JwtClaim(
+            content    = Json.obj("userId" -> user.getId).toString,
+            expiration = Some(java.lang.System.currentTimeMillis() / 1000 + 86400 * 30),
+            issuedAt   = Some(java.lang.System.currentTimeMillis() / 1000)
+          )
+          val token = JwtJson.encode(claim, SchemaBuilder.jwtSecret, JwtAlgorithm.HS256)
+          AuthPayloadView(token, UserView.from(user))
+        }
+      }.mapError { e =>
+        CalibanError.ExecutionError(e.getMessage,
+          extensions = Some(caliban.ResponseValue.ObjectValue(
+            List("code" -> caliban.Value.StringValue("UNAUTHENTICATED")))))
+      }
+    },
     createContest = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("root") *>
         ZIO.fromFuture { implicit ec =>
