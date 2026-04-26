@@ -4,6 +4,7 @@ package graphql2
 import caliban._
 import caliban.schema.{ArgBuilder, GenericSchema, Schema}
 import caliban.schema.ArgBuilder.auto._
+import db.scalikejdbc.ContestJuryJdbc
 import graphql2.inputs._
 import graphql2.views._
 import zio._
@@ -82,8 +83,17 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
     ZStream.die(new RuntimeException("not implemented"))
 
   val queries: Queries = Queries(
-    contests  = stub,
-    contest   = _ => stub,
+    contests = ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture(implicit ec =>
+        scala.concurrent.Future(ContestJuryJdbc.findAll().map(ContestView.from))
+      ).mapError(GraphQL2Context.dbError)
+    },
+
+    contest = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture(implicit ec =>
+        scala.concurrent.Future(ContestJuryJdbc.findById(args.id.toLong).map(ContestView.from))
+      ).mapError(GraphQL2Context.dbError)
+    },
     round     = _ => stub,
     rounds    = _ => stub,
     roundStat = _ => stub,
@@ -98,10 +108,59 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
   )
 
   val mutations: Mutations = Mutations(
-    login            = _ => stub,
-    createContest    = _ => stub,
-    updateContest    = _ => stub,
-    deleteContest    = _ => stub,
+    login         = _ => stub,
+    createContest = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireRole("root") *>
+        ZIO.fromFuture { implicit ec =>
+          scala.concurrent.Future(
+            ContestJuryJdbc.create(
+              None,
+              args.input.name,
+              args.input.year,
+              args.input.country,
+              args.input.images,
+              None,
+              None,
+              args.input.monumentIdTemplate,
+              args.input.campaign
+            )
+          ).map(ContestView.from)
+        }.mapError(GraphQL2Context.dbError)
+    },
+
+    updateContest = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireRole("root") *>
+        ZIO.fromFuture[ContestView] { implicit ec =>
+          scala.concurrent.Future {
+            val id = args.id.toLong
+            val existing = ContestJuryJdbc.findById(id)
+              .getOrElse(throw GraphQL2Context.notFound(s"Contest ${args.id} not found"))
+            ContestJuryJdbc.updateById(id).withAttributes(
+              "name"               -> args.input.name,
+              "year"               -> args.input.year,
+              "country"            -> args.input.country,
+              "images"             -> args.input.images,
+              "campaign"           -> args.input.campaign,
+              "monumentIdTemplate" -> args.input.monumentIdTemplate
+            )
+            ContestView.from(existing.copy(
+              name               = args.input.name,
+              year               = args.input.year,
+              country            = args.input.country,
+              images             = args.input.images,
+              campaign           = args.input.campaign,
+              monumentIdTemplate = args.input.monumentIdTemplate
+            ))
+          }
+        }.mapError(GraphQL2Context.dbError)
+    },
+
+    deleteContest = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireRole("root") *>
+        ZIO.fromFuture(implicit ec =>
+          scala.concurrent.Future { ContestJuryJdbc.deleteById(args.id.toLong); true }
+        ).mapError(GraphQL2Context.dbError)
+    },
     createRound      = _ => stub,
     updateRound      = _ => stub,
     setActiveRound   = _ => stub,
