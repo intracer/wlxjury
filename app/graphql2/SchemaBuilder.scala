@@ -8,9 +8,11 @@ import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, Round, RoundUser, SelectionJd
 import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import graphql2.inputs._
 import graphql2.views._
+import org.apache.pekko.stream.scaladsl.{Keep, Sink}
 import pdi.jwt.{JwtAlgorithm, JwtClaim, JwtJson}
 import play.api.libs.json.Json
 import zio._
+import zio.interop.reactivestreams._
 import zio.stream.ZStream
 
 object SchemaBuilder extends GenericSchema[GraphQL2Context] {
@@ -459,8 +461,36 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
   )
 
   val subscriptions: Subscriptions = Subscriptions(
-    imageRated    = _ => stubStream,
-    roundProgress = _ => stubStream
+    imageRated = args => ZStream.fromZIO(ZIO.service[GraphQL2Context]).flatMap { ctx =>
+      implicit val mat = ctx.mat
+      val roundId   = args.roundId.toLong
+      val source    = ctx.eventBus.imageRatedSource.filter(_.roundId == roundId)
+      val publisher = source.toMat(Sink.asPublisher(fanout = false))(Keep.right).run()
+      publisher.toZIOStream().map { e =>
+        ImageRatedEventView(
+          roundId = e.roundId.toString,
+          pageId  = e.pageId.toString,
+          juryId  = e.juryId.toString,
+          rate    = e.rate
+        )
+      }.mapError(GraphQL2Context.dbError)
+    },
+
+    // roundProgress streams raw rating events (same shape as imageRated), matching the Sangria implementation
+    roundProgress = args => ZStream.fromZIO(ZIO.service[GraphQL2Context]).flatMap { ctx =>
+      implicit val mat = ctx.mat
+      val roundId   = args.roundId.toLong
+      val source    = ctx.eventBus.imageRatedSource.filter(_.roundId == roundId)
+      val publisher = source.toMat(Sink.asPublisher(fanout = false))(Keep.right).run()
+      publisher.toZIOStream().map { e =>
+        ImageRatedEventView(
+          roundId = e.roundId.toString,
+          pageId  = e.pageId.toString,
+          juryId  = e.juryId.toString,
+          rate    = e.rate
+        )
+      }.mapError(GraphQL2Context.dbError)
+    }
   )
 
   val api: GraphQL[GraphQL2Context] =
