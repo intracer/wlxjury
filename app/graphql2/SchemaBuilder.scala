@@ -174,8 +174,20 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
         }
       }.mapError(GraphQL2Context.dbError)
     },
-    monuments = _ => stub,
-    monument  = _ => stub
+    monuments = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture { implicit ec =>
+        scala.concurrent.Future {
+          val contestId = args.contestId.toLong
+          db.scalikejdbc.MonumentJdbc.findAll().filter(_.contest.contains(contestId)).map(MonumentView.from)
+        }
+      }.mapError(GraphQL2Context.dbError)
+    },
+
+    monument = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture(implicit ec =>
+        scala.concurrent.Future(db.scalikejdbc.MonumentJdbc.find(args.id).map(MonumentView.from))
+      ).mapError(GraphQL2Context.dbError)
+    }
   )
 
   val mutations: Mutations = Mutations(
