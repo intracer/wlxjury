@@ -91,284 +91,256 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
 
   val queries: Queries = Queries(
     contests = ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture(implicit ec =>
-        scala.concurrent.Future(ContestJuryJdbc.findAll().map(ContestView.from))
-      ).mapError(GraphQL2Context.dbError)
+      ZIO.attemptBlocking(ContestJuryJdbc.findAll().map(ContestView.from))
+        .mapError(GraphQL2Context.dbError)
     },
 
     contest = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture(implicit ec =>
-        scala.concurrent.Future(ContestJuryJdbc.findById(args.id.toLong).map(ContestView.from))
-      ).mapError(GraphQL2Context.dbError)
+      ZIO.attemptBlocking(ContestJuryJdbc.findById(args.id.toLong).map(ContestView.from))
+        .mapError(GraphQL2Context.dbError)
     },
+
     round = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture(implicit ec =>
-        scala.concurrent.Future(Round.findById(args.id.toLong).map(RoundView.from))
-      ).mapError(GraphQL2Context.dbError)
+      ZIO.attemptBlocking(Round.findById(args.id.toLong).map(RoundView.from))
+        .mapError(GraphQL2Context.dbError)
     },
 
     rounds = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture(implicit ec =>
-        scala.concurrent.Future(Round.findByContest(args.contestId.toLong).map(RoundView.from).toList)
-      ).mapError(GraphQL2Context.dbError)
+      ZIO.attemptBlocking(Round.findByContest(args.contestId.toLong).map(RoundView.from).toList)
+        .mapError(GraphQL2Context.dbError)
     },
 
     roundStat = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture { implicit ec =>
-        scala.concurrent.Future {
-          val roundId = args.roundId.toLong
-          val total   = SelectionQuery(roundId = Some(roundId), grouped = true).count()
-          val rated   = SelectionQuery(roundId = Some(roundId), rate = Some(1), grouped = true).count()
-          val jurors  = User.findByRoundSelection(roundId)
-          val stats   = jurors.map { u =>
-            val r = SelectionQuery(roundId = Some(roundId), userId = u.id, grouped = true).count()
-            val s = SelectionQuery(roundId = Some(roundId), userId = u.id, rate = Some(1), grouped = true).count()
-            JurorStatView(UserView.from(u), r, s)
-          }
-          RoundStatView(roundId = roundId.toString, totalImages = total, ratedImages = rated, jurorStats = stats.toList)
+      ZIO.attemptBlocking {
+        val roundId = args.roundId.toLong
+        val total   = SelectionQuery(roundId = Some(roundId), grouped = true).count()
+        val rated   = SelectionQuery(roundId = Some(roundId), rate = Some(1), grouped = true).count()
+        val jurors  = User.findByRoundSelection(roundId)
+        val stats   = jurors.map { u =>
+          val r = SelectionQuery(roundId = Some(roundId), userId = u.id, grouped = true).count()
+          val s = SelectionQuery(roundId = Some(roundId), userId = u.id, rate = Some(1), grouped = true).count()
+          JurorStatView(UserView.from(u), r, s)
         }
+        RoundStatView(roundId = roundId.toString, totalImages = total, ratedImages = rated, jurorStats = stats.toList)
       }.mapError(GraphQL2Context.dbError)
     },
+
     images = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture { implicit ec =>
-        scala.concurrent.Future {
-          val page     = args.page.getOrElse(1)
-          val pageSize = args.pageSize.getOrElse(20)
-          val offset   = (page - 1) * pageSize
-          SelectionQuery(
-            roundId = Some(args.roundId.toLong),
-            userId  = args.userId.map(_.toLong),
-            rate    = args.rate,
-            grouped = args.userId.isEmpty,
-            limit   = Some(Limit(Some(pageSize), Some(offset)))
-          ).list().map(ImageWithRatingView.from).toList
-        }
+      ZIO.attemptBlocking {
+        val page     = args.page.getOrElse(1)
+        val pageSize = args.pageSize.getOrElse(20)
+        val offset   = (page - 1) * pageSize
+        SelectionQuery(
+          roundId = Some(args.roundId.toLong),
+          userId  = args.userId.map(_.toLong),
+          rate    = args.rate,
+          grouped = args.userId.isEmpty,
+          limit   = Some(Limit(Some(pageSize), Some(offset)))
+        ).list().map(ImageWithRatingView.from).toList
       }.mapError(GraphQL2Context.dbError)
     },
 
     image = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture(implicit ec =>
-        scala.concurrent.Future(ImageJdbc.findById(args.pageId.toLong).map(ImageView.from))
-      ).mapError(GraphQL2Context.dbError)
+      ZIO.attemptBlocking(ImageJdbc.findById(args.pageId.toLong).map(ImageView.from))
+        .mapError(GraphQL2Context.dbError)
     },
+
     users = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture { implicit ec =>
-        scala.concurrent.Future {
-          args.contestId match {
-            case Some(id) => User.findAllBy(scalikejdbc.sqls.eq(User.u.contestId, id.toLong)).map(UserView.from).toList
-            case None     => User.findAll().map(UserView.from).toList
-          }
+      ZIO.attemptBlocking {
+        args.contestId match {
+          case Some(id) => User.findAllBy(scalikejdbc.sqls.eq(User.u.contestId, id.toLong)).map(UserView.from).toList
+          case None     => User.findAll().map(UserView.from).toList
         }
       }.mapError(GraphQL2Context.dbError)
     },
 
     user = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture(implicit ec =>
-        scala.concurrent.Future(User.findById(args.id.toLong).map(UserView.from))
-      ).mapError(GraphQL2Context.dbError)
+      ZIO.attemptBlocking(User.findById(args.id.toLong).map(UserView.from))
+        .mapError(GraphQL2Context.dbError)
     },
 
     me = ZIO.serviceWith[GraphQL2Context](_.currentUser.map(UserView.from)),
+
     comments = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture { implicit ec =>
-        scala.concurrent.Future {
-          val roundId = args.roundId.toLong
-          args.imagePageId match {
-            case Some(pageId) => org.intracer.wmua.CommentJdbc.findByRoundAndSubject(roundId, pageId.toLong).map(CommentView.from)
-            case None         => org.intracer.wmua.CommentJdbc.findByRound(roundId).map(CommentView.from)
-          }
+      ZIO.attemptBlocking {
+        val roundId = args.roundId.toLong
+        args.imagePageId match {
+          case Some(pageId) => org.intracer.wmua.CommentJdbc.findByRoundAndSubject(roundId, pageId.toLong).map(CommentView.from)
+          case None         => org.intracer.wmua.CommentJdbc.findByRound(roundId).map(CommentView.from)
         }
       }.mapError(GraphQL2Context.dbError)
     },
+
     monuments = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture { implicit ec =>
-        scala.concurrent.Future {
-          val contestId = args.contestId.toLong
-          db.scalikejdbc.MonumentJdbc.findAll().filter(_.contest.contains(contestId)).map(MonumentView.from)
-        }
+      ZIO.attemptBlocking {
+        val contestId = args.contestId.toLong
+        db.scalikejdbc.MonumentJdbc.findAll().filter(_.contest.contains(contestId)).map(MonumentView.from)
       }.mapError(GraphQL2Context.dbError)
     },
 
     monument = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture(implicit ec =>
-        scala.concurrent.Future(db.scalikejdbc.MonumentJdbc.find(args.id).map(MonumentView.from))
-      ).mapError(GraphQL2Context.dbError)
+      ZIO.attemptBlocking(db.scalikejdbc.MonumentJdbc.find(args.id).map(MonumentView.from))
+        .mapError(GraphQL2Context.dbError)
     }
   )
 
   val mutations: Mutations = Mutations(
     login = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
-      ZIO.fromFuture { implicit ec =>
-        scala.concurrent.Future {
-          val userOpt = User.findByEmail(args.email).headOption
-          val authed  = userOpt.filter(_.password.exists(_ == User.sha1(args.password)))
-          val user    = authed.getOrElse(throw new RuntimeException("Invalid email or password"))
-          val claim = JwtClaim(
-            content    = Json.obj("userId" -> user.getId).toString,
-            expiration = Some(java.lang.System.currentTimeMillis() / 1000 + 86400 * 30),
-            issuedAt   = Some(java.lang.System.currentTimeMillis() / 1000)
-          )
-          val token = JwtJson.encode(claim, SchemaBuilder.jwtSecret, JwtAlgorithm.HS256)
-          AuthPayloadView(token, UserView.from(user))
-        }
+      ZIO.attemptBlocking {
+        val userOpt = User.findByEmail(args.email).headOption
+        val authed  = userOpt.filter(_.password.exists(_ == User.sha1(args.password)))
+        val user    = authed.getOrElse(throw new RuntimeException("Invalid email or password"))
+        val claim = JwtClaim(
+          content    = Json.obj("userId" -> user.getId).toString,
+          expiration = Some(java.lang.System.currentTimeMillis() / 1000 + 86400 * 30),
+          issuedAt   = Some(java.lang.System.currentTimeMillis() / 1000)
+        )
+        val token = JwtJson.encode(claim, SchemaBuilder.jwtSecret, JwtAlgorithm.HS256)
+        AuthPayloadView(token, UserView.from(user))
       }.mapError { e =>
         CalibanError.ExecutionError(e.getMessage,
           extensions = Some(caliban.ResponseValue.ObjectValue(
             List("code" -> caliban.Value.StringValue("UNAUTHENTICATED")))))
       }
     },
+
     createContest = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("root") *>
-        ZIO.fromFuture { implicit ec =>
-          scala.concurrent.Future(
-            ContestJuryJdbc.create(
-              None,
-              args.input.name,
-              args.input.year,
-              args.input.country,
-              args.input.images,
-              None,
-              None,
-              args.input.monumentIdTemplate,
-              args.input.campaign
-            )
-          ).map(ContestView.from)
-        }.mapError(GraphQL2Context.dbError)
+        ZIO.attemptBlocking(
+          ContestJuryJdbc.create(
+            None,
+            args.input.name,
+            args.input.year,
+            args.input.country,
+            args.input.images,
+            None,
+            None,
+            args.input.monumentIdTemplate,
+            args.input.campaign
+          )
+        ).map(ContestView.from)
+          .mapError(GraphQL2Context.dbError)
     },
 
     updateContest = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("root") *>
-        ZIO.fromFuture(implicit ec =>
-          scala.concurrent.Future(ContestJuryJdbc.findById(args.id.toLong))
-        ).mapError(GraphQL2Context.dbError)
+        ZIO.attemptBlocking(ContestJuryJdbc.findById(args.id.toLong))
+          .mapError(GraphQL2Context.dbError)
           .flatMap {
             case None => ZIO.fail(GraphQL2Context.notFound(s"Contest ${args.id} not found"))
             case Some(existing) =>
-              ZIO.fromFuture { implicit ec =>
+              ZIO.attemptBlocking {
                 val id = args.id.toLong
-                scala.concurrent.Future {
-                  ContestJuryJdbc.updateById(id).withAttributes(
-                    "name"               -> args.input.name,
-                    "year"               -> args.input.year,
-                    "country"            -> args.input.country,
-                    "images"             -> args.input.images,
-                    "campaign"           -> args.input.campaign,
-                    "monumentIdTemplate" -> args.input.monumentIdTemplate
-                  )
-                  ContestView.from(existing.copy(
-                    name               = args.input.name,
-                    year               = args.input.year,
-                    country            = args.input.country,
-                    images             = args.input.images,
-                    campaign           = args.input.campaign,
-                    monumentIdTemplate = args.input.monumentIdTemplate
-                  ))
-                }
+                ContestJuryJdbc.updateById(id).withAttributes(
+                  "name"               -> args.input.name,
+                  "year"               -> args.input.year,
+                  "country"            -> args.input.country,
+                  "images"             -> args.input.images,
+                  "campaign"           -> args.input.campaign,
+                  "monumentIdTemplate" -> args.input.monumentIdTemplate
+                )
+                ContestView.from(existing.copy(
+                  name               = args.input.name,
+                  year               = args.input.year,
+                  country            = args.input.country,
+                  images             = args.input.images,
+                  campaign           = args.input.campaign,
+                  monumentIdTemplate = args.input.monumentIdTemplate
+                ))
               }.mapError(GraphQL2Context.dbError)
           }
     },
 
     deleteContest = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("root") *>
-        ZIO.fromFuture(implicit ec =>
-          scala.concurrent.Future { ContestJuryJdbc.deleteById(args.id.toLong); true }
-        ).mapError(GraphQL2Context.dbError)
+        ZIO.attemptBlocking { ContestJuryJdbc.deleteById(args.id.toLong); true }
+          .mapError(GraphQL2Context.dbError)
     },
+
     createRound = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("organizer") *>
-        ZIO.fromFuture { implicit ec =>
-          scala.concurrent.Future(
-            Round.create(Round(
-              id             = None,
-              number         = 0,
-              name           = args.input.name,
-              contestId      = args.input.contestId.toLong,
-              distribution   = args.input.distribution.getOrElse(0),
-              minMpx         = args.input.minMpx,
-              category       = args.input.category,
-              regions        = args.input.regions,
-              mediaType      = args.input.mediaType,
-              hasCriteria    = args.input.hasCriteria.getOrElse(false),
-              previous       = args.input.previousRoundId.map(_.toLong),
-              prevSelectedBy = args.input.prevSelectedBy
-            ))
-          ).map(RoundView.from)
-        }.mapError(GraphQL2Context.dbError)
+        ZIO.attemptBlocking(
+          Round.create(Round(
+            id             = None,
+            number         = 0,
+            name           = args.input.name,
+            contestId      = args.input.contestId.toLong,
+            distribution   = args.input.distribution.getOrElse(0),
+            minMpx         = args.input.minMpx,
+            category       = args.input.category,
+            regions        = args.input.regions,
+            mediaType      = args.input.mediaType,
+            hasCriteria    = args.input.hasCriteria.getOrElse(false),
+            previous       = args.input.previousRoundId.map(_.toLong),
+            prevSelectedBy = args.input.prevSelectedBy
+          ))
+        ).map(RoundView.from)
+          .mapError(GraphQL2Context.dbError)
     },
 
     updateRound = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("organizer") *>
-        ZIO.fromFuture(implicit ec =>
-          scala.concurrent.Future(Round.findById(args.id.toLong))
-        ).mapError(GraphQL2Context.dbError)
+        ZIO.attemptBlocking(Round.findById(args.id.toLong))
+          .mapError(GraphQL2Context.dbError)
           .flatMap {
             case None => ZIO.fail(GraphQL2Context.notFound(s"Round ${args.id} not found"))
             case Some(existing) =>
-              ZIO.fromFuture { implicit ec =>
+              ZIO.attemptBlocking {
                 val id = args.id.toLong
-                scala.concurrent.Future {
-                  Round.updateById(id).withAttributes(
-                    "name"        -> args.input.name.orElse(existing.name).orNull,
-                    "category"    -> args.input.category.orElse(existing.category).orNull,
-                    "regions"     -> args.input.regions.orElse(existing.regions).orNull,
-                    "mediaType"   -> args.input.mediaType.orElse(existing.mediaType).orNull,
-                    "hasCriteria" -> args.input.hasCriteria.getOrElse(existing.hasCriteria),
-                    "minMpx"      -> args.input.minMpx.orElse(existing.minMpx).orNull
-                  )
-                  RoundView.from(Round.findById(id).get)
-                }
+                Round.updateById(id).withAttributes(
+                  "name"        -> args.input.name.orElse(existing.name).orNull,
+                  "category"    -> args.input.category.orElse(existing.category).orNull,
+                  "regions"     -> args.input.regions.orElse(existing.regions).orNull,
+                  "mediaType"   -> args.input.mediaType.orElse(existing.mediaType).orNull,
+                  "hasCriteria" -> args.input.hasCriteria.getOrElse(existing.hasCriteria),
+                  "minMpx"      -> args.input.minMpx.orElse(existing.minMpx).orNull
+                )
+                RoundView.from(Round.findById(id).get)
               }.mapError(GraphQL2Context.dbError)
           }
     },
 
     setActiveRound = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("organizer") *>
-        ZIO.fromFuture(implicit ec =>
-          scala.concurrent.Future(Round.findById(args.id.toLong))
-        ).mapError(GraphQL2Context.dbError)
+        ZIO.attemptBlocking(Round.findById(args.id.toLong))
+          .mapError(GraphQL2Context.dbError)
           .flatMap {
             case None => ZIO.fail(GraphQL2Context.notFound(s"Round ${args.id} not found"))
             case Some(round) =>
-              ZIO.fromFuture { implicit ec =>
-                scala.concurrent.Future {
-                  Round.setActive(args.id.toLong, active = true)
-                  RoundView.from(round.copy(active = true))
-                }
+              ZIO.attemptBlocking {
+                Round.setActive(args.id.toLong, active = true)
+                RoundView.from(round.copy(active = true))
               }.mapError(GraphQL2Context.dbError)
           }
     },
 
     addJurorsToRound = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("organizer") *>
-        ZIO.fromFuture(implicit ec =>
-          scala.concurrent.Future(Round.findById(args.roundId.toLong))
-        ).mapError(GraphQL2Context.dbError)
+        ZIO.attemptBlocking(Round.findById(args.roundId.toLong))
+          .mapError(GraphQL2Context.dbError)
           .flatMap {
             case None => ZIO.fail(GraphQL2Context.notFound(s"Round ${args.roundId} not found"))
             case Some(round) =>
-              ZIO.fromFuture { implicit ec =>
-                scala.concurrent.Future {
-                  val roundId = args.roundId.toLong
-                  round.addUsers(args.userIds.map(uid => RoundUser(roundId, uid.toLong, "jury", active = true)))
-                  RoundView.from(Round.findById(roundId).get)
-                }
+              ZIO.attemptBlocking {
+                val roundId = args.roundId.toLong
+                round.addUsers(args.userIds.map(uid => RoundUser(roundId, uid.toLong, "jury", active = true)))
+                RoundView.from(Round.findById(roundId).get)
               }.mapError(GraphQL2Context.dbError)
           }
     },
+
     rateImage = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireAuth *> ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
-        ZIO.fromFuture { implicit ec =>
-          scala.concurrent.Future {
-            val user    = ctx.currentUser.get
-            val roundId = args.roundId.toLong
-            val pageId  = args.pageId.toLong
-            SelectionJdbc.findBy(pageId, user.getId, roundId) match {
-              case Some(_) =>
-                SelectionJdbc.rate(pageId, user.getId, roundId, args.rate)
-                SelectionJdbc.findBy(pageId, user.getId, roundId).map(SelectionView.from).get
-              case None =>
-                SelectionView.from(SelectionJdbc.create(pageId, args.rate, user.getId, roundId))
-            }
+        ZIO.attemptBlocking {
+          val user    = ctx.currentUser.get
+          val roundId = args.roundId.toLong
+          val pageId  = args.pageId.toLong
+          SelectionJdbc.findBy(pageId, user.getId, roundId) match {
+            case Some(_) =>
+              SelectionJdbc.rate(pageId, user.getId, roundId, args.rate)
+              SelectionJdbc.findBy(pageId, user.getId, roundId).map(SelectionView.from).get
+            case None =>
+              SelectionView.from(SelectionJdbc.create(pageId, args.rate, user.getId, roundId))
           }
         }.mapError(GraphQL2Context.dbError)
       }
@@ -376,19 +348,17 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
 
     rateImageBulk = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireAuth *> ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
-        ZIO.fromFuture { implicit ec =>
-          scala.concurrent.Future {
-            val user    = ctx.currentUser.get
-            val roundId = args.roundId.toLong
-            args.ratings.map { r =>
-              val pageId = r.pageId.toLong
-              SelectionJdbc.findBy(pageId, user.getId, roundId) match {
-                case Some(_) =>
-                  SelectionJdbc.rate(pageId, user.getId, roundId, r.rate)
-                  SelectionJdbc.findBy(pageId, user.getId, roundId).map(SelectionView.from).get
-                case None =>
-                  SelectionView.from(SelectionJdbc.create(pageId, r.rate, user.getId, roundId))
-              }
+        ZIO.attemptBlocking {
+          val user    = ctx.currentUser.get
+          val roundId = args.roundId.toLong
+          args.ratings.map { r =>
+            val pageId = r.pageId.toLong
+            SelectionJdbc.findBy(pageId, user.getId, roundId) match {
+              case Some(_) =>
+                SelectionJdbc.rate(pageId, user.getId, roundId, r.rate)
+                SelectionJdbc.findBy(pageId, user.getId, roundId).map(SelectionView.from).get
+              case None =>
+                SelectionView.from(SelectionJdbc.create(pageId, r.rate, user.getId, roundId))
             }
           }
         }.mapError(GraphQL2Context.dbError)
@@ -397,64 +367,57 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
 
     setRoundImages = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("organizer") *>
-        ZIO.fromFuture(implicit ec =>
-          scala.concurrent.Future {
-            ContestJuryJdbc.setImagesSource(args.roundId.toLong, Some(args.category))
-            true
-          }
-        ).mapError(GraphQL2Context.dbError)
+        ZIO.attemptBlocking {
+          ContestJuryJdbc.setImagesSource(args.roundId.toLong, Some(args.category))
+          true
+        }.mapError(GraphQL2Context.dbError)
     },
+
     createUser = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("admin") *>
-        ZIO.fromFuture { implicit ec =>
-          scala.concurrent.Future(
-            UserView.from(User.create(User(
-              fullname    = args.input.fullname,
-              email       = args.input.email,
-              roles       = args.input.roles.toSet,
-              contestId   = args.input.contestId.map(_.toLong),
-              lang        = args.input.lang,
-              wikiAccount = args.input.wikiAccount
-            )))
-          )
-        }.mapError(GraphQL2Context.dbError)
+        ZIO.attemptBlocking(
+          UserView.from(User.create(User(
+            fullname    = args.input.fullname,
+            email       = args.input.email,
+            roles       = args.input.roles.toSet,
+            contestId   = args.input.contestId.map(_.toLong),
+            lang        = args.input.lang,
+            wikiAccount = args.input.wikiAccount
+          )))
+        ).mapError(GraphQL2Context.dbError)
     },
 
     updateUser = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireRole("admin") *>
-        ZIO.fromFuture(implicit ec =>
-          scala.concurrent.Future(User.findById(args.id.toLong))
-        ).mapError(GraphQL2Context.dbError)
+        ZIO.attemptBlocking(User.findById(args.id.toLong))
+          .mapError(GraphQL2Context.dbError)
           .flatMap {
             case None => ZIO.fail(GraphQL2Context.notFound(s"User ${args.id} not found"))
             case Some(existing) =>
-              ZIO.fromFuture { implicit ec =>
+              ZIO.attemptBlocking {
                 val id = args.id.toLong
-                scala.concurrent.Future {
-                  User.updateById(id).withAttributes(
-                    "fullname"    -> args.input.fullname,
-                    "email"       -> args.input.email,
-                    "roles"       -> args.input.roles.mkString(","),
-                    "contestId"   -> args.input.contestId.map(_.toLong).orElse(existing.contestId).orNull,
-                    "lang"        -> args.input.lang.orElse(existing.lang).orNull,
-                    "wikiAccount" -> args.input.wikiAccount.orElse(existing.wikiAccount).orNull
-                  )
-                  UserView.from(User.findById(id).get)
-                }
+                User.updateById(id).withAttributes(
+                  "fullname"    -> args.input.fullname,
+                  "email"       -> args.input.email,
+                  "roles"       -> args.input.roles.mkString(","),
+                  "contestId"   -> args.input.contestId.map(_.toLong).orElse(existing.contestId).orNull,
+                  "lang"        -> args.input.lang.orElse(existing.lang).orNull,
+                  "wikiAccount" -> args.input.wikiAccount.orElse(existing.wikiAccount).orNull
+                )
+                UserView.from(User.findById(id).get)
               }.mapError(GraphQL2Context.dbError)
           }
     },
+
     addComment = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
       ctx.requireAuth *> ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
-        ZIO.fromFuture { implicit ec =>
-          scala.concurrent.Future {
-            val user = ctx.currentUser.get
-            CommentView.from(org.intracer.wmua.CommentJdbc.create(
-              user.getId, user.fullname, args.roundId.toLong, user.contestId,
-              args.imagePageId.toLong, args.body,
-              createdAt = java.time.LocalDateTime.now.toString
-            ))
-          }
+        ZIO.attemptBlocking {
+          val user = ctx.currentUser.get
+          CommentView.from(org.intracer.wmua.CommentJdbc.create(
+            user.getId, user.fullname, args.roundId.toLong, user.contestId,
+            args.imagePageId.toLong, args.body,
+            createdAt = java.time.LocalDateTime.now.toString
+          ))
         }.mapError(GraphQL2Context.dbError)
       }
     }

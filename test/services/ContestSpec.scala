@@ -1,17 +1,17 @@
 package services
 
 import db.scalikejdbc.{SharedTestDb, TestDb}
-import org.intracer.wmua.ContestJury
-import org.scalawiki.MwBot
+import org.intracer.wmua.{ContestJury, JuryTestHelpers}
 import org.specs2.mutable.Specification
 import org.specs2.specification.{BeforeAll, BeforeEach}
 import org.specs2.mock.Mockito
 import org.scalawiki.dto.{Namespace, Page}
 import org.scalawiki.query.SinglePageQuery
+
 import scala.concurrent.Future
 
 
-class ContestSpec extends Specification with TestDb with Mockito with BeforeAll with BeforeEach {
+class ContestSpec extends Specification with TestDb with Mockito with JuryTestHelpers with BeforeAll with BeforeEach {
 
   override def beforeAll(): Unit = SharedTestDb.init()
   override protected def before: Any = SharedTestDb.truncateAll()
@@ -39,7 +39,8 @@ class ContestSpec extends Specification with TestDb with Mockito with BeforeAll 
           year = 2013,
           country = "Ukraine",
           images = Some("Category:Images from Wiki Loves Earth 2013 in Ukraine"),
-          monumentIdTemplate = Some("UkrainianNaturalHeritageSite")
+          monumentIdTemplate = Some("UkrainianNaturalHeritageSite"),
+          campaign = Some("wle-UA")
         )
       )
     }

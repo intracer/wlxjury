@@ -33,7 +33,7 @@ class Api @Inject()(val contestService: ContestService, actorSystem: ActorSystem
 
   private val swaggerEndpoints = SwaggerInterpreter().fromEndpoints[Future](endpoints, "WLX Jury", "1.0")
 
-  private val swaggerRoute = PekkoHttpServerInterpreter().toRoute(swaggerEndpoints)
+  val swaggerRoute = PekkoHttpServerInterpreter().toRoute(swaggerEndpoints)
 
   private val apiRoutes = PekkoHttpServerInterpreter().toRoute(List(
     createContest.serverLogicSuccess { contest =>

@@ -72,20 +72,6 @@ class ContestService @Inject() (val commons: MwBot) {
     )
   }
 
-  def updateContest(contest: ContestJury): Unit = {
-    contest.id.foreach { id =>
-      ContestJuryJdbc.updateById(id)
-        .withAttributes(
-          "name" -> contest.name,
-          "year" -> contest.year,
-          "country" -> contest.country,
-          "images" -> contest.images,
-          "monumentIdTemplate" -> contest.monumentIdTemplate,
-          "campaign" -> contest.campaign
-        )
-    }
-  }
-
   def findContests(): List[ContestJury] = {
     ContestJuryJdbc.findAll() // .map(_.copy(messages = applicationMessages))
   }
