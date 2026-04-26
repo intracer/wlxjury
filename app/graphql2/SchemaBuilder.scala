@@ -8,6 +8,7 @@ import db.scalikejdbc.{ContestJuryJdbc, ImageJdbc, Round, RoundUser, SelectionJd
 import db.scalikejdbc.rewrite.ImageDbNew.{Limit, SelectionQuery}
 import graphql2.inputs._
 import graphql2.views._
+import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.{Keep, Sink}
 import pdi.jwt.{JwtAlgorithm, JwtClaim, JwtJson}
 import play.api.libs.json.Json
@@ -148,8 +149,8 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
     users = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
       ZIO.attemptBlocking {
         args.contestId match {
-          case Some(id) => User.findAllBy(scalikejdbc.sqls.eq(User.u.contestId, id.toLong)).map(UserView.from).toList
-          case None     => User.findAll().map(UserView.from).toList
+          case Some(id) => User.findAllBy(scalikejdbc.sqls.eq(User.u.contestId, id.toLong)).map(UserView.from)
+          case None     => User.findAll().map(UserView.from)
         }
       }.mapError(GraphQL2Context.dbError)
     },
@@ -425,7 +426,7 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
 
   val subscriptions: Subscriptions = Subscriptions(
     imageRated = args => ZStream.fromZIO(ZIO.service[GraphQL2Context]).flatMap { ctx =>
-      implicit val mat = ctx.mat
+      implicit val mat: Materializer = ctx.mat
       val roundId   = args.roundId.toLong
       val source    = ctx.eventBus.imageRatedSource.filter(_.roundId == roundId)
       val publisher = source.toMat(Sink.asPublisher(fanout = false))(Keep.right).run()
@@ -441,7 +442,7 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
 
     // roundProgress streams raw rating events (same shape as imageRated), matching the Sangria implementation
     roundProgress = args => ZStream.fromZIO(ZIO.service[GraphQL2Context]).flatMap { ctx =>
-      implicit val mat = ctx.mat
+      implicit val mat: Materializer = ctx.mat
       val roundId   = args.roundId.toLong
       val source    = ctx.eventBus.imageRatedSource.filter(_.roundId == roundId)
       val publisher = source.toMat(Sink.asPublisher(fanout = false))(Keep.right).run()
