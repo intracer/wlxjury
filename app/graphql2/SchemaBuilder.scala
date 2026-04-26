@@ -163,7 +163,17 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
     },
 
     me = ZIO.serviceWith[GraphQL2Context](_.currentUser.map(UserView.from)),
-    comments  = _ => stub,
+    comments = args => ZIO.serviceWithZIO[GraphQL2Context] { _ =>
+      ZIO.fromFuture { implicit ec =>
+        scala.concurrent.Future {
+          val roundId = args.roundId.toLong
+          args.imagePageId match {
+            case Some(pageId) => org.intracer.wmua.CommentJdbc.findByRoundAndSubject(roundId, pageId.toLong).map(CommentView.from)
+            case None         => org.intracer.wmua.CommentJdbc.findByRound(roundId).map(CommentView.from)
+          }
+        }
+      }.mapError(GraphQL2Context.dbError)
+    },
     monuments = _ => stub,
     monument  = _ => stub
   )
@@ -397,7 +407,20 @@ object SchemaBuilder extends GenericSchema[GraphQL2Context] {
               }.mapError(GraphQL2Context.dbError)
           }
     },
-    addComment       = _ => stub
+    addComment = args => ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+      ctx.requireAuth *> ZIO.serviceWithZIO[GraphQL2Context] { ctx =>
+        ZIO.fromFuture { implicit ec =>
+          scala.concurrent.Future {
+            val user = ctx.currentUser.get
+            CommentView.from(org.intracer.wmua.CommentJdbc.create(
+              user.getId, user.fullname, args.roundId.toLong, user.contestId,
+              args.imagePageId.toLong, args.body,
+              createdAt = java.time.LocalDateTime.now.toString
+            ))
+          }
+        }.mapError(GraphQL2Context.dbError)
+      }
+    }
   )
 
   val subscriptions: Subscriptions = Subscriptions(
