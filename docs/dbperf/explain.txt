@@ -1,0 +1,631 @@
+Bash(docker exec mariadb-perf mariadb -u root -proot wlxjury 2>&1 <<'EOF'
+         -- Create minimal schema for analysis
+         CREATE TABLE selection (
+           id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+           jury_id INTEGER NOT NULL,
+           created_at TIMESTAMP NULL,
+           deleted_at TIMESTAMP NULL,
+           round_id INTEGER,
+           page_id BIGINT,
+           rate INT,
+           criteria_id INT
+         );
+
+         CREATE TABLE images (
+           page_id BIGINT PRIMARY KEY,
+           contest BIGINT NOT NULL,
+           title VARCHAR(4000),
+           url VARCHAR(4000),
+           page_url VARCHAR(4000),
+           last_round INT,
+           width INT,
+           height INT,
+           monument_id VARCHAR(190),
+           description TEXT,
+           size BIGINT,
+           author VARCHAR(4000),
+           mime VARCHAR(100)
+         );
+
+         -- Create V45 indexes
+         CREATE INDEX idx_selection_jury_round ON selection(jury_id, round_id);
+         CREATE INDEX idx_selection_page_jury_round ON selection(page_id, jury_id, round_id);
+         CREATE INDEX idx_selection_round_page ON selection(round_id, page_id);
+         CREATE INDEX selection_rate_index ON selection(rate);
+         CREATE INDEX selection_jury_id_index ON selection(jury_id);
+         CREATE INDEX selection_page_id_index ON selection(page_id);
+
+         SELECT "Schema created OK";
+         EOF)
+     Bash(docker exec mariadb-perf mariadb -u root -proot wlxjury -e "SHOW TABLES;" 2>&1)
+     Bash(docker exec -i mariadb-perf mariadb -u root -proot wlxjury 2>&1 << 'ENDSQL'
+         CREATE TABLE IF NOT EXISTS selection (
+           id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+           jury_id INTEGER NOT NULL,
+           created_at TIMESTAMP NULL,
+           deleted_at TIMESTAMP NULL,
+           round_id INTEGER,
+           page_id BIGINT,
+           rate INT,
+           criteria_id INT
+         );
+
+         CREATE TABLE IF NOT EXISTS images (
+           page_id BIGINT PRIMARY KEY,
+           contest BIGINT NOT NULL,
+           title VARCHAR(4000),
+           url VARCHAR(4000),
+           page_url VARCHAR(4000),
+           last_round INT,
+           width INT,
+           height INT,
+           monument_id VARCHAR(190),
+           description TEXT,
+           size BIGINT,
+           author VARCHAR(4000),
+           mime VARCHAR(100)
+         );
+
+         SHOW TABLES;
+         ENDSQL)
+     Bash(docker exec -i mariadb-perf mariadb -u root -proot wlxjury << 'ENDSQL'
+         -- Create V45 indexes
+         CREATE INDEX idx_selection_jury_round ON selection(jury_id, round_id);
+         CREATE INDEX idx_selection_page_jury_round ON selection(page_id, jury_id, round_id);
+         CREATE INDEX idx_selection_round_page ON selection(round_id, page_id);
+
+         -- Populate images with 38k rows
+         INSERT INTO images (page_id, contest, title, monument_id)
+         SELECT
+           seq,
+           1,
+           CONCAT('Image_', seq, '.jpg'),
+           CONCAT(FLOOR(RAND(seq)*25)+1, '-', LPAD(FLOOR(RAND(seq*2)*500)+1, 4, '0'))
+         FROM (
+           SELECT a.N + b.N * 100 + c.N * 10000 + 1 AS seq
+           FROM
+             (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
+              UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9
+              UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14
+              UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19
+              UNION SELECT 20 UNION SELECT 21 UNION SELECT 22 UNION SELECT 23 UNION SELECT 24
+              UNION SELECT 25 UNION SELECT 26 UNION SELECT 27 UNION SELECT 28 UNION SELECT 29
+              UNION SELECT 30 UNION SELECT 31 UNION SELECT 32 UNION SELECT 33 UNION SELECT 34
+              UNION SELECT 35 UNION SELECT 36 UNION SELECT 37 UNION SELECT 38 UNION SELECT 39
+              UNION SELECT 40 UNION SELECT 41 UNION SELECT 42 UNION SELECT 43 UNION SELECT 44
+              UNION SELECT 45 UNION SELECT 46 UNION SELECT 47 UNION SELECT 48 UNION SELECT 49
+              UNION SELECT 50 UNION SELECT 51 UNION SELECT 52 UNION SELECT 53 UNION SELECT 54
+              UNION SELECT 55 UNION SELECT 56 UNION SELECT 57 UNION SELECT 58 UNION SELECT 59
+              UNION SELECT 60 UNION SELECT 61 UNION SELECT 62 UNION SELECT 63 UNION SELECT 64
+              UNION SELECT 65 UNION SELECT 66 UNION SELECT 67 UNION SELECT 68 UNION SELECT 69
+              UNION SELECT 70 UNION SELECT 71 UNION SELECT 72 UNION SELECT 73 UNION SELECT 74
+              UNION SELECT 75 UNION SELECT 76 UNION SELECT 77 UNION SELECT 78 UNION SELECT 79
+              UNION SELECT 80 UNION SELECT 81 UNION SELECT 82 UNION SELECT 83 UNION SELECT 84
+              UNION SELECT 85 UNION SELECT 86 UNION SELECT 87 UNION SELECT 88 UNION SELECT 89
+              UNION SELECT 90 UNION SELECT 91 UNION SELECT 92 UNION SELECT 93 UNION SELECT 94
+              UNION SELECT 95 UNION SELECT 96 UNION SELECT 97 UNION SELECT 98 UNION SELECT 99) a
+           CROSS JOIN
+             (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
+              UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9
+              UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14
+              UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19
+              UNION SELECT 20 UNION SELECT 21 UNION SELECT 22 UNION SELECT 23 UNION SELECT 24
+              UNION SELECT 25 UNION SELECT 26 UNION SELECT 27 UNION SELECT 28 UNION SELECT 29
+              UNION SELECT 30 UNION SELECT 31 UNION SELECT 32 UNION SELECT 33 UNION SELECT 34
+              UNION SELECT 35 UNION SELECT 36 UNION SELECT 37 UNION SELECT 38 UNION SELECT 39
+              UNION SELECT 40 UNION SELECT 41 UNION SELECT 42 UNION SELECT 43 UNION SELECT 44
+              UNION SELECT 45 UNION SELECT 46 UNION SELECT 47 UNION SELECT 48 UNION SELECT 49
+              UNION SELECT 50 UNION SELECT 51 UNION SELECT 52 UNION SELECT 53 UNION SELECT 54
+              UNION SELECT 55 UNION SELECT 56 UNION SELECT 57 UNION SELECT 58 UNION SELECT 59
+              UNION SELECT 60 UNION SELECT 61 UNION SELECT 62 UNION SELECT 63 UNION SELECT 64
+              UNION SELECT 65 UNION SELECT 66 UNION SELECT 67 UNION SELECT 68 UNION SELECT 69
+              UNION SELECT 70 UNION SELECT 71 UNION SELECT 72 UNION SELECT 73 UNION SELECT 74
+              UNION SELECT 75 UNION SELECT 76 UNION SELECT 77 UNION SELECT 78 UNION SELECT 79
+              UNION SELECT 80 UNION SELECT 81 UNION SELECT 82 UNION SELECT 83 UNION SELECT 84
+              UNION SELECT 85 UNION SELECT 86 UNION SELECT 87 UNION SELECT 88 UNION SELECT 89
+              UNION SELECT 90 UNION SELECT 91 UNION SELECT 92 UNION SELECT 93 UNION SELECT 94
+              UNION SELECT 95 UNION SELECT 96 UNION SELECT 97 UNION SELECT 98 UNION SELECT 99) b
+           CROSS JOIN
+             (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3) c
+           WHERE a.N + b.N * 100 + c.N * 10000 + 1 <= 38000
+         ) nums;
+
+         SELECT COUNT(*) as images_count FROM images;
+         ENDSQL)
+     Bash(docker exec -i mariadb-perf mariadb -u root -proot wlxjury << 'ENDSQL'
+         -- Populate selection: 10 jurors × 38k images × round 1 (binary), plus rating round
+         -- Binary round: round_id=1, all images rated 0 or 1
+         INSERT INTO selection (jury_id, round_id, page_id, rate)
+         SELECT
+           juror,
+           1,
+           page_id,
+           FLOOR(RAND(juror * page_id) * 2)
+         FROM images
+         CROSS JOIN (SELECT 1 AS juror UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+                     UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) jurors;
+
+         -- Rating round: round_id=2, aggregated scores
+         INSERT INTO selection (jury_id, round_id, page_id, rate)
+         SELECT
+           juror,
+           2,
+           page_id,
+           FLOOR(RAND(juror * page_id + 999) * 6)
+         FROM images
+         CROSS JOIN (SELECT 1 AS juror UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+                     UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10) jurors;
+
+         SELECT COUNT(*) as selection_count FROM selection;
+         ENDSQL)
+     Bash(docker exec -i mariadb-perf mariadb -u root -proot wlxjury << 'ENDSQL'
+         -- Run EXPLAIN on all slow queries
+
+         SELECT '=== Q1: rateDistribution (rateDistribution) ===' as query_name;
+         EXPLAIN SELECT s.rate, count(1)
+         FROM images i
+         JOIN selection s ON i.page_id = s.page_id
+         WHERE s.jury_id = 1 AND s.round_id = 1
+         GROUP BY rate;
+
+         SELECT '=== Q2: count with images join (ImageDbNew.count for juror gallery) ===' as query_name;
+         EXPLAIN select count(t.pi_on_i) from (
+           select i.page_id as pi_on_i
+           from images i
+           join selection s on i.page_id = s.page_id
+           where s.jury_id = 1 and s.round_id = 1
+         ) t;
+
+         SELECT '=== Q3: list query (gallery list) ===' as query_name;
+         EXPLAIN select i.page_id, s.rate
+         from images i
+         join selection s on i.page_id = s.page_id
+         where s.jury_id = 1 and s.round_id = 1
+         order by rate desc, i.monument_id asc, s.page_id asc
+         LIMIT 15 OFFSET 0;
+
+         SELECT '=== Q4: count for AggregatedRatings ===' as query_name;
+         EXPLAIN select count(t.pi_on_i) from (
+           select i.page_id as pi_on_i, sum(s.rate) as rate, count(s.rate) as rate_count
+           from images i
+           join selection s on i.page_id = s.page_id
+           where s.round_id = 2
+           group by s.page_id
+         ) t;
+
+         SELECT '=== Without images join ===' as query_name;
+         EXPLAIN SELECT s.rate, count(1)
+         FROM selection s
+         WHERE s.jury_id = 1 AND s.round_id = 1
+         GROUP BY rate;
+
+         SELECT '=== Count without images join ===' as query_name;
+         EXPLAIN select count(s.page_id)
+         FROM selection s
+         WHERE s.jury_id = 1 AND s.round_id = 1;
+         ENDSQL)
+     Bash(docker exec -i mariadb-perf mariadb -u root -proot wlxjury << 'ENDSQL'
+         -- Try a covering index for the rateDistribution and count queries
+         -- (round_id, jury_id, page_id, rate) covers all of Q1, Q2, Q3, Q4
+
+         CREATE INDEX idx_selection_covering ON selection(round_id, jury_id, page_id, rate);
+
+         SELECT '=== Q1 with new covering index ===' as query_name;
+         EXPLAIN SELECT s.rate, count(1)
+         FROM images i
+         JOIN selection s ON i.page_id = s.page_id
+         WHERE s.jury_id = 1 AND s.round_id = 1
+         GROUP BY rate;
+
+         SELECT '=== Q2 with new covering index ===' as query_name;
+         EXPLAIN select count(t.pi_on_i) from (
+           select i.page_id as pi_on_i
+           from images i
+           join selection s on i.page_id = s.page_id
+           where s.jury_id = 1 and s.round_id = 1
+         ) t;
+
+         SELECT '=== Q3 with new covering index ===' as query_name;
+         EXPLAIN select i.page_id, s.rate
+         from images i
+         join selection s on i.page_id = s.page_id
+         where s.jury_id = 1 and s.round_id = 1
+         order by rate desc, i.monument_id asc, s.page_id asc
+         LIMIT 15 OFFSET 0;
+
+         SELECT '=== Q4 with new covering index ===' as query_name;
+         EXPLAIN select count(t.pi_on_i) from (
+           select i.page_id as pi_on_i, sum(s.rate) as rate, count(s.rate) as rate_count
+           from images i
+           join selection s on i.page_id = s.page_id
+           where s.round_id = 2
+           group by s.page_id
+         ) t;
+
+         SELECT '=== Q1 without images join ===' as query_name;
+         EXPLAIN SELECT s.rate, count(1)
+         FROM selection s
+         WHERE s.jury_id = 1 AND s.round_id = 1
+         GROUP BY rate;
+
+         SELECT '=== Q1 without images join (reordered) ===' as query_name;
+         EXPLAIN SELECT s.rate, count(1)
+         FROM selection s
+         WHERE s.round_id = 1 AND s.jury_id = 1
+         GROUP BY rate;
+         ENDSQL)
+     Bash(docker exec -i mariadb-perf mariadb -u root -proot wlxjury << 'ENDSQL'
+         -- Test STRAIGHT_JOIN to force selection as driving table
+         SELECT '=== Q1 STRAIGHT_JOIN (selection first) ===' as query_name;
+         EXPLAIN SELECT STRAIGHT_JOIN s.rate, count(1)
+         FROM selection s
+         JOIN images i ON i.page_id = s.page_id
+         WHERE s.jury_id = 1 AND s.round_id = 1
+         GROUP BY rate;
+
+         SELECT '=== Q2 STRAIGHT_JOIN count ===' as query_name;
+         EXPLAIN select count(t.pi_on_i) from (
+           SELECT STRAIGHT_JOIN s.page_id as pi_on_i
+           FROM selection s
+           JOIN images i ON i.page_id = s.page_id
+           WHERE s.jury_id = 1 AND s.round_id = 1
+         ) t;
+
+         SELECT '=== Q3 list STRAIGHT_JOIN ===' as query_name;
+         EXPLAIN SELECT STRAIGHT_JOIN s.page_id, s.rate, i.monument_id
+         FROM selection s
+         JOIN images i ON i.page_id = s.page_id
+         WHERE s.jury_id = 1 AND s.round_id = 1
+         ORDER BY s.rate DESC, i.monument_id ASC, s.page_id ASC
+         LIMIT 15 OFFSET 0;
+
+         -- Drop the extra index we just created and check what's best with existing V45 indexes
+         DROP INDEX idx_selection_covering ON selection;
+
+         -- What if we add (round_id, jury_id) to an index - check what optimizer uses
+         CREATE INDEX idx_selection_round_jury ON selection(round_id, jury_id);
+
+         SELECT '=== Q1 with idx_selection_round_jury ===' as query_name;
+         EXPLAIN SELECT s.rate, count(1)
+         FROM images i
+         JOIN selection s ON i.page_id = s.page_id
+         WHERE s.jury_id = 1 AND s.round_id = 1
+         GROUP BY rate;
+
+         SELECT '=== Q4 with idx_selection_round_jury ===' as query_name;
+         EXPLAIN select count(t.pi_on_i) from (
+           select i.page_id as pi_on_i, sum(s.rate) as rate, count(s.rate) as rate_count
+           from images i
+           join selection s on i.page_id = s.page_id
+           where s.round_id = 2
+           group by s.page_id
+         ) t;
+         ENDSQL)
+     Bash(docker exec -i mariadb-perf mariadb -u root -proot wlxjury << 'ENDSQL'
+         DROP INDEX idx_selection_covering ON selection;
+         DROP INDEX idx_selection_round_jury ON selection;
+
+         -- What if we add a covering index with rate included for rateDistribution?
+         -- (round_id, jury_id, rate) - since we don't need page_id for rateDistribution
+         CREATE INDEX idx_selection_round_jury_rate ON selection(round_id, jury_id, rate);
+
+         SELECT '=== Q1 rateDistribution no join, covering ===' as query_name;
+         EXPLAIN SELECT s.rate, count(1)
+         FROM selection s
+         WHERE s.jury_id = 1 AND s.round_id = 1
+         GROUP BY rate;
+
+         -- For the count queries, what's needed
+         SELECT '=== Q2 count no images join ===' as query_name;
+         EXPLAIN SELECT COUNT(*) FROM selection s WHERE s.jury_id = 1 AND s.round_id = 1;
+
+         -- For AggregatedRatings
+         SELECT '=== Q4 no images join ===' as query_name;
+         EXPLAIN select count(DISTINCT page_id) from selection s where s.round_id = 2;
+
+         -- ACTUAL TIMING TEST
+         SET @start = NOW(6);
+         SELECT s.rate, count(1) FROM selection s WHERE s.jury_id = 1 AND s.round_id = 1 GROUP BY rate;
+         SELECT TIMESTAMPDIFF(MICROSECOND, @start, NOW(6)) / 1000 as ms_no_join;
+
+         SET @start = NOW(6);
+         SELECT s.rate, count(1) FROM images i JOIN selection s ON i.page_id = s.page_id WHERE s.jury_id = 1 AND s.round_id = 1 GROUP BY rate;
+         SELECT TIMESTAMPDIFF(MICROSECOND, @start, NOW(6)) / 1000 as ms_with_join;
+         ENDSQL)
+     Bash(docker exec -i mariadb-perf mariadb -u root -proot wlxjury << 'ENDSQL'
+         SHOW INDEX FROM selection;
+         ENDSQL)
+     Bash(docker exec -i mariadb-perf mariadb -u root -proot wlxjury << 'ENDSQL'
+         DROP INDEX idx_selection_round_jury ON selection;
+
+         -- Create covering index that includes rate for GROUP BY queries
+         CREATE INDEX idx_selection_round_jury_rate ON selection(round_id, jury_id, rate);
+
+         SHOW INDEX FROM selection WHERE Key_name LIKE 'idx%';
+
+         -- ACTUAL TIMING TESTS
+         SELECT '=== TIMING: rateDistribution WITHOUT join ===' as test;
+         SET @start = NOW(6);
+         SELECT s.rate, count(1) FROM selection s WHERE s.jury_id = 1 AND s.round_id = 1 GROUP BY rate;
+         SELECT TIMESTAMPDIFF(MICROSECOND, @start, NOW(6)) / 1000 as ms;
+
+         SELECT '=== TIMING: rateDistribution WITH images join ===' as test;
+         SET @start = NOW(6);
+         SELECT s.rate, count(1) FROM images i JOIN selection s ON i.page_id = s.page_id WHERE s.jury_id = 1 AND s.round_id = 1 GROUP BY rate;
+         SELECT TIMESTAMPDIFF(MICROSECOND, @start, NOW(6)) / 1000 as ms;
+
+         SELECT '=== TIMING: count WITHOUT images join ===' as test;
+         SET @start = NOW(6);
+         SELECT COUNT(*) FROM selection s WHERE s.jury_id = 1 AND s.round_id = 1;
+         SELECT TIMESTAMPDIFF(MICROSECOND, @start, NOW(6)) / 1000 as ms;
+
+         SELECT '=== TIMING: count WITH images join ===' as test;
+         SET @start = NOW(6);
+         SELECT count(t.pi_on_i) FROM (SELECT i.page_id as pi_on_i FROM images i JOIN selection s ON i.page_id = s.page_id WHERE s.jury_id = 1 AND s.round_id = 1) t;
+         SELECT TIMESTAMPDIFF(MICROSECOND, @start, NOW(6)) / 1000 as ms;
+
+         SELECT '=== TIMING: AggregatedRatings count ===' as test;
+         SET @start = NOW(6);
+         SELECT count(t.pi_on_i) FROM (SELECT i.page_id as pi_on_i, sum(s.rate) as rate, count(s.rate) as rate_count FROM images i JOIN selection s ON i.page_id = s.page_id WHERE s.round_id = 2 GROUP BY s.page_id)
+         t;
+         SELECT TIMESTAMPDIFF(MICROSECOND, @start, NOW(6)) / 1000 as ms;
+
+         SELECT '=== TIMING: AggregatedRatings count WITHOUT images join ===' as test;
+         SET @start = NOW(6);
+         SELECT count(DISTINCT page_id) FROM selection s WHERE s.round_id = 2;
+         SELECT TIMESTAMPDIFF(MICROSECOND, @start, NOW(6)) / 1000 as ms;
+         ENDSQL)
+     Read(/Users/ilya/scala/wlxjury/app/db/scalikejdbc/rewrite/ImageDbNew.scala · lines 1-50)
+     Bash(docker exec -i mariadb-perf mariadb -u root -proot wlxjury << 'ENDSQL'
+         -- Test if a proper ORDER BY index for Q3 can avoid filesort
+         -- Q3 order: rate desc, monument_id asc, page_id asc
+         -- We need (round_id, jury_id) filter plus (rate, monument_id, page_id) for ORDER BY
+         -- But monument_id is in images, so we always need the join for ordering
+
+         -- What if we select from selection first?
+         SELECT '=== Q3 with selection first and covering index ===' as test;
+         EXPLAIN SELECT STRAIGHT_JOIN s.page_id, s.rate, i.monument_id
+         FROM selection s
+         JOIN images i ON i.page_id = s.page_id
+         WHERE s.jury_id = 1 AND s.round_id = 1
+         ORDER BY s.rate DESC, i.monument_id ASC, s.page_id ASC
+         LIMIT 15 OFFSET 0;
+
+         -- Timing Q3 original
+         SELECT '=== TIMING Q3 original (images first) ===' as test;
+         SET @start = NOW(6);
+         SELECT i.page_id, s.rate, i.monument_id
+         FROM images i JOIN selection s ON i.page_id = s.page_id
+         WHERE s.jury_id = 1 AND s.round_id = 1
+         ORDER BY s.rate DESC, i.monument_id ASC, s.page_id ASC
+         LIMIT 15 OFFSET 0;
+         SELECT TIMESTAMPDIFF(MICROSECOND, @start, NOW(6)) / 1000 as ms;
+
+         -- Timing Q3 with selection first
+         SELECT '=== TIMING Q3 selection first ===' as test;
+         SET @start = NOW(6);
+         SELECT STRAIGHT_JOIN s.page_id, s.rate, i.monument_id
+         FROM selection s JOIN images i ON i.page_id = s.page_id
+         WHERE s.jury_id = 1 AND s.round_id = 1
+         ORDER BY s.rate DESC, i.monument_id ASC, s.page_id ASC
+         LIMIT 15 OFFSET 0;
+         SELECT TIMESTAMPDIFF(MICROSECOND, @start, NOW(6)) / 1000 as ms;
+         ENDSQL)
+
+
+         docker exec -i mariadb-perf2 mariadb -u root -proot wlxjury << 'ENDSQL'
+            -- ============================================================
+            -- 1. BASELINE: the exact query issued by ImageDbNew.list()
+            -- ============================================================
+            SELECT '=== EXPLAIN: baseline list query ===' as test;
+            EXPLAIN
+            select i.page_id as pi_on_i, i.contest as c_on_i, i.title as t_on_i, i.url as u_on_i,
+                   i.page_url as pu_on_i, i.last_round as lr_on_i, i.width as w_on_i, i.height as h_on_i,
+                   i.monument_id as mi_on_i, i.description as d_on_i, i.size as s_on_i, i.author as a_on_i,
+                   i.mime as m_on_i,
+                   s.id as i_on_s, s.jury_id as ji_on_s, s.created_at as ca_on_s, s.deleted_at as da_on_s,
+                   s.round_id as ri_on_s, s.page_id as pi_on_s, s.rate as r_on_s, s.criteria_id as ci_on_s
+            from images i
+            join selection s on i.page_id = s.page_id
+            where s.jury_id = 1 and s.round_id = 1
+            order by s.rate desc, i.monument_id asc, s.page_id asc
+            LIMIT 15 OFFSET 0;
+
+            -- ============================================================
+            -- 2. EXPLAIN EXTENDED for extra info
+            -- ============================================================
+            SELECT '=== EXPLAIN EXTENDED ===' as test;
+            EXPLAIN EXTENDED
+            select i.page_id, i.monument_id, s.rate, s.page_id
+            from images i
+            join selection s on i.page_id = s.page_id
+            where s.jury_id = 1 and s.round_id = 1
+            order by s.rate desc, i.monument_id asc, s.page_id asc
+            LIMIT 15 OFFSET 0;
+
+            -- ============================================================
+            -- 3. ANALYZE (actual row counts, not estimates)
+            -- ============================================================
+            SELECT '=== EXPLAIN ANALYZE ===' as test;
+            EXPLAIN ANALYZE
+            select i.page_id, i.monument_id, s.rate, s.page_id
+            from images i
+            join selection s on i.page_id = s.page_id
+            where s.jury_id = 1 and s.round_id = 1
+            order by s.rate desc, i.monument_id asc, s.page_id asc
+            LIMIT 15 OFFSET 0;
+            ENDSQL
+            Run EXPLAIN, EXPLAIN EXTENDED, and EXPLAIN ANALYZE on the slow list query
+
+                 Bash(docker exec -i mariadb-perf2 mariadb -u root -proot wlxjury << 'ENDSQL'
+                     -- ============================================================
+                     -- ANALYZE TABLE per-query (MariaDB 10.6 syntax)
+                     -- ============================================================
+                     SELECT '=== ANALYZE FORMAT=JSON ===' as test;
+                     ANALYZE FORMAT=JSON
+                     select i.page_id, i.monument_id, s.rate, s.page_id as sp
+                     from images i
+                     join selection s on i.page_id = s.page_id
+                     where s.jury_id = 1 and s.round_id = 1
+                     order by s.rate desc, i.monument_id asc, s.page_id asc
+                     LIMIT 15 OFFSET 0;
+                     ENDSQL)
+                 Bash(docker exec -i mariadb-perf2 mariadb -u root -proot wlxjury << 'ENDSQL'
+                     -- ============================================================
+                     -- IDEA A: Two-step approach
+                     -- Step 1: get sorted page_ids from selection only (fast, indexed)
+                     -- Step 2: join images only for the top 15
+                     -- ============================================================
+
+                     SELECT '=== EXPLAIN: 2-step approach ===' as test;
+                     EXPLAIN
+                     SELECT i.page_id, i.contest, i.title, i.url, i.page_url, i.last_round, i.width, i.height,
+                            i.monument_id, i.description, i.size, i.author, i.mime,
+                            s.id, s.jury_id, s.created_at, s.deleted_at, s.round_id, s.page_id, s.rate, s.criteria_id
+                     FROM (
+                       SELECT page_id, rate
+                       FROM selection
+                       WHERE jury_id = 1 AND round_id = 1
+                       ORDER BY rate DESC, page_id ASC
+                       LIMIT 15 OFFSET 0
+                     ) top15
+                     JOIN selection s ON s.page_id = top15.page_id AND s.jury_id = 1 AND s.round_id = 1
+                     JOIN images i ON i.page_id = top15.page_id
+                     ORDER BY top15.rate DESC, i.monument_id ASC, top15.page_id ASC;
+
+                     -- Hmm, monument_id is from images, needed for ORDER BY -- still a problem for secondary sort
+                     -- But we can do it differently: sort by (rate desc, page_id asc) ignoring monument_id
+                     -- since monument_id within the same rate bucket doesn't matter for page 1
+
+                     -- Let's check: for the FIRST page (offset=0), does the secondary sort by monument_id matter?
+                     -- The original ORDER BY: rate desc, monument_id asc, page_id asc
+                     -- This means: group by rate value, within same rate sort by monument_id
+
+                     SELECT '=== EXPLAIN: selection-first approach using idx_selection_jury_round ===' as test;
+                     EXPLAIN
+                     SELECT STRAIGHT_JOIN
+                            i.page_id, i.contest, i.title, i.url, i.page_url, i.last_round, i.width, i.height,
+                            i.monument_id, i.description, i.size, i.author, i.mime,
+                            s.id, s.jury_id, s.created_at, s.deleted_at, s.round_id, s.page_id, s.rate, s.criteria_id
+                     FROM selection s
+                     JOIN images i ON i.page_id = s.page_id
+                     WHERE s.jury_id = 1 AND s.round_id = 1
+                     ORDER BY s.rate DESC, i.monument_id ASC, s.page_id ASC
+                     LIMIT 15 OFFSET 0;
+                     ENDSQL)
+
+                     docker exec -i mariadb-perf2 mariadb -u root -proot wlxjury << 'ENDSQL'
+                        -- ============================================================
+                        -- IDEA 1: Index on (jury_id, round_id, rate, page_id) on selection
+                        -- This covers ORDER BY (rate DESC, page_id ASC) — filesort avoided
+                        -- for rate+page_id but monument_id still cross-table
+                        -- ============================================================
+                        CREATE INDEX idx_selection_jury_round_rate_page ON selection(jury_id, round_id, rate, page_id);
+
+                        SELECT '=== EXPLAIN: with idx_jury_round_rate_page ===' as test;
+                        EXPLAIN
+                        select STRAIGHT_JOIN i.page_id, i.monument_id, s.rate, s.page_id
+                        from selection s JOIN images i ON i.page_id = s.page_id
+                        WHERE s.jury_id = 1 AND s.round_id = 1
+                        ORDER BY s.rate DESC, i.monument_id ASC, s.page_id ASC
+                        LIMIT 15 OFFSET 0;
+
+                        -- TIMING: with new index, selection-first
+                        SELECT '=== TIMING with new index ===' as test;
+                        SET @t0 = NOW(6);
+                        SELECT STRAIGHT_JOIN
+                               i.page_id, i.contest, i.title, i.url, i.page_url, i.last_round, i.width, i.height,
+                               i.monument_id, i.description, i.size, i.author, i.mime,
+                               s.id, s.jury_id, s.created_at, s.deleted_at, s.round_id, s.page_id, s.rate, s.criteria_id
+                        FROM selection s JOIN images i ON i.page_id = s.page_id
+                        WHERE s.jury_id = 1 AND s.round_id = 1
+                        ORDER BY s.rate DESC, i.monument_id ASC, s.page_id ASC
+                        LIMIT 15 OFFSET 0;
+                        SELECT TIMESTAMPDIFF(MICROSECOND, @t0, NOW(6))/1000 AS ms;
+
+                        -- ============================================================
+                        -- IDEA 2: Denormalize monument_id into selection
+                        -- (hypothetical - read-only analysis, don't actually alter table)
+                        -- If monument_id were in selection, index (jury_id, round_id, rate, monument_id, page_id)
+                        -- would fully satisfy ORDER BY without join for sorting
+                        -- ============================================================
+
+                        -- ============================================================
+                        -- IDEA 3: Use subquery to limit what needs sorting
+                        -- Sort by (rate, page_id) in selection only, then join images for top-N
+                        -- Correct only if monument_id secondary sort is dropped or done post-join
+                        -- ============================================================
+                        SELECT '=== EXPLAIN: subquery top-N then join ===' as test;
+                        EXPLAIN
+                        SELECT i.page_id, i.contest, i.title, i.url, i.page_url, i.last_round, i.width, i.height,
+                               i.monument_id, i.description, i.size, i.author, i.mime,
+                               s.id, s.jury_id, s.created_at, s.deleted_at, s.round_id, s.page_id, s.rate, s.criteria_id
+                        FROM (
+                          SELECT page_id, rate, id, jury_id, created_at, deleted_at, round_id, criteria_id
+                          FROM selection
+                          WHERE jury_id = 1 AND round_id = 1
+                          ORDER BY rate DESC, page_id ASC
+                          LIMIT 15 OFFSET 0
+                        ) s
+                        JOIN images i ON i.page_id = s.page_id
+                        ORDER BY s.rate DESC, i.monument_id ASC, s.page_id ASC;
+
+                        SELECT '=== TIMING: subquery top-N then join ===' as test;
+                        SET @t0 = NOW(6);
+                        SELECT i.page_id, i.contest, i.title, i.url, i.page_url, i.last_round, i.width, i.height,
+                               i.monument_id, i.description, i.size, i.author, i.mime,
+                               s.id, s.jury_id, s.created_at, s.deleted_at, s.round_id, s.page_id, s.rate, s.criteria_id
+                        FROM (
+                          SELECT page_id, rate, id, jury_id, created_at, deleted_at, round_id, criteria_id
+                          FROM selection
+                          WHERE jury_id = 1 AND round_id = 1
+                          ORDER BY rate DESC, page_id ASC
+                          LIMIT 15 OFFSET 0
+                        ) s
+                        JOIN images i ON i.page_id = s.page_id
+                        ORDER BY s.rate DESC, i.monument_id ASC, s.page_id ASC;
+                        SELECT TIMESTAMPDIFF(MICROSECOND, @t0, NOW(6))/1000 AS ms;
+                        ENDSQL
+                        Test index idea 1 (covering rate+page_id) and idea 3 (subquery top-N)
+
+                        docker exec -i mariadb-perf2 mariadb -u root -proot wlxjury << 'ENDSQL'
+                           -- Summary comparison table: all approaches cold cache
+                           SELECT '=== COMPREHENSIVE COMPARISON (cold cache each) ===' as label;
+
+                           -- A: Baseline (original, images-first, all columns)
+                           FLUSH TABLES; SET @t0 = NOW(6);
+                           SELECT i.page_id, i.contest, i.title, i.url, i.page_url, i.last_round, i.width, i.height,
+                                  i.monument_id, i.description, i.size, i.author, i.mime,
+                                  s.id, s.jury_id, s.created_at, s.deleted_at, s.round_id, s.page_id, s.rate, s.criteria_id
+                           FROM images i JOIN selection s ON i.page_id = s.page_id
+                           WHERE s.jury_id = 1 AND s.round_id = 1
+                           ORDER BY s.rate DESC, i.monument_id ASC, s.page_id ASC LIMIT 15 OFFSET 0;
+                           SELECT CONCAT('A: baseline (images-first, all cols): ', TIMESTAMPDIFF(MICROSECOND,@t0,NOW(6))/1000, ' ms') AS result;
+
+                           -- B: STRAIGHT_JOIN (selection-first), all columns
+                           FLUSH TABLES; SET @t0 = NOW(6);
+                           SELECT STRAIGHT_JOIN i.page_id, i.contest, i.title, i.url, i.page_url, i.last_round, i.width, i.height,
+                                  i.monument_id, i.description, i.size, i.author, i.mime,
+                                  s.id, s.jury_id, s.created_at, s.deleted_at, s.round_id, s.page_id, s.rate, s.criteria_id
+                           FROM selection s JOIN images i ON i.page_id = s.page_id
+                           WHERE s.jury_id = 1 AND s.round_id = 1
+                           ORDER BY s.rate DESC, s.monument_id ASC, s.page_id ASC LIMIT 15 OFFSET 0;
+                           SELECT CONCAT('B: STRAIGHT_JOIN + monument_id denorm + all cols: ', TIMESTAMPDIFF(MICROSECOND,@t0,NOW(6))/1000, ' ms') AS result;
+
+                           -- C: STRAIGHT_JOIN + monument_id denorm + drop description/timestamps
+                           FLUSH TABLES; SET @t0 = NOW(6);
+                           SELECT STRAIGHT_JOIN s.page_id, s.jury_id, s.round_id, s.rate, s.criteria_id,
+                                  i.page_id, i.contest, i.title, i.url, i.page_url, i.last_round,
+                                  i.width, i.height, i.monument_id, i.size, i.author, i.mime
+                           FROM selection s JOIN images i ON i.page_id = s.page_id
+                           WHERE s.jury_id = 1 AND s.round_id = 1
+                           ORDER BY s.rate DESC, s.monument_id ASC, s.page_id ASC LIMIT 15 OFFSET 0;
+                           SELECT CONCAT('C: STRAIGHT_JOIN + denorm + drop unused cols: ', TIMESTAMPDIFF(MICROSECOND,@t0,NOW(6))/1000, ' ms') AS result;
+
+                           -- D: Performance schema IO stats
+                           SELECT '=== Performance Schema: IO by table ===' as label;
+                           SELECT OBJECT_NAME, COUNT_READ, SUM_TIMER_READ/1000000000 as read_ms
+                           FROM performance_schema.table_io_waits_summary_by_table
+                           WHERE OBJECT_SCHEMA = 'wlxjury'
+                           ORDER BY SUM_TIMER_READ DESC;
+                           ENDSQL
